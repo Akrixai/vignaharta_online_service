@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import DashboardLayout from '@/components/dashboard/layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { UserRole } from '@/types';
 import { useRealTimeData } from '@/hooks/useRealTimeData';
-import { Users, Plus, Edit, Trash2, Mail, Phone, Calendar, Building } from 'lucide-react';
+import { Users, Plus, Edit, Trash2, Mail, Phone, Calendar, Building, Eye } from 'lucide-react';
 import { showToast } from '@/lib/toast';
 
 interface Employee {
@@ -23,6 +23,17 @@ interface Employee {
   updated_at: string;
 }
 
+interface EmployeeDocument {
+  id: string;
+  user_id: string;
+  document_type: string;
+  file_url: string;
+  file_name: string;
+  mime_type: string;
+  file_size: number;
+  uploaded_at: string;
+}
+
 export default function EmployeesManagementPage() {
   const { data: session } = useSession();
   const [showAddModal, setShowAddModal] = useState(false);
@@ -36,12 +47,27 @@ export default function EmployeesManagementPage() {
     employee_id: '',
     department: ''
   });
+  const [documentFiles, setDocumentFiles] = useState({
+    aadhar: null as File | null,
+    pancard: null as File | null,
+    photo: null as File | null,
+  });
+  const [showDocsModal, setShowDocsModal] = useState(false);
+  const [docsLoading, setDocsLoading] = useState(false);
+  const [employeeDocs, setEmployeeDocs] = useState<EmployeeDocument[]>([]);
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
 
+  // Memoize filter and orderBy to prevent infinite re-renders
+  const filter = useMemo(() => ({ column: 'role', value: 'EMPLOYEE' }), []);
+  const orderBy = useMemo(() => ({ column: 'created_at', ascending: false }), []);
+  const enabled = useMemo(() => !!session?.user?.role && session.user.role === UserRole.ADMIN, [session?.user?.role]);
+
+  // Stabilize useRealTimeData usage
   const { data: employees, loading: employeesLoading, refresh } = useRealTimeData<Employee>({
     table: 'users',
-    filter: { column: 'role', value: 'EMPLOYEE' },
-    orderBy: { column: 'created_at', ascending: false },
-    enabled: session?.user?.role === UserRole.ADMIN
+    filter,
+    orderBy,
+    enabled
   });
 
   if (!session || session.user.role !== UserRole.ADMIN) {
@@ -87,6 +113,23 @@ export default function EmployeesManagementPage() {
       setShowAddModal(false);
       setEditingEmployee(null);
       refresh();
+
+      if (!editingEmployee && response.ok) {
+        const employee = await response.json();
+        if (documentFiles.aadhar && documentFiles.pancard && documentFiles.photo) {
+          const formData = new FormData();
+          formData.append('aadhar', documentFiles.aadhar);
+          formData.append('pancard', documentFiles.pancard);
+          formData.append('photo', documentFiles.photo);
+          const docRes = await fetch(`/api/admin/employees/${employee.id}/documents`, {
+            method: 'POST',
+            body: formData,
+          });
+          if (!docRes.ok) {
+            showToast.error('Failed to upload employee documents');
+          }
+        }
+      }
     } catch (error) {
       console.error('Error saving employee:', error);
       showToast.error('Failed to save employee', {
@@ -167,6 +210,22 @@ export default function EmployeesManagementPage() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Add function to fetch employee documents
+  const fetchEmployeeDocuments = async (employee: Employee) => {
+    setDocsLoading(true);
+    setSelectedEmployee(employee);
+    setShowDocsModal(true);
+    try {
+      const res = await fetch(`/api/admin/employees/${employee.id}/documents`);
+      const data = await res.json();
+      setEmployeeDocs(data.documents || []);
+    } catch (err) {
+      setEmployeeDocs([]);
+    } finally {
+      setDocsLoading(false);
     }
   };
 
@@ -337,6 +396,15 @@ export default function EmployeesManagementPage() {
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
+                          <Button
+                            onClick={() => fetchEmployeeDocuments(employee)}
+                            size="sm"
+                            variant="outline"
+                            className="text-purple-600 hover:text-purple-700"
+                          >
+                            <Eye className="w-4 h-4" />
+                            View Documents
+                          </Button>
                         </td>
                       </tr>
                     ))}
@@ -356,7 +424,7 @@ export default function EmployeesManagementPage() {
       {/* Add/Edit Employee Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto shadow-xl">
             <h2 className="text-xl font-semibold mb-4">
               {editingEmployee ? 'Edit Employee' : 'Add New Employee'}
             </h2>
@@ -440,6 +508,37 @@ export default function EmployeesManagementPage() {
                 </div>
               )}
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Aadhaar Card (PDF/JPG/PNG)</label>
+                <input
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  onChange={e => setDocumentFiles(prev => ({ ...prev, aadhar: e.target.files?.[0] || null }))}
+                  required={!editingEmployee}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-50 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">PAN Card (PDF/JPG/PNG)</label>
+                <input
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  onChange={e => setDocumentFiles(prev => ({ ...prev, pancard: e.target.files?.[0] || null }))}
+                  required={!editingEmployee}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-50 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Photo (JPG/PNG)</label>
+                <input
+                  type="file"
+                  accept=".jpg,.jpeg,.png"
+                  onChange={e => setDocumentFiles(prev => ({ ...prev, photo: e.target.files?.[0] || null }))}
+                  required={!editingEmployee}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-50 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
+                />
+              </div>
+
               <div className="flex space-x-3 pt-4">
                 <Button
                   type="button"
@@ -458,6 +557,141 @@ export default function EmployeesManagementPage() {
                 </Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* View Documents Modal */}
+      {showDocsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-t-xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold">Employee Documents</h2>
+                  <p className="text-blue-100 mt-1">{selectedEmployee?.name}</p>
+                </div>
+                <button
+                  onClick={() => setShowDocsModal(false)}
+                  className="text-white hover:text-gray-200 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6">
+              {docsLoading ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mx-auto"></div>
+                  <p className="text-gray-600 mt-4 text-lg">Loading documents...</p>
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  {['AADHAR', 'PANCARD', 'PHOTO', 'IMAGE'].map(type => {
+                    const doc = employeeDocs.find(d => d.document_type === type);
+                    return (
+                      <div key={type} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-gray-300 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-4">
+                            <div className="flex-shrink-0">
+                              <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                                doc ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
+                              }`}>
+                                {type === 'AADHAR' && (
+                                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V4a2 2 0 114 0v2m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-6 0m6 0a3.001 3.001 0 016 0m6 0v1a2 2 0 01-2 2H9a2 2 0 01-2-2v-1m8-5a2 2 0 100-4 2 2 0 000 4z" />
+                                  </svg>
+                                )}
+                                {type === 'PANCARD' && (
+                                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                  </svg>
+                                )}
+                                {(type === 'PHOTO' || type === 'IMAGE') && (
+                                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                  </svg>
+                                )}
+                              </div>
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-gray-900">{type}</h3>
+                              {doc ? (
+                                <div className="text-sm text-gray-600">
+                                  <p>{doc.file_name}</p>
+                                  <p className="text-xs">{(doc.file_size / 1024).toFixed(1)} KB • {new Date(doc.uploaded_at).toLocaleDateString()}</p>
+                                </div>
+                              ) : (
+                                <p className="text-sm text-gray-400">Not uploaded</p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex space-x-2">
+                            {doc ? (
+                              <>
+                                <a
+                                  href={doc.file_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                                >
+                                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                  </svg>
+                                  View
+                                </a>
+                                <a
+                                  href={doc.file_url}
+                                  download={doc.file_name}
+                                  className="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
+                                >
+                                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                  </svg>
+                                  Download
+                                </a>
+                              </>
+                            ) : (
+                              <span className="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-500 text-sm font-medium rounded-lg">
+                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                Not Available
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="bg-gray-50 px-6 py-4 rounded-b-xl border-t border-gray-200">
+              <div className="flex justify-between items-center">
+                <div className="text-sm text-gray-600">
+                  {employeeDocs.length > 0 ? (
+                    <span>{employeeDocs.length} document{employeeDocs.length !== 1 ? 's' : ''} uploaded</span>
+                  ) : (
+                    <span>No documents uploaded yet</span>
+                  )}
+                </div>
+                <Button
+                  onClick={() => setShowDocsModal(false)}
+                  className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       )}

@@ -59,11 +59,22 @@ export function useRealTimeData<T = any>({
     fetchDataRef.current = fetchData;
   }, [fetchData]);
 
+  // Memoize the filter and orderBy dependencies to prevent unnecessary re-renders
+  const filterKey = useMemo(() =>
+    filter ? `${filter.column}:${filter.value}` : null,
+    [filter?.column, filter?.value]
+  );
+
+  const orderByKey = useMemo(() =>
+    orderBy ? `${orderBy.column}:${orderBy.ascending}` : null,
+    [orderBy?.column, orderBy?.ascending]
+  );
+
   // Separate effect for initial data fetch
   useEffect(() => {
     if (!enabled) return;
     fetchData();
-  }, [fetchData]);
+  }, [enabled, table, filterKey, orderByKey, select, fetchData]);
 
   // Separate effect for real-time subscription
   useEffect(() => {
@@ -101,7 +112,7 @@ export function useRealTimeData<T = any>({
         supabase.removeChannel(newChannel);
       }
     };
-  }, [table, filter, enabled]);
+  }, [table, filterKey, enabled]);
 
   const refresh = useCallback(() => {
     fetchData();

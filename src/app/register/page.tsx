@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { validateEmail, validatePhone } from '@/lib/utils';
 import Logo from '@/components/ui/logo';
@@ -21,6 +21,15 @@ export default function RegisterPage() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [registrationFee, setRegistrationFee] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetch('/api/admin/registration-fees')
+      .then(res => res.json())
+      .then(data => {
+        if (data.fee) setRegistrationFee(data.fee.amount);
+      });
+  }, []);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -194,9 +203,13 @@ export default function RegisterPage() {
         {/* Payment QR and Amount Section */}
         <div className="bg-yellow-50 border border-yellow-200 rounded-xl shadow-md p-6 flex flex-col items-center my-4 animate-fade-in">
           <h3 className="text-xl font-bold text-yellow-800 mb-2">Pay Registration Fee</h3>
-          <p className="text-yellow-700 mb-4 text-center">To register as a retailer, please pay <span className="font-bold text-lg text-yellow-900">₹499</span> using the QR code below. Complete the payment before submitting your registration.</p>
+          <p className="text-yellow-700 mb-4 text-center">
+            To register as a retailer, please pay <span className="font-bold text-lg text-yellow-900">₹{registrationFee ?? 499}</span> using the QR code below. Complete the payment before submitting your registration.
+          </p>
           <img src="/akrixPayQR.jpg" alt="Akrix Pay QR" className="w-96 h-96 object-contain rounded-lg border-2 border-yellow-300 shadow" />
-          <p className="text-xs text-yellow-600 mt-2 text-center">Scan the QR code above with any UPI app to pay ₹499 for retailer registration and contact the Admin <span className="font-bold text-xs text-yellow-900">phone number - 7499116527</span> or <span className="font-bold text-xs text-yellow-900">email - vighnahartaenterprises.sangli@gmail.com</span> to get the approval.</p>
+          <p className="text-xs text-yellow-600 mt-2 text-center">
+            Scan the QR code above with any UPI app to pay ₹{registrationFee ?? 499} for retailer registration and contact the Admin <span className="font-bold text-xs text-yellow-900">phone number - 7499116527</span> or <span className="font-bold text-xs text-yellow-900">email - vighnahartaenterprises.sangli@gmail.com</span> to get the approval.
+          </p>
         </div>
 
         {/* Registration Form */}

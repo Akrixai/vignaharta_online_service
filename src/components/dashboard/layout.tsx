@@ -53,6 +53,8 @@ const menuItems: MenuItem[] = [
   { name: 'Login Advertisements', href: '/dashboard/admin/advertisements', icon: '🔑', roles: [UserRole.ADMIN] },
   { name: 'All Certificates', href: '/dashboard/admin/certificates', icon: '🏆', roles: [UserRole.ADMIN] },
   { name: 'User Management', href: '/dashboard/admin/users', icon: '👥', roles: [UserRole.ADMIN] },
+  { name: 'Employee Management', href: '/dashboard/admin/employees', icon: '🧑‍💼', roles: [UserRole.ADMIN] },
+  { name: 'Registration Fee', href: '/dashboard/admin/registration-fee', icon: '💵', roles: [UserRole.ADMIN] },
   { name: 'Registration Requests', href: '/dashboard/admin/pending-registrations', icon: '👤', roles: [UserRole.ADMIN, UserRole.EMPLOYEE] },
   { name: 'Database Cleanup', href: '/dashboard/admin/data-cleanup', icon: '🗄️', roles: [UserRole.ADMIN] },
   { name: 'Transactions', href: '/dashboard/transactions', icon: '💳', roles: [UserRole.ADMIN, UserRole.EMPLOYEE, UserRole.RETAILER] },
