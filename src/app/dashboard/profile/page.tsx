@@ -377,29 +377,25 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
-        <Card className="bg-gray-50">
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Manage your account settings</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Button
-                onClick={() => setShowChangePassword(true)}
-                className="bg-red-600 hover:bg-red-700 text-white"
-              >
-                🔒 Change Password
-              </Button>
-              <Button className="bg-red-600 hover:bg-red-700 text-white">
-                📧 Update Email
-              </Button>
-              <Button className="bg-red-600 hover:bg-red-700 text-white">
-                🔔 Notification Settings
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Quick Actions - Only for Admin */}
+        {user.role === UserRole.ADMIN && (
+          <Card className="bg-gray-50">
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+              <CardDescription>Manage your account settings</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 gap-4">
+                <Button
+                  onClick={() => setShowChangePassword(true)}
+                  className="bg-red-600 hover:bg-red-700 text-white w-fit"
+                >
+                  🔒 Change Password
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Change Password Modal */}

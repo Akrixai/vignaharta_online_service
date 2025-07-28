@@ -29,7 +29,7 @@ export default function EmployeeCertificatesPage() {
   const [certificate, setCertificate] = useState<Certificate | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [branch, setBranch] = useState('');
+  const [branch] = useState('Main Branch');
 
   // Check employee access
   if (!session || session.user.role !== UserRole.EMPLOYEE) {
@@ -44,6 +44,8 @@ export default function EmployeeCertificatesPage() {
   }
 
   useEffect(() => {
+    if (!session?.user?.id) return;
+
     const fetchOrGenerateCertificate = async () => {
       try {
         // First try to get existing certificate
@@ -68,7 +70,7 @@ export default function EmployeeCertificatesPage() {
             employee_name: session.user.name,
             employee_id: session.user.employee_id || session.user.id.substring(0, 8),
             department: session.user.department || 'Government Services',
-            branch: branch || 'Main Branch'
+            branch: branch
           })
         });
 
@@ -87,7 +89,7 @@ export default function EmployeeCertificatesPage() {
             employee_name: session.user.name,
             employee_id: session.user.employee_id || session.user.id.substring(0, 8),
             department: session.user.department || 'Government Services',
-            branch: branch || 'Main Branch',
+            branch: branch,
             certificate_number: certificateNumber,
             issue_date: employeeCreationDate.toLocaleDateString('en-GB'),
             company_name: 'Vignaharta Online Service',
@@ -106,7 +108,7 @@ export default function EmployeeCertificatesPage() {
           employee_name: session.user.name,
           employee_id: session.user.employee_id || session.user.id.substring(0, 8),
           department: session.user.department || 'Government Services',
-          branch: branch || 'Main Branch',
+          branch: branch,
           certificate_number: certificateNumber,
           issue_date: employeeCreationDate.toLocaleDateString('en-GB'),
           company_name: 'Vignaharta Online Service',
@@ -117,10 +119,8 @@ export default function EmployeeCertificatesPage() {
       }
     };
 
-    if (session?.user) {
-      fetchOrGenerateCertificate();
-    }
-  }, [session]);
+    fetchOrGenerateCertificate();
+  }, [session?.user?.id, session?.user?.name, session?.user?.employee_id, session?.user?.department, branch]);
 
   const handlePrint = () => {
     window.print();

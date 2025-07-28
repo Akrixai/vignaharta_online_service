@@ -38,6 +38,8 @@ export default function CertificatesPage() {
   }
 
   useEffect(() => {
+    if (!session?.user?.id) return;
+
     // Generate or fetch certificate data
     const generateCertificate = async () => {
       try {
@@ -80,7 +82,7 @@ export default function CertificatesPage() {
     };
 
     generateCertificate();
-  }, [session]);
+  }, [session?.user?.id, session?.user?.name]);
 
   const handlePrint = () => {
     window.print();

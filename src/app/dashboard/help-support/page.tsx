@@ -5,6 +5,7 @@ import DashboardLayout from '@/components/dashboard/layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { UserRole } from '@/types';
 import { Phone, Mail, MapPin, Clock, MessageCircle, HelpCircle } from 'lucide-react';
+import SupportOptions from '@/components/SupportOptions';
 
 export default function HelpSupportPage() {
   const { data: session } = useSession();
@@ -25,94 +26,70 @@ export default function HelpSupportPage() {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="bg-gradient-to-r from-red-600 to-red-700 text-white p-6 rounded-lg">
-          <h1 className="text-2xl font-bold mb-2">🆘 Help & Support</h1>
-          <p className="text-red-100">Get help and support for your account</p>
+        <div className="bg-gradient-to-r from-red-600 to-red-700 rounded-xl p-8 text-white shadow-xl">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold mb-3 flex items-center">
+                <HelpCircle className="w-10 h-10 mr-3" />
+                Help & Support
+              </h1>
+              <p className="text-red-100 text-xl">
+                Get instant assistance through email or WhatsApp support
+              </p>
+            </div>
+            <div className="text-right">
+              <div className="bg-white/20 rounded-lg p-4">
+                <div className="text-sm text-red-100">Support Status</div>
+                <div className="text-2xl font-bold">ONLINE</div>
+              </div>
+            </div>
+          </div>
+          <div className="mt-6 flex items-center gap-4 text-red-100">
+            <span>🕒 Available Mon-Sat, 9 AM - 6 PM</span>
+            <span>•</span>
+            <span>📞 WhatsApp Support</span>
+            <span>•</span>
+            <span>📧 Email Support</span>
+          </div>
         </div>
 
-        {/* Contact Information */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Contact Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-gray-900 flex items-center gap-2">
-                <Phone className="w-5 h-5 text-red-600" />
-                Contact Information
-              </CardTitle>
-              <CardDescription>Reach out to us through these channels</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                <Phone className="w-5 h-5 text-red-600" />
-                <div>
-                  <p className="font-medium text-gray-900">Phone Support</p>
-                  <p className="text-sm text-gray-600">+91 98765 43210</p>
-                  <p className="text-xs text-gray-500">Available 24/7</p>
-                </div>
+        {/* Support Options */}
+        <SupportOptions />
+
+        {/* Quick Contact Info */}
+        <Card className="bg-gradient-to-r from-blue-50 to-green-50 border-l-4 border-l-red-500">
+          <CardHeader>
+            <CardTitle className="text-gray-900 flex items-center gap-2">
+              <Phone className="w-5 h-5 text-red-600" />
+              Quick Contact Information
+            </CardTitle>
+            <CardDescription>Alternative contact methods</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                <Phone className="w-8 h-8 text-red-600 mx-auto mb-2" />
+                <p className="font-semibold text-gray-900">Phone Support</p>
+                <p className="text-sm text-gray-600">+91-7499116527</p>
+                <p className="text-xs text-gray-500">Mon-Sat, 9 AM - 6 PM</p>
               </div>
 
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                <Mail className="w-5 h-5 text-red-600" />
-                <div>
-                  <p className="font-medium text-gray-900">Email Support</p>
-                  <p className="text-sm text-gray-600">support@vignahartajanseva.gov.in</p>
-                  <p className="text-xs text-gray-500">Response within 24 hours</p>
-                </div>
+              <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                <Mail className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                <p className="font-semibold text-gray-900">Email Support</p>
+                <p className="text-sm text-gray-600">vighnahartaenterprises.sangli@gmail.com</p>
+                <p className="text-xs text-gray-500">Response within 24 hours</p>
               </div>
 
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                <MapPin className="w-5 h-5 text-red-600" />
-                <div>
-                  <p className="font-medium text-gray-900">Office Address</p>
-                  <p className="text-sm text-gray-600">
-                    Vignaharta Online Service Center<br />
-                    Government Building, Main Road<br />
-                    District Office, State - 123456
-                  </p>
-                </div>
+              <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                <MapPin className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                <p className="font-semibold text-gray-900">Office Address</p>
+                <p className="text-sm text-gray-600">Vignaharta Online Service</p>
+                <p className="text-xs text-gray-500">Sangli, Maharashtra</p>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Office Hours */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-gray-900 flex items-center gap-2">
-                <Clock className="w-5 h-5 text-red-600" />
-                Office Hours
-              </CardTitle>
-              <CardDescription>When you can reach us</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                  <span className="font-medium text-gray-900">Monday - Friday</span>
-                  <span className="text-sm text-gray-600">9:00 AM - 6:00 PM</span>
-                </div>
-
-                <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-                  <span className="font-medium text-gray-900">Saturday</span>
-                  <span className="text-sm text-gray-600">10:00 AM - 4:00 PM</span>
-                </div>
-
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                  <span className="font-medium text-gray-900">Sunday</span>
-                  <span className="text-sm text-gray-600">Closed</span>
-                </div>
-              </div>
-
-              <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <div className="flex items-center gap-2 text-yellow-800">
-                  <HelpCircle className="w-4 h-4" />
-                  <span className="font-medium text-sm">Emergency Support</span>
-                </div>
-                <p className="text-xs text-yellow-700 mt-1">
-                  For urgent issues, call our 24/7 helpline: +91 98765 43210
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* FAQ Section */}
         <Card>
@@ -121,37 +98,61 @@ export default function HelpSupportPage() {
               <MessageCircle className="w-5 h-5 text-red-600" />
               Frequently Asked Questions
             </CardTitle>
-            <CardDescription>Common questions and answers</CardDescription>
+            <CardDescription>Common questions and answers for retailers</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="border-l-4 border-red-500 pl-4">
-                <h4 className="font-semibold text-gray-900 mb-2">How do I check my application status?</h4>
+                <h4 className="font-semibold text-gray-900 mb-2">How do I get support through WhatsApp?</h4>
                 <p className="text-sm text-gray-600">
-                  Go to the Applications section in your dashboard to view the status of all your submitted applications.
+                  Click the "Open WhatsApp Support" button above to send a pre-formatted message to our support team at +91-7499116527.
                 </p>
               </div>
 
               <div className="border-l-4 border-blue-500 pl-4">
-                <h4 className="font-semibold text-gray-900 mb-2">How do I add money to my wallet?</h4>
+                <h4 className="font-semibold text-gray-900 mb-2">How do I send an email query?</h4>
                 <p className="text-sm text-gray-600">
-                  Visit the Wallet section and click on "Add Money" to recharge your wallet using various payment methods.
+                  Use the email support form above to send detailed queries. You'll receive a professional response within 24 hours.
                 </p>
               </div>
 
               <div className="border-l-4 border-green-500 pl-4">
-                <h4 className="font-semibold text-gray-900 mb-2">What documents do I need for services?</h4>
+                <h4 className="font-semibold text-gray-900 mb-2">What support hours are available?</h4>
                 <p className="text-sm text-gray-600">
-                  Required documents vary by service. Check the service details page for specific document requirements.
+                  Our support team is available Monday to Saturday, 9 AM to 6 PM. Email support is available 24/7.
                 </p>
               </div>
 
               <div className="border-l-4 border-yellow-500 pl-4">
-                <h4 className="font-semibold text-gray-900 mb-2">How do I download my certificates?</h4>
+                <h4 className="font-semibold text-gray-900 mb-2">What types of issues can I get help with?</h4>
                 <p className="text-sm text-gray-600">
-                  Completed certificates can be downloaded from the Applications section once your application is approved.
+                  Service applications, wallet/payment issues, document queries, technical support, and general questions.
                 </p>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Akrix AI Branding */}
+        <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-l-4 border-l-purple-500">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <span className="text-2xl">🤖</span>
+                <span className="font-bold text-gray-900">Powered by Akrix AI</span>
+              </div>
+              <p className="text-sm text-gray-600 mb-3">
+                Advanced AI-powered support system for enhanced customer experience
+              </p>
+              <a
+                href="https://akrix-ai.netlify.app"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-purple-600 hover:text-purple-800 font-medium text-sm transition-colors"
+              >
+                🌐 Visit Akrix AI
+                <span className="text-xs">↗</span>
+              </a>
             </div>
           </CardContent>
         </Card>

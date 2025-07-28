@@ -16,13 +16,7 @@ import LogoSpinner, { PageLoader } from '@/components/ui/logo-spinner';
 import { showToast } from '@/lib/toast';
 import { supabase } from '@/lib/supabase';
 
-const mockTransactions = [
-  { id: '1', type: 'DEPOSIT', amount: 1000, description: 'Wallet top-up via Razorpay', reference: 'pay_123456', status: 'COMPLETED', createdAt: new Date('2024-01-15T10:30:00') },
-  { id: '2', type: 'SCHEME_PAYMENT', amount: -250, description: '7/12 Extract Application', reference: 'app_789012', status: 'COMPLETED', createdAt: new Date('2024-01-14T14:20:00') },
-  { id: '3', type: 'DEPOSIT', amount: 500, description: 'Wallet top-up via Razorpay', reference: 'pay_345678', status: 'COMPLETED', createdAt: new Date('2024-01-13T09:15:00') },
-  { id: '4', type: 'WITHDRAWAL', amount: -200, description: 'Withdrawal to bank account', reference: 'wd_901234', status: 'COMPLETED', createdAt: new Date('2024-01-12T16:45:00') },
-  { id: '5', type: 'REFUND', amount: 100, description: 'Refund for cancelled application', reference: 'ref_567890', status: 'COMPLETED', createdAt: new Date('2024-01-11T11:30:00') },
-];
+
 
 export default function WalletPage() {
   const { data: session } = useSession();
@@ -735,14 +729,14 @@ export default function WalletPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {(transactions.length > 0 ? transactions : mockTransactions).map((transaction) => (
+                {transactions.map((transaction) => (
                 <div key={transaction.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center space-x-3">
                     <span className="text-2xl">{getTransactionIcon(transaction.type)}</span>
                     <div>
                       <p className="font-medium text-sm text-gray-900">{transaction.description}</p>
                       <p className="text-xs text-gray-500">
-                        {formatDateTime(transaction.created_at || transaction.createdAt)} • Ref: {transaction.reference}
+                        {formatDateTime(transaction.created_at)} • Ref: {transaction.reference}
                       </p>
                     </div>
                   </div>
