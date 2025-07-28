@@ -225,11 +225,9 @@ export async function sendWhatsAppMessage(message: {
   try {
     const result = await sendWhatsAppTemplate({
       to: message.phone,
-      templateName: 'general_notification',
-      templateParams: [message.message],
-      recipientType: message.recipientType,
-      recipientId: message.recipientId,
-      schemeId: message.schemeId,
+      recipientName: '',  // Using empty string as this is a legacy function
+      schemeTitle: '',    // Using empty string as this is a legacy function
+      schemeDescription: message.message  // Using the message as the description
     });
     return result.success;
   } catch (error) {

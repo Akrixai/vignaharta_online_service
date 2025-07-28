@@ -264,14 +264,9 @@ export async function POST(request: NextRequest) {
     // Try to send email, but don't fail if SMTP is not configured
     try {
       await transporter.sendMail(mailOptions);
-      console.log('✅ Support email sent successfully');
+      // Support email sent successfully
     } catch (emailError) {
-      console.log('📧 Email sending failed (SMTP not configured), logging request:');
-      console.log('From:', session.user.name, '<' + session.user.email + '>');
-      console.log('To:', adminEmail);
-      console.log('Subject:', `🆘 Support Request: ${subject}`);
-      console.log('Priority:', priority);
-      console.log('Message:', message);
+      // Email sending failed (SMTP not configured)
     }
 
     return NextResponse.json({ 
@@ -280,7 +275,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Email sending error:', error);
+    // Email sending error occurred
     return NextResponse.json({ 
       error: 'Failed to send email' 
     }, { status: 500 });

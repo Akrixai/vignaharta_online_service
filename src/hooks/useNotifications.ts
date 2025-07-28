@@ -49,7 +49,7 @@ export function useNotifications(userRole?: string, userId?: string) {
         }
       }
     } catch (error) {
-      // console.error('Error fetching notifications:', error);
+      // Error fetching notifications
     } finally {
       setLoading(false);
     }
@@ -94,9 +94,7 @@ export function useNotifications(userRole?: string, userId?: string) {
         await fetchNotifications();
       }
     } catch (error) {
-      // if (process.env.NODE_ENV === 'development') {
-      //   console.error('Error marking notifications as read:', error);
-      // }
+      // Error marking notifications as read
     }
   };
 
@@ -169,7 +167,7 @@ export function useNotifications(userRole?: string, userId?: string) {
         await fetchNotifications();
       }
     } catch (error) {
-      // console.error('Error deleting notification:', error);
+      // Error deleting notification
       if (typeof window !== 'undefined') {
         const { showToast } = await import('@/lib/toast');
         showToast.error('Failed to delete notification');

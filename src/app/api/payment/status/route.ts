@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
           error_description: payment.error_description
         };
       } catch (error) {
-        console.error('Error fetching payment from Razorpay:', error);
+        // Error fetching payment from Razorpay
       }
     }
 
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
           payments: order.payments || []
         };
       } catch (error) {
-        console.error('Error fetching order from Razorpay:', error);
+        // Error fetching order from Razorpay
       }
     }
 
@@ -112,7 +112,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error checking payment status:', error);
+    // Error checking payment status
     return NextResponse.json({ 
       error: 'Failed to check payment status' 
     }, { status: 500 });
@@ -215,7 +215,7 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Error syncing payment:', error);
+    // Error syncing payment
     return NextResponse.json({ 
       error: 'Failed to sync payment' 
     }, { status: 500 });

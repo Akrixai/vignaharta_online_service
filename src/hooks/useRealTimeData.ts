@@ -234,6 +234,7 @@ export function useRealTimeApplications(userId?: string, enabled = true) {
 
   useEffect(() => {
     if (enabled) {
+      // Fetching applications
       fetchApplications(true); // Initial load with loading state
 
       // Poll for real-time updates every 10 seconds (without loading state)
@@ -281,6 +282,7 @@ export function useRealTimeAdminApplications(enabled = true) {
 
   useEffect(() => {
     if (enabled) {
+      // Fetching admin applications
       fetchApplications();
     }
   }, [enabled]);
@@ -324,6 +326,7 @@ export function useRealTimeProducts(enabled = true) {
 
   useEffect(() => {
     if (enabled) {
+      // Fetching products
       fetchProducts();
     }
   }, [enabled]);
@@ -367,6 +370,7 @@ export function useRealTimeTrainingVideos(enabled = true) {
 
   useEffect(() => {
     if (enabled) {
+      // Fetching training videos
       fetchTrainingVideos();
     }
   }, [enabled]);

@@ -5,7 +5,7 @@ import { env, validateEnv, serverEnv, validateServerEnv } from './env';
 try {
   validateEnv();
 } catch (error) {
-  // All console.error statements removed
+  // Environment validation error
 }
 
 // Client for browser/frontend
@@ -47,7 +47,7 @@ export const supabaseAdmin = (() => {
         }
       );
     } catch (error) {
-      // All console.error statements removed
+      // Admin client creation error
       throw error;
     }
   }

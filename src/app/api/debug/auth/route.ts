@@ -9,9 +9,7 @@ export async function POST(request: NextRequest) {
     const { email, password } = body;
 
     // Security: Never log credentials in production
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔍 Debug Auth - Testing credentials for:', email);
-    }
+    // Debug Auth - Testing credentials would be logged here in development
 
     // Check if user exists
     const { data: user, error } = await supabaseAdmin
@@ -40,18 +38,11 @@ export async function POST(request: NextRequest) {
 
     // Security: Never log user data in production
     if (process.env.NODE_ENV === 'development') {
-      console.log('🔍 Database query result:', {
-        userFound: !!user,
-        error: error?.message,
-        userRole: user?.role,
-        isActive: user?.is_active
-      });
+      // Database query result logged here
     }
 
     if (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('❌ Database error:', error);
-      }
+      // Database error would be logged here in development
       return NextResponse.json({
         success: false,
         error: `Database error: ${error.message}`,
@@ -60,9 +51,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!user) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('❌ User not found');
-      }
+      // User not found would be logged here in development
       return NextResponse.json({
         success: false,
         error: 'User not found',
@@ -71,9 +60,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!user.is_active) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('❌ User account is inactive');
-      }
+      // User account inactive would be logged here in development
       return NextResponse.json({
         success: false,
         error: 'User account is inactive'
@@ -81,29 +68,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Test password - NEVER LOG PASSWORDS OR HASHES IN PRODUCTION
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔑 Testing password...');
-      console.log('🔑 Password length:', password.length);
-      console.log('🔑 Hash exists:', !!user.password_hash);
-    }
+    // Password validation details would be logged here in development
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔑 Password valid:', isPasswordValid);
-    }
+    // Password validation result would be logged here in development
 
     if (!isPasswordValid) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('❌ Invalid password');
-      }
+      // Invalid password would be logged here in development
       return NextResponse.json({
         success: false,
         error: 'Invalid password'
       }, { status: 401 });
     }
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log('✅ Authentication successful');
-    }
+    // Authentication success would be logged here in development
     return NextResponse.json({
       success: true,
       message: 'Authentication successful',
@@ -125,9 +102,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('💥 Debug auth error:', error);
-    }
+    // Debug auth errors would be logged here in development
     return NextResponse.json({
       success: false,
       error: 'Internal server error',

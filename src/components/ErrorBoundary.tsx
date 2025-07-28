@@ -58,7 +58,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-gray-600 text-center">
-                An unexpected error occurred while loading the chat system.
+                An unexpected error occurred while loading the application.
               </p>
               
               {this.state.error && (

@@ -60,7 +60,7 @@ const menuItems: MenuItem[] = [
   { name: 'Transactions', href: '/dashboard/transactions', icon: '💳', roles: [UserRole.ADMIN, UserRole.EMPLOYEE, UserRole.RETAILER] },
   { name: 'Wallet Approvals', href: '/dashboard/admin/wallet-approvals', icon: '💰', roles: [UserRole.ADMIN, UserRole.EMPLOYEE] },
   { name: 'Refund Management', href: '/dashboard/admin/refunds', icon: '🔄', roles: [UserRole.ADMIN, UserRole.EMPLOYEE] },
-  { name: 'Help & Support', href: '/dashboard/support', icon: '🆘', roles: [UserRole.RETAILER] },
+  { name: 'Help & Support', href: '/dashboard/help-support', icon: '🆘', roles: [UserRole.RETAILER] },
 
   { name: 'My Profile', href: '/dashboard/profile', icon: '👤', roles: [UserRole.ADMIN, UserRole.EMPLOYEE, UserRole.RETAILER] },
   { name: 'Change Password', href: '/dashboard/change-password', icon: '🔒', roles: [UserRole.RETAILER] },

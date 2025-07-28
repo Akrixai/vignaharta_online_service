@@ -12,11 +12,11 @@ export async function GET(request: NextRequest) {
   const verifyToken = process.env.META_WHATSAPP_WEBHOOK_VERIFY_TOKEN;
 
   if (mode === 'subscribe' && token === verifyToken) {
-    console.log('✅ WhatsApp webhook verified successfully');
+    // WhatsApp webhook verified successfully
     return new NextResponse(challenge, { status: 200 });
   }
 
-  console.error('❌ WhatsApp webhook verification failed');
+  // WhatsApp webhook verification failed
   return NextResponse.json({ error: 'Verification failed' }, { status: 403 });
 }
 
@@ -29,14 +29,14 @@ export async function POST(request: NextRequest) {
     // Verify webhook signature in production
     if (process.env.NODE_ENV === 'production') {
       if (!verifyWebhookSignature(body, signature)) {
-        console.error('❌ Invalid webhook signature');
+        // Invalid webhook signature
         return NextResponse.json({ error: 'Invalid signature' }, { status: 403 });
       }
     }
 
     const data = JSON.parse(body);
     
-    console.log('📱 WhatsApp webhook received:', JSON.stringify(data, null, 2));
+    // WhatsApp webhook received
 
     // Process webhook events
     if (data.entry && data.entry.length > 0) {
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ status: 'success' }, { status: 200 });
 
   } catch (error) {
-    console.error('❌ WhatsApp webhook error:', error);
+    // WhatsApp webhook error occurred
     return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
   }
 }
@@ -68,7 +68,7 @@ async function processMessageStatus(value: any) {
         const statusType = status.status; // sent, delivered, read, failed
         const timestamp = status.timestamp;
 
-        console.log(`📊 Message ${messageId} status: ${statusType}`);
+        // Message status update received
 
         // Update message status in database
         await supabaseAdmin
@@ -93,7 +93,7 @@ async function processMessageStatus(value: any) {
             })
             .eq('message_id', messageId);
 
-          console.error(`❌ Message ${messageId} failed:`, errorMessage);
+          // Message delivery failed
         }
       }
     }
@@ -101,17 +101,13 @@ async function processMessageStatus(value: any) {
     // Handle incoming messages (if needed)
     if (value.messages && value.messages.length > 0) {
       for (const message of value.messages) {
-        console.log('📨 Incoming message:', {
-          from: message.from,
-          type: message.type,
-          text: message.text?.body
-        });
+        // Incoming message received
         
         // You can implement auto-replies or message handling here
       }
     }
 
   } catch (error) {
-    console.error('❌ Error processing message status:', error);
+    // Error processing message status
   }
 }

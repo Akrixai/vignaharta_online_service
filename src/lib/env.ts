@@ -62,9 +62,9 @@ export function validateServerEnv() {
   });
 
   if (missingVars.length > 0) {
-    // Only warn in development
+    // Only log in development
     if (process.env.NODE_ENV === 'development') {
-      console.warn(`Missing required server environment variables: ${missingVars.join(', ')}`);
+      // Missing required server environment variables
     }
     if (process.env.NODE_ENV === 'production') {
       throw new Error(`Missing required server environment variables: ${missingVars.join(', ')}`);
