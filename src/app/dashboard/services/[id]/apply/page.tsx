@@ -63,7 +63,7 @@ export default function ServiceApplicationPage() {
           sessionStorage.removeItem('reapplyData');
           
           showToast.info('Reapplication Form', {
-            description: 'Your previous data has been prefilled. No charges will apply for reapplication.'
+            description: 'Your previous data has been prefilled. Regular fees applied again.'
           });
         }
       } catch (error) {

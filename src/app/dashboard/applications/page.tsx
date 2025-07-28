@@ -72,7 +72,7 @@ export default function ApplicationsPage() {
     router.push(`/dashboard/services/${application.scheme_id}/apply`);
 
     showToast.info('Redirecting to reapply form...', {
-      description: 'Your previous data will be prefilled. No charges will apply.'
+      description: 'Your previous data will be prefilled. Regular fees applied again.'
     });
   };
 

@@ -54,7 +54,7 @@ export default function PrivacyPage() {
           <p className="text-xl text-gray-600 max-w-3xl mx-auto animate-slide-in-up">
             Your privacy is important to us. This policy explains how we collect, use, and protect your information.
           </p>
-          <p className="text-sm text-gray-500 mt-4">Last updated: December 2024</p>
+          <p className="text-sm text-gray-500 mt-4">Last updated: December 2025</p>
         </div>
 
         {/* Content */}
@@ -257,7 +257,7 @@ export default function PrivacyPage() {
             </div>
             <div className="border-t border-red-700 pt-6 space-y-4">
               <p className="text-red-300 text-sm">
-                © 2024 Vignaharta Online Service. All rights reserved. | Government of India Initiative
+                © 2025 Vignaharta Online Service. All rights reserved. | Government of India Initiative
               </p>
 
               {/* Akrix AI Branding */}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import DashboardLayout from '@/components/dashboard/layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -43,6 +43,7 @@ export default function WalletPage() {
   const [qrPaymentLoading, setQRPaymentLoading] = useState(false);
   const [qrCodeImage, setQrCodeImage] = useState<File | null>(null);
   const [withdrawReason, setWithdrawReason] = useState('');
+  const qrFileInputRef = useRef<HTMLInputElement>(null);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [successData, setSuccessData] = useState<{
     amount: number;
@@ -327,6 +328,10 @@ export default function WalletPage() {
         setWithdrawAmount('');
         setQrCodeImage(null);
         setWithdrawReason('');
+        // Clear the file input
+        if (qrFileInputRef.current) {
+          qrFileInputRef.current.value = '';
+        }
         setShowWithdraw(false);
 
         // Refresh wallet and transactions
@@ -592,20 +597,41 @@ export default function WalletPage() {
                     </label>
                     <div className="relative">
                       <Input
+                        ref={qrFileInputRef}
                         id="qrCodeImage"
                         type="file"
                         accept="image/*"
                         onChange={(e) => setQrCodeImage(e.target.files?.[0] || null)}
-                        required
                         className="h-12 text-gray-900 border-2 border-gray-200 focus:border-pink-500 focus:ring-pink-500 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-pink-50 file:text-pink-700 hover:file:bg-pink-100"
                       />
                     </div>
                     {qrCodeImage && (
-                      <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                        <p className="text-sm text-green-800 flex items-center">
-                          <span className="mr-2">✅</span>
-                          <strong>Selected:</strong> {qrCodeImage.name}
-                        </p>
+                      <div className="mt-3 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-lg shadow-sm">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mr-3">
+                              <span className="text-white text-sm">✓</span>
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold text-green-800">QR Code Uploaded Successfully!</p>
+                              <p className="text-xs text-green-600">
+                                <strong>File:</strong> {qrCodeImage.name} ({(qrCodeImage.size / 1024).toFixed(1)} KB)
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setQrCodeImage(null);
+                              if (qrFileInputRef.current) {
+                                qrFileInputRef.current.value = '';
+                              }
+                            }}
+                            className="text-green-600 hover:text-green-800 font-medium text-sm underline"
+                          >
+                            Remove
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>

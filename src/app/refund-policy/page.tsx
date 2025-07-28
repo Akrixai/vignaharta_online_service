@@ -48,7 +48,7 @@ export default function RefundPolicyPage() {
           <p className="text-xl text-gray-600 max-w-3xl mx-auto animate-slide-in-up">
             We are committed to providing excellent service. Please read our refund policy carefully.
           </p>
-          <p className="text-sm text-gray-500 mt-4">Last updated: December 2024</p>
+          <p className="text-sm text-gray-500 mt-4">Last updated: December 2025</p>
         </div>
 
         {/* Content */}
@@ -213,10 +213,10 @@ export default function RefundPolicyPage() {
             </div>
             <div className="border-t border-red-700 pt-6">
               <p className="text-red-300 text-sm">
-                © 2024 Vignaharta Online Service. All rights reserved. | 
-                <a 
-                  href="https://akrix-ai.netlify.app" 
-                  target="_blank" 
+                © 2025 Vignaharta Online Service. All rights reserved. |
+                <a
+                  href="https://akrix-ai.netlify.app"
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="text-red-200 hover:text-white ml-2"
                 >
