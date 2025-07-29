@@ -193,7 +193,6 @@ export async function POST() {
       .select();
 
     if (error) {
-      console.error('Error inserting sample services:', error);
       return NextResponse.json({ error: 'Failed to insert sample services' }, { status: 500 });
     }
 
@@ -204,7 +203,6 @@ export async function POST() {
     });
 
   } catch (error) {
-    console.error('Error in seed-services:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

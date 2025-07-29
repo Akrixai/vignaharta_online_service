@@ -19,7 +19,6 @@ export async function GET() {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching products:', error);
       return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });
     }
 
@@ -29,7 +28,6 @@ export async function GET() {
     });
 
   } catch (error) {
-    console.error('Error in products GET:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -89,7 +87,6 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Error creating product:', error);
       return NextResponse.json({ error: 'Failed to create product' }, { status: 500 });
     }
 
@@ -100,7 +97,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error in products POST:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -52,7 +52,6 @@ export async function GET(
     });
 
   } catch (error) {
-    console.error('Get user error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -132,7 +131,6 @@ export async function PUT(
     });
 
   } catch (error) {
-    console.error('Update user error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -163,7 +161,6 @@ export async function DELETE(
       .eq('id', userId);
 
     if (error) {
-      console.error('Error deleting user:', error);
       return NextResponse.json({ error: 'Failed to delete user' }, { status: 500 });
     }
 
@@ -173,7 +170,6 @@ export async function DELETE(
     });
 
   } catch (error) {
-    console.error('Delete user error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -25,14 +25,12 @@ export async function PATCH(
       .or(`target_roles.cs.{${session.user.role}},target_users.cs.{${session.user.id}}`);
 
     if (error) {
-      console.error('Error marking notification as read:', error);
       return NextResponse.json({ error: 'Failed to mark notification as read' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
 
   } catch (error) {
-    console.error('Error in PATCH /api/notifications/[id]/read:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

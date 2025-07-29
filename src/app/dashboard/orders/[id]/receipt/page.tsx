@@ -46,7 +46,6 @@ export default function OrderReceiptPage() {
           setOrder(result.order);
         }
       } catch (error) {
-        console.error('Error fetching order:', error);
       } finally {
         setLoading(false);
       }
@@ -272,7 +271,6 @@ export default function OrderReceiptPage() {
       // Save the PDF
       doc.save(`order-receipt-${order.id.substring(0, 8)}.pdf`);
     } catch (error) {
-      console.error('Error generating PDF:', error);
       alert('Failed to generate PDF receipt. Please try again.');
     }
   };

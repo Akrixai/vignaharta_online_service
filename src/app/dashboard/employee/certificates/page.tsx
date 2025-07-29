@@ -97,7 +97,6 @@ export default function EmployeeCertificatesPage() {
           });
         }
       } catch (err) {
-        console.error('Error with certificate:', err);
         setError('Failed to generate certificate');
         // Fallback to client-side generation
         const employeeCreationDate = new Date(session.user.createdAt || new Date());
@@ -256,7 +255,6 @@ export default function EmployeeCertificatesPage() {
       // Save the PDF
       doc.save(`employee-certificate-${certificate.certificate_number}.pdf`);
     } catch (error) {
-      console.error('Error generating PDF:', error);
       showToast.error('Failed to generate PDF certificate', {
         description: 'Please try again'
       });

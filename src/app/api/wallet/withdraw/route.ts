@@ -121,7 +121,6 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (requestError) {
-      console.error('Error creating withdrawal request:', requestError);
       return NextResponse.json({ 
         error: 'Failed to create withdrawal request' 
       }, { status: 500 });
@@ -135,7 +134,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error in wallet withdrawal:', error);
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 });

@@ -68,13 +68,11 @@ export async function GET(
           .createSignedUrl(filePath, 3600); // 1 hour expiry
 
         if (signedUrlError) {
-          console.error('Error generating signed URL:', signedUrlError);
           // Fall back to original URL if signed URL generation fails
         } else {
           viewUrl = signedUrlData.signedUrl;
         }
       } catch (error) {
-        console.error('Error processing file URL:', error);
         // Fall back to original URL
       }
     }
@@ -88,7 +86,6 @@ export async function GET(
     });
 
   } catch (error) {
-    console.error('Error in document view API:', error);
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 });

@@ -56,7 +56,6 @@ export async function POST(request: NextRequest) {
           });
 
         if (error) {
-          console.error('Screenshot upload error:', error);
         } else {
           // Get public URL
           const { data: urlData } = supabaseAdmin.storage
@@ -66,7 +65,6 @@ export async function POST(request: NextRequest) {
           screenshotUrl = urlData?.publicUrl;
         }
       } catch (uploadError) {
-        console.error('Error uploading screenshot:', uploadError);
         // Continue without screenshot if upload fails
       }
     }
@@ -108,7 +106,6 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (requestError) {
-      console.error('Error creating wallet request:', requestError);
       return NextResponse.json({
         error: 'Failed to create wallet request'
       }, { status: 500 });
@@ -121,7 +118,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error in payment verification:', error);
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 });

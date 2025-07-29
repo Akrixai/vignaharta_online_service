@@ -24,7 +24,6 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching pending registrations:', error);
       return NextResponse.json({ error: 'Failed to fetch registrations' }, { status: 500 });
     }
 
@@ -34,7 +33,6 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error in GET /api/admin/pending-registrations:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -87,7 +85,6 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (userError) {
-        console.error('Error creating user:', userError);
         return NextResponse.json({ error: 'Failed to create user account' }, { status: 500 });
       }
 
@@ -100,7 +97,6 @@ export async function POST(request: NextRequest) {
         });
 
       if (walletError) {
-        console.error('Error creating wallet:', walletError);
         // Don't fail approval if wallet creation fails
       }
 
@@ -116,7 +112,6 @@ export async function POST(request: NextRequest) {
         .eq('id', registrationId);
 
       if (updateError) {
-        console.error('Error updating registration status:', updateError);
       }
 
       // Send approval notifications
@@ -131,7 +126,6 @@ export async function POST(request: NextRequest) {
         // WhatsApp notifications removed (feature disabled)
 
       } catch (notificationError) {
-        console.error('Error sending approval notifications:', notificationError);
       }
 
       return NextResponse.json({
@@ -159,7 +153,6 @@ export async function POST(request: NextRequest) {
         .eq('id', registrationId);
 
       if (updateError) {
-        console.error('Error updating registration status:', updateError);
         return NextResponse.json({ error: 'Failed to reject registration' }, { status: 500 });
       }
 
@@ -171,7 +164,6 @@ export async function POST(request: NextRequest) {
           registration.email, 
           rejectionReason || 'No reason provided'
         );
-        console.log(`✅ Rejection email sent to ${registration.email}`);
 
         // WhatsApp notifications removed (feature disabled)
 
@@ -219,7 +211,6 @@ export async function DELETE(request: NextRequest) {
       .eq('id', registrationId);
 
     if (error) {
-      console.error('Error deleting registration:', error);
       return NextResponse.json({ error: 'Failed to delete registration' }, { status: 500 });
     }
 
@@ -229,7 +220,6 @@ export async function DELETE(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error in DELETE /api/admin/pending-registrations:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -65,7 +65,6 @@ export default function PendingRegistrationsPage() {
         setRegistrations(data.registrations);
       }
     } catch (error) {
-      console.error('Error fetching registrations:', error);
       showToast.error('Error', { description: 'Failed to fetch registrations' });
     } finally {
       setLoading(false);
@@ -98,7 +97,6 @@ export default function PendingRegistrationsPage() {
         showToast.error('Error', { description: data.error || 'Failed to approve registration' });
       }
     } catch (error) {
-      console.error('Error approving registration:', error);
       showToast.error('Error', { description: 'Failed to approve registration' });
     } finally {
       setProcessing(null);
@@ -139,7 +137,6 @@ export default function PendingRegistrationsPage() {
         showToast.error('Error', { description: data.error || 'Failed to reject registration' });
       }
     } catch (error) {
-      console.error('Error rejecting registration:', error);
       showToast.error('Error', { description: 'Failed to reject registration' });
     } finally {
       setProcessing(null);
@@ -177,7 +174,6 @@ export default function PendingRegistrationsPage() {
         showToast.error('Error', { description: data.error || 'Failed to delete registration' });
       }
     } catch (error) {
-      console.error('Error deleting registration:', error);
       showToast.error('Error', { description: 'Failed to delete registration' });
     } finally {
       setProcessing(null);

@@ -49,7 +49,6 @@ export default function AdminTrainingPage() {
         setVideos(data.videos || []);
       }
     } catch (error) {
-      console.error('Error fetching videos:', error);
     } finally {
       setLoading(false);
     }
@@ -81,7 +80,6 @@ export default function AdminTrainingPage() {
         showToast.error('Failed to save video');
       }
     } catch (error) {
-      console.error('Error saving video:', error);
       showToast.error('Error saving video');
     }
   };
@@ -127,7 +125,6 @@ export default function AdminTrainingPage() {
         showToast.error('Failed to delete video');
       }
     } catch (error) {
-      console.error('Error deleting video:', error);
       showToast.error('Error deleting video');
     }
   };
@@ -145,7 +142,6 @@ export default function AdminTrainingPage() {
         showToast.success(`Video ${!currentStatus ? 'activated' : 'deactivated'} successfully!`);
       }
     } catch (error) {
-      console.error('Error updating video status:', error);
     }
   };
 

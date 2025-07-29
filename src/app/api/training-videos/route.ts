@@ -57,7 +57,6 @@ export async function GET(request: NextRequest) {
     const { data: videos, error } = await query;
 
     if (error) {
-      console.error('Error fetching training videos:', error);
       return NextResponse.json({ error: 'Failed to fetch training videos' }, { status: 500 });
     }
 
@@ -93,7 +92,6 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error in training videos GET:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -124,7 +122,6 @@ export async function POST(request: NextRequest) {
       .eq('is_active', true);
 
     if (error) {
-      console.error('Error updating view count:', error);
       return NextResponse.json({ error: 'Failed to update view count' }, { status: 500 });
     }
 
@@ -134,7 +131,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error in training videos POST:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

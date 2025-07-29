@@ -21,7 +21,6 @@ import {
 } from 'lucide-react';
 import { showToast } from '@/lib/toast';
 
-
 export default function AdminApplicationsPage() {
   const { data: session } = useSession();
   const [filter, setFilter] = useState('ALL');
@@ -115,7 +114,6 @@ export default function AdminApplicationsPage() {
         showToast.error(result.error || `Failed to ${actionType} application`);
       }
     } catch (error) {
-      console.error(`Error ${actionType}ing application:`, error);
       showToast.error(`Error ${actionType}ing application`);
     }
   };
@@ -144,8 +142,6 @@ export default function AdminApplicationsPage() {
     setSelectedApp(application);
     setShowDetailsModal(true);
   };
-
-
 
   const getStatusColor = (status: string) => {
     switch (status) {

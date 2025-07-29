@@ -299,14 +299,23 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
                 className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
               >
                 <option value="">Select {field.label.toLowerCase()}</option>
-                {field.options?.map((option: string, index: number) => (
-                  <option key={index} value={option}>
-                    {option}
-                  </option>
-                ))}
+                {field.options && Array.isArray(field.options) ? (
+                  field.options.map((option: string, index: number) => (
+                    <option key={index} value={option}>
+                      {option}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>No options available</option>
+                )}
               </select>
               {field.description && (
                 <p className="text-xs text-gray-500 mt-1">{field.description}</p>
+              )}
+              {(!field.options || !Array.isArray(field.options) || field.options.length === 0) && (
+                <p className="text-xs text-red-500 mt-1">
+                  ⚠️ This dropdown field has no options configured. Please contact support.
+                </p>
               )}
             </div>
           );

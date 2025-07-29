@@ -137,7 +137,6 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (pendingError) {
-      console.error('Error creating pending registration:', pendingError);
       return NextResponse.json(
         { error: 'Failed to submit registration request' },
         { status: 500 }
@@ -149,9 +148,8 @@ export async function POST(request: NextRequest) {
     // Send registration success email to retailer
     try {
       await sendRegistrationSuccessEmail(name, email);
-      console.log(`✅ Registration success email sent to ${email}`);
+
     } catch (emailError) {
-      console.error('❌ Error sending registration success email:', emailError);
       // Don't fail registration if email fails
     }
 
@@ -159,14 +157,12 @@ export async function POST(request: NextRequest) {
     try {
       // Only log in development
       if (process.env.NODE_ENV === 'development') {
-        console.log(`📧 Sending approval request notifications for ${name} (${email})`);
+
       }
 
       // Admin and employee notifications removed (WhatsApp feature disabled)
 
-      console.log('✅ Approval request notifications sent successfully');
     } catch (notificationError) {
-      console.error('❌ Error sending approval request notifications:', notificationError);
       // Don't fail registration if notifications fail
     }
 
@@ -183,7 +179,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Registration error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

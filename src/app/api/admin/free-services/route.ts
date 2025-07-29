@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { UserRole } from '@/types';
 import { supabaseAdmin } from '@/lib/supabase';
+import { sendNewFreeServiceNotifications } from '@/lib/email-service';
 
 // GET - Fetch all free services
 export async function GET() {
@@ -32,9 +33,8 @@ export async function GET() {
     });
 
   } catch (error) {
-    console.error('Error in GET /api/admin/free-services:', error);
-    return NextResponse.json({ 
-      error: 'Internal server error' 
+    return NextResponse.json({
+      error: 'Internal server error'
     }, { status: 500 });
   }
 }
@@ -49,13 +49,11 @@ export async function POST(request: NextRequest) {
     }
 
     const requestBody = await request.json();
-    console.log('📝 Free service creation request body:', requestBody);
 
     const { name, description, category, external_url } = requestBody;
 
     // Validation
     if (!name || !description || !category || !external_url) {
-      console.error('❌ Validation failed:', { name, description, category, external_url });
       return NextResponse.json({
         error: 'Name, description, category, and external URL are required'
       }, { status: 400 });
@@ -84,8 +82,6 @@ export async function POST(request: NextRequest) {
       created_by: session.user.id
     };
 
-    console.log('📝 Service data to insert:', serviceData);
-
     const { data: freeService, error } = await supabaseAdmin
       .from('schemes')
       .insert(serviceData)
@@ -93,14 +89,22 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Error creating free service:', error);
       return NextResponse.json({
         error: 'Failed to create free service',
         details: error.message
       }, { status: 500 });
     }
 
-    console.log('✅ Free service created successfully:', freeService);
+    // Send email notifications to employees and admin only (not retailers)
+    try {
+      await sendNewFreeServiceNotifications(
+        freeService.id,
+        freeService.name,
+        freeService.description || 'New free service available'
+      );
+    } catch (emailError) {
+      // Don't fail the API if email fails
+    }
 
     return NextResponse.json({
       success: true,
@@ -108,9 +112,8 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error in POST /api/admin/free-services:', error);
-    return NextResponse.json({ 
-      error: 'Internal server error' 
+    return NextResponse.json({
+      error: 'Internal server error'
     }, { status: 500 });
   }
 }

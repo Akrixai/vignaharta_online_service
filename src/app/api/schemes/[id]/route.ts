@@ -42,7 +42,6 @@ export async function GET(
       .single();
 
     if (error || !scheme) {
-      console.error('Error fetching scheme:', error);
       return NextResponse.json({ error: 'Scheme not found' }, { status: 404 });
     }
 
@@ -52,7 +51,6 @@ export async function GET(
     });
 
   } catch (error) {
-    console.error('Error in schemes GET:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

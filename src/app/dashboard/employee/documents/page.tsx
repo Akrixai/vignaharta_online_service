@@ -43,7 +43,6 @@ export default function EmployeeDocumentsPage() {
         setDocuments(data.documents || []);
       }
     } catch (error) {
-      console.error('Error fetching documents:', error);
     } finally {
       setLoading(false);
     }

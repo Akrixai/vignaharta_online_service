@@ -83,7 +83,6 @@ export async function PUT(
       .single();
 
     if (error) {
-      console.error('Error updating document:', error);
       return NextResponse.json({ error: 'Failed to update document' }, { status: 500 });
     }
 
@@ -94,7 +93,6 @@ export async function PUT(
     });
 
   } catch (error) {
-    console.error('Error in document PUT:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

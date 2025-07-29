@@ -19,7 +19,6 @@ export async function GET() {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching employee certificates:', error);
       return NextResponse.json({ 
         error: 'Failed to fetch employee certificates' 
       }, { status: 500 });
@@ -48,7 +47,6 @@ export async function GET() {
     });
 
   } catch (error) {
-    console.error('Error in GET /api/admin/employee-certificates:', error);
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 });

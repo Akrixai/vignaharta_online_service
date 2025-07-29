@@ -41,7 +41,6 @@ export default function EmployeeFreeServicesPage() {
         setFreeServices(data.freeServices || []);
       }
     } catch (error) {
-      console.error('Error fetching free services:', error);
     } finally {
       setServicesLoading(false);
     }
@@ -96,7 +95,6 @@ export default function EmployeeFreeServicesPage() {
           }),
         });
       } catch (error) {
-        console.error('Error tracking service usage:', error);
         // Continue with redirect even if tracking fails
       }
 

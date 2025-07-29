@@ -66,7 +66,6 @@ export default function AdminRefundsPage() {
         setRefunds([]);
       }
     } catch (error) {
-      console.error('Error fetching refunds:', error);
       showToast.error('Failed to load refunds');
       setRefunds([]);
     } finally {
@@ -101,7 +100,6 @@ export default function AdminRefundsPage() {
         showToast.error(result.error || 'Failed to update refund');
       }
     } catch (error) {
-      console.error('Error updating refund:', error);
       showToast.error('Error updating refund');
     } finally {
       setProcessing(null);

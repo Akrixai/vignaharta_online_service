@@ -50,7 +50,6 @@ export default function AdvertisementsPage() {
         setAdvertisements(data.advertisements || []);
       }
     } catch (error) {
-      console.error('Error fetching advertisements:', error);
       showToast.error('Failed to load advertisements', {
         description: 'Please refresh the page or contact support.'
       });
@@ -112,7 +111,6 @@ export default function AdvertisementsPage() {
         throw new Error('Failed to save advertisement');
       }
     } catch (error) {
-      console.error('Error saving advertisement:', error);
       showToast.error('Failed to save advertisement', {
         description: 'Please check your input and try again.'
       });
@@ -208,7 +206,6 @@ export default function AdvertisementsPage() {
         throw new Error('Failed to delete advertisement');
       }
     } catch (error) {
-      console.error('Error deleting advertisement:', error);
       showToast.error('Failed to delete advertisement', {
         description: 'Please try again or contact support.'
       });
@@ -236,7 +233,6 @@ export default function AdvertisementsPage() {
         throw new Error('Failed to update advertisement');
       }
     } catch (error) {
-      console.error('Error updating advertisement:', error);
       showToast.error('Failed to update advertisement', {
         description: 'Please try again or contact support.'
       });

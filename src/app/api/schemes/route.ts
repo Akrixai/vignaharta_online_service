@@ -31,7 +31,6 @@ export async function GET(request: NextRequest) {
     const { data: schemes, error, count } = await query;
 
     if (error) {
-      console.error('Error fetching schemes:', error);
       return NextResponse.json({ error: 'Failed to fetch schemes' }, { status: 500 });
     }
 
@@ -47,7 +46,6 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Schemes API error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -85,7 +83,6 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Error creating scheme:', error);
       return NextResponse.json({ error: 'Failed to create scheme' }, { status: 500 });
     }
 
@@ -96,7 +93,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Create scheme error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

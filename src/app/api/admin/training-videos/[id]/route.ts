@@ -58,7 +58,6 @@ export async function PUT(
       .single();
 
     if (error) {
-      console.error('Error updating training video:', error);
       return NextResponse.json({ error: 'Failed to update training video' }, { status: 500 });
     }
 
@@ -69,7 +68,6 @@ export async function PUT(
     });
 
   } catch (error) {
-    console.error('Error in training video PUT:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -105,7 +103,6 @@ export async function DELETE(
       .eq('id', videoId);
 
     if (error) {
-      console.error('Error deleting training video:', error);
       return NextResponse.json({ error: 'Failed to delete training video' }, { status: 500 });
     }
 
@@ -115,7 +112,6 @@ export async function DELETE(
     });
 
   } catch (error) {
-    console.error('Error in training video DELETE:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

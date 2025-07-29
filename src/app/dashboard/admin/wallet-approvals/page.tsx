@@ -73,7 +73,6 @@ export default function WalletApprovalsPage() {
         setRequests(result.requests || []);
       }
     } catch (error) {
-      console.error('Error fetching wallet requests:', error);
     } finally {
       setLoading(false);
     }
@@ -105,7 +104,6 @@ export default function WalletApprovalsPage() {
         throw new Error(result.error || `Failed to ${action.toLowerCase()} payment`);
       }
     } catch (error) {
-      console.error(`Error ${action.toLowerCase()}ing payment:`, error);
       showToast.error(`Failed to ${action.toLowerCase()} payment`, {
         description: error instanceof Error ? error.message : 'Please try again.'
       });

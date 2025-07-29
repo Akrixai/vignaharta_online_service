@@ -104,7 +104,6 @@ export async function PUT(
       .single();
 
     if (error) {
-      console.error('Error updating advertisement:', error);
       return NextResponse.json({ error: 'Failed to update advertisement' }, { status: 500 });
     }
 
@@ -115,7 +114,6 @@ export async function PUT(
     });
 
   } catch (error) {
-    console.error('Error in advertisement PUT:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -152,7 +150,6 @@ export async function DELETE(
       .eq('id', adId);
 
     if (error) {
-      console.error('Error deleting advertisement:', error);
       return NextResponse.json({ error: 'Failed to delete advertisement' }, { status: 500 });
     }
 
@@ -162,7 +159,6 @@ export async function DELETE(
     });
 
   } catch (error) {
-    console.error('Error in advertisement DELETE:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

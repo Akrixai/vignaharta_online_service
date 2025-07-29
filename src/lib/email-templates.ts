@@ -31,8 +31,8 @@ function getAkrixBrandingText(): string {
   return `
 
 ---
-Powered by Akrix.ai
-Visit: https://akrix-ai.netlify.app
+Powered by Akrix AI
+Visit: https://akrixsolutions.in/
 Advanced AI Solutions for Modern Applications
 `;
 }
@@ -42,7 +42,7 @@ export function getNewServiceEmailTemplate(
   serviceName: string,
   serviceDescription: string,
   recipientName: string,
-  recipientType: 'retailer' | 'employee'
+  recipientType: 'retailer' | 'employee' | 'admin'
 ): EmailTemplate {
   const subject = `🎉 New Service Available: ${serviceName}`;
   
@@ -95,7 +95,7 @@ export function getNewServiceEmailTemplate(
             </div>
             
             <div style="text-align: center;">
-                <a href="http://localhost:3000/dashboard/services" class="cta-button">
+                <a href="https://www.vighnahartaonlineservice.in/dashboard/services" class="cta-button">
                     🚀 View Service Details
                 </a>
             </div>
@@ -133,12 +133,14 @@ Service: ${serviceName}
 Description: ${serviceDescription}
 
 What this means for you:
-${recipientType === 'retailer' 
+${recipientType === 'retailer'
   ? '- You can now offer this service to your customers\n- Start earning commission from day one\n- Help more people access government services'
-  : '- You can now assist customers with this service\n- New service to help citizens\n- Expand your service knowledge'
+  : recipientType === 'employee'
+  ? '- You can now assist customers with this service\n- New service to help citizens\n- Expand your service knowledge'
+  : '- New service has been added to the platform\n- Monitor service performance and user feedback\n- Manage service operations and support'
 }
 
-Visit your dashboard to view service details: http://localhost:3000/dashboard/services
+Visit your dashboard to view service details: https://www.vighnahartaonlineservice.in/dashboard/services
 
 Best regards,
 विघ्नहर्ता ऑनलाइन सर्विस Team

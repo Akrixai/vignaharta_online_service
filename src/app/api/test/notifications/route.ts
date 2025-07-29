@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
 
     switch (type) {
       case 'email':
-        console.log('🧪 Testing Email notifications...');
+
         await sendNewServiceNotifications(
           'test-service-id',
           testData?.serviceName || 'Test Service',
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
 
       case 'test-email':
         if (process.env.NODE_ENV === 'development') {
-          console.log('🧪 Testing single email...');
+
         }
         const result = await sendTestEmail(testData?.email || 'test@example.com');
         return NextResponse.json({ 

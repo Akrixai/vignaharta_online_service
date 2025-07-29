@@ -31,7 +31,6 @@ export async function GET() {
     });
 
   } catch (error) {
-    console.error('Error in advertisements GET:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -129,7 +128,6 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Error creating advertisement:', error);
       return NextResponse.json({ error: 'Failed to create advertisement' }, { status: 500 });
     }
 
@@ -140,7 +138,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error in advertisements POST:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

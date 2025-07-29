@@ -30,8 +30,6 @@ export async function PATCH(
     const { status } = await request.json();
     const orderId = params.id;
 
-    console.log('🔄 Updating order status:', orderId, 'to', status);
-
     // Validate status
     const validStatuses = ['PENDING', 'CONFIRMED', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
     if (!validStatuses.includes(status)) {
@@ -55,14 +53,11 @@ export async function PATCH(
       .single();
 
     if (error) {
-      console.error('❌ Database error updating order status:', error);
       return NextResponse.json(
         { success: false, error: 'Failed to update order status' },
         { status: 500 }
       );
     }
-
-    console.log('✅ Order status updated successfully:', updatedOrder);
 
     // Send real-time notification to retailer
     try {
@@ -82,9 +77,8 @@ export async function PATCH(
         timestamp: new Date().toISOString(),
         title: `Order ${updatedOrder.status.toLowerCase()}`
       });
-      console.log('📡 Real-time notification sent to retailer');
+
     } catch (pusherError) {
-      console.error('❌ Failed to send real-time notification:', pusherError);
     }
 
     return NextResponse.json({
@@ -93,7 +87,6 @@ export async function PATCH(
     });
 
   } catch (error) {
-    console.error('❌ Error updating order status:', error);
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }

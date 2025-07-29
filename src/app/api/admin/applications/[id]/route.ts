@@ -35,7 +35,6 @@ export async function PUT(
       .single();
 
     if (fetchError || !existingApp) {
-      console.error('Application fetch error:', fetchError);
       return NextResponse.json({ error: 'Application not found' }, { status: 404 });
     }
 
@@ -71,7 +70,6 @@ export async function PUT(
       .single();
 
     if (error) {
-      console.error('Error updating application:', error);
       return NextResponse.json({ error: 'Failed to update application' }, { status: 500 });
     }
 
@@ -140,10 +138,8 @@ export async function PUT(
             })
             .eq('id', applicationId);
 
-          console.log(`Commission paid: ₹${commissionAmount} to user ${existingApp.user_id}`);
         }
       } catch (walletError) {
-        console.error('Error processing commission payment:', walletError);
         // Don't fail the approval, but log the error
       }
     }
@@ -152,7 +148,7 @@ export async function PUT(
     let updatedWallet = null;
     let refundTransaction = null;
     if (status === 'REJECTED' && body.refund === true && existingApp.amount > 0) {
-      console.log('ADMIN Application REJECT: Refund logic triggered for application', applicationId, 'refund:', body.refund);
+
       // Fetch wallet
       const { data: wallet, error: walletError } = await supabaseAdmin
         .from('wallets')
@@ -160,7 +156,6 @@ export async function PUT(
         .eq('user_id', existingApp.user_id)
         .single();
       if (walletError || !wallet) {
-        console.error('ADMIN Application REJECT: Wallet error:', walletError);
       } else {
         const currentBalance = parseFloat(wallet.balance.toString());
         const refundAmount = parseFloat(existingApp.amount.toString());
@@ -174,9 +169,8 @@ export async function PUT(
           .single();
         updatedWallet = walletData;
         if (updateError) {
-          console.error('ADMIN Application REJECT: Error updating wallet:', updateError);
         } else {
-          console.log('ADMIN Application REJECT: Wallet updated:', walletData);
+
         }
         // Create refund transaction
         const { data: refundTx, error: txError } = await supabaseAdmin
@@ -196,9 +190,8 @@ export async function PUT(
           .single();
         refundTransaction = refundTx;
         if (txError) {
-          console.error('ADMIN Application REJECT: Error creating refund transaction:', txError);
         } else {
-          console.log('ADMIN Application REJECT: Refund transaction created:', refundTx);
+
         }
       }
     }
@@ -212,12 +205,9 @@ export async function PUT(
     });
 
   } catch (error) {
-    console.error('Error in application PUT:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-
-
 
 // DELETE - Delete application (Admin only)
 export async function DELETE(
@@ -247,7 +237,6 @@ export async function DELETE(
 
     // Admin can delete any application - removed restriction
     // Log the deletion for audit purposes
-    console.log(`Admin ${session.user.id} deleting application ${applicationId} with status ${existingApp.status}`);
 
     const { error } = await supabaseAdmin
       .from('applications')
@@ -255,7 +244,6 @@ export async function DELETE(
       .eq('id', applicationId);
 
     if (error) {
-      console.error('Error deleting application:', error);
       return NextResponse.json({ error: 'Failed to delete application' }, { status: 500 });
     }
 
@@ -265,7 +253,6 @@ export async function DELETE(
     });
 
   } catch (error) {
-    console.error('Error in application DELETE:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

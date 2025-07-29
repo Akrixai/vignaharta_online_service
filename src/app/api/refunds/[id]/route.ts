@@ -30,7 +30,6 @@ export async function GET(
       .single();
 
     if (error) {
-      console.error('Error fetching refund:', error);
       return NextResponse.json({ error: 'Refund not found' }, { status: 404 });
     }
 
@@ -42,7 +41,6 @@ export async function GET(
     return NextResponse.json(refund);
 
   } catch (error) {
-    console.error('Error in GET /api/refunds/[id]:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -104,7 +102,6 @@ export async function PATCH(
       .single();
 
     if (error) {
-      console.error('Error updating refund:', error);
       return NextResponse.json({ error: 'Failed to update refund' }, { status: 500 });
     }
 
@@ -133,7 +130,6 @@ export async function PATCH(
     });
 
   } catch (error) {
-    console.error('Error in PATCH /api/refunds/[id]:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

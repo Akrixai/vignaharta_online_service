@@ -6,7 +6,7 @@ import { UserRole } from '@/types';
 
 // GET - Get commission transactions for the current user
 export async function GET(request: NextRequest) {
-  console.log('🔥 COMMISSION API CALLED - NEW VERSION');
+
   try {
     const session = await getServerSession(authOptions);
     
@@ -40,11 +40,8 @@ export async function GET(request: NextRequest) {
       .range(offset, offset + limit - 1);
 
     if (error) {
-      console.error('Error fetching commission transactions:', error);
       return NextResponse.json({ error: 'Failed to fetch commission transactions' }, { status: 500 });
     }
-
-    console.log('Commission transactions fetched successfully:', transactions?.length || 0);
 
     // Get total count for pagination
     const { count, error: countError } = await supabaseAdmin
@@ -54,7 +51,6 @@ export async function GET(request: NextRequest) {
       .eq('type', 'COMMISSION');
 
     if (countError) {
-      console.error('Error counting commission transactions:', countError);
     }
 
     // Calculate total commission earned
@@ -85,7 +81,6 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error in commission transactions GET:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

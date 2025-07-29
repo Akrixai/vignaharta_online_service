@@ -77,7 +77,6 @@ export async function PUT(
       .single();
 
     if (updateError) {
-      console.error('Error updating free service:', updateError);
       return NextResponse.json({ 
         error: 'Failed to update free service' 
       }, { status: 500 });
@@ -89,7 +88,6 @@ export async function PUT(
     });
 
   } catch (error) {
-    console.error('Error in PUT /api/admin/free-services/[id]:', error);
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 });
@@ -132,7 +130,6 @@ export async function DELETE(
       .eq('is_free', true);
 
     if (deleteError) {
-      console.error('Error deleting free service:', deleteError);
       return NextResponse.json({ 
         error: 'Failed to delete free service' 
       }, { status: 500 });
@@ -144,7 +141,6 @@ export async function DELETE(
     });
 
   } catch (error) {
-    console.error('Error in DELETE /api/admin/free-services/[id]:', error);
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 });

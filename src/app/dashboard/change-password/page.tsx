@@ -111,7 +111,6 @@ export default function ChangePasswordPage() {
         throw new Error(result.error || 'Failed to change password');
       }
     } catch (error) {
-      console.error('Change password error:', error);
       showToast.error('Failed to change password', {
         description: error instanceof Error ? error.message : 'Please try again.'
       });

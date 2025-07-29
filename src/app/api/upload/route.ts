@@ -84,11 +84,7 @@ export async function POST(request: NextRequest) {
 
     // Security: Never log URLs in production
     if (process.env.NODE_ENV === 'development') {
-      console.log('File uploaded successfully:', {
-        filePath,
-        publicUrl: urlData.publicUrl,
-        bucketName
-      });
+
     }
 
     return NextResponse.json({
@@ -103,7 +99,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error uploading file:', error);
     return NextResponse.json({
       success: false,
       error: 'Internal server error'

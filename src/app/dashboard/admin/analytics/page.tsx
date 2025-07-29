@@ -90,7 +90,7 @@ export default function AdminAnalyticsPage() {
         supabase
           .channel('analytics-service-applications')
           .on('postgres_changes', { event: '*', schema: 'public', table: 'service_applications' }, () => {
-            console.log('Service applications changed, refreshing analytics...');
+
             fetchAnalytics();
           })
           .subscribe(),
@@ -98,7 +98,7 @@ export default function AdminAnalyticsPage() {
         supabase
           .channel('analytics-users')
           .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => {
-            console.log('Users changed, refreshing analytics...');
+
             fetchAnalytics();
           })
           .subscribe(),
@@ -106,7 +106,7 @@ export default function AdminAnalyticsPage() {
         supabase
           .channel('analytics-certificates')
           .on('postgres_changes', { event: '*', schema: 'public', table: 'employee_certificates' }, () => {
-            console.log('Employee certificates changed, refreshing analytics...');
+
             fetchAnalytics();
           })
           .subscribe(),
@@ -114,7 +114,7 @@ export default function AdminAnalyticsPage() {
         supabase
           .channel('analytics-retailer-certificates')
           .on('postgres_changes', { event: '*', schema: 'public', table: 'retailer_certificates' }, () => {
-            console.log('Retailer certificates changed, refreshing analytics...');
+
             fetchAnalytics();
           })
           .subscribe(),
@@ -122,7 +122,7 @@ export default function AdminAnalyticsPage() {
         supabase
           .channel('analytics-schemes')
           .on('postgres_changes', { event: '*', schema: 'public', table: 'schemes' }, () => {
-            console.log('Schemes changed, refreshing analytics...');
+
             fetchAnalytics();
           })
           .subscribe()
@@ -143,7 +143,6 @@ export default function AdminAnalyticsPage() {
         setAnalytics(data.analytics);
       }
     } catch (error) {
-      console.error('Error fetching analytics:', error);
     } finally {
       setLoading(false);
     }

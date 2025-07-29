@@ -37,7 +37,6 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Error storing consent:', error);
       return NextResponse.json(
         { error: 'Failed to store consent' },
         { status: 500 }
@@ -50,7 +49,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error processing consent:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -88,7 +86,6 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error fetching consent:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

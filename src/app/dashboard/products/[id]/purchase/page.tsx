@@ -43,16 +43,13 @@ export default function ProductPurchasePage() {
     const fetchData = async () => {
       try {
         // Fetch product details
-        console.log('Fetching product with ID:', productId);
+
         const productResponse = await fetch(`/api/products/${productId}`);
         const productResult = await productResponse.json();
-
-        console.log('Product API response:', productResult);
 
         if (productResult.success) {
           setProduct(productResult.product);
         } else {
-          console.error('Product fetch failed:', productResult.error);
         }
 
         // Fetch wallet details
@@ -62,10 +59,8 @@ export default function ProductPurchasePage() {
         if (walletResult.success) {
           setWallet(walletResult.data);
         } else {
-          console.error('Wallet fetch failed:', walletResult.error);
         }
       } catch (error) {
-        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
@@ -164,7 +159,6 @@ export default function ProductPurchasePage() {
         throw new Error(result.error || 'Failed to place order');
       }
     } catch (error) {
-      console.error('Wallet payment error:', error);
       showToast.error('Failed to place order', {
         description: error instanceof Error ? error.message : 'Please try again.'
       });
@@ -210,7 +204,6 @@ export default function ProductPurchasePage() {
         throw new Error(result.error || 'Failed to place order');
       }
     } catch (error) {
-      console.error('COD order error:', error);
       showToast.error('Failed to place order', {
         description: error instanceof Error ? error.message : 'Please try again.'
       });

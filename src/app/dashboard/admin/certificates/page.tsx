@@ -75,7 +75,6 @@ export default function AdminCertificatesPage() {
 
       setCertificates(allCertificates);
     } catch (error) {
-      console.error('Error fetching certificates:', error);
     } finally {
       setLoading(false);
     }

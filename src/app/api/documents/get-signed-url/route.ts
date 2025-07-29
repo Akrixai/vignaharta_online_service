@@ -35,7 +35,6 @@ export async function POST(request: NextRequest) {
         .createSignedUrl(filePath, expiresIn);
 
       if (signedUrlError) {
-        console.error('Error generating signed URL:', signedUrlError);
         return NextResponse.json({ 
           error: 'Failed to generate signed URL',
           details: signedUrlError.message
@@ -49,7 +48,6 @@ export async function POST(request: NextRequest) {
       });
 
     } catch (storageError) {
-      console.error('Storage error:', storageError);
       return NextResponse.json({ 
         error: 'Storage service error',
         details: storageError instanceof Error ? storageError.message : 'Unknown error'
@@ -57,7 +55,6 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Error in get-signed-url API:', error);
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 });
@@ -99,7 +96,6 @@ export async function GET(request: NextRequest) {
         .createSignedUrl(filePath, expiresIn);
 
       if (signedUrlError) {
-        console.error('Error generating signed URL:', signedUrlError);
         return NextResponse.json({ 
           error: 'Failed to generate signed URL',
           details: signedUrlError.message
@@ -113,7 +109,6 @@ export async function GET(request: NextRequest) {
       });
 
     } catch (storageError) {
-      console.error('Storage error:', storageError);
       return NextResponse.json({ 
         error: 'Storage service error',
         details: storageError instanceof Error ? storageError.message : 'Unknown error'
@@ -121,7 +116,6 @@ export async function GET(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Error in get-signed-url API:', error);
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 });

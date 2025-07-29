@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { UserRole } from '@/types';
+import { sendNewServiceNotifications } from '@/lib/email-service';
 
 // GET - Fetch all services (Admin only)
 export async function GET() {
@@ -22,7 +23,6 @@ export async function GET() {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching services:', error);
       return NextResponse.json({ error: 'Failed to fetch services' }, { status: 500 });
     }
 
@@ -32,7 +32,6 @@ export async function GET() {
     });
 
   } catch (error) {
-    console.error('Error in services GET:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -47,7 +46,6 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    console.log('📝 Service creation request body:', body);
 
     const {
       name,
@@ -90,7 +88,6 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (userError || !userExists) {
-      console.error('❌ User verification failed:', userError);
       return NextResponse.json({
         error: 'User not found in database',
         details: userError?.message
@@ -117,19 +114,22 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('❌ Error creating service:', error);
       return NextResponse.json({
         error: 'Failed to create service',
         details: error.message
       }, { status: 500 });
     }
 
-    console.log('✅ Service created successfully:', service);
-
-    // WhatsApp notifications removed (feature disabled)
-
-    // Email notifications temporarily disabled to prevent API errors
-    console.log('📧 Email notifications disabled for service creation');
+    // Send email notifications to all users
+    try {
+      await sendNewServiceNotifications(
+        service.id,
+        service.name,
+        service.description || 'New service available'
+      );
+    } catch (emailError) {
+      // Don't fail the API if email fails
+    }
 
     return NextResponse.json({
       success: true,
@@ -138,11 +138,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error in services POST:', error);
-
-    // Return detailed error information
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    console.error('Detailed error:', errorMessage);
 
     return NextResponse.json({
       success: false,

@@ -82,7 +82,6 @@ export async function PUT(
       .single();
 
     if (updateError) {
-      console.error('Error updating branch:', updateError);
       return NextResponse.json({ 
         error: 'Failed to update branch' 
       }, { status: 500 });
@@ -94,7 +93,6 @@ export async function PUT(
     });
 
   } catch (error) {
-    console.error('Error in PUT /api/admin/branches/[id]:', error);
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 });
@@ -148,7 +146,6 @@ export async function DELETE(
       .eq('id', id);
 
     if (deleteError) {
-      console.error('Error deleting branch:', deleteError);
       return NextResponse.json({ 
         error: 'Failed to delete branch' 
       }, { status: 500 });
@@ -160,7 +157,6 @@ export async function DELETE(
     });
 
   } catch (error) {
-    console.error('Error in DELETE /api/admin/branches/[id]:', error);
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 });

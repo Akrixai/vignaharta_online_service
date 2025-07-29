@@ -38,7 +38,6 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (certError) {
-      console.error('Error creating certificate record:', certError);
       return NextResponse.json({ 
         error: 'Failed to create certificate record' 
       }, { status: 500 });
@@ -62,7 +61,6 @@ export async function POST(request: NextRequest) {
       .eq('id', certificate.id);
 
     if (updateError) {
-      console.error('Error updating certificate URL:', updateError);
     }
 
     return NextResponse.json({
@@ -73,7 +71,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error in certificate generation:', error);
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 });

@@ -38,7 +38,6 @@ export async function GET(request: NextRequest) {
     const { data: requests, error } = await query;
 
     if (error) {
-      console.error('Error fetching wallet requests:', error);
       return NextResponse.json({ error: 'Failed to fetch wallet requests' }, { status: 500 });
     }
 
@@ -68,7 +67,6 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error in wallet requests API:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -156,7 +154,6 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (requestError) {
-      console.error('Error creating wallet request:', requestError);
       return NextResponse.json({
         error: 'Failed to create wallet request'
       }, { status: 500 });
@@ -169,7 +166,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error creating wallet request:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -217,7 +213,6 @@ export async function PUT(request: NextRequest) {
       });
 
     if (processError) {
-      console.error('Error processing wallet request:', processError);
       return NextResponse.json({
         error: 'Failed to process wallet request'
       }, { status: 500 });
@@ -235,7 +230,6 @@ export async function PUT(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error processing wallet request:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

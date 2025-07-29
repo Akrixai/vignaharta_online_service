@@ -118,7 +118,6 @@ export default function AadhaarVerificationPage() {
       showToast.success('Aadhaar verification application submitted successfully!');
       router.push('/dashboard/applications');
     } catch (error) {
-      console.error('Error submitting application:', error);
       showToast.error('Failed to submit application', {
         description: error instanceof Error ? error.message : 'Please try again'
       });

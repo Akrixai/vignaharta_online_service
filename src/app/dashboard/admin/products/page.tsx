@@ -45,7 +45,6 @@ export default function AdminProductsPage() {
         setProducts(data.products || []);
       }
     } catch (error) {
-      console.error('Error fetching products:', error);
     } finally {
       setLoading(false);
     }
@@ -135,7 +134,6 @@ export default function AdminProductsPage() {
         });
       }
     } catch (error) {
-      console.error('Error saving product:', error);
       showToast.error('Error saving product', {
         description: 'Please try again.'
       });
@@ -185,7 +183,6 @@ export default function AdminProductsPage() {
         showToast.error('Failed to delete product');
       }
     } catch (error) {
-      console.error('Error deleting product:', error);
       showToast.error('Error deleting product');
     }
   };
@@ -203,7 +200,6 @@ export default function AdminProductsPage() {
         showToast.success(`Product ${!currentStatus ? 'activated' : 'deactivated'} successfully!`);
       }
     } catch (error) {
-      console.error('Error updating product status:', error);
     }
   };
 

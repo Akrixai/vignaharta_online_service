@@ -304,7 +304,10 @@ export default function DashboardPage() {
                 <div key={transaction.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
                     <p className="font-medium text-sm text-gray-900">{transaction.description}</p>
-                    <p className="text-xs text-gray-500">{formatDateTime(transaction.createdAt)}</p>
+                    <p className="text-xs text-gray-500">
+                      {formatDateTime(transaction.created_at || transaction.createdAt)}
+                      {transaction.reference && ` • Ref: ${transaction.reference}`}
+                    </p>
                   </div>
                   <div className={`font-bold ${getTransactionColor(transaction.type)}`}>
                     {transaction.amount > 0 ? '+' : ''}{formatCurrency(Math.abs(transaction.amount))}

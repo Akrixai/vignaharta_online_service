@@ -73,7 +73,6 @@ export default function AdminServicesPage() {
         setServices(data.services || []);
       }
     } catch (error) {
-      console.error('Error fetching services:', error);
     } finally {
       setLoading(false);
     }
@@ -98,11 +97,21 @@ export default function AdminServicesPage() {
         });
         return;
       }
-      if (field.type === 'select' && (!field.options || field.options.length === 0)) {
-        showToast.error('Dropdown options required', {
-          description: `Dropdown field "${field.label}" must have at least one option`
-        });
-        return;
+      if (field.type === 'select') {
+        if (!field.options || field.options.length === 0) {
+          showToast.error('Dropdown options required', {
+            description: `Dropdown field "${field.label}" must have at least one option`
+          });
+          return;
+        }
+        // Check for empty options
+        const emptyOptions = field.options.filter(opt => !opt.trim());
+        if (emptyOptions.length > 0) {
+          showToast.error('Invalid dropdown options', {
+            description: `Dropdown field "${field.label}" contains empty options. Please remove empty options.`
+          });
+          return;
+        }
       }
     }
 
@@ -148,13 +157,11 @@ export default function AdminServicesPage() {
           const errorText = await response.text();
           errorMessage = errorText || `HTTP ${response.status} error`;
         }
-        console.error('Service creation failed:', errorMessage);
         showToast.error('Failed to save service', {
           description: errorMessage
         });
       }
     } catch (error) {
-      console.error('Error saving service:', error);
       showToast.error('Error saving service', {
         description: error instanceof Error ? error.message : 'Unknown error'
       });
@@ -208,7 +215,6 @@ export default function AdminServicesPage() {
         showToast.error('Failed to delete service');
       }
     } catch (error) {
-      console.error('Error deleting service:', error);
       showToast.error('Error deleting service');
     }
   };
@@ -226,7 +232,6 @@ export default function AdminServicesPage() {
         showToast.success(`Service ${!currentStatus ? 'activated' : 'deactivated'} successfully!`);
       }
     } catch (error) {
-      console.error('Error updating service status:', error);
     }
   };
 
@@ -614,16 +619,38 @@ export default function AdminServicesPage() {
 
                         {field.type === 'select' && (
                           <div className="mt-3">
-                            <label className="block text-xs font-medium text-gray-700 mb-1">Options (comma separated)</label>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                              Options (comma separated) *
+                            </label>
                             <input
                               type="text"
                               value={field.options?.join(', ') || ''}
-                              onChange={(e) => updateDynamicField(field.id, {
-                                options: e.target.value.split(',').map(opt => opt.trim()).filter(opt => opt)
-                              })}
+                              onChange={(e) => {
+                                const optionsText = e.target.value;
+                                const options = optionsText
+                                  .split(',')
+                                  .map(opt => opt.trim())
+                                  .filter(opt => opt.length > 0);
+                                updateDynamicField(field.id, { options });
+                              }}
                               className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
                               placeholder="Option 1, Option 2, Option 3"
                             />
+                            <p className="text-xs text-gray-500 mt-1">
+                              Enter options separated by commas. Example: "Yes, No, Maybe"
+                            </p>
+                            {field.options && field.options.length > 0 && (
+                              <div className="mt-2">
+                                <p className="text-xs text-gray-600 mb-1">Preview:</p>
+                                <div className="flex flex-wrap gap-1">
+                                  {field.options.map((option, idx) => (
+                                    <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                                      {option}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
 

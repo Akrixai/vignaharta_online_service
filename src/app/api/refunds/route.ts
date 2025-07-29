@@ -40,14 +40,12 @@ export async function GET(request: NextRequest) {
     const { data: refunds, error } = await query;
 
     if (error) {
-      console.error('Error fetching refunds:', error);
       return NextResponse.json({ error: 'Failed to fetch refunds' }, { status: 500 });
     }
 
     return NextResponse.json(refunds);
 
   } catch (error) {
-    console.error('Error in GET /api/refunds:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -106,7 +104,6 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Error creating refund:', error);
       return NextResponse.json({ error: 'Failed to create refund request' }, { status: 500 });
     }
 
@@ -129,7 +126,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error in POST /api/refunds:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

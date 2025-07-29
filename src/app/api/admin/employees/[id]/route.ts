@@ -79,14 +79,12 @@ export async function PATCH(
       .single();
 
     if (error) {
-      console.error('Error updating employee:', error);
       return NextResponse.json({ error: 'Failed to update employee' }, { status: 500 });
     }
 
     return NextResponse.json(updatedEmployee);
 
   } catch (error) {
-    console.error('Error in employee PATCH:', error);
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 });
@@ -126,14 +124,12 @@ export async function DELETE(
       .eq('id', employeeId);
 
     if (error) {
-      console.error('Error deleting employee:', error);
       return NextResponse.json({ error: 'Failed to delete employee' }, { status: 500 });
     }
 
     return NextResponse.json({ message: 'Employee deleted successfully' });
 
   } catch (error) {
-    console.error('Error in employee DELETE:', error);
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 });

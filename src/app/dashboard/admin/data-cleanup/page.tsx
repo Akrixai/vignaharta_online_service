@@ -200,7 +200,7 @@ export default function DataCleanupPage() {
         .channel('data-cleanup-applications')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'applications' }, () => {
           if (process.env.NODE_ENV === 'development') {
-            console.log('Applications changed, refreshing stats...');
+
           }
           fetchDataStats();
         })
@@ -210,7 +210,7 @@ export default function DataCleanupPage() {
         .channel('data-cleanup-notifications')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, () => {
           if (process.env.NODE_ENV === 'development') {
-            console.log('Notifications changed, refreshing stats...');
+
           }
           fetchDataStats();
         })
@@ -220,7 +220,7 @@ export default function DataCleanupPage() {
         .channel('data-cleanup-transactions')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => {
           if (process.env.NODE_ENV === 'development') {
-            console.log('Transactions changed, refreshing stats...');
+
           }
           fetchDataStats();
         })
@@ -229,7 +229,7 @@ export default function DataCleanupPage() {
       supabase
         .channel('data-cleanup-receipts')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'receipts' }, () => {
-          console.log('Receipts changed, refreshing stats...');
+
           fetchDataStats();
         })
         .subscribe(),
@@ -237,7 +237,7 @@ export default function DataCleanupPage() {
       supabase
         .channel('data-cleanup-orders')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
-          console.log('Orders changed, refreshing stats...');
+
           fetchDataStats();
         })
         .subscribe()
@@ -265,7 +265,6 @@ export default function DataCleanupPage() {
         setStorageBuckets(bucketsData.buckets);
       }
     } catch (error) {
-      console.error('Error fetching data stats:', error);
       showToast.error('Failed to load data statistics');
     } finally {
       setLoading(false);
@@ -313,7 +312,6 @@ export default function DataCleanupPage() {
         });
       }
     } catch (error) {
-      console.error('Error during cleanup:', error);
       showToast.error(`Error cleaning up ${task.name}`);
     } finally {
       setCleanupLoading(null);
@@ -348,7 +346,6 @@ export default function DataCleanupPage() {
         showToast.error(`Failed to clean up storage bucket: ${result.error}`);
       }
     } catch (error) {
-      console.error('Storage cleanup error:', error);
       showToast.error('An error occurred during storage cleanup');
     } finally {
       setStorageCleanupLoading(null);

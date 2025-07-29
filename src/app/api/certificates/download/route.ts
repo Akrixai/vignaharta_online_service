@@ -139,14 +139,10 @@ export async function POST(request: NextRequest) {
       });
 
     } catch (pdfError) {
-      console.error('Error generating PDF:', pdfError);
       throw pdfError;
     }
 
-
-
   } catch (error) {
-    console.error('Error generating certificate:', error);
     return NextResponse.json({ 
       error: 'Failed to generate certificate' 
     }, { status: 500 });

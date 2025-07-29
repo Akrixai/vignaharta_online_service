@@ -131,7 +131,6 @@ export default function EmployeesManagementPage() {
         }
       }
     } catch (error) {
-      console.error('Error saving employee:', error);
       showToast.error('Failed to save employee', {
         description: error instanceof Error ? error.message : 'Please try again.'
       });
@@ -180,7 +179,6 @@ export default function EmployeesManagementPage() {
 
       refresh();
     } catch (error) {
-      console.error('Error deleting employee:', error);
       showToast.error('Failed to delete employee');
     } finally {
       setLoading(false);
@@ -204,7 +202,6 @@ export default function EmployeesManagementPage() {
 
       refresh();
     } catch (error) {
-      console.error('Error updating employee status:', error);
       showToast.error('Failed to update employee status', {
         description: 'Please try again.'
       });

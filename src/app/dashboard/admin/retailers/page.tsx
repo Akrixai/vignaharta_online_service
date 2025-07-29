@@ -74,7 +74,6 @@ export default function RetailersManagementPage() {
 
       refresh();
     } catch (error) {
-      console.error('Error updating retailer status:', error);
       showToast.error('Failed to update retailer status', {
         description: 'Please try again'
       });
@@ -113,7 +112,6 @@ export default function RetailersManagementPage() {
         description: 'The retailer has been successfully removed from the system.'
       });
     } catch (error) {
-      console.error('Error deleting retailer:', error);
       showToast.error('Failed to delete retailer', {
         description: 'Please try again or contact support.'
       });

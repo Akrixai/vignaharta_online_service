@@ -110,8 +110,6 @@ export async function POST(
       updated_at: new Date().toISOString()
     };
 
-    console.log('Creating application with data:', applicationData);
-
     const { data: application, error: applicationError } = await supabaseAdmin
       .from('applications')
       .insert(applicationData)
@@ -137,15 +135,11 @@ export async function POST(
       .single();
 
     if (applicationError) {
-      console.error('Error creating application:', applicationError);
-      console.error('Application data that failed:', applicationData);
       return NextResponse.json({
         error: 'Failed to create application',
         details: applicationError.message
       }, { status: 500 });
     }
-
-    console.log('Application created successfully:', application.id);
 
     // Note: Payment processing will happen after admin approval
     // Wallet deduction is moved to the approval process
@@ -174,7 +168,6 @@ export async function POST(
     });
 
   } catch (error) {
-    console.error('Error processing service application:', error);
     return NextResponse.json({
       error: 'Internal server error'
     }, { status: 500 });

@@ -56,7 +56,6 @@ export async function GET(
     const { data: order, error: orderError } = await orderQuery;
 
     if (orderError || !order) {
-      console.error('Error fetching order:', orderError);
       return NextResponse.json({
         success: false,
         error: 'Order not found'
@@ -71,7 +70,6 @@ export async function GET(
       .single();
 
     if (productError) {
-      console.error('❌ Error fetching product:', productError);
     }
 
     // Fetch user details
@@ -82,7 +80,6 @@ export async function GET(
       .single();
 
     if (userError) {
-      console.error('❌ Error fetching user:', userError);
     }
 
     // Format order for frontend
@@ -117,7 +114,6 @@ export async function GET(
     });
 
   } catch (error) {
-    console.error('Error in order API:', error);
     return NextResponse.json(
       {
         success: false,
@@ -174,7 +170,6 @@ export async function PATCH(
       .single();
 
     if (error || !order) {
-      console.error('Error updating order:', error);
       return NextResponse.json({
         success: false,
         error: 'Order not found or failed to update'
@@ -182,7 +177,6 @@ export async function PATCH(
     }
 
     // Real-time notifications will be handled by Supabase real-time
-    console.log('📢 Order status updated successfully:', order.id);
 
     return NextResponse.json({
       success: true,
@@ -191,7 +185,6 @@ export async function PATCH(
     });
 
   } catch (error) {
-    console.error('Error updating order:', error);
     return NextResponse.json({
       error: 'Internal server error'
     }, { status: 500 });

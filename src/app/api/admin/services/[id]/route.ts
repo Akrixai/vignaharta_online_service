@@ -59,7 +59,6 @@ export async function PUT(
       .single();
 
     if (error) {
-      console.error('Error updating service:', error);
       return NextResponse.json({ error: 'Failed to update service' }, { status: 500 });
     }
 
@@ -70,7 +69,6 @@ export async function PUT(
     });
 
   } catch (error) {
-    console.error('Error in service PUT:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -108,7 +106,6 @@ export async function DELETE(
       .limit(1);
 
     if (appError) {
-      console.error('Error checking applications:', appError);
       return NextResponse.json({ error: 'Failed to check service usage' }, { status: 500 });
     }
 
@@ -124,7 +121,6 @@ export async function DELETE(
       .eq('id', serviceId);
 
     if (error) {
-      console.error('Error deleting service:', error);
       return NextResponse.json({ error: 'Failed to delete service' }, { status: 500 });
     }
 
@@ -134,7 +130,6 @@ export async function DELETE(
     });
 
   } catch (error) {
-    console.error('Error in service DELETE:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

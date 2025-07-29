@@ -19,7 +19,6 @@ export async function GET() {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching retailer certificates:', error);
       return NextResponse.json({ 
         error: 'Failed to fetch retailer certificates' 
       }, { status: 500 });
@@ -46,7 +45,6 @@ export async function GET() {
     });
 
   } catch (error) {
-    console.error('Error in GET /api/admin/retailer-certificates:', error);
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 });
@@ -80,7 +78,6 @@ export async function POST(request: NextRequest) {
         .eq('id', certificateId);
 
       if (error) {
-        console.error('Error deactivating certificate:', error);
         return NextResponse.json({ 
           error: 'Failed to deactivate certificate' 
         }, { status: 500 });
@@ -102,7 +99,6 @@ export async function POST(request: NextRequest) {
         .eq('id', certificateId);
 
       if (error) {
-        console.error('Error activating certificate:', error);
         return NextResponse.json({ 
           error: 'Failed to activate certificate' 
         }, { status: 500 });
@@ -119,7 +115,6 @@ export async function POST(request: NextRequest) {
     }, { status: 400 });
 
   } catch (error) {
-    console.error('Error in POST /api/admin/retailer-certificates:', error);
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 });
@@ -150,7 +145,6 @@ export async function DELETE(request: NextRequest) {
       .eq('id', certificateId);
 
     if (error) {
-      console.error('Error deleting retailer certificate:', error);
       return NextResponse.json({ 
         error: 'Failed to delete certificate' 
       }, { status: 500 });
@@ -162,7 +156,6 @@ export async function DELETE(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error in DELETE /api/admin/retailer-certificates:', error);
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 });

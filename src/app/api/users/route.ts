@@ -41,7 +41,6 @@ export async function GET(request: NextRequest) {
     const { data: users, error, count } = await query;
 
     if (error) {
-      console.error('Error fetching users:', error);
       return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 });
     }
 
@@ -57,7 +56,6 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Users API error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -121,7 +119,6 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (userError) {
-      console.error('Error creating user:', userError);
       return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
     }
 
@@ -134,7 +131,6 @@ export async function POST(request: NextRequest) {
       });
 
     if (walletError) {
-      console.error('Error creating wallet:', walletError);
       // Don't fail the user creation, just log the error
     }
 
@@ -148,7 +144,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Create user error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

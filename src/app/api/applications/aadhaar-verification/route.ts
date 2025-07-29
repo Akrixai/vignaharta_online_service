@@ -116,7 +116,6 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (createSchemeError) {
-        console.error('Error creating Aadhaar scheme:', createSchemeError);
         return NextResponse.json({
           error: 'Failed to create service scheme'
         }, { status: 500 });
@@ -163,7 +162,6 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Error creating application:', error);
       return NextResponse.json({ 
         error: 'Failed to create application' 
       }, { status: 500 });
@@ -227,7 +225,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error processing Aadhaar verification application:', error);
     return NextResponse.json({
       error: 'Internal server error'
     }, { status: 500 });

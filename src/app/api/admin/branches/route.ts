@@ -19,7 +19,6 @@ export async function GET() {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching branches:', error);
       return NextResponse.json({ 
         error: 'Failed to fetch branches' 
       }, { status: 500 });
@@ -31,7 +30,6 @@ export async function GET() {
     });
 
   } catch (error) {
-    console.error('Error in GET /api/admin/branches:', error);
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 });
@@ -90,7 +88,6 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Error creating branch:', error);
       return NextResponse.json({ 
         error: 'Failed to create branch' 
       }, { status: 500 });
@@ -102,7 +99,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error in POST /api/admin/branches:', error);
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 });

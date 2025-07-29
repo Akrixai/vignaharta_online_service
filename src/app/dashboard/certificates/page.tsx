@@ -63,7 +63,6 @@ export default function CertificatesPage() {
           throw new Error(result.error || 'Failed to generate certificate');
         }
       } catch (error) {
-        console.error('Error generating certificate:', error);
         // Fallback to client-side generation if API fails
         const currentDate = new Date();
         const certificateNumber = `VJS-${currentDate.getFullYear()}-${String(Math.floor(Math.random() * 100000)).padStart(5, '0')}`;
@@ -117,7 +116,6 @@ export default function CertificatesPage() {
         });
       }
     } catch (error) {
-      console.error('Error downloading certificate:', error);
       showToast.error('Download failed', {
         description: 'Failed to download certificate'
       });
@@ -158,8 +156,6 @@ export default function CertificatesPage() {
             </div>
           </div>
         </div>
-
-
 
         {/* Action Buttons */}
         <div className="flex justify-center space-x-4 mb-8 print:hidden print-hide">

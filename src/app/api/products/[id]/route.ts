@@ -45,7 +45,6 @@ export async function GET(
       .single();
 
     if (error || !product) {
-      console.error('Error fetching product:', error);
       return NextResponse.json({ 
         success: false,
         error: 'Product not found' 
@@ -58,7 +57,6 @@ export async function GET(
     });
 
   } catch (error) {
-    console.error('Error in product API:', error);
     return NextResponse.json(
       { 
         success: false,

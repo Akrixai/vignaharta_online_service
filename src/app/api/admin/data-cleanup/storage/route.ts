@@ -39,7 +39,6 @@ export async function POST(request: NextRequest) {
           });
 
         if (listError) {
-          console.error(`Error listing files in ${bucketId}/${path}:`, listError);
           return;
         }
 
@@ -71,7 +70,6 @@ export async function POST(request: NextRequest) {
             .remove(fileNames);
 
           if (deleteError) {
-            console.error(`Error deleting files from ${bucketId}:`, deleteError);
           } else {
             deletedCount += fileNames.length;
           }
@@ -84,7 +82,6 @@ export async function POST(request: NextRequest) {
         }
 
       } catch (error) {
-        console.error(`Error in deleteAllFiles for ${bucketId}/${path}:`, error);
       }
     };
 
@@ -110,7 +107,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error during storage cleanup:', error);
     return NextResponse.json({ 
       error: 'Internal server error during storage cleanup',
       details: error instanceof Error ? error.message : 'Unknown error'

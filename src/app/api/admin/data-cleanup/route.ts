@@ -175,10 +175,8 @@ export async function POST(request: NextRequest) {
                   .remove([filePath]);
 
                 if (storageError) {
-                  console.error(`Failed to delete file ${filePath} from storage:`, storageError);
                 }
               } catch (urlError) {
-                console.error(`Invalid file URL for document ${document.id}:`, urlError);
               }
             }
           }
@@ -391,7 +389,7 @@ export async function POST(request: NextRequest) {
 
     // Log the cleanup action for audit purposes
     if (process.env.NODE_ENV === 'development') {
-      console.log(`Admin ${session.user.id} performed data cleanup: ${taskId}, deleted ${deletedCount} records`);
+
     }
 
     return NextResponse.json({

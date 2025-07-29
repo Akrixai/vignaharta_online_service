@@ -60,7 +60,6 @@ export async function DELETE(
       .eq('id', notificationId);
 
     if (deleteError) {
-      console.error('Error deleting notification:', deleteError);
       return NextResponse.json({ 
         error: 'Failed to delete notification' 
       }, { status: 500 });
@@ -72,7 +71,6 @@ export async function DELETE(
     });
 
   } catch (error) {
-    console.error('Error deleting notification:', error);
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 });

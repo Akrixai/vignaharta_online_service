@@ -51,14 +51,12 @@ export async function PATCH(
       .single();
 
     if (error) {
-      console.error('Error updating retailer:', error);
       return NextResponse.json({ error: 'Failed to update retailer' }, { status: 500 });
     }
 
     return NextResponse.json(updatedRetailer);
 
   } catch (error) {
-    console.error('Error in retailer PATCH:', error);
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 });
@@ -98,14 +96,12 @@ export async function DELETE(
       .eq('id', retailerId);
 
     if (error) {
-      console.error('Error deleting retailer:', error);
       return NextResponse.json({ error: 'Failed to delete retailer' }, { status: 500 });
     }
 
     return NextResponse.json({ message: 'Retailer deleted successfully' });
 
   } catch (error) {
-    console.error('Error in retailer DELETE:', error);
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 });

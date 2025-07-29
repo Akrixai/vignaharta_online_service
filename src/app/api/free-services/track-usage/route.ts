@@ -40,7 +40,6 @@ export async function POST(request: NextRequest) {
       });
 
     if (trackingError) {
-      console.error('Error tracking free service usage:', trackingError);
       // Don't fail the request if tracking fails
     }
 
@@ -50,7 +49,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error in POST /api/free-services/track-usage:', error);
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 });

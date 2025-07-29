@@ -55,7 +55,6 @@ export default function BranchManagementPage() {
         setBranches(data.branches || []);
       }
     } catch (error) {
-      console.error('Error fetching branches:', error);
     } finally {
       setLoading(false);
     }
@@ -114,7 +113,6 @@ export default function BranchManagementPage() {
         alert(error.error || 'Failed to save branch');
       }
     } catch (error) {
-      console.error('Error saving branch:', error);
       alert('Failed to save branch');
     } finally {
       setLoading(false);
@@ -141,7 +139,6 @@ export default function BranchManagementPage() {
             });
           }
         } catch (error) {
-          console.error('Error deleting branch:', error);
           showToast.error('Failed to delete branch', {
             description: 'Please try again'
           });
@@ -172,7 +169,6 @@ export default function BranchManagementPage() {
         alert(error.error || 'Failed to update branch status');
       }
     } catch (error) {
-      console.error('Error updating branch status:', error);
       alert('Failed to update branch status');
     } finally {
       setLoading(false);

@@ -59,7 +59,6 @@ export default function AdminUsersPage() {
         setUsers(data.users || []);
       }
     } catch (error) {
-      console.error('Error fetching users:', error);
     } finally {
       setLoading(false);
     }
@@ -74,7 +73,7 @@ export default function AdminUsersPage() {
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'users' },
         (payload) => {
-          console.log('Real-time user change:', payload);
+
           // Refresh users list when any change occurs
           fetchUsers();
         }
@@ -126,7 +125,6 @@ export default function AdminUsersPage() {
         showToast.error(errorData.error || 'Failed to save user');
       }
     } catch (error) {
-      console.error('Error saving user:', error);
       showToast.error('Error saving user');
     }
   };
@@ -163,7 +161,6 @@ export default function AdminUsersPage() {
         showToast.success(`User ${!currentStatus ? 'activated' : 'deactivated'} successfully!`);
       }
     } catch (error) {
-      console.error('Error updating user status:', error);
     }
   };
 

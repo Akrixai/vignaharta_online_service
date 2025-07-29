@@ -99,7 +99,6 @@ export default function AdvertisementCarousel({
         body: JSON.stringify({ id: ad.id }),
       });
     } catch (error) {
-      console.error('Error tracking ad click:', error);
     }
 
     // Open link if provided

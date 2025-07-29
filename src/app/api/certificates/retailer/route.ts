@@ -129,7 +129,7 @@ export async function POST(request: NextRequest) {
         if (createError) {
           // If it's a duplicate key error, try again with a different number
           if (createError.code === '23505' && createError.message.includes('certificate_number')) {
-            console.log(`Certificate number ${certificateNumber} already exists, retrying... (attempt ${attempts})`);
+
             // Add small delay to avoid rapid retries
             await new Promise(resolve => setTimeout(resolve, 100));
             continue;
@@ -141,7 +141,6 @@ export async function POST(request: NextRequest) {
         certificate = insertedCert;
       } catch (error) {
         if (attempts >= maxAttempts) {
-          console.error('Error creating retailer certificate after max attempts:', error);
           return NextResponse.json({
             error: 'Failed to create certificate after multiple attempts'
           }, { status: 500 });
@@ -169,7 +168,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error generating certificate:', error);
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 });

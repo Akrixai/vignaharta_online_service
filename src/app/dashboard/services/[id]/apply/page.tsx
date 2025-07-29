@@ -67,7 +67,6 @@ export default function ServiceApplicationPage() {
           });
         }
       } catch (error) {
-        console.error('Error parsing reapply data:', error);
       }
     }
   }, [serviceId]);
@@ -85,7 +84,6 @@ export default function ServiceApplicationPage() {
           router.push('/dashboard/services');
         }
       } catch (error) {
-        console.error('Error fetching service:', error);
         showToast.error('Failed to load service details');
       } finally {
         setLoading(false);
@@ -178,7 +176,6 @@ export default function ServiceApplicationPage() {
           showToast.error(`Failed to upload ${file.name}`);
         }
       } catch (error) {
-        console.error('Upload error:', error);
         showToast.error('Failed to upload file');
       }
     }
@@ -275,7 +272,6 @@ export default function ServiceApplicationPage() {
         showToast.error(error.message || 'Failed to submit application');
       }
     } catch (error) {
-      console.error('Error submitting application:', error);
       showToast.error('Failed to submit application');
     } finally {
       setSubmitting(false);
@@ -469,17 +465,28 @@ export default function ServiceApplicationPage() {
                       )}
 
                       {field.type === 'select' && (
-                        <select
-                          value={formData.service_specific_data[`dynamic_${field.id}`] || ''}
-                          onChange={(e) => handleServiceSpecificChange(field.id, e.target.value)}
-                          required={field.required}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                        >
-                          <option value="">Select an option</option>
-                          {field.options?.map((option: string, index: number) => (
-                            <option key={index} value={option}>{option}</option>
-                          ))}
-                        </select>
+                        <div>
+                          <select
+                            value={formData.service_specific_data[`dynamic_${field.id}`] || ''}
+                            onChange={(e) => handleServiceSpecificChange(field.id, e.target.value)}
+                            required={field.required}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                          >
+                            <option value="">Select an option</option>
+                            {field.options && Array.isArray(field.options) ? (
+                              field.options.map((option: string, index: number) => (
+                                <option key={index} value={option}>{option}</option>
+                              ))
+                            ) : (
+                              <option disabled>No options available</option>
+                            )}
+                          </select>
+                          {(!field.options || !Array.isArray(field.options) || field.options.length === 0) && (
+                            <p className="text-xs text-red-500 mt-1">
+                              ⚠️ This dropdown field has no options configured. Please contact support.
+                            </p>
+                          )}
+                        </div>
                       )}
 
                       {(field.type === 'file' || field.type === 'image' || field.type === 'pdf') && (

@@ -32,7 +32,6 @@ export default function AdminDocumentsPage() {
         setDocuments(data.documents || []);
       }
     } catch (error) {
-      console.error('Error fetching documents:', error);
     } finally {
       setLoading(false);
     }
@@ -72,7 +71,6 @@ export default function AdminDocumentsPage() {
         showToast.error(`Failed to ${action} document`);
       }
     } catch (error) {
-      console.error(`Error ${action}ing document:`, error);
       showToast.error(`Error ${action}ing document`);
     }
   };

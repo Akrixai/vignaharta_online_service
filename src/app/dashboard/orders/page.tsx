@@ -73,10 +73,8 @@ export default function OrdersPage() {
       if (result.success) {
         setOrders(result.orders);
       } else {
-        console.error('Failed to fetch orders:', result.error);
       }
     } catch (error) {
-      console.error('Error fetching orders:', error);
     } finally {
       setLoading(false);
       if (showRefreshing) setRefreshing(false);
@@ -113,10 +111,8 @@ export default function OrdersPage() {
         // Refresh orders to show updated status
         fetchOrders();
       } else {
-        console.error('Failed to update order status:', result.error);
       }
     } catch (error) {
-      console.error('Error updating order status:', error);
     }
   };
 
@@ -297,7 +293,6 @@ export default function OrdersPage() {
       // Save the PDF
       doc.save(`order-receipt-${order.id.substring(0, 8)}.pdf`);
     } catch (error) {
-      console.error('Error generating PDF:', error);
       alert('Failed to generate PDF receipt. Please try again.');
     }
   };

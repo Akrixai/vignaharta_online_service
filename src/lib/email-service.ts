@@ -70,15 +70,15 @@ export async function sendNewServiceNotifications(
   serviceDescription: string
 ): Promise<void> {
   try {
-    
+
     // Import supabase here to avoid circular dependencies
     const { supabaseAdmin } = await import('./supabase');
-    
+
     // Get all active retailers and employees with email addresses
     const { data: users, error } = await supabaseAdmin
       .from('users')
       .select('id, name, email, role')
-      .in('role', ['RETAILER', 'EMPLOYEE'])
+      .in('role', ['RETAILER', 'EMPLOYEE', 'ADMIN'])
       .eq('is_active', true)
       .not('email', 'is', null)
       .neq('email', '');
@@ -98,11 +98,65 @@ export async function sendNewServiceNotifications(
           serviceName,
           serviceDescription,
           user.name,
-          user.role.toLowerCase() as 'retailer' | 'employee'
+          user.role.toLowerCase() as 'retailer' | 'employee' | 'admin'
         );
 
         const success = await sendEmail(user.email, template);
-        
+
+        return success;
+      } catch (error) {
+        return false;
+      }
+    });
+
+    const results = await Promise.allSettled(emailPromises);
+    const successful = results.filter(result => result.status === 'fulfilled' && result.value).length;
+    const failed = results.length - successful;
+
+  } catch (error) {
+  }
+}
+
+// Send new free service notification emails (only to employees and admin)
+export async function sendNewFreeServiceNotifications(
+  serviceId: string,
+  serviceName: string,
+  serviceDescription: string
+): Promise<void> {
+  try {
+
+    // Import supabase here to avoid circular dependencies
+    const { supabaseAdmin } = await import('./supabase');
+
+    // Get only active employees and admin with email addresses (exclude retailers)
+    const { data: users, error } = await supabaseAdmin
+      .from('users')
+      .select('id, name, email, role')
+      .in('role', ['EMPLOYEE', 'ADMIN'])
+      .eq('is_active', true)
+      .not('email', 'is', null)
+      .neq('email', '');
+
+    if (error) {
+      return;
+    }
+
+    if (!users || users.length === 0) {
+      return;
+    }
+
+    // Send emails to employees and admin only
+    const emailPromises = users.map(async (user) => {
+      try {
+        const template = getNewServiceEmailTemplate(
+          serviceName,
+          serviceDescription,
+          user.name,
+          user.role.toLowerCase() as 'employee' | 'admin'
+        );
+
+        const success = await sendEmail(user.email, template);
+
         return success;
       } catch (error) {
         return false;

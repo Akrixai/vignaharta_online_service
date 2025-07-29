@@ -24,7 +24,6 @@ export async function GET() {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching free services:', error);
       return NextResponse.json({ 
         error: 'Failed to fetch free services' 
       }, { status: 500 });
@@ -36,7 +35,6 @@ export async function GET() {
     });
 
   } catch (error) {
-    console.error('Error in GET /api/free-services:', error);
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 });

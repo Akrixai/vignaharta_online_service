@@ -12,7 +12,6 @@ import { UserRole } from '@/types';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 import { Package, Search, Filter, Eye, CheckCircle, XCircle, Clock, Truck, Bell, RefreshCw } from 'lucide-react';
 
-
 interface Order {
   id: string;
   user_id: string;
@@ -65,7 +64,6 @@ export default function OrderManagementPage() {
 
     // Using Supabase real-time for order notifications
     // This will be implemented with Supabase real-time subscriptions
-    console.log('Real-time order notifications will be implemented with Supabase');
 
     // Request notification permission
     if ('Notification' in window && Notification.permission === 'default') {
@@ -81,23 +79,18 @@ export default function OrderManagementPage() {
     try {
       if (showRefreshing) setRefreshing(true);
 
-      console.log('🔄 Fetching orders for admin/employee...');
       const response = await fetch('/api/orders');
-      console.log('📡 Orders API response status:', response.status);
 
       const result = await response.json();
-      console.log('📦 Orders API result:', result);
 
       if (result.success) {
         setOrders(result.orders);
-        console.log('✅ Orders loaded successfully:', result.orders.length, 'orders');
+
         // Clear new order notifications when orders are refreshed
         setNewOrderNotifications(0);
       } else {
-        console.error('❌ Failed to fetch orders:', result.error);
       }
     } catch (error) {
-      console.error('❌ Error fetching orders:', error);
     } finally {
       setLoading(false);
       if (showRefreshing) setRefreshing(false);
@@ -128,7 +121,6 @@ export default function OrderManagementPage() {
         alert('Failed to update order status');
       }
     } catch (error) {
-      console.error('Error updating order status:', error);
       alert('Failed to update order status');
     }
   };

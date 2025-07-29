@@ -62,14 +62,12 @@ export async function GET(request: NextRequest) {
     const { data: receipts, error } = await query;
 
     if (error) {
-      console.error('Error fetching receipts:', error);
       return NextResponse.json({ error: 'Failed to fetch receipts' }, { status: 500 });
     }
 
     return NextResponse.json({ receipts });
 
   } catch (error) {
-    console.error('Receipts API error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

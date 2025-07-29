@@ -52,7 +52,6 @@ export default function CommissionPage() {
         showToast.error('Failed to fetch commission data');
       }
     } catch (error) {
-      console.error('Error fetching commission data:', error);
       showToast.error('Error loading commission data');
     } finally {
       setLoading(false);
@@ -76,7 +75,7 @@ export default function CommissionPage() {
           },
           (payload) => {
             if (process.env.NODE_ENV === 'development') {
-              console.log('Commission transaction changed:', payload);
+
             }
             if (payload.new?.type === 'COMMISSION') {
               fetchCommissionData(currentPage);

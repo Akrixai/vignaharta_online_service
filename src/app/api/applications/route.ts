@@ -69,7 +69,6 @@ export async function GET(request: NextRequest) {
     const { data: applications, error } = await query;
 
     if (error) {
-      console.error('Error fetching applications:', error);
       return NextResponse.json({ error: 'Failed to fetch applications' }, { status: 500 });
     }
 
@@ -101,7 +100,6 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Applications API error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -160,11 +158,10 @@ export async function POST(request: NextRequest) {
         .select('id, balance')
         .eq('user_id', session.user.id)
         .single();
-      console.log('Application POST: Wallet fetch', wallet, walletError);
+
       let currentWallet = wallet;
       let currentBalance = 0;
       if (walletError || !wallet) {
-        console.error('Application POST: Wallet error:', walletError);
         // Create wallet if it doesn't exist
         const { data: newWallet, error: createWalletError } = await supabaseAdmin
           .from('wallets')
@@ -176,7 +173,6 @@ export async function POST(request: NextRequest) {
           .single();
 
         if (createWalletError || !newWallet) {
-          console.error('Error creating wallet:', createWalletError);
           return NextResponse.json({ error: 'Failed to create wallet' }, { status: 500 });
         }
 
@@ -204,7 +200,6 @@ export async function POST(request: NextRequest) {
         .single();
       updatedWallet = walletData;
       if (walletUpdateError) {
-        console.error('Application POST: Error updating wallet balance:', walletUpdateError);
         return NextResponse.json(
           { error: 'Failed to deduct amount from wallet' },
           { status: 500 }
@@ -227,9 +222,8 @@ export async function POST(request: NextRequest) {
         .single();
       paymentTransaction = paymentTx;
       if (transactionError) {
-        console.error('Application POST: Error creating transaction:', transactionError);
       } else {
-        console.log('Application POST: SCHEME_PAYMENT transaction created:', paymentTx);
+
       }
     }
 
@@ -324,12 +318,10 @@ export async function POST(request: NextRequest) {
         .select()
         .single();
       if (notifError) {
-        console.error('Application POST: Error creating notification:', notifError);
       } else {
-        console.log('Application POST: Real notification created for application', application.id, notif);
+
       }
     } catch (notificationError) {
-      console.error('Application POST: Error creating notification:', notificationError);
       // Don't fail the application creation if notification fails
     }
 
@@ -342,7 +334,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Create application error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

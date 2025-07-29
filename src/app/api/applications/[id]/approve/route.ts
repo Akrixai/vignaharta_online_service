@@ -92,7 +92,6 @@ export async function POST(
         .eq('id', userWallet.id);
 
       if (walletUpdateError) {
-        console.error('Error updating wallet balance:', walletUpdateError);
         return NextResponse.json({
           error: 'Failed to deduct service amount from wallet'
         }, { status: 500 });
@@ -120,7 +119,6 @@ export async function POST(
         });
 
       if (transactionError) {
-        console.error('Error creating transaction record:', transactionError);
         // Don't fail the approval, but log the error
       }
     }
@@ -160,7 +158,6 @@ export async function POST(
       .single();
 
     if (updateError) {
-      console.error('Error updating application:', updateError);
       return NextResponse.json({ error: 'Failed to approve application' }, { status: 500 });
     }
 
@@ -222,10 +219,8 @@ export async function POST(
             })
             .eq('id', applicationId);
 
-          console.log(`Commission paid: ₹${commissionAmount} to user ${application.user_id}`);
         }
       } catch (walletError) {
-        console.error('Error processing commission payment:', walletError);
         // Don't fail the approval, but log the error
       }
     }
@@ -248,7 +243,6 @@ export async function POST(
     });
 
   } catch (error) {
-    console.error('Approve application error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -301,7 +295,7 @@ export async function PUT(
     let refundTransaction = null;
     let updatedWallet = null;
     if (refund && application.amount && application.amount > 0) {
-      console.log('Application REJECT: Refund logic triggered for application', applicationId, 'refund:', refund);
+
       const wallet = application.users.wallets[0];
       if (wallet) {
         const currentBalance = parseFloat(wallet.balance.toString());
@@ -316,7 +310,6 @@ export async function PUT(
           .single();
         updatedWallet = walletData;
         if (walletError) {
-          console.error('Application REJECT: Error processing refund:', walletError);
           return NextResponse.json({ error: 'Failed to process refund' }, { status: 500 });
         }
         // Create refund transaction
@@ -337,12 +330,10 @@ export async function PUT(
           .single();
         refundTransaction = refundTx;
         if (transactionError) {
-          console.error('Application REJECT: Error creating refund transaction:', transactionError);
         } else {
-          console.log('Application REJECT: Refund transaction created:', refundTx);
+
         }
       } else {
-        console.error('Application REJECT: No wallet found for refund');
       }
     }
 
@@ -381,7 +372,6 @@ export async function PUT(
       .single();
 
     if (updateError) {
-      console.error('Error updating application:', updateError);
       return NextResponse.json({ error: 'Failed to reject application' }, { status: 500 });
     }
 
@@ -394,7 +384,6 @@ export async function PUT(
     });
 
   } catch (error) {
-    console.error('Reject application error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

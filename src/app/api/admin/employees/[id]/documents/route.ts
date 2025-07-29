@@ -20,12 +20,10 @@ export async function GET(
       .select('*')
       .eq('user_id', employeeId);
     if (error) {
-      console.error(`Failed to fetch documents for employee ${employeeId}:`, error);
       return NextResponse.json({ error: 'Failed to fetch documents', details: error.message }, { status: 500 });
     }
     return NextResponse.json({ documents: data });
   } catch (error) {
-    console.error('Employee documents fetch error:', error);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -41,11 +39,9 @@ export async function POST(
   try {
     const session = await getServerSession(authOptions);
     if (!session || session.user.role !== UserRole.ADMIN) {
-      console.error('Unauthorized access attempt to employee documents upload');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     const { id: employeeId } = await params;
-    console.log(`Processing document upload for employee: ${employeeId} by admin: ${session.user.id}`);
     // Expect multipart/form-data with fields: aadhar, pancard, photo
     const formData = await request.formData();
     const files = [
@@ -56,18 +52,14 @@ export async function POST(
     const uploaded = [];
     for (const { key, file } of files) {
       if (file && file instanceof File) {
-        console.log(`Processing ${key} file: ${file.name}, size: ${file.size}, type: ${file.type}`);
         const fileName = `${employeeId}_${key}_${Date.now()}`;
         const { data, error } = await supabaseAdmin.storage
           .from('employee-documents')
           .upload(fileName, file, { contentType: file.type });
         if (error) {
-          console.error(`Failed to upload ${key} for employee ${employeeId}:`, error);
           return NextResponse.json({ error: `Failed to upload ${key}: ${error.message}` }, { status: 500 });
         }
         const fileUrl = data?.path ? supabaseAdmin.storage.from('employee-documents').getPublicUrl(data.path).data.publicUrl : null;
-        console.log(`File uploaded successfully: ${fileName}, URL: ${fileUrl}`);
-
         // Insert into employee_documents table
         const insertData = {
           user_id: employeeId,
@@ -79,23 +71,17 @@ export async function POST(
           uploaded_at: new Date().toISOString(),
           created_by: session.user.id,
         };
-        console.log('Inserting document record:', insertData);
-
         const { error: dbError } = await supabaseAdmin
           .from('employee_documents')
           .insert(insertData);
         if (dbError) {
-          console.error(`Failed to save ${key} record for employee ${employeeId}:`, dbError);
           return NextResponse.json({ error: `Failed to save ${key} record: ${dbError.message}` }, { status: 500 });
         }
-        console.log(`Successfully saved ${key} document record for employee ${employeeId}`);
         uploaded.push({ type: key, url: fileUrl });
       }
     }
-    console.log(`Document upload completed for employee ${employeeId}. Uploaded ${uploaded.length} files.`);
     return NextResponse.json({ success: true, uploaded });
   } catch (error) {
-    console.error('Employee documents upload error:', error);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'

@@ -32,8 +32,6 @@ export async function PUT(
     const userId = resolvedParams.id;
     const body = await request.json();
 
-    console.log('Updating user:', userId, 'with data:', body);
-
     // Check if user exists
     const { data: existingUser, error: fetchError } = await supabaseAdmin
       .from('users')
@@ -146,7 +144,6 @@ export async function PUT(
     });
 
   } catch (error) {
-    console.error('Error in user PUT:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -216,7 +213,6 @@ export async function DELETE(
       .eq('id', userId);
 
     if (error) {
-      console.error('Error deleting user:', error);
       return NextResponse.json({ error: 'Failed to delete user' }, { status: 500 });
     }
 
@@ -226,7 +222,6 @@ export async function DELETE(
     });
 
   } catch (error) {
-    console.error('Error in user DELETE:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

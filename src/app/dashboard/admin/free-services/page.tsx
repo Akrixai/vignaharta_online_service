@@ -69,7 +69,6 @@ export default function AdminFreeServicesPage() {
         setFreeServices(data.freeServices || []);
       }
     } catch (error) {
-      console.error('Error fetching free services:', error);
     } finally {
       setServicesLoading(false);
     }
@@ -123,7 +122,6 @@ export default function AdminFreeServicesPage() {
       fetchFreeServices();
       setSelectedServices([]);
     } catch (error) {
-      console.error('Error bulk activating services:', error);
       alert('Failed to activate services');
     } finally {
       setLoading(false);
@@ -147,7 +145,6 @@ export default function AdminFreeServicesPage() {
       fetchFreeServices();
       setSelectedServices([]);
     } catch (error) {
-      console.error('Error bulk deactivating services:', error);
       alert('Failed to deactivate services');
     } finally {
       setLoading(false);
@@ -171,7 +168,6 @@ export default function AdminFreeServicesPage() {
           setSelectedServices([]);
           showToast.success(`${selectedServices.length} services deleted successfully`);
         } catch (error) {
-          console.error('Error bulk deleting services:', error);
           showToast.error('Failed to delete services', {
             description: 'Please try again'
           });
@@ -224,7 +220,6 @@ export default function AdminFreeServicesPage() {
         alert(error.error || 'Failed to save free service');
       }
     } catch (error) {
-      console.error('Error saving free service:', error);
       alert('Failed to save free service');
     } finally {
       setLoading(false);
@@ -251,7 +246,6 @@ export default function AdminFreeServicesPage() {
             });
           }
         } catch (error) {
-          console.error('Error deleting free service:', error);
           showToast.error('Failed to delete free service', {
             description: 'Please try again'
           });
@@ -282,7 +276,6 @@ export default function AdminFreeServicesPage() {
         alert(error.error || 'Failed to update service status');
       }
     } catch (error) {
-      console.error('Error updating service status:', error);
       alert('Failed to update service status');
     } finally {
       setLoading(false);

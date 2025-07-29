@@ -22,7 +22,6 @@ export async function GET() {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching training videos:', error);
       return NextResponse.json({ error: 'Failed to fetch training videos' }, { status: 500 });
     }
 
@@ -32,7 +31,6 @@ export async function GET() {
     });
 
   } catch (error) {
-    console.error('Error in training videos GET:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -95,7 +93,6 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Error creating training video:', error);
       return NextResponse.json({ error: 'Failed to create training video' }, { status: 500 });
     }
 
@@ -106,7 +103,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error in training videos POST:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

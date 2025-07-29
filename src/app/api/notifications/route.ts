@@ -31,7 +31,6 @@ export async function GET(request: NextRequest) {
     const { data: notifications, error } = await query;
 
     if (error) {
-      console.error('Error fetching notifications:', error);
       return NextResponse.json({ error: 'Failed to fetch notifications' }, { status: 500 });
     }
 
@@ -41,7 +40,6 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Notifications API error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -86,7 +84,6 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Error creating notification:', error);
       return NextResponse.json({ error: 'Failed to create notification' }, { status: 500 });
     }
 
@@ -96,7 +93,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error creating notification:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -132,7 +128,6 @@ export async function PATCH(request: NextRequest) {
     const { error } = await query;
 
     if (error) {
-      console.error('Error updating notifications:', error);
       return NextResponse.json({ error: 'Failed to update notifications' }, { status: 500 });
     }
 
@@ -142,7 +137,6 @@ export async function PATCH(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error updating notifications:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -167,7 +161,6 @@ export async function DELETE(request: NextRequest) {
       .or(`target_roles.cs.{${session.user.role}},target_users.cs.{${session.user.id}}`);
 
     if (error) {
-      console.error('Error deleting notifications:', error);
       return NextResponse.json({ error: 'Failed to delete notifications' }, { status: 500 });
     }
 
@@ -177,7 +170,6 @@ export async function DELETE(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error deleting notifications:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

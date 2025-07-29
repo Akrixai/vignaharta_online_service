@@ -210,6 +210,7 @@ export async function GET(request: NextRequest) {
           amount,
           status,
           description,
+          reference,
           created_at,
           user_id
         `)
@@ -264,7 +265,6 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Dashboard stats error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

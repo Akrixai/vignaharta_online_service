@@ -74,7 +74,6 @@ export async function GET(
         publicUrl = urlData.publicUrl;
       }
     } catch (storageError) {
-      console.error('Error getting public URL:', storageError);
       // Fall back to stored URL if storage access fails
     }
 
@@ -88,7 +87,6 @@ export async function GET(
     });
 
   } catch (error) {
-    console.error('Error viewing document:', error);
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 });

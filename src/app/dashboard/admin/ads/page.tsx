@@ -113,7 +113,6 @@ export default function AdminAdsPage() {
         });
       }
     } catch (error) {
-      console.error('Error saving advertisement:', error);
       showToast.error('Error saving advertisement', {
         description: 'Please try again.'
       });
@@ -165,7 +164,6 @@ export default function AdminAdsPage() {
         showToast.error('Failed to delete advertisement');
       }
     } catch (error) {
-      console.error('Error deleting advertisement:', error);
       showToast.error('Error deleting advertisement');
     }
   };
@@ -183,7 +181,6 @@ export default function AdminAdsPage() {
         showToast.success(`Advertisement ${!currentStatus ? 'activated' : 'deactivated'} successfully!`);
       }
     } catch (error) {
-      console.error('Error updating advertisement status:', error);
     }
   };
 
@@ -336,7 +333,6 @@ export default function AdminAdsPage() {
                         </Button>
                       </div>
                     )}
-
 
                   </div>
                 </div>

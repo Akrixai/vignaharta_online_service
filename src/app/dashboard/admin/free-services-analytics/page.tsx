@@ -47,7 +47,6 @@ export default function FreeServicesAnalyticsPage() {
         setStats(data.stats);
       }
     } catch (error) {
-      console.error('Error fetching analytics:', error);
     } finally {
       setLoading(false);
     }

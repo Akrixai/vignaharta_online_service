@@ -29,7 +29,6 @@ export async function GET(request: NextRequest) {
       .lte('accessed_at', endDate.toISOString());
 
     if (totalError) {
-      console.error('Error fetching total accesses:', totalError);
       return NextResponse.json({ error: 'Failed to fetch analytics' }, { status: 500 });
     }
 
@@ -41,7 +40,6 @@ export async function GET(request: NextRequest) {
       .lte('accessed_at', endDate.toISOString());
 
     if (usersError) {
-      console.error('Error fetching unique users:', usersError);
       return NextResponse.json({ error: 'Failed to fetch analytics' }, { status: 500 });
     }
 
@@ -56,7 +54,6 @@ export async function GET(request: NextRequest) {
       });
 
     if (topServicesError) {
-      console.error('Error fetching top services:', topServicesError);
       // Create fallback query if RPC doesn't exist
       const { data: fallbackTopServices } = await supabaseAdmin
         .from('free_service_usage')
@@ -147,7 +144,6 @@ export async function GET(request: NextRequest) {
       });
 
     if (dailyError) {
-      console.error('Error fetching daily usage:', dailyError);
       // Fallback for daily usage
       const { data: fallbackDaily } = await supabaseAdmin
         .from('free_service_usage')
@@ -186,7 +182,6 @@ export async function GET(request: NextRequest) {
       });
 
     if (categoryError) {
-      console.error('Error fetching category stats:', categoryError);
     }
 
     return NextResponse.json({
@@ -201,7 +196,6 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error in GET /api/admin/free-services-analytics:', error);
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 });

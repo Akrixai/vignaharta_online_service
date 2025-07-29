@@ -32,7 +32,6 @@ export async function GET(request: NextRequest) {
             });
 
           if (error) {
-            console.error(`Error listing files in bucket ${bucket.id}:`, error);
             return {
               id: bucket.id,
               name: bucket.name,
@@ -82,7 +81,6 @@ export async function GET(request: NextRequest) {
             total_size: formatSize(totalSize)
           };
         } catch (error) {
-          console.error(`Error processing bucket ${bucket.id}:`, error);
           return {
             id: bucket.id,
             name: bucket.name,
@@ -96,7 +94,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ buckets: bucketStats });
 
   } catch (error) {
-    console.error('Error fetching storage bucket stats:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

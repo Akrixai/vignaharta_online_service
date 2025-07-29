@@ -76,12 +76,10 @@ export async function POST(request: NextRequest) {
       );
       
       if (authError && process.env.NODE_ENV === 'development') {
-        console.warn('Failed to update Supabase auth password:', authError);
         // Don't fail the request as the database password is updated
       }
     } catch (authUpdateError) {
       if (process.env.NODE_ENV === 'development') {
-        console.warn('Supabase auth update not available:', authUpdateError);
       }
     }
 
@@ -91,7 +89,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error changing password:', error);
     return NextResponse.json({ 
       error: 'Internal server error' 
     }, { status: 500 });
