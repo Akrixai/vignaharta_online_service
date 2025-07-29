@@ -65,7 +65,7 @@ export default function LandingPageClient() {
 
               {/* Akrix.ai Branding */}
               <a
-                href="https://akrix-ai.netlify.app"
+                href="https://akrixsolutions.in/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-500 text-white font-bold px-3 py-1.5 rounded-full shadow-lg animate-pulse hover:from-pink-500 hover:to-yellow-400 transition-all duration-300 flex items-center space-x-1.5 border-2 border-white/30 text-sm"

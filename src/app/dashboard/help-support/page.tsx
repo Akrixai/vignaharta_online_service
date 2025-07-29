@@ -145,7 +145,7 @@ export default function HelpSupportPage() {
                 Advanced AI-powered support system for enhanced customer experience
               </p>
               <a
-                href="https://akrix-ai.netlify.app"
+                href="https://akrixsolutions.in/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 text-purple-600 hover:text-purple-800 font-medium text-sm transition-colors"

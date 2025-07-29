@@ -89,7 +89,7 @@ export default function Footer() {
               <div className="flex items-center space-x-4">
                 <span className="text-white font-medium">Powered by</span>
                 <a
-                  href="https://akrix-ai.netlify.app"
+                  href="https://akrixsolutions.in/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-500 text-white font-extrabold px-4 py-2 rounded-full shadow-lg animate-pulse hover:from-pink-500 hover:to-yellow-400 transition-all duration-300 flex items-center space-x-2 border-2 border-white/30"

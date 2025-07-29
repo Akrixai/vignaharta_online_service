@@ -13,7 +13,7 @@ function getAkrixBrandingFooter(): string {
       <p style="color: #9ca3af; font-size: 14px; margin: 0 0 10px 0;">
         Powered by
       </p>
-      <a href="https://akrix-ai.netlify.app" target="_blank" rel="noopener noreferrer"
+      <a href="https://akrixsolutions.in/" target="_blank" rel="noopener noreferrer"
          style="display: inline-block; background: linear-gradient(135deg, #fbbf24, #ec4899, #8b5cf6);
                 color: white; padding: 8px 16px; border-radius: 20px; text-decoration: none;
                 font-weight: bold; font-size: 14px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">

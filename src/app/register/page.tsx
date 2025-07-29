@@ -148,7 +148,7 @@ export default function RegisterPage() {
       {/* Akrix.ai Branding - Top Right Corner */}
       <div className="absolute top-4 right-4 z-10">
         <a
-          href="https://akrix-ai.netlify.app"
+          href="https://akrixsolutions.in/"
           target="_blank"
           rel="noopener noreferrer"
           className="text-red-600/80 hover:text-red-600 text-xs font-medium px-3 py-2 rounded-lg hover:bg-white/50 transition-all duration-200 flex items-center space-x-1 backdrop-blur-sm"

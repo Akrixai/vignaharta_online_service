@@ -397,7 +397,9 @@ export default function WalletPage() {
                 formatCurrency(wallet?.balance || 0)
               )}
             </div>
-            <div className="flex space-x-2">
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+              {/* Online Payment Button - Commented Out */}
+              {/*
               <Button
                 onClick={() => {
                   showToast.info('Coming Soon', {
@@ -408,18 +410,20 @@ export default function WalletPage() {
               >
                 💳 Online Payment
               </Button>
+              */}
+
               <Button
                 onClick={() => setShowQRPayment(true)}
-                className="bg-white text-green-600 hover:bg-gray-100 flex-1"
+                className="bg-white text-green-600 hover:bg-gray-100 flex-1 h-12 font-semibold text-base shadow-md hover:shadow-lg transition-all duration-200"
               >
                 📱 QR Pay
               </Button>
               <Button
                 onClick={() => setShowWithdraw(true)}
                 variant="outline"
-                className="border-white text-white hover:bg-white hover:text-green-600 flex-1"
+                className="border-white text-white hover:bg-white hover:text-green-600 flex-1 h-12 font-semibold text-base shadow-md hover:shadow-lg transition-all duration-200"
               >
-                Withdraw
+                💸 Withdraw
               </Button>
             </div>
           </CardContent>

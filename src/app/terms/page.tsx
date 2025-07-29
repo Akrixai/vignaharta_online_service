@@ -287,7 +287,7 @@ export default function TermsPage() {
                   Developed with Love by
                 </span>
                 <a
-                  href="https://akrix-ai.netlify.app/"
+                  href="https://akrixsolutions.in/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 font-bold text-sm hover:from-pink-500 hover:via-purple-500 hover:to-blue-500 transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
