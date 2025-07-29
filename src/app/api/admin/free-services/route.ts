@@ -90,10 +90,13 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Error creating free service:', error);
-      return NextResponse.json({ 
-        error: 'Failed to create free service' 
+      return NextResponse.json({
+        error: 'Failed to create free service',
+        details: error.message
       }, { status: 500 });
     }
+
+    console.log('✅ Free service created successfully:', freeService);
 
     return NextResponse.json({
       success: true,

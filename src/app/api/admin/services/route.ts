@@ -127,15 +127,8 @@ export async function POST(request: NextRequest) {
 
     // WhatsApp notifications removed (feature disabled)
 
-    // Trigger Email notifications for new service
-    try {
-      console.log('📧 Triggering email notifications...');
-      await sendNewServiceNotifications(service.id, service.name, service.description);
-      console.log('✅ Email notifications triggered successfully');
-    } catch (emailError) {
-      console.error('❌ Error triggering email notifications:', emailError);
-      // Don't fail the service creation if email notifications fail
-    }
+    // Email notifications temporarily disabled to prevent API errors
+    console.log('📧 Email notifications disabled for service creation');
 
     return NextResponse.json({
       success: true,

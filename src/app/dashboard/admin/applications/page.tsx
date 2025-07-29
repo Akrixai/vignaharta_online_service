@@ -533,13 +533,39 @@ export default function AdminApplicationsPage() {
                                         if (Array.isArray(value)) {
                                           return value.join(', ');
                                         } else {
-                                          // Display object properties in a user-friendly way
-                                          return Object.entries(value).map(([objKey, objValue]) => (
-                                            <div key={objKey} className="mb-1">
-                                              <span className="text-sm text-gray-600">{objKey.replace(/_/g, ' ')}: </span>
-                                              <span className="text-gray-900 font-medium">{String(objValue || 'N/A')}</span>
-                                            </div>
-                                          ));
+                                          // Handle service_specific_data with dynamic field mapping
+                                          if (key === 'service_specific_data' && selectedApp.scheme?.dynamic_fields) {
+                                            return Object.entries(value).map(([objKey, objValue]) => {
+                                              // Map dynamic field IDs to their labels
+                                              let displayLabel = objKey.replace(/_/g, ' ');
+
+                                              // Check if this is a dynamic field (starts with dynamic_field_)
+                                              if (objKey.startsWith('dynamic_field_')) {
+                                                // Extract the field ID (remove 'dynamic_' prefix)
+                                                const fieldId = objKey.replace('dynamic_', '');
+                                                // Find the corresponding field in scheme dynamic_fields
+                                                const field = selectedApp.scheme.dynamic_fields.find((f: any) => f.id === fieldId);
+                                                if (field) {
+                                                  displayLabel = field.label;
+                                                }
+                                              }
+
+                                              return (
+                                                <div key={objKey} className="mb-1">
+                                                  <span className="text-sm text-gray-600">{displayLabel}: </span>
+                                                  <span className="text-gray-900 font-medium">{String(objValue || 'N/A')}</span>
+                                                </div>
+                                              );
+                                            });
+                                          } else {
+                                            // Display other object properties in a user-friendly way
+                                            return Object.entries(value).map(([objKey, objValue]) => (
+                                              <div key={objKey} className="mb-1">
+                                                <span className="text-sm text-gray-600">{objKey.replace(/_/g, ' ')}: </span>
+                                                <span className="text-gray-900 font-medium">{String(objValue || 'N/A')}</span>
+                                              </div>
+                                            ));
+                                          }
                                         }
                                       }
                                       return <span className="font-medium">{String(value || 'N/A')}</span>;
