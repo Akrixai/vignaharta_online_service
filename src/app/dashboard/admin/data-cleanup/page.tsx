@@ -21,6 +21,16 @@ interface DataStats {
   login_advertisements: number;
   advertisements: number;
   documents: number;
+  user_consent: number;
+  wallet_requests: number;
+  pending_registrations: number;
+}
+
+interface StorageBucket {
+  id: string;
+  name: string;
+  file_count: number;
+  total_size: string;
 }
 
 interface CleanupTask {
@@ -62,6 +72,45 @@ const cleanupTasks: CleanupTask[] = [
     estimatedSpace: '~10MB',
     defaultDays: 30,
     minDays: 1, // Minimum 1 day
+    maxDays: 90,
+    timeUnit: 'days'
+  },
+  {
+    id: 'user-consent',
+    name: 'User Consent Records',
+    description: 'Remove old user consent records',
+    icon: <Database className="w-5 h-5" />,
+    dataType: 'user_consent',
+    riskLevel: 'medium',
+    estimatedSpace: '~5MB',
+    defaultDays: 365,
+    minDays: 30,
+    maxDays: 1095,
+    timeUnit: 'days'
+  },
+  {
+    id: 'wallet-requests',
+    name: 'Wallet Requests',
+    description: 'Remove old wallet transaction requests',
+    icon: <Database className="w-5 h-5" />,
+    dataType: 'wallet_requests',
+    riskLevel: 'medium',
+    estimatedSpace: '~15MB',
+    defaultDays: 180,
+    minDays: 30,
+    maxDays: 365,
+    timeUnit: 'days'
+  },
+  {
+    id: 'pending-registrations',
+    name: 'Pending Registrations',
+    description: 'Remove old pending registration requests',
+    icon: <Database className="w-5 h-5" />,
+    dataType: 'pending_registrations',
+    riskLevel: 'low',
+    estimatedSpace: '~8MB',
+    defaultDays: 30,
+    minDays: 7,
     maxDays: 90,
     timeUnit: 'days'
   },
@@ -135,8 +184,10 @@ const cleanupTasks: CleanupTask[] = [
 export default function DataCleanupPage() {
   const { data: session } = useSession();
   const [dataStats, setDataStats] = useState<DataStats | null>(null);
+  const [storageBuckets, setStorageBuckets] = useState<StorageBucket[]>([]);
   const [loading, setLoading] = useState(true);
   const [cleanupLoading, setCleanupLoading] = useState<string | null>(null);
+  const [storageCleanupLoading, setStorageCleanupLoading] = useState<string | null>(null);
   const [customDays, setCustomDays] = useState<Record<string, number>>({});
   const [showCustomSettings, setShowCustomSettings] = useState<Record<string, boolean>>({});
 
@@ -199,10 +250,19 @@ export default function DataCleanupPage() {
 
   const fetchDataStats = async () => {
     try {
-      const response = await fetch('/api/admin/data-stats');
-      if (response.ok) {
-        const stats = await response.json();
+      const [statsResponse, bucketsResponse] = await Promise.all([
+        fetch('/api/admin/data-stats'),
+        fetch('/api/admin/data-cleanup/storage-buckets')
+      ]);
+
+      if (statsResponse.ok) {
+        const stats = await statsResponse.json();
         setDataStats(stats);
+      }
+
+      if (bucketsResponse.ok) {
+        const bucketsData = await bucketsResponse.json();
+        setStorageBuckets(bucketsData.buckets);
       }
     } catch (error) {
       console.error('Error fetching data stats:', error);
@@ -257,6 +317,41 @@ export default function DataCleanupPage() {
       showToast.error(`Error cleaning up ${task.name}`);
     } finally {
       setCleanupLoading(null);
+    }
+  };
+
+  const handleStorageCleanup = async (bucketId: string) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to clean up all files in the "${bucketId}" storage bucket?\n\nThis will permanently delete ALL files in this bucket.\n\nThis action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    setStorageCleanupLoading(bucketId);
+    try {
+      const response = await fetch('/api/admin/data-cleanup/storage', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ bucketId }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        showToast.success(`Storage bucket "${bucketId}" cleaned up successfully!`, {
+          description: `Removed ${result.deletedCount} files, freed ${result.spaceFreed}`
+        });
+        await fetchDataStats(); // Refresh stats
+      } else {
+        showToast.error(`Failed to clean up storage bucket: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Storage cleanup error:', error);
+      showToast.error('An error occurred during storage cleanup');
+    } finally {
+      setStorageCleanupLoading(null);
     }
   };
 
@@ -445,6 +540,73 @@ export default function DataCleanupPage() {
                         <>
                           <Trash2 className="w-4 h-4 mr-2" />
                           Clean Up ({customDays[task.id] || task.defaultDays} days)
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Storage Buckets Cleanup Section */}
+        <div className="bg-gradient-to-r from-purple-600 to-purple-700 rounded-xl p-6 text-white shadow-xl">
+          <h2 className="text-2xl font-bold mb-3 flex items-center">
+            <Database className="w-6 h-6 mr-3" />
+            Storage Buckets Cleanup
+          </h2>
+          <p className="text-purple-100 mb-4">
+            Clean up all files from storage buckets to free up storage space
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {storageBuckets.map((bucket) => (
+            <Card key={bucket.id} className="hover:shadow-lg transition-shadow">
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                        <Database className="w-5 h-5 mr-2 text-purple-600" />
+                        {bucket.name}
+                      </h3>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Storage bucket for {bucket.name.replace(/-/g, ' ')} files
+                      </p>
+                    </div>
+                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                      HIGH RISK
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-500">Files:</span>
+                      <span className="ml-2 font-medium">{bucket.file_count}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Size:</span>
+                      <span className="ml-2 font-medium">{bucket.total_size}</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t">
+                    <Button
+                      onClick={() => handleStorageCleanup(bucket.id)}
+                      disabled={storageCleanupLoading === bucket.id || bucket.file_count === 0}
+                      className="w-full bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      {storageCleanupLoading === bucket.id ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Cleaning...
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Clean All Files
                         </>
                       )}
                     </Button>

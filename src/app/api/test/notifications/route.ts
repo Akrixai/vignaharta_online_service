@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { notifyUsersAboutNewScheme } from '@/lib/whatsapp-meta-api';
 import { sendNewServiceNotifications, sendTestEmail } from '@/lib/email-service';
 
 export async function POST(request: NextRequest) {
@@ -7,18 +6,6 @@ export async function POST(request: NextRequest) {
     const { type, testData } = await request.json();
 
     switch (type) {
-      case 'whatsapp':
-        console.log('🧪 Testing WhatsApp notifications...');
-        await notifyUsersAboutNewScheme(
-          'test-service-id',
-          testData?.serviceName || 'Test Service',
-          testData?.description || 'This is a test service for notification testing'
-        );
-        return NextResponse.json({ 
-          success: true, 
-          message: 'WhatsApp notifications sent successfully' 
-        });
-
       case 'email':
         console.log('🧪 Testing Email notifications...');
         await sendNewServiceNotifications(

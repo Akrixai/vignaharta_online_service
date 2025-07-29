@@ -3,7 +3,6 @@ import { Inter, Noto_Sans_Devanagari } from "next/font/google";
 import "./globals.css";
 import NextAuthSessionProvider from "@/components/providers/session-provider";
 import { Toaster } from "react-hot-toast";
-import WhatsAppNotificationProvider from "@/components/WhatsAppNotificationProvider";
 import NotificationManager from "@/components/NotificationManager";
 
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -86,8 +85,7 @@ export default function RootLayout({
       </head>
       <body className={`${inter.className} ${notoSansDevanagari.variable} antialiased`}>
         <NextAuthSessionProvider>
-          <WhatsAppNotificationProvider>
-            <NotificationManager>
+          <NotificationManager>
               <ErrorBoundary>
                 {children}
               <Toaster
@@ -113,8 +111,7 @@ export default function RootLayout({
                 }}
               />
             </ErrorBoundary>
-            </NotificationManager>
-          </WhatsAppNotificationProvider>
+          </NotificationManager>
         </NextAuthSessionProvider>
       </body>
     </html>

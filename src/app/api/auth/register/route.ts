@@ -4,7 +4,6 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { UserRole } from '@/types';
 import { validateEmail, validatePhone } from '@/lib/utils';
 import { sendWelcomeRetailerEmail, sendWelcomeEmployeeEmail, sendRegistrationSuccessEmail } from '@/lib/email-service';
-import { sendWhatsAppMessage } from '@/lib/whatsapp-meta-api';
 
 export async function POST(request: NextRequest) {
   try {
@@ -163,25 +162,7 @@ export async function POST(request: NextRequest) {
         console.log(`📧 Sending approval request notifications for ${name} (${email})`);
       }
 
-      // Send admin notification for approval
-      const adminMessage = `🆕 New ${role} Registration Request\n\n👤 Name: ${name}\n📧 Email: ${email}\n📱 Phone: ${phone || 'Not provided'}\n🏠 Address: ${address || 'Not provided'}\n🏙️ City: ${city || 'Not provided'}\n🏛️ State: ${state || 'Not provided'}\n📮 PIN: ${pincode || 'Not provided'}\n\n⏳ Status: Pending Approval\n\n🔍 Please review and approve/reject this registration request in the admin dashboard.`;
-      await sendWhatsAppMessage('7499116527', adminMessage);
-
-      // Get all employees to notify them as well
-      const { data: employees } = await supabaseAdmin
-        .from('users')
-        .select('phone')
-        .eq('role', 'EMPLOYEE')
-        .eq('is_active', true);
-
-      if (employees && employees.length > 0) {
-        for (const employee of employees) {
-          if (employee.phone) {
-            const employeeMessage = `🆕 New ${role} Registration Request\n\n👤 Name: ${name}\n📧 Email: ${email}\n📱 Phone: ${phone || 'Not provided'}\n🏙️ City: ${city || 'Not provided'}\n\n⏳ Pending admin approval\n\n📋 Please check admin dashboard for details.`;
-            await sendWhatsAppMessage(employee.phone, employeeMessage);
-          }
-        }
-      }
+      // Admin and employee notifications removed (WhatsApp feature disabled)
 
       console.log('✅ Approval request notifications sent successfully');
     } catch (notificationError) {

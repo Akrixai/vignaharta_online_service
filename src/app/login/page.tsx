@@ -234,20 +234,15 @@ function LoginPageContent() {
           </div>
 
           {/* Links */}
-          <div className="flex flex-col sm:flex-row items-center justify-between pt-4 space-y-2 sm:space-y-0">
-            <div className="text-xs sm:text-sm">
-              <a href="#" className="font-medium text-red-600 hover:text-red-700 transition-colors">
-                Forgot your password?
-              </a>
-            </div>
-            {formData.role && formData.role.toUpperCase() === 'RETAILER' && (
+          {formData.role && formData.role.toUpperCase() === 'RETAILER' && (
+            <div className="flex justify-center pt-4">
               <div className="text-xs sm:text-sm">
                 <Link href="/register" className="font-medium text-red-600 hover:text-red-700 transition-colors">
                   Register as Retailer
                 </Link>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </form>
 
         {/* Register as Retailer Button */}

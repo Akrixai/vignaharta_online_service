@@ -3,8 +3,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { UserRole } from '@/types';
-import { notifyUsersAboutNewScheme } from '@/lib/whatsapp-new';
-import { sendBulkWhatsAppNotifications } from '@/lib/whatsapp-meta-api';
 import { sendNewServiceNotifications } from '@/lib/email-service';
 
 // GET - Fetch all services (Admin only)
@@ -127,62 +125,7 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Service created successfully:', service);
 
-    // Trigger WhatsApp notifications for new service using Meta API
-    try {
-      console.log('📱 Triggering WhatsApp notifications using Meta API...');
-
-      // Get all active retailers and employees with phone numbers
-      const { data: users, error: usersError } = await supabaseAdmin
-        .from('users')
-        .select('id, name, phone, role')
-        .in('role', ['RETAILER', 'EMPLOYEE'])
-        .eq('is_active', true)
-        .not('phone', 'is', null)
-        .neq('phone', '');
-
-      if (usersError) {
-        throw new Error(`Failed to fetch users: ${usersError.message}`);
-      }
-
-      if (users && users.length > 0) {
-        const recipients = users.map(user => ({
-          phone: user.phone,
-          name: user.name,
-          id: user.id
-        }));
-
-        // Send WhatsApp notifications using Meta API
-        const result = await sendBulkWhatsAppNotifications(
-          recipients,
-          service.name,
-          service.description || 'New service available on our portal'
-        );
-
-        // Log notification results to database
-        for (const notificationResult of result.results) {
-          await supabaseAdmin
-            .from('whatsapp_notifications')
-            .insert({
-              scheme_id: service.id,
-              recipient_phone: notificationResult.phone,
-              recipient_type: users.find(u => u.id === notificationResult.recipientId)?.role?.toLowerCase() || 'unknown',
-              recipient_id: notificationResult.recipientId,
-              message_content: `New service: ${service.name}`,
-              status: notificationResult.success ? 'sent' : 'failed',
-              message_id: notificationResult.messageId,
-              error_message: notificationResult.error,
-              sent_at: notificationResult.success ? new Date().toISOString() : null
-            });
-        }
-
-        console.log(`✅ WhatsApp notifications completed: ${result.successful} sent, ${result.failed} failed`);
-      } else {
-        console.log('ℹ️ No users found for WhatsApp notifications');
-      }
-    } catch (notificationError) {
-      console.error('❌ Error triggering WhatsApp notifications:', notificationError);
-      // Don't fail the service creation if notifications fail
-    }
+    // WhatsApp notifications removed (feature disabled)
 
     // Trigger Email notifications for new service
     try {

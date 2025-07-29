@@ -328,6 +328,63 @@ export async function POST(request: NextRequest) {
         spaceFreed = `~${Math.round(deletedCount * 1)}MB`;
         break;
 
+      case 'user-consent':
+        // Delete old user consent records
+        const consentDays = Math.max(customDays || 365, 30); // Default 1 year, minimum 30 days
+        const consentCutoff = getCutoffDate(consentDays);
+
+        const { data: deletedConsent, error: deleteConsentError } = await supabaseAdmin
+          .from('user_consent')
+          .delete()
+          .lt('created_at', consentCutoff)
+          .select('id');
+
+        if (deleteConsentError) {
+          throw new Error(`Failed to delete user consent records: ${deleteConsentError.message}`);
+        }
+
+        deletedCount = deletedConsent?.length || 0;
+        spaceFreed = `~${Math.round(deletedCount * 0.1)}MB`;
+        break;
+
+      case 'wallet-requests':
+        // Delete old wallet requests
+        const walletDays = Math.max(customDays || 180, 30); // Default 6 months, minimum 30 days
+        const walletCutoff = getCutoffDate(walletDays);
+
+        const { data: deletedWalletRequests, error: deleteWalletError } = await supabaseAdmin
+          .from('wallet_requests')
+          .delete()
+          .lt('created_at', walletCutoff)
+          .select('id');
+
+        if (deleteWalletError) {
+          throw new Error(`Failed to delete wallet requests: ${deleteWalletError.message}`);
+        }
+
+        deletedCount = deletedWalletRequests?.length || 0;
+        spaceFreed = `~${Math.round(deletedCount * 0.2)}MB`;
+        break;
+
+      case 'pending-registrations':
+        // Delete old pending registrations
+        const pendingDays = Math.max(customDays || 30, 7); // Default 30 days, minimum 7 days
+        const pendingCutoff = getCutoffDate(pendingDays);
+
+        const { data: deletedPendingRegs, error: deletePendingError } = await supabaseAdmin
+          .from('pending_registrations')
+          .delete()
+          .lt('created_at', pendingCutoff)
+          .select('id');
+
+        if (deletePendingError) {
+          throw new Error(`Failed to delete pending registrations: ${deletePendingError.message}`);
+        }
+
+        deletedCount = deletedPendingRegs?.length || 0;
+        spaceFreed = `~${Math.round(deletedCount * 0.1)}MB`;
+        break;
+
       default:
         return NextResponse.json({ error: 'Invalid task ID' }, { status: 400 });
     }

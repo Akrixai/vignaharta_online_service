@@ -23,7 +23,10 @@ export async function GET(request: NextRequest) {
       advertisements: 0,
       documents: 0,
       receipts: 0,
-      orders: 0
+      orders: 0,
+      user_consent: 0,
+      wallet_requests: 0,
+      pending_registrations: 0
     };
 
     // Count applications
@@ -86,6 +89,24 @@ export async function GET(request: NextRequest) {
       .from('orders')
       .select('*', { count: 'exact', head: true });
     stats.orders = ordersCount || 0;
+
+    // Count user consent records
+    const { count: userConsentCount } = await supabaseAdmin
+      .from('user_consent')
+      .select('*', { count: 'exact', head: true });
+    stats.user_consent = userConsentCount || 0;
+
+    // Count wallet requests
+    const { count: walletRequestsCount } = await supabaseAdmin
+      .from('wallet_requests')
+      .select('*', { count: 'exact', head: true });
+    stats.wallet_requests = walletRequestsCount || 0;
+
+    // Count pending registrations
+    const { count: pendingRegistrationsCount } = await supabaseAdmin
+      .from('pending_registrations')
+      .select('*', { count: 'exact', head: true });
+    stats.pending_registrations = pendingRegistrationsCount || 0;
 
     return NextResponse.json(stats);
 

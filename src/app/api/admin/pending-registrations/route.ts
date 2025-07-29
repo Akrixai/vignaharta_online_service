@@ -4,7 +4,6 @@ import { authOptions } from '@/lib/auth';
 import { UserRole } from '@/types';
 import { supabaseAdmin } from '@/lib/supabase';
 import { sendWelcomeRetailerEmail, sendWelcomeEmployeeEmail, sendRegistrationRejectionEmail } from '@/lib/email-service';
-import { sendWhatsAppMessage } from '@/lib/whatsapp-meta-api';
 
 // GET - Fetch all pending registrations
 export async function GET(request: NextRequest) {
@@ -129,15 +128,7 @@ export async function POST(request: NextRequest) {
           await sendWelcomeEmployeeEmail(registration.name, registration.email, 'Please login with your registered password');
         }
 
-        // Send WhatsApp notification to user
-        if (registration.phone) {
-          const userMessage = `🎉 Registration Approved!\n\n👋 Hello ${registration.name},\n\nYour ${registration.role} account has been approved and activated!\n\n📧 Email: ${registration.email}\n🔑 You can now login to access your dashboard.\n\n🚀 Login: http://localhost:3000/login?role=${registration.role.toLowerCase()}\n\n🌟 Welcome to विघ्नहर्ता ऑनलाइन सर्विस!`;
-          await sendWhatsAppMessage(registration.phone, userMessage);
-        }
-
-        // Send admin notification
-        const adminMessage = `✅ Registration Approved\n\n👤 Name: ${registration.name}\n📧 Email: ${registration.email}\n📱 Phone: ${registration.phone || 'Not provided'}\n🏙️ City: ${registration.city || 'Not provided'}\n\n✅ Account activated successfully!\n\nApproved by: ${session.user.name}`;
-        await sendWhatsAppMessage('7499116527', adminMessage);
+        // WhatsApp notifications removed (feature disabled)
 
       } catch (notificationError) {
         console.error('Error sending approval notifications:', notificationError);
@@ -182,14 +173,7 @@ export async function POST(request: NextRequest) {
         );
         console.log(`✅ Rejection email sent to ${registration.email}`);
 
-        if (registration.phone) {
-          const userMessage = `❌ Registration Rejected\n\n👋 Hello ${registration.name},\n\nWe regret to inform you that your ${registration.role} registration has been rejected.\n\n📧 Email: ${registration.email}\n\nReason: ${rejectionReason || 'Please contact support for more details'}\n\n📞 Contact support: vighnahartaenterprises.sangli@gmail.com\n\nYou can reapply after addressing the issues.`;
-          await sendWhatsAppMessage(registration.phone, userMessage);
-        }
-
-        // Send admin notification
-        const adminMessage = `❌ Registration Rejected\n\n👤 Name: ${registration.name}\n📧 Email: ${registration.email}\n📱 Phone: ${registration.phone || 'Not provided'}\n\nReason: ${rejectionReason || 'No reason provided'}\n\nRejected by: ${session.user.name}`;
-        await sendWhatsAppMessage('7499116527', adminMessage);
+        // WhatsApp notifications removed (feature disabled)
 
       } catch (notificationError) {
         // Only log in development
