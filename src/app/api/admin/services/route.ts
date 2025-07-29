@@ -3,7 +3,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { UserRole } from '@/types';
-import { sendNewServiceNotifications } from '@/lib/email-service';
 
 // GET - Fetch all services (Admin only)
 export async function GET() {
@@ -48,6 +47,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    console.log('📝 Service creation request body:', body);
+
     const {
       name,
       description,

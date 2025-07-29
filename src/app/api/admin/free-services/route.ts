@@ -43,15 +43,19 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session || session.user.role !== UserRole.ADMIN) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { name, description, category, external_url } = await request.json();
+    const requestBody = await request.json();
+    console.log('📝 Free service creation request body:', requestBody);
+
+    const { name, description, category, external_url } = requestBody;
 
     // Validation
     if (!name || !description || !category || !external_url) {
+      console.error('❌ Validation failed:', { name, description, category, external_url });
       return NextResponse.json({
         error: 'Name, description, category, and external URL are required'
       }, { status: 400 });
@@ -77,10 +81,10 @@ export async function POST(request: NextRequest) {
       is_active: true,
       processing_time_days: 0,
       commission_rate: 0,
-      created_by: session.user.id,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      created_by: session.user.id
     };
+
+    console.log('📝 Service data to insert:', serviceData);
 
     const { data: freeService, error } = await supabaseAdmin
       .from('schemes')
