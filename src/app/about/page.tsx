@@ -129,28 +129,7 @@ export default function AboutPage() {
           </div>
         </div>
 
-        {/* Statistics */}
-        <div className="bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl p-8 mb-16">
-          <h2 className="text-3xl font-bold mb-8 text-center">Our Impact</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-bold mb-2">10,000+</div>
-              <div className="text-red-200">Active Retailers</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold mb-2">1M+</div>
-              <div className="text-red-200">Services Delivered</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold mb-2">500+</div>
-              <div className="text-red-200">Cities Covered</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold mb-2">99.9%</div>
-              <div className="text-red-200">Uptime</div>
-            </div>
-          </div>
-        </div>
+
 
         {/* Call to Action */}
         <div className="text-center">

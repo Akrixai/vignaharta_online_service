@@ -44,8 +44,8 @@ export default function QRPaymentModal({ isOpen, onClose, onSubmit, loading = fa
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-      <Card className="w-full max-w-4xl max-h-[95vh] overflow-y-auto shadow-2xl border-0 bg-white">
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-2 sm:p-4 backdrop-blur-sm">
+      <Card className="w-full max-w-2xl sm:max-w-3xl lg:max-w-4xl max-h-[95vh] overflow-y-auto shadow-2xl border-0 bg-white">
         <CardHeader className="bg-gradient-to-r from-red-600 to-red-700 text-white rounded-t-lg">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -62,7 +62,7 @@ export default function QRPaymentModal({ isOpen, onClose, onSubmit, loading = fa
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="p-8 space-y-8">
+        <CardContent className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
           {/* Card Payment Notice */}
           <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
             <div className="flex items-start">
@@ -81,7 +81,7 @@ export default function QRPaymentModal({ isOpen, onClose, onSubmit, loading = fa
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-8">
+          <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
             {/* Amount Input */}
             <div className="space-y-2">
               <Label htmlFor="amount" className="text-sm font-semibold text-gray-800 flex items-center">
@@ -141,26 +141,26 @@ export default function QRPaymentModal({ isOpen, onClose, onSubmit, loading = fa
                 </div>
 
                 {showQR && (
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-8 rounded-xl border border-blue-200 shadow-inner">
-                    <div className="text-center space-y-6">
-                      <div className="w-144 h-144 mx-auto bg-white p-6 rounded-xl shadow-lg border-2 border-blue-200">
-                        <div className="w-full h-full rounded-lg overflow-hidden relative">
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 sm:p-6 lg:p-8 rounded-xl border border-blue-200 shadow-inner">
+                    <div className="text-center space-y-4 sm:space-y-6">
+                      <div className="w-full max-w-xs sm:max-w-sm md:max-w-md mx-auto bg-white p-4 sm:p-6 rounded-xl shadow-lg border-2 border-blue-200">
+                        <div className="aspect-square w-full rounded-lg overflow-hidden relative">
                           <img
                             src="/akrixPayQR.jpg"
                             alt="AkrixPay QR Code"
                             className="w-full h-full object-contain"
                           />
-                          <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white p-3 rounded-b-lg">
-                            <p className="text-xl font-bold">₹{amount}</p>
+                          <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white p-2 sm:p-3 rounded-b-lg">
+                            <p className="text-lg sm:text-xl font-bold">₹{amount}</p>
                           </div>
                         </div>
                       </div>
 
                       <div className="space-y-2">
-                        <p className="text-sm font-medium text-blue-800">
+                        <p className="text-sm sm:text-base font-medium text-blue-800">
                           Scan with any UPI app to pay ₹{amount}
                         </p>
-                        <p className="text-xs text-blue-600">
+                        <p className="text-xs sm:text-sm text-blue-600">
                           PhonePe • Google Pay • Paytm • BHIM • Any UPI App
                         </p>
                       </div>
@@ -211,19 +211,19 @@ export default function QRPaymentModal({ isOpen, onClose, onSubmit, loading = fa
             </div>
 
             {/* Submit Button */}
-            <div className="flex gap-3 pt-6">
+            <div className="flex flex-col sm:flex-row gap-3 pt-4 sm:pt-6">
               <Button
                 type="button"
                 variant="outline"
                 onClick={onClose}
-                className="flex-1 h-12 border-2 border-gray-300 hover:border-gray-400 text-gray-700 font-medium"
+                className="flex-1 h-12 border-2 border-gray-300 hover:border-gray-400 text-gray-700 font-medium order-2 sm:order-1"
                 disabled={loading}
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                className="flex-1 h-12 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold shadow-lg transition-all duration-200 disabled:opacity-50"
+                className="flex-1 h-12 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold shadow-lg transition-all duration-200 disabled:opacity-50 order-1 sm:order-2"
                 disabled={loading || !amount || !transactionId}
               >
                 {loading ? (

@@ -28,7 +28,8 @@ export default function AdminServicesPage() {
   });
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [dynamicFields, setDynamicFields] = useState<Array<{
+  // Define the type first to avoid hoisting issues
+  type DynamicFieldType = {
     id: string;
     label: string;
     type: 'text' | 'number' | 'email' | 'tel' | 'date' | 'select' | 'textarea' | 'file' | 'image' | 'pdf';
@@ -37,7 +38,9 @@ export default function AdminServicesPage() {
     placeholder?: string;
     accept?: string;
     description?: string;
-  }>>([]);
+  };
+
+  const [dynamicFields, setDynamicFields] = useState<DynamicFieldType[]>([]);
   const [requiredDocuments, setRequiredDocuments] = useState<Array<{
     id: string;
     name: string;
@@ -279,26 +282,26 @@ export default function AdminServicesPage() {
   };
 
   const addDynamicField = () => {
-    const newField = {
+    const newField: DynamicFieldType = {
       id: `field_${Date.now()}`,
       label: '',
-      type: 'text' as const,
+      type: 'text',
       required: false,
       placeholder: ''
     };
-    setDynamicFields([...dynamicFields, newField]);
+    setDynamicFields(prevFields => [...prevFields, newField]);
   };
 
-  const updateDynamicField = (id: string, updates: Partial<typeof dynamicFields[0]>) => {
-    setDynamicFields(fields =>
-      fields.map(field =>
+  const updateDynamicField = (id: string, updates: Partial<DynamicFieldType>) => {
+    setDynamicFields(prevFields =>
+      prevFields.map(field =>
         field.id === id ? { ...field, ...updates } : field
       )
     );
   };
 
   const removeDynamicField = (id: string) => {
-    setDynamicFields(fields => fields.filter(field => field.id !== id));
+    setDynamicFields(prevFields => prevFields.filter(field => field.id !== id));
   };
 
   const addRequiredDocument = () => {

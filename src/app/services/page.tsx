@@ -127,11 +127,10 @@ export default function ServicesPage() {
                   <div key={service.name} className="border border-gray-200 rounded-lg p-6 hover:border-red-500 transition-colors hover:shadow-md">
                     <h3 className="text-xl font-semibold text-gray-900 mb-3">{service.name}</h3>
                     <p className="text-gray-600 mb-4">{service.description}</p>
-                    <div className="flex justify-between items-center">
-                      <span className="text-2xl font-bold text-red-600">{service.price}</span>
+                    <div className="flex justify-center">
                       <Link
                         href="/register"
-                        className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                        className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors font-medium"
                       >
                         Get Started
                       </Link>

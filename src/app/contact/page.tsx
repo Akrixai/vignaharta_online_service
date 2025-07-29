@@ -28,10 +28,34 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
+
+    // Prepare WhatsApp message
+    const phoneNumber = '917499116527'; // Admin WhatsApp number
+    const message = `🙏 नमस्ते! मैं ${formData.name} हूं।
+
+📧 Email: ${formData.email}
+📱 Phone: ${formData.phone}
+📋 Subject: ${formData.subject}
+
+💬 Message:
+${formData.message}
+
+---
+📅 Date: ${new Date().toLocaleDateString('en-IN')}
+⏰ Time: ${new Date().toLocaleTimeString('en-IN')}
+
+🌐 Sent from: Vignaharta Online Service Contact Form
+🔗 Website: https://www.vighnahartaonlineservice.in`;
+
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+
+    // Simulate brief loading
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Open WhatsApp
+    window.open(whatsappUrl, '_blank');
+
     setSubmitted(true);
     setIsSubmitting(false);
     setFormData({
@@ -50,8 +74,8 @@ export default function ContactPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <Link href="/" className="flex items-center">
-              <Logo size="lg" showText={true} animated={true} />
-              <span className="ml-4 text-sm text-red-100">
+              <Logo size="md" showText={true} animated={true} />
+              <span className="ml-2 sm:ml-4 text-xs sm:text-sm text-red-100 hidden sm:block">
                 Government Service Portal
               </span>
             </Link>
@@ -74,18 +98,18 @@ export default function ContactPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Hero Section */}
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-gray-900 mb-6 animate-fade-in">
+        <div className="text-center mb-12 sm:mb-16">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6 animate-fade-in">
             Contact Us
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto animate-slide-in-up">
+          <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto animate-slide-in-up px-4">
             Get in touch with us for any queries, support, or feedback. We're here to help you with all your government service needs.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12">
           {/* Contact Information */}
           <div className="space-y-8">
             <Card className="hover-lift">
@@ -161,7 +185,7 @@ export default function ContactPage() {
                   <Link href="/services" className="text-red-600 hover:text-red-800 font-medium">
                     📋 View Services
                   </Link>
-                  <Link href="/help" className="text-red-600 hover:text-red-800 font-medium">
+                  <Link href="/contact" className="text-red-600 hover:text-red-800 font-medium">
                     ❓ Help Center
                   </Link>
                   <Link href="/about" className="text-red-600 hover:text-red-800 font-medium">
@@ -183,12 +207,12 @@ export default function ContactPage() {
             <CardContent>
               {submitted ? (
                 <div className="text-center py-8">
-                  <div className="text-6xl mb-4">✅</div>
-                  <h3 className="text-2xl font-bold text-green-600 mb-2">Message Sent!</h3>
+                  <div className="text-6xl mb-4">📱</div>
+                  <h3 className="text-2xl font-bold text-green-600 mb-2">WhatsApp Opened!</h3>
                   <p className="text-gray-600 mb-6">
-                    Thank you for contacting us. We'll get back to you within 24 hours.
+                    Your message has been prepared and WhatsApp should have opened. Please send the message to complete your inquiry.
                   </p>
-                  <Button 
+                  <Button
                     onClick={() => setSubmitted(false)}
                     className="bg-red-600 hover:bg-red-700 text-white"
                   >
@@ -196,8 +220,8 @@ export default function ContactPage() {
                   </Button>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                     <div>
                       <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                         Full Name *
@@ -291,10 +315,10 @@ export default function ContactPage() {
                     {isSubmitting ? (
                       <div className="flex items-center justify-center">
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                        Sending Message...
+                        Opening WhatsApp...
                       </div>
                     ) : (
-                      '📤 Send Message'
+                      '📱 Send via WhatsApp'
                     )}
                   </Button>
                 </form>
@@ -303,15 +327,7 @@ export default function ContactPage() {
           </Card>
         </div>
 
-        {/* Emergency Contact */}
-        <div className="mt-16 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl p-8 text-center">
-          <h2 className="text-3xl font-bold mb-4">Emergency Support</h2>
-          <p className="text-red-100 mb-6 text-lg">
-            For urgent issues or emergencies, contact our 24/7 helpline
-          </p>
-          <div className="text-4xl font-bold mb-2">📞 1800-HELP-NOW</div>
-          <p className="text-red-200">Available 24/7 for critical issues</p>
-        </div>
+
       </main>
 
       {/* Footer */}
@@ -337,7 +353,7 @@ export default function ContactPage() {
                 <h4 className="text-lg font-semibold mb-3">Support</h4>
                 <div className="space-y-2">
                   <Link href="/contact" className="block text-red-200 hover:text-white transition-colors">Contact Us</Link>
-                  <Link href="/help" className="block text-red-200 hover:text-white transition-colors">Help Center</Link>
+                  <Link href="/contact" className="block text-red-200 hover:text-white transition-colors">Help Center</Link>
                 </div>
               </div>
               <div>

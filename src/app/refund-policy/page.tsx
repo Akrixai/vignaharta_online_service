@@ -39,20 +39,20 @@ export default function RefundPolicyPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Hero Section */}
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-gray-900 mb-6 animate-fade-in">
+        <div className="text-center mb-8 sm:mb-12">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6 animate-fade-in">
             Refund Policy
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto animate-slide-in-up">
+          <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto animate-slide-in-up px-4">
             We are committed to providing excellent service. Please read our refund policy carefully.
           </p>
           <p className="text-sm text-gray-500 mt-4">Last updated: December 2025</p>
         </div>
 
         {/* Content */}
-        <div className="bg-white rounded-xl shadow-lg p-8 space-y-8">
+        <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">1. Refund Eligibility</h2>
             <div className="space-y-4 text-gray-600">
@@ -158,18 +158,12 @@ export default function RefundPolicyPage() {
           <p className="text-gray-600 mb-6">
             Have questions about our refund policy? We're here to help!
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex justify-center">
             <Link
               href="/contact"
               className="bg-red-600 text-white px-8 py-4 rounded-lg hover:bg-red-700 transition-all duration-300 font-bold shadow-lg hover:shadow-xl transform hover:scale-105"
             >
               📞 Contact Support
-            </Link>
-            <Link
-              href="/dashboard"
-              className="border-2 border-red-600 text-red-600 px-8 py-4 rounded-lg hover:bg-red-600 hover:text-white transition-all duration-300 font-bold shadow-lg hover:shadow-xl transform hover:scale-105"
-            >
-              🏪 Go to Dashboard
             </Link>
           </div>
         </div>
@@ -215,7 +209,7 @@ export default function RefundPolicyPage() {
               <p className="text-red-300 text-sm">
                 © 2025 Vignaharta Online Service. All rights reserved. |
                 <a
-                  href="https://akrix-ai.netlify.app"
+                  href="https://akrixsolutions.in/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-red-200 hover:text-white ml-2"

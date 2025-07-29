@@ -23,11 +23,7 @@ const mockRecentTransactions = [
   { id: '3', type: 'DEPOSIT', amount: 500, description: 'Wallet top-up', createdAt: new Date('2024-01-13') },
 ];
 
-const mockRecentApplications = [
-  { id: '1', schemeName: '7/12 Extract', status: 'PENDING', amount: 250, createdAt: new Date('2024-01-14') },
-  { id: '2', schemeName: 'Income Certificate', status: 'APPROVED', amount: 150, createdAt: new Date('2024-01-12') },
-  { id: '3', schemeName: 'Caste Certificate', status: 'PENDING', amount: 100, createdAt: new Date('2024-01-10') },
-];
+// Removed hardcoded mock data - now using real-time data from API
 
 export default function DashboardPage() {
   const { data: session } = useSession();
@@ -296,66 +292,33 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Recent Transactions */}
-          <Card className="bg-white shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-gray-900">Recent Transactions</CardTitle>
-              <CardDescription className="text-gray-600">Your latest wallet activities</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {(stats?.recentTransactions || mockRecentTransactions).map((transaction: any) => (
-                  <div key={transaction.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <p className="font-medium text-sm text-gray-900">{transaction.description}</p>
-                      <p className="text-xs text-gray-500">{formatDateTime(transaction.createdAt)}</p>
-                    </div>
-                    <div className={`font-bold ${getTransactionColor(transaction.type)}`}>
-                      {transaction.amount > 0 ? '+' : ''}{formatCurrency(Math.abs(transaction.amount))}
-                    </div>
+        {/* Recent Transactions */}
+        <Card className="bg-white shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-gray-900">Recent Transactions</CardTitle>
+            <CardDescription className="text-gray-600">Your latest wallet activities</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {(stats?.recentTransactions || mockRecentTransactions).map((transaction: any) => (
+                <div key={transaction.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="font-medium text-sm text-gray-900">{transaction.description}</p>
+                    <p className="text-xs text-gray-500">{formatDateTime(transaction.createdAt)}</p>
                   </div>
-                ))}
-                <div className="text-center pt-2">
-                  <button className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
-                    View All Transactions →
-                  </button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Recent Applications */}
-          <Card className="bg-white shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-gray-900">Recent Applications</CardTitle>
-              <CardDescription className="text-gray-600">Your latest service applications</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {(stats?.recentApplications || mockRecentApplications).map((application: any) => (
-                  <div key={application.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <p className="font-medium text-sm text-gray-900">{application.schemeName}</p>
-                      <p className="text-xs text-gray-500">{formatDateTime(application.createdAt)}</p>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(application.status)}`}>
-                        {application.status}
-                      </span>
-                      <span className="text-sm font-medium text-gray-900">{formatCurrency(application.amount)}</span>
-                    </div>
+                  <div className={`font-bold ${getTransactionColor(transaction.type)}`}>
+                    {transaction.amount > 0 ? '+' : ''}{formatCurrency(Math.abs(transaction.amount))}
                   </div>
-                ))}
-                <div className="text-center pt-2">
-                  <button className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
-                    View All Applications →
-                  </button>
                 </div>
+              ))}
+              <div className="text-center pt-2">
+                <button className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
+                  View All Transactions →
+                </button>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
 
 
       </div>
