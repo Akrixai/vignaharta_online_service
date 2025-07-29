@@ -170,7 +170,7 @@ vercel --prod
 
 **Development Team:**
 - Powered by Akrix.ai
-- Website: https://akrix-ai.netlify.app
+- Website: https://akrixsolutions.in/
 
 ---
 

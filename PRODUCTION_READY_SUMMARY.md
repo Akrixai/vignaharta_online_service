@@ -149,5 +149,5 @@ The website is now **100% production-ready** with:
 ---
 
 **Developed by Akrix.ai** 🚀  
-**Website:** https://akrix-ai.netlify.app  
+**Website:** https://akrixsolutions.in/
 **Advanced AI Solutions for Modern Applications**
