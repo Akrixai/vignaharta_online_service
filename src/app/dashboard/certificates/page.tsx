@@ -25,32 +25,7 @@ export default function CertificatesPage() {
   const [certificate, setCertificate] = useState<Certificate | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Add console log for debugging
-
-  // Check loading state first
-  if (status === 'loading') {
-    return (
-      <DashboardLayout>
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  // Check retailer access after session is loaded
-  if (!session || session?.user?.role !== UserRole.RETAILER) {
-    return (
-      <DashboardLayout>
-        <div className="text-center py-12">
-          <h1 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h1>
-          <p className="text-gray-600">Only retailers can access this page.</p>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
+  // All hooks must be called before any early returns to avoid React error #310
   useEffect(() => {
     if (!session?.user?.id) return;
 
@@ -96,6 +71,30 @@ export default function CertificatesPage() {
 
     generateCertificate();
   }, [session?.user?.id, session?.user?.name]);
+
+  // Check loading state first
+  if (status === 'loading') {
+    return (
+      <DashboardLayout>
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Check retailer access after session is loaded
+  if (!session || session?.user?.role !== UserRole.RETAILER) {
+    return (
+      <DashboardLayout>
+        <div className="text-center py-12">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h1>
+          <p className="text-gray-600">Only retailers can access this page.</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   const handlePrint = () => {
     window.print();

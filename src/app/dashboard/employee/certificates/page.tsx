@@ -31,31 +31,7 @@ export default function EmployeeCertificatesPage() {
   const [error, setError] = useState<string | null>(null);
   const [branch] = useState('Main Branch');
 
-  // Add console log for debugging
-
-  // Check loading state first
-  if (status === 'loading') {
-    return (
-      <DashboardLayout>
-        <div className="text-center py-12">
-          <LogoSpinner size="lg" text="Loading..." />
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  // Check employee access after session is loaded
-  if (!session || session?.user?.role !== UserRole.EMPLOYEE) {
-    return (
-      <DashboardLayout>
-        <div className="text-center py-12">
-          <h1 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h1>
-          <p className="text-gray-600">Only employees can access this page.</p>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
+  // All hooks must be called before any early returns to avoid React error #310
   useEffect(() => {
     if (!session?.user?.id) return;
 
@@ -133,6 +109,29 @@ export default function EmployeeCertificatesPage() {
 
     fetchOrGenerateCertificate();
   }, [session?.user?.id, session?.user?.name, session?.user?.employee_id, session?.user?.department, branch]);
+
+  // Check loading state first
+  if (status === 'loading') {
+    return (
+      <DashboardLayout>
+        <div className="text-center py-12">
+          <LogoSpinner size="lg" text="Loading..." />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Check employee access after session is loaded
+  if (!session || session?.user?.role !== UserRole.EMPLOYEE) {
+    return (
+      <DashboardLayout>
+        <div className="text-center py-12">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h1>
+          <p className="text-gray-600">Only employees can access this page.</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   const handlePrint = () => {
     window.print();
