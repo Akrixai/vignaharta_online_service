@@ -99,7 +99,7 @@ export default function LandingPageClient() {
             </span>
             <br />
             <span className="bg-gradient-to-r from-red-800 via-orange-600 to-red-600 bg-clip-text text-transparent animate-pulse marathi-text">
-              Vighnaharta Online Service
+              VIGHNAHARTA ONLINE SERVICES
             </span>
           </h2>
 

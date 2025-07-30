@@ -3,12 +3,12 @@ import Logo from "@/components/ui/logo";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "About Us - Vignaharta Online Service | Government Service Portal",
-  description: "Learn about Vignaharta Online Service, India's premier digital government service portal connecting citizens with essential services through our retailer network.",
-  keywords: "government services, digital india, online services, retailer network, vignaharta online service, about us",
+  title: "About Us - VIGHNAHARTA ONLINE SERVICES | Government Service Portal",
+  description: "Learn about VIGHNAHARTA ONLINE SERVICES, India's premier digital government service portal connecting citizens with essential services through our retailer network.",
+  keywords: "government services, digital india, online services, retailer network, vighnaharta online services, about us",
   openGraph: {
-    title: "About Vignaharta Online Service - Digital Government Services",
-    description: "Discover how Vignaharta Online Service is revolutionizing access to government services across India through our innovative retailer network.",
+    title: "About VIGHNAHARTA ONLINE SERVICES - Digital Government Services",
+    description: "Discover how VIGHNAHARTA ONLINE SERVICES is revolutionizing access to government services across India through our innovative retailer network.",
     type: "website",
   },
 };

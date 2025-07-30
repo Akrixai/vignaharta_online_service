@@ -4,11 +4,11 @@ import Footer from "@/components/Footer";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Services - Vignaharta Online Service | Government Service Portal",
-  description: "Explore comprehensive government services available through Vignaharta Online Service including Aadhaar, PAN, passport, certificates, and more.",
-  keywords: "government services, aadhaar, pan, passport, certificates, online services, vignaharta online service",
+  title: "Services - VIGHNAHARTA ONLINE SERVICES | Government Service Portal",
+  description: "Explore comprehensive government services available through VIGHNAHARTA ONLINE SERVICES including Aadhaar, PAN, passport, certificates, and more.",
+  keywords: "government services, aadhaar, pan, passport, certificates, online services, vighnaharta online services",
   openGraph: {
-    title: "Government Services - Vignaharta Online Service",
+    title: "Government Services - VIGHNAHARTA ONLINE SERVICES",
     description: "Access a wide range of government services through our secure digital platform.",
     type: "website",
   },

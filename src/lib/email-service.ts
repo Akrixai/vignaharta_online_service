@@ -43,7 +43,7 @@ export async function verifyEmailConfig(): Promise<boolean> {
 export async function sendEmail(
   to: string | string[],
   template: EmailTemplate,
-  fromName: string = 'विघ्नहर्ता ऑनलाइन सर्विस'
+  fromName: string = 'विघ्नहर्ता ऑनलाईन सर्विसेस'
 ): Promise<boolean> {
   try {
     const recipients = Array.isArray(to) ? to : [to];
@@ -256,11 +256,11 @@ function getAkrixBrandingFooter(): string {
 export async function sendTestEmail(to: string): Promise<boolean> {
   try {
     const template = {
-      subject: '🧪 Test Email from विघ्नहर्ता ऑनलाइन सर्विस',
+      subject: '🧪 Test Email from विघ्नहर्ता ऑनलाईन सर्विसेस',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <h1 style="color: #dc2626;">🧪 Test Email</h1>
-          <p>This is a test email from विघ्नहर्ता ऑनलाइन सर्विस email service.</p>
+          <p>This is a test email from विघ्नहर्ता ऑनलाईन सर्विसेस email service.</p>
           <p>If you received this email, the email configuration is working correctly!</p>
           <p style="color: #6b7280; font-size: 12px; margin-top: 30px;">
             Sent at: ${new Date().toLocaleString()}
@@ -268,7 +268,7 @@ export async function sendTestEmail(to: string): Promise<boolean> {
           ${getAkrixBrandingFooter()}
         </div>
       `,
-      text: `Test Email from विघ्नहर्ता ऑनलाइन सर्विस\n\nThis is a test email. If you received this, the email service is working!\n\nSent at: ${new Date().toLocaleString()}\n\n---\nPowered by Akrix.ai\nVisit: https://akrix-ai.netlify.app\nAdvanced AI Solutions for Modern Applications`
+      text: `Test Email from विघ्नहर्ता ऑनलाईन सर्विसेस\n\nThis is a test email. If you received this, the email service is working!\n\nSent at: ${new Date().toLocaleString()}\n\n---\nPowered by Akrix.ai\nVisit: https://akrix-ai.netlify.app\nAdvanced AI Solutions for Modern Applications`
     };
 
     return await sendEmail(to, template);

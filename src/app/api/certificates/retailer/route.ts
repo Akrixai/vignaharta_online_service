@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
           branch: existingCert.branch,
           certificate_number: existingCert.certificate_number,
           issue_date: new Date(existingCert.issue_date).toLocaleDateString('en-GB'),
-          company_name: 'Vignaharta Online Service',
+          company_name: 'VIGHNAHARTA ONLINE SERVICES',
           digital_signature: existingCert.digital_signature
         }
       });

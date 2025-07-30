@@ -3,11 +3,11 @@ import Logo from "@/components/ui/logo";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Terms & Conditions - Vignaharta Online Service | Government Service Portal",
-  description: "Read our terms and conditions to understand the rules and guidelines for using Vignaharta Online Service government service portal.",
-  keywords: "terms and conditions, terms of service, user agreement, vignaharta online service, legal terms",
+  title: "Terms & Conditions - VIGHNAHARTA ONLINE SERVICES | Government Service Portal",
+  description: "Read our terms and conditions to understand the rules and guidelines for using VIGHNAHARTA ONLINE SERVICES government service portal.",
+  keywords: "terms and conditions, terms of service, user agreement, vighnaharta online services, legal terms",
   openGraph: {
-    title: "Terms & Conditions - Vignaharta Online Service",
+    title: "Terms & Conditions - VIGHNAHARTA ONLINE SERVICES",
     description: "Read our terms and conditions for using the government service portal.",
     type: "website",
   },

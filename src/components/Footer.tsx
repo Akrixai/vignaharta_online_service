@@ -84,7 +84,7 @@ export default function Footer() {
           <div className="border-t border-white/20 pt-8 animate-fade-in">
             <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
               <p className="text-white font-medium text-lg">
-                © 2025 विघ्नहर्ता ऑनलाइन सर्विस. All rights reserved.
+                © 2025 विघ्नहर्ता ऑनलाईन सर्विसेस. All rights reserved.
               </p>
               <div className="flex items-center space-x-4">
                 <span className="text-white font-medium">Powered by</span>

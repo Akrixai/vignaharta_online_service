@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Support Request - विघ्नहर्ता ऑनलाइन सर्विस</title>
+        <title>Support Request - विघ्नहर्ता ऑनलाईन सर्विसेस</title>
         <style>
             body {
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -197,7 +197,7 @@ export async function POST(request: NextRequest) {
     <body>
         <div class="container">
             <div class="header">
-                <h1>विघ्नहर्ता ऑनलाइन सर्विस</h1>
+                <h1>विघ्नहर्ता ऑनलाईन सर्विसेस</h1>
                 <p class="subtitle">Support Request Received</p>
             </div>
             
@@ -242,7 +242,7 @@ export async function POST(request: NextRequest) {
             </div>
             
             <div class="footer">
-                <p class="footer-text">🏛️ विघ्नहर्ता ऑनलाइन सर्विस - Government Services Portal</p>
+                <p class="footer-text">🏛️ विघ्नहर्ता ऑनलाईन सर्विसेस - Government Services Portal</p>
                 <p class="footer-text">📞 Support: +91-7499116527 | 📧 vighnahartaenterprises.sangli@gmail.com</p>
                 <p class="footer-text">🌐 Serving citizens with dedication and transparency</p>
             </div>

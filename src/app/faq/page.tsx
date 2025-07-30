@@ -9,8 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 const faqData = [
   {
     id: '1',
-    question: 'What is विघ्नहर्ता ऑनलाइन सर्विस?',
-    answer: 'विघ्नहर्ता ऑनलाइन सर्विस is a comprehensive digital government service portal that connects citizens with essential government services through our nationwide retailer network. We provide easy access to services like Aadhaar, PAN, passport applications, certificates, and more.',
+    question: 'What is विघ्नहर्ता ऑनलाईन सर्विसेस?',
+    answer: 'विघ्नहर्ता ऑनलाईन सर्विसेस is a comprehensive digital government service portal that connects citizens with essential government services through our nationwide retailer network. We provide easy access to services like Aadhaar, PAN, passport applications, certificates, and more.',
     category: 'General'
   },
   {

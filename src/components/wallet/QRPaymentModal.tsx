@@ -38,7 +38,7 @@ export default function QRPaymentModal({ isOpen, onClose, onSubmit, loading = fa
   const generateQRData = () => {
     // This would typically generate a UPI payment link
     const upiId = 'vighnahartaenterprises.sangli@paytm'; // Replace with actual UPI ID
-    const merchantName = 'Vignaharta Online Service';
+    const merchantName = 'VIGHNAHARTA ONLINE SERVICES';
     const upiLink = `upi://pay?pa=${upiId}&pn=${merchantName}&am=${amount}&cu=INR&tn=Wallet%20Top-up`;
     return upiLink;
   };

@@ -81,7 +81,7 @@ export default function EmployeeCertificatesPage() {
             branch: branch,
             certificate_number: certificateNumber,
             issue_date: employeeCreationDate.toLocaleDateString('en-GB'),
-            company_name: 'Vignaharta Online Service',
+            company_name: 'VIGHNAHARTA ONLINE SERVICES',
             digital_signature: `VJS-EMP-SIG-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`
           });
         }
@@ -99,7 +99,7 @@ export default function EmployeeCertificatesPage() {
           branch: branch,
           certificate_number: certificateNumber,
           issue_date: employeeCreationDate.toLocaleDateString('en-GB'),
-          company_name: 'Vignaharta Online Service',
+          company_name: 'VIGHNAHARTA ONLINE SERVICES',
           digital_signature: `VJS-EMP-SIG-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`
         });
       } finally {

@@ -114,7 +114,7 @@ function LoginPageContent() {
             <div className="space-y-6">
               <div className="text-center">
                 <h2 className="text-4xl font-bold text-red-800 mb-4">
-                  Welcome to विघ्नहर्ता ऑनलाइन सर्विस
+                  Welcome to विघ्नहर्ता ऑनलाईन सर्विसेस
                 </h2>
                 <p className="text-lg text-red-600 mb-8">
                   Your gateway to seamless government services

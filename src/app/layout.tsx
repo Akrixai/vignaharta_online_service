@@ -16,8 +16,8 @@ const notoSansDevanagari = Noto_Sans_Devanagari({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXTAUTH_URL || 'http://localhost:3000'),
   title: {
-    default: "विघ्नहर्ता ऑनलाइन सर्विस - Government Service Portal | Digital India Initiative",
-    template: "%s | विघ्नहर्ता ऑनलाइन सर्विस"
+    default: "विघ्नहर्ता ऑनलाईन सर्विसेस - Government Service Portal | Digital India Initiative",
+    template: "%s | विघ्नहर्ता ऑनलाईन सर्विसेस"
   },
   description: "India's premier digital government service portal connecting citizens with essential services through our nationwide retailer network. Access Aadhaar, PAN, passport, certificates, and more with ease.",
   keywords: [
@@ -29,15 +29,15 @@ export const metadata: Metadata = {
     "passport",
     "certificates",
     "retailer network",
-    "vignaharta online service",
-    "विघ्नहर्ता ऑनलाइन सर्विस",
+    "vighnaharta online services",
+    "विघ्नहर्ता ऑनलाईन सर्विसेस",
     "government portal",
     "digital services",
     "online applications"
   ],
-  authors: [{ name: "विघ्नहर्ता ऑनलाइन सर्विस Team" }],
+  authors: [{ name: "विघ्नहर्ता ऑनलाईन सर्विसेस Team" }],
   creator: "Government of India",
-  publisher: "विघ्नहर्ता ऑनलाइन सर्विस",
+  publisher: "विघ्नहर्ता ऑनलाईन सर्विसेस",
   robots: {
     index: true,
     follow: true,
@@ -53,13 +53,13 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_IN',
     url: process.env.NEXTAUTH_URL || 'http://localhost:3000',
-    siteName: 'विघ्नहर्ता ऑनलाइन सर्विस',
-    title: 'विघ्नहर्ता ऑनलाइन सर्विस - Government Service Portal',
+    siteName: 'विघ्नहर्ता ऑनलाईन सर्विसेस',
+    title: 'विघ्नहर्ता ऑनलाईन सर्विसेस - Government Service Portal',
     description: 'Access essential government services digitally through our secure platform with real-time tracking and nationwide retailer support.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'विघ्नहर्ता ऑनलाइन सर्विस - Government Service Portal',
+    title: 'विघ्नहर्ता ऑनलाईन सर्विसेस - Government Service Portal',
     description: 'Access essential government services digitally through our secure platform.',
   },
   verification: {

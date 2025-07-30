@@ -62,7 +62,7 @@ export default function CertificatesPage() {
           branch: 'Main Branch',
           certificate_number: certificateNumber,
           issue_date: currentDate.toLocaleDateString('en-GB'),
-          company_name: 'Vignaharta Online Service'
+          company_name: 'VIGHNAHARTA ONLINE SERVICES'
         });
       } finally {
         setLoading(false);
@@ -315,7 +315,7 @@ export default function CertificatesPage() {
                       <div className="text-center">
                         <div className="w-32 h-16 border-b-2 border-gray-400 mb-2 flex items-end justify-center">
                           <div className="text-xs text-gray-700 font-signature italic">
-                            Vignaharta Online Service
+                            VIGHNAHARTA ONLINE SERVICES
                           </div>
                         </div>
                         <div className="text-sm text-gray-600">Authorized Signature</div>

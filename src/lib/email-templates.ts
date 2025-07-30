@@ -71,7 +71,7 @@ export function getNewServiceEmailTemplate(
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">🏛️ विघ्नहर्ता ऑनलाइन सर्विस</div>
+            <div class="logo">🏛️ विघ्नहर्ता ऑनलाईन सर्विसेस</div>
             <h1>New Service Available!</h1>
             <p>Exciting news for our ${recipientType}s</p>
         </div>
@@ -111,7 +111,7 @@ export function getNewServiceEmailTemplate(
         </div>
         
         <div class="footer">
-            <p><strong>विघ्नहर्ता ऑनलाइन सर्विस</strong></p>
+            <p><strong>विघ्नहर्ता ऑनलाईन सर्विसेस</strong></p>
             <p>Making government services accessible to everyone</p>
             <p style="font-size: 12px; margin-top: 20px;">
                 This is an automated notification. Please do not reply to this email.
@@ -143,7 +143,7 @@ ${recipientType === 'retailer'
 Visit your dashboard to view service details: https://www.vighnahartaonlineservice.in/dashboard/services
 
 Best regards,
-विघ्नहर्ता ऑनलाइन सर्विस Team
+विघ्नहर्ता ऑनलाईन सर्विसेस Team
 ${getAkrixBrandingText()}`;
 
   return { subject, html, text };
@@ -155,7 +155,7 @@ export function getWelcomeRetailerEmailTemplate(
   email: string,
   password: string
 ): EmailTemplate {
-  const subject = `🎉 Welcome to विघ्नहर्ता ऑनलाइन सर्विस - Your Retailer Account is Ready!`;
+  const subject = `🎉 Welcome to विघ्नहर्ता ऑनलाईन सर्विसेस - Your Retailer Account is Ready!`;
   
   const html = `
 <!DOCTYPE html>
@@ -163,7 +163,7 @@ export function getWelcomeRetailerEmailTemplate(
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to विघ्नहर्ता ऑनलाइन सर्विस</title>
+    <title>Welcome to विघ्नहर्ता ऑनलाईन सर्विसेस</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f8f9fa; }
         .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
@@ -180,7 +180,7 @@ export function getWelcomeRetailerEmailTemplate(
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">🏛️ विघ्नहर्ता ऑनलाइन सर्विस</div>
+            <div class="logo">🏛️ विघ्नहर्ता ऑनलाईन सर्विसेस</div>
             <h1>Welcome to Our Network!</h1>
             <p>Your retailer account is now active</p>
         </div>
@@ -188,7 +188,7 @@ export function getWelcomeRetailerEmailTemplate(
         <div class="content">
             <h2>Welcome ${name}! 🎉</h2>
             
-            <p>Welcome to <span class="highlight">विघ्नहर्ता ऑनलाइन सर्विस</span>! You are now part of the <span class="highlight">विघ्नहर्ता ऑनलाइन सर्विस</span> network, helping citizens access government services easily.</p>
+            <p>Welcome to <span class="highlight">विघ्नहर्ता ऑनलाईन सर्विसेस</span>! You are now part of the <span class="highlight">विघ्नहर्ता ऑनलाईन सर्विसेस</span> network, helping citizens access government services easily.</p>
             
             <div class="credentials-box">
                 <h3 style="color: #059669; margin-top: 0;">🔐 Your Login Credentials</h3>
@@ -229,7 +229,7 @@ export function getWelcomeRetailerEmailTemplate(
         </div>
         
         <div class="footer">
-            <p><strong>विघ्नहर्ता ऑनलाइन सर्विस</strong></p>
+            <p><strong>विघ्नहर्ता ऑनलाईन सर्विसेस</strong></p>
             <p>Making government services accessible to everyone</p>
             <p style="font-size: 12px; margin-top: 20px;">
                 Need help? Contact our support team or use the chat feature in your dashboard.
@@ -241,7 +241,7 @@ export function getWelcomeRetailerEmailTemplate(
 </html>`;
 
   const text = `
-Welcome to विघ्नहर्ता ऑनलाइन सर्विस!
+Welcome to विघ्नहर्ता ऑनलाईन सर्विसेस!
 
 Hello ${name}!
 
@@ -268,7 +268,7 @@ Next Steps:
 4. Start helping customers and earning money!
 
 Best regards,
-विघ्नहर्ता ऑनलाइन सर्विस Team
+विघ्नहर्ता ऑनलाईन सर्विसेस Team
 ${getAkrixBrandingText()}`;
 
   return { subject, html, text };
@@ -280,7 +280,7 @@ export function getWelcomeEmployeeEmailTemplate(
   email: string,
   password: string
 ): EmailTemplate {
-  const subject = `🎉 Welcome to विघ्नहर्ता ऑनलाइन सर्विस - Your Employee Account is Ready!`;
+  const subject = `🎉 Welcome to विघ्नहर्ता ऑनलाईन सर्विसेस - Your Employee Account is Ready!`;
 
   const html = `
 <!DOCTYPE html>
@@ -288,7 +288,7 @@ export function getWelcomeEmployeeEmailTemplate(
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to विघ्नहर्ता ऑनलाइन सर्विस</title>
+    <title>Welcome to विघ्नहर्ता ऑनलाईन सर्विसेस</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f8f9fa; }
         .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
@@ -305,7 +305,7 @@ export function getWelcomeEmployeeEmailTemplate(
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">🏛️ विघ्नहर्ता ऑनलाइन सर्विस</div>
+            <div class="logo">🏛️ विघ्नहर्ता ऑनलाईन सर्विसेस</div>
             <h1>Welcome to Our Team!</h1>
             <p>Your employee account is now active</p>
         </div>
@@ -313,7 +313,7 @@ export function getWelcomeEmployeeEmailTemplate(
         <div class="content">
             <h2>Welcome ${name}! 🎉</h2>
 
-            <p>Welcome to <span class="highlight">विघ्नहर्ता ऑनलाइन सर्विस</span>! You are now part of the <span class="highlight">विघ्नहर्ता ऑनलाइन सर्विस</span> team, helping citizens and supporting our retailer network.</p>
+            <p>Welcome to <span class="highlight">विघ्नहर्ता ऑनलाईन सर्विसेस</span>! You are now part of the <span class="highlight">विघ्नहर्ता ऑनलाईन सर्विसेस</span> team, helping citizens and supporting our retailer network.</p>
 
             <div class="credentials-box">
                 <h3 style="color: #7c3aed; margin-top: 0;">🔐 Your Login Credentials</h3>
@@ -354,7 +354,7 @@ export function getWelcomeEmployeeEmailTemplate(
         </div>
 
         <div class="footer">
-            <p><strong>विघ्नहर्ता ऑनलाइन सर्विस</strong></p>
+            <p><strong>विघ्नहर्ता ऑनलाईन सर्विसेस</strong></p>
             <p>Making government services accessible to everyone</p>
             <p style="font-size: 12px; margin-top: 20px;">
                 Need help? Contact the admin team or use the internal communication channels.
@@ -366,7 +366,7 @@ export function getWelcomeEmployeeEmailTemplate(
 </html>`;
 
   const text = `
-Welcome to विघ्नहर्ता ऑनलाइन सर्विस!
+Welcome to विघ्नहर्ता ऑनलाईन सर्विसेस!
 
 Hello ${name}!
 
@@ -393,7 +393,7 @@ Next Steps:
 4. Start supporting our retailer network!
 
 Best regards,
-विघ्नहर्ता ऑनलाइन सर्विस Team
+विघ्नहर्ता ऑनलाईन सर्विसेस Team
 ${getAkrixBrandingText()}`;
 
   return { subject, html, text };
@@ -404,7 +404,7 @@ export function getRegistrationSuccessEmailTemplate(
   name: string,
   email: string
 ): EmailTemplate {
-  const subject = `✅ Registration Submitted Successfully - विघ्नहर्ता ऑनलाइन सर्विस`;
+  const subject = `✅ Registration Submitted Successfully - विघ्नहर्ता ऑनलाईन सर्विसेस`;
   
   const html = `
 <!DOCTYPE html>
@@ -429,7 +429,7 @@ export function getRegistrationSuccessEmailTemplate(
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">🏛️ विघ्नहर्ता ऑनलाइन सर्विस</div>
+            <div class="logo">🏛️ विघ्नहर्ता ऑनलाईन सर्विसेस</div>
             <h1>Registration Submitted!</h1>
             <p>Thank you for your interest in joining our network</p>
         </div>
@@ -437,7 +437,7 @@ export function getRegistrationSuccessEmailTemplate(
         <div class="content">
             <h2>Hello ${name}! 🎉</h2>
             
-            <p>Thank you for submitting your registration to <span class="highlight">विघ्नहर्ता ऑनलाइन सर्विस</span>! We're excited to have you join our network of service providers.</p>
+            <p>Thank you for submitting your registration to <span class="highlight">विघ्नहर्ता ऑनलाईन सर्विसेस</span>! We're excited to have you join our network of service providers.</p>
             
             <div class="success-box">
                 <h3 style="color: #059669; margin-top: 0;">✅ Registration Details</h3>
@@ -473,7 +473,7 @@ export function getRegistrationSuccessEmailTemplate(
         </div>
         
         <div class="footer">
-            <p><strong>विघ्नहर्ता ऑनलाइन सर्विस</strong></p>
+            <p><strong>विघ्नहर्ता ऑनलाईन सर्विसेस</strong></p>
             <p>Making government services accessible to everyone</p>
             <p style="font-size: 12px; margin-top: 20px;">
                 Questions? Contact us at vighnahartaenterprises.sangli@gmail.com
@@ -485,11 +485,11 @@ export function getRegistrationSuccessEmailTemplate(
 </html>`;
 
   const text = `
-Registration Submitted Successfully - विघ्नहर्ता ऑनलाइन सर्विस
+Registration Submitted Successfully - विघ्नहर्ता ऑनलाईन सर्विसेस
 
 Hello ${name}!
 
-Thank you for submitting your registration to विघ्नहर्ता ऑनलाइन सर्विस! We're excited to have you join our network of service providers.
+Thank you for submitting your registration to विघ्नहर्ता ऑनलाईन सर्विसेस! We're excited to have you join our network of service providers.
 
 Registration Details:
 Name: ${name}
@@ -514,7 +514,7 @@ What You Can Expect:
 Questions? Contact us at vighnahartaenterprises.sangli@gmail.com
 
 Best regards,
-विघ्नहर्ता ऑनलाइन सर्विस Team
+विघ्नहर्ता ऑनलाईन सर्विसेस Team
 ${getAkrixBrandingText()}`;
 
   return { subject, html, text };
@@ -526,7 +526,7 @@ export function getRegistrationRejectionEmailTemplate(
   email: string,
   rejectionReason: string
 ): EmailTemplate {
-  const subject = `❌ Registration Update - विघ्नहर्ता ऑनलाइन सर्विस`;
+  const subject = `❌ Registration Update - विघ्नहर्ता ऑनलाईन सर्विसेस`;
   
   const html = `
 <!DOCTYPE html>
@@ -551,7 +551,7 @@ export function getRegistrationRejectionEmailTemplate(
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">🏛️ विघ्नहर्ता ऑनलाइन सर्विस</div>
+            <div class="logo">🏛️ विघ्नहर्ता ऑनलाईन सर्विसेस</div>
             <h1>Registration Update</h1>
             <p>Important information about your application</p>
         </div>
@@ -559,7 +559,7 @@ export function getRegistrationRejectionEmailTemplate(
         <div class="content">
             <h2>Hello ${name},</h2>
             
-            <p>We regret to inform you that your registration application for <span class="highlight">विघ्नहर्ता ऑनलाइन सर्विस</span> has been reviewed and could not be approved at this time.</p>
+            <p>We regret to inform you that your registration application for <span class="highlight">विघ्नहर्ता ऑनलाईन सर्विसेस</span> has been reviewed and could not be approved at this time.</p>
             
             <div class="rejection-box">
                 <h3 style="color: #dc2626; margin-top: 0;">❌ Application Status</h3>
@@ -599,7 +599,7 @@ export function getRegistrationRejectionEmailTemplate(
         </div>
         
         <div class="footer">
-            <p><strong>विघ्नहर्ता ऑनलाइन सर्विस</strong></p>
+            <p><strong>विघ्नहर्ता ऑनलाईन सर्विसेस</strong></p>
             <p>Making government services accessible to everyone</p>
             <p style="font-size: 12px; margin-top: 20px;">
                 Need help? Contact us at vighnahartaenterprises.sangli@gmail.com
@@ -611,11 +611,11 @@ export function getRegistrationRejectionEmailTemplate(
 </html>`;
 
   const text = `
-Registration Update - विघ्नहर्ता ऑनलाइन सर्विस
+Registration Update - विघ्नहर्ता ऑनलाईन सर्विसेस
 
 Hello ${name},
 
-We regret to inform you that your registration application for विघ्नहर्ता ऑनलाइन सर्विस has been reviewed and could not be approved at this time.
+We regret to inform you that your registration application for विघ्नहर्ता ऑनलाईन सर्विसेस has been reviewed and could not be approved at this time.
 
 Application Status:
 Name: ${name}
@@ -640,7 +640,7 @@ Submit a new application: http://localhost:3000/register
 Need help? Contact us at vighnahartaenterprises.sangli@gmail.com
 
 Best regards,
-विघ्नहर्ता ऑनलाइन सर्विस Team
+विघ्नहर्ता ऑनलाईन सर्विसेस Team
 ${getAkrixBrandingText()}`;
 
   return { subject, html, text };

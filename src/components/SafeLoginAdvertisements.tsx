@@ -14,7 +14,7 @@ interface SafeLoginAdvertisementsProps {
 const fallbackAds = [
   {
     id: 'fallback-1',
-    title: 'विघ्नहर्ता ऑनलाइन सर्विस',
+    title: 'विघ्नहर्ता ऑनलाईन सर्विसेस',
     description: 'Your trusted partner for all government services. Fast, reliable, and secure.',
     image_url: null,
     link_url: '#',

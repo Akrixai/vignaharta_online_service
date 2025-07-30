@@ -44,7 +44,7 @@ ${formData.message}
 📅 Date: ${new Date().toLocaleDateString('en-IN')}
 ⏰ Time: ${new Date().toLocaleTimeString('en-IN')}
 
-🌐 Sent from: Vignaharta Online Service Contact Form
+🌐 Sent from: VIGHNAHARTA ONLINE SERVICES Contact Form
 🔗 Website: https://www.vighnahartaonlineservice.in`;
 
     const encodedMessage = encodeURIComponent(message);
