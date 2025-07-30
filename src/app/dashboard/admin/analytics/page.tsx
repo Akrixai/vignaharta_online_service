@@ -81,6 +81,22 @@ export default function AdminAnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState('30'); // days
 
+  // Define functions before useEffect to avoid hoisting issues
+  const fetchAnalytics = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/admin/analytics?days=${dateRange}`);
+      if (response.ok) {
+        const data = await response.json();
+        setAnalytics(data.analytics);
+      }
+    } catch (error) {
+      // Error handled silently
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (session?.user?.role === UserRole.ADMIN) {
       fetchAnalytics();
@@ -133,20 +149,6 @@ export default function AdminAnalyticsPage() {
       };
     }
   }, [session, dateRange]);
-
-  const fetchAnalytics = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/admin/analytics?days=${dateRange}`);
-      if (response.ok) {
-        const data = await response.json();
-        setAnalytics(data.analytics);
-      }
-    } catch (error) {
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (session?.user?.role !== UserRole.ADMIN) {
     return (

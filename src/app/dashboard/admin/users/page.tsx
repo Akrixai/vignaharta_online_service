@@ -45,6 +45,7 @@ export default function AdminUsersPage() {
     pincode: ''
   });
 
+  // Define functions before useEffect to avoid hoisting issues
   const fetchUsers = async () => {
     setLoading(true);
     try {
@@ -59,6 +60,7 @@ export default function AdminUsersPage() {
         setUsers(data.users || []);
       }
     } catch (error) {
+      // Error handled silently
     } finally {
       setLoading(false);
     }

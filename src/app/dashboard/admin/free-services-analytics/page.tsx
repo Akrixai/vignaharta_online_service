@@ -32,12 +32,7 @@ export default function FreeServicesAnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState('7'); // days
 
-  useEffect(() => {
-    if (session?.user?.role === UserRole.ADMIN) {
-      fetchAnalytics();
-    }
-  }, [session, dateRange]);
-
+  // Define functions before useEffect to avoid hoisting issues
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
@@ -47,10 +42,17 @@ export default function FreeServicesAnalyticsPage() {
         setStats(data.stats);
       }
     } catch (error) {
+      // Error handled silently
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (session?.user?.role === UserRole.ADMIN) {
+      fetchAnalytics();
+    }
+  }, [session, dateRange]);
 
   if (session?.user?.role !== UserRole.ADMIN) {
     return (

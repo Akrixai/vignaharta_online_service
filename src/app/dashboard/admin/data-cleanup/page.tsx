@@ -191,63 +191,7 @@ export default function DataCleanupPage() {
   const [customDays, setCustomDays] = useState<Record<string, number>>({});
   const [showCustomSettings, setShowCustomSettings] = useState<Record<string, boolean>>({});
 
-  useEffect(() => {
-    fetchDataStats();
-
-    // Set up real-time subscriptions for data changes
-    const channels = [
-      supabase
-        .channel('data-cleanup-applications')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'applications' }, () => {
-          if (process.env.NODE_ENV === 'development') {
-
-          }
-          fetchDataStats();
-        })
-        .subscribe(),
-
-      supabase
-        .channel('data-cleanup-notifications')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, () => {
-          if (process.env.NODE_ENV === 'development') {
-
-          }
-          fetchDataStats();
-        })
-        .subscribe(),
-
-      supabase
-        .channel('data-cleanup-transactions')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => {
-          if (process.env.NODE_ENV === 'development') {
-
-          }
-          fetchDataStats();
-        })
-        .subscribe(),
-
-      supabase
-        .channel('data-cleanup-receipts')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'receipts' }, () => {
-
-          fetchDataStats();
-        })
-        .subscribe(),
-
-      supabase
-        .channel('data-cleanup-orders')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
-
-          fetchDataStats();
-        })
-        .subscribe()
-    ];
-
-    return () => {
-      channels.forEach(channel => supabase.removeChannel(channel));
-    };
-  }, []);
-
+  // Define functions before useEffect to avoid hoisting issues
   const fetchDataStats = async () => {
     try {
       const [statsResponse, bucketsResponse] = await Promise.all([
@@ -270,6 +214,52 @@ export default function DataCleanupPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchDataStats();
+
+    // Set up real-time subscriptions for data changes
+    const channels = [
+      supabase
+        .channel('data-cleanup-applications')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'applications' }, () => {
+          fetchDataStats();
+        })
+        .subscribe(),
+
+      supabase
+        .channel('data-cleanup-notifications')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, () => {
+          fetchDataStats();
+        })
+        .subscribe(),
+
+      supabase
+        .channel('data-cleanup-transactions')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => {
+          fetchDataStats();
+        })
+        .subscribe(),
+
+      supabase
+        .channel('data-cleanup-receipts')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'receipts' }, () => {
+          fetchDataStats();
+        })
+        .subscribe(),
+
+      supabase
+        .channel('data-cleanup-orders')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+          fetchDataStats();
+        })
+        .subscribe()
+    ];
+
+    return () => {
+      channels.forEach(channel => supabase.removeChannel(channel));
+    };
+  }, []);
 
   const handleCleanup = async (taskId: string) => {
     const task = cleanupTasks.find(t => t.id === taskId);

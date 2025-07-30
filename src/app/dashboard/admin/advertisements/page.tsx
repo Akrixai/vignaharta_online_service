@@ -42,6 +42,7 @@ export default function AdvertisementsPage() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
+  // Define functions before useEffect to avoid hoisting issues
   const fetchAdvertisements = async () => {
     try {
       const response = await fetch('/api/login-advertisements');
