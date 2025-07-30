@@ -49,7 +49,7 @@ const Logo: React.FC<LogoProps> = ({
       {showText && (
         <div className="flex flex-col">
           <span className={`font-bold text-red-700 drop-shadow-sm ${textSizeClasses[size]} logo-marathi`}>विघ्नहर्ता</span>
-          <span className={`${size === 'sm' ? 'text-sm' : size === 'md' ? 'text-lg' : size === 'lg' ? 'text-xl' : 'text-3xl'} logo-marathi font-medium`}>ऑनलाइन सर्विस</span>
+          <span className={`${size === 'sm' ? 'text-sm' : size === 'md' ? 'text-lg' : size === 'lg' ? 'text-xl' : 'text-3xl'} logo-marathi font-medium`}>ऑनलाईन सर्विसेस</span>
         </div>
       )}
     </div>
