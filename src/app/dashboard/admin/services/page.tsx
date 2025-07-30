@@ -49,11 +49,25 @@ export default function AdminServicesPage() {
     required: boolean;
   }>>([]);
 
+  // Define functions before useEffect to avoid hoisting issues
+  const fetchServices = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/admin/services');
+      if (response.ok) {
+        const data = await response.json();
+        setServices(data.services || []);
+      }
+    } catch (error) {
+      // Error handled silently
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchServices();
   }, []);
-
-  // Add console log for debugging
 
   // Check loading state first
   if (status === 'loading') {
@@ -78,20 +92,6 @@ export default function AdminServicesPage() {
       </DashboardLayout>
     );
   }
-
-  const fetchServices = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch('/api/admin/services');
-      if (response.ok) {
-        const data = await response.json();
-        setServices(data.services || []);
-      }
-    } catch (error) {
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -27,11 +27,25 @@ export default function AdminTrainingPage() {
     duration_minutes: ''
   });
 
+  // Define functions before useEffect to avoid hoisting issues
+  const fetchVideos = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/admin/training-videos');
+      if (response.ok) {
+        const data = await response.json();
+        setVideos(data.videos || []);
+      }
+    } catch (error) {
+      // Error handled silently
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchVideos();
   }, []);
-
-  // Add console log for debugging
 
   // Check loading state first
   if (status === 'loading') {
@@ -56,20 +70,6 @@ export default function AdminTrainingPage() {
       </DashboardLayout>
     );
   }
-
-  const fetchVideos = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch('/api/admin/training-videos');
-      if (response.ok) {
-        const data = await response.json();
-        setVideos(data.videos || []);
-      }
-    } catch (error) {
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
