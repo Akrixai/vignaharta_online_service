@@ -35,9 +35,6 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Test notification error:', error);
-    }
     return NextResponse.json({
       error: 'Failed to send test notifications',
       details: error instanceof Error ? error.message : 'Unknown error'

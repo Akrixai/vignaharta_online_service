@@ -61,9 +61,6 @@ export async function POST(request: NextRequest) {
       });
 
     if (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Supabase storage error:', error);
-      }
       return NextResponse.json({
         success: false,
         error: `Failed to upload file to storage: ${error.message}`

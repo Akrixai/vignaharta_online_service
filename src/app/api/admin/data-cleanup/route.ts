@@ -401,10 +401,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    // Only log errors in development
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error during data cleanup:', error);
-    }
     return NextResponse.json({
       error: error instanceof Error ? error.message : 'Internal server error'
     }, { status: 500 });

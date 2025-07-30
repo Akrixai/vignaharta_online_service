@@ -34,38 +34,60 @@ export async function POST(request: NextRequest) {
       let needsUpdate = false;
       const updatedFields = service.dynamic_fields.map((field: any) => {
         if (field.type === 'select' && field.options) {
-          // Check if options is an array with a single string that should be split
-          if (field.options.length === 1 && typeof field.options[0] === 'string') {
-            const singleOption = field.options[0];
-            // If the single option looks like it should be multiple options (no spaces, long string)
-            if (singleOption.length > 20 && !singleOption.includes(' ')) {
-              // Try to intelligently split the options
-              // This is a heuristic - you might need to adjust based on your data
-              const possibleOptions = [];
-              
-              // Common patterns to split on
-              const patterns = [
-                /([a-z]+)([A-Z][a-z]+)/g, // camelCase: serviceUnemployed -> service, Unemployed
-                /([a-z]+)([A-Z]+)/g, // mixed case
-              ];
-              
-              let splitOptions = [singleOption];
-              
-              // Try camelCase splitting
-              const camelCaseMatches = singleOption.match(/[A-Z][a-z]+|[a-z]+/g);
-              if (camelCaseMatches && camelCaseMatches.length > 1) {
-                splitOptions = camelCaseMatches.map(opt => opt.toLowerCase());
-              }
-              
-              if (splitOptions.length > 1) {
+          let fixedOptions = [];
+          let hasChanges = false;
 
-                needsUpdate = true;
-                return {
-                  ...field,
-                  options: splitOptions
-                };
+          // Handle different types of options data
+          if (Array.isArray(field.options)) {
+            field.options.forEach((option: any) => {
+              if (typeof option === 'string') {
+                const trimmedOption = option.trim();
+                // Check if this looks like merged options (no spaces, long string, mixed case)
+                if (trimmedOption.length > 15 && !trimmedOption.includes(' ') && /[a-z][A-Z]/.test(trimmedOption)) {
+                  // Try to split camelCase or merged words
+                  const splitOptions = trimmedOption.match(/[A-Z][a-z]+|[a-z]+/g);
+                  if (splitOptions && splitOptions.length > 1) {
+
+                    const properOptions = splitOptions.map(opt =>
+                      opt.charAt(0).toUpperCase() + opt.slice(1).toLowerCase()
+                    );
+                    fixedOptions.push(...properOptions);
+                    hasChanges = true;
+                  } else {
+                    fixedOptions.push(trimmedOption);
+                  }
+                } else {
+                  fixedOptions.push(trimmedOption);
+                }
+              } else {
+                fixedOptions.push(String(option).trim());
               }
+            });
+          } else if (typeof field.options === 'string') {
+            // If options is a string, split by comma
+            const stringOptions = field.options
+              .split(',')
+              .map((option: string) => option.trim())
+              .filter((option: string) => option.length > 0);
+
+            if (stringOptions.length > 1) {
+
+              fixedOptions = stringOptions;
+              hasChanges = true;
+            } else {
+              fixedOptions = stringOptions;
             }
+          }
+
+          // Remove duplicates and empty options
+          fixedOptions = [...new Set(fixedOptions)].filter(opt => opt && opt.length > 0);
+
+          if (hasChanges || fixedOptions.length !== field.options.length) {
+            needsUpdate = true;
+            return {
+              ...field,
+              options: fixedOptions
+            };
           }
         }
         return field;

@@ -21,12 +21,26 @@ interface Certificate {
 }
 
 export default function CertificatesPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [certificate, setCertificate] = useState<Certificate | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Check retailer access
-  if (!session || session.user.role !== UserRole.RETAILER) {
+  // Add console log for debugging
+
+  // Check loading state first
+  if (status === 'loading') {
+    return (
+      <DashboardLayout>
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Check retailer access after session is loaded
+  if (!session || session?.user?.role !== UserRole.RETAILER) {
     return (
       <DashboardLayout>
         <div className="text-center py-12">

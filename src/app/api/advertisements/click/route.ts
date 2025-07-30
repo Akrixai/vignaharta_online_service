@@ -19,18 +19,12 @@ export async function POST(request: NextRequest) {
       .eq('id', id);
 
     if (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error updating click count:', error);
-      }
       return NextResponse.json({ error: 'Failed to track click' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
 
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error tracking advertisement click:', error);
-    }
     return NextResponse.json({
       error: 'Internal server error'
     }, { status: 500 });

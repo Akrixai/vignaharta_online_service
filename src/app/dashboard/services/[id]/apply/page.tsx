@@ -464,30 +464,82 @@ export default function ServiceApplicationPage() {
                         />
                       )}
 
-                      {field.type === 'select' && (
-                        <div>
-                          <select
-                            value={formData.service_specific_data[`dynamic_${field.id}`] || ''}
-                            onChange={(e) => handleServiceSpecificChange(field.id, e.target.value)}
-                            required={field.required}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                          >
-                            <option value="">Select an option</option>
-                            {field.options && Array.isArray(field.options) ? (
-                              field.options.map((option: string, index: number) => (
-                                <option key={index} value={option}>{option}</option>
-                              ))
-                            ) : (
-                              <option disabled>No options available</option>
+                      {field.type === 'select' && (() => {
+                        // Helper function to parse and fix malformed options
+                        const parseOptions = (options: any): string[] => {
+                          if (!options) return [];
+
+                          const parsedOptions: string[] = [];
+
+                          // Handle different types of options data
+                          if (Array.isArray(options)) {
+                            options.forEach((option: any) => {
+                              if (typeof option === 'string') {
+                                const trimmedOption = option.trim();
+                                if (trimmedOption.length === 0) return;
+
+                                // Check if this looks like merged options (no spaces, long string, mixed case)
+                                if (trimmedOption.length > 15 && !trimmedOption.includes(' ') && /[a-z][A-Z]/.test(trimmedOption)) {
+                                  // Try to split camelCase or merged words
+                                  const splitOptions = trimmedOption.match(/[A-Z][a-z]+|[a-z]+/g);
+                                  if (splitOptions && splitOptions.length > 1) {
+
+                                    parsedOptions.push(...splitOptions.map(opt =>
+                                      opt.charAt(0).toUpperCase() + opt.slice(1).toLowerCase()
+                                    ));
+                                  } else {
+                                    parsedOptions.push(trimmedOption);
+                                  }
+                                } else {
+                                  parsedOptions.push(trimmedOption);
+                                }
+                              } else {
+                                const stringOption = String(option).trim();
+                                if (stringOption.length > 0) {
+                                  parsedOptions.push(stringOption);
+                                }
+                              }
+                            });
+                          } else if (typeof options === 'string') {
+                            // If options is a string, split by comma
+                            const stringOptions = options
+                              .split(',')
+                              .map((option: string) => option.trim())
+                              .filter((option: string) => option.length > 0);
+                            parsedOptions.push(...stringOptions);
+                          }
+
+                          // Remove duplicates and return
+                          return [...new Set(parsedOptions)];
+                        };
+
+                        const processedOptions = parseOptions(field.options);
+
+                        return (
+                          <div>
+                            <select
+                              value={formData.service_specific_data[`dynamic_${field.id}`] || ''}
+                              onChange={(e) => handleServiceSpecificChange(field.id, e.target.value)}
+                              required={field.required}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                            >
+                              <option value="">Select an option</option>
+                              {processedOptions.length > 0 ? (
+                                processedOptions.map((option: string, index: number) => (
+                                  <option key={index} value={option}>{option}</option>
+                                ))
+                              ) : (
+                                <option disabled>No options available</option>
+                              )}
+                            </select>
+                            {processedOptions.length === 0 && (
+                              <p className="text-xs text-red-500 mt-1">
+                                ⚠️ This dropdown field has no options configured. Please contact support.
+                              </p>
                             )}
-                          </select>
-                          {(!field.options || !Array.isArray(field.options) || field.options.length === 0) && (
-                            <p className="text-xs text-red-500 mt-1">
-                              ⚠️ This dropdown field has no options configured. Please contact support.
-                            </p>
-                          )}
-                        </div>
-                      )}
+                          </div>
+                        );
+                      })()}
 
                       {(field.type === 'file' || field.type === 'image' || field.type === 'pdf') && (
                         <div>

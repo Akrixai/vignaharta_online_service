@@ -130,10 +130,6 @@ export async function PUT(
       .single();
 
     if (error) {
-      // Only log in development
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error updating user:', error);
-      }
       return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
     }
 

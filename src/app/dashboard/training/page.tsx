@@ -37,7 +37,7 @@ export default function TrainingPage() {
         body: JSON.stringify({ video_id: videoId })
       });
     } catch (error) {
-      // console.error('Error tracking video view:', error);
+      // Error handled silently
     }
   };
 

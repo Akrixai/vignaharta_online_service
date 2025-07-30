@@ -130,7 +130,7 @@ export default function WalletPage() {
         },
         (payload) => {
           if (process.env.NODE_ENV === 'development') {
-            // console.log('Transaction change detected:', payload);
+            // Transaction change detected
           }
           fetchTransactions(); // Refresh transactions
         }

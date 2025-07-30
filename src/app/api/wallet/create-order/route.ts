@@ -65,10 +65,6 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    // Only log errors in development
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error creating Razorpay order:', error);
-    }
     
     // Handle specific Razorpay errors
     if (error instanceof Error) {

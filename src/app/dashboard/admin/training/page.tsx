@@ -5,13 +5,16 @@ import { useSession } from 'next-auth/react';
 import DashboardLayout from '@/components/dashboard/layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { LoadingButton } from '@/components/ui/loading-button';
 import { UserRole } from '@/types';
 import { showToast } from '@/lib/toast';
 
 export default function AdminTrainingPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [videos, setVideos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [formLoading, setFormLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingVideo, setEditingVideo] = useState<any>(null);
   const [formData, setFormData] = useState({
@@ -28,8 +31,22 @@ export default function AdminTrainingPage() {
     fetchVideos();
   }, []);
 
-  // Check admin access - moved after all hooks
-  if (!session || session.user.role !== UserRole.ADMIN) {
+  // Add console log for debugging
+
+  // Check loading state first
+  if (status === 'loading') {
+    return (
+      <DashboardLayout>
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Check admin access after session is loaded
+  if (!session || session?.user?.role !== UserRole.ADMIN) {
     return (
       <DashboardLayout>
         <div className="text-center py-12">
@@ -56,7 +73,8 @@ export default function AdminTrainingPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    setFormLoading(true);
+
     const videoData = {
       ...formData,
       duration_minutes: formData.duration_minutes ? parseInt(formData.duration_minutes) : null
@@ -65,7 +83,7 @@ export default function AdminTrainingPage() {
     try {
       const url = editingVideo ? `/api/admin/training-videos/${editingVideo.id}` : '/api/admin/training-videos';
       const method = editingVideo ? 'PUT' : 'POST';
-      
+
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -81,6 +99,8 @@ export default function AdminTrainingPage() {
       }
     } catch (error) {
       showToast.error('Error saving video');
+    } finally {
+      setFormLoading(false);
     }
   };
 
@@ -112,7 +132,7 @@ export default function AdminTrainingPage() {
   };
 
   const performDelete = async (videoId: string) => {
-
+    setActionLoading(`delete-${videoId}`);
     try {
       const response = await fetch(`/api/admin/training-videos/${videoId}`, {
         method: 'DELETE'
@@ -126,10 +146,13 @@ export default function AdminTrainingPage() {
       }
     } catch (error) {
       showToast.error('Error deleting video');
+    } finally {
+      setActionLoading(null);
     }
   };
 
   const toggleVideoStatus = async (videoId: string, currentStatus: boolean) => {
+    setActionLoading(`toggle-${videoId}`);
     try {
       const response = await fetch(`/api/admin/training-videos/${videoId}`, {
         method: 'PUT',
@@ -142,6 +165,8 @@ export default function AdminTrainingPage() {
         showToast.success(`Video ${!currentStatus ? 'activated' : 'deactivated'} successfully!`);
       }
     } catch (error) {
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -301,10 +326,20 @@ export default function AdminTrainingPage() {
                 </div>
 
                 <div className="md:col-span-2 flex gap-4">
-                  <Button type="submit" className="bg-red-600 hover:bg-red-700 text-white">
+                  <LoadingButton
+                    type="submit"
+                    loading={formLoading}
+                    loadingText={editingVideo ? 'Updating...' : 'Adding...'}
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                  >
                     {editingVideo ? '💾 Update Video' : '➕ Add Video'}
-                  </Button>
-                  <Button type="button" onClick={resetForm} variant="outline">
+                  </LoadingButton>
+                  <Button
+                    type="button"
+                    onClick={resetForm}
+                    variant="outline"
+                    disabled={formLoading}
+                  >
                     ❌ Cancel
                   </Button>
                 </div>
@@ -371,23 +406,28 @@ export default function AdminTrainingPage() {
                       onClick={() => handleEdit(video)}
                       size="sm"
                       className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                      disabled={actionLoading !== null}
                     >
                       ✏️ Edit
                     </Button>
-                    <Button
+                    <LoadingButton
                       onClick={() => toggleVideoStatus(video.id, video.is_active)}
                       size="sm"
+                      loading={actionLoading === `toggle-${video.id}`}
+                      loadingText={video.is_active ? 'Hiding...' : 'Showing...'}
                       className={`flex-1 ${video.is_active ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700'} text-white`}
                     >
                       {video.is_active ? '⏸️ Hide' : '▶️ Show'}
-                    </Button>
-                    <Button
+                    </LoadingButton>
+                    <LoadingButton
                       onClick={() => handleDelete(video.id)}
                       size="sm"
+                      loading={actionLoading === `delete-${video.id}`}
+                      loadingText="Deleting..."
                       className="bg-red-600 hover:bg-red-700 text-white"
                     >
                       🗑️
-                    </Button>
+                    </LoadingButton>
                   </div>
                 </CardContent>
               </Card>

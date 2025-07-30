@@ -168,10 +168,7 @@ export async function POST(request: NextRequest) {
         // WhatsApp notifications removed (feature disabled)
 
       } catch (notificationError) {
-        // Only log in development
-        if (process.env.NODE_ENV === 'development') {
-          console.error('Error sending rejection notifications:', notificationError);
-        }
+        // Notification error handled silently
       }
 
       return NextResponse.json({
@@ -181,10 +178,6 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    // Only log in development
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error in POST /api/admin/pending-registrations:', error);
-    }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

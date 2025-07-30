@@ -78,15 +78,6 @@ export async function POST(request: NextRequest) {
       });
 
     if (uploadError) {
-      // Only log in development
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error uploading QR code:', uploadError);
-        console.error('Upload error details:', {
-          message: uploadError.message,
-          statusCode: uploadError.statusCode,
-          error: uploadError.error
-        });
-      }
       return NextResponse.json({
         error: `Failed to upload QR code image: ${uploadError.message}`,
         details: uploadError.error

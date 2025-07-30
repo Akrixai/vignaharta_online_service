@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
       .in('id', uniqueUserIds);
 
     if (usersError) {
-      // console.error('Error fetching users:', usersError);
+      // Error handled silently
     }
 
     // Create user lookup map
@@ -93,9 +93,8 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    // console.error('Error in wallet requests API:', error);
-    return NextResponse.json({ 
-      error: 'Internal server error' 
+    return NextResponse.json({
+      error: 'Internal server error'
     }, { status: 500 });
   }
 }
@@ -148,7 +147,6 @@ export async function PATCH(request: NextRequest) {
           .eq('id', request_id);
 
         if (updateError) {
-          // console.error('Error updating transaction:', updateError);
           return NextResponse.json({
             error: 'Failed to update transaction'
           }, { status: 500 });
@@ -177,7 +175,6 @@ export async function PATCH(request: NextRequest) {
           .eq('user_id', transaction.user_id);
 
         if (balanceError) {
-          // console.error('Error updating wallet balance:', balanceError);
           return NextResponse.json({
             error: 'Failed to update wallet balance'
           }, { status: 500 });
@@ -195,7 +192,6 @@ export async function PATCH(request: NextRequest) {
           .eq('id', request_id);
 
         if (rejectError) {
-          // console.error('Error rejecting transaction:', rejectError);
           return NextResponse.json({
             error: 'Failed to reject transaction'
           }, { status: 500 });
@@ -220,7 +216,6 @@ export async function PATCH(request: NextRequest) {
       });
 
     if (processError) {
-      // console.error('Error processing wallet request:', processError);
       return NextResponse.json({
         error: processError.message || 'Failed to process wallet request'
       }, { status: 500 });
@@ -242,7 +237,6 @@ export async function PATCH(request: NextRequest) {
     });
 
   } catch (error) {
-    // console.error('Error in wallet approval API:', error);
     return NextResponse.json({
       error: 'Internal server error'
     }, { status: 500 });

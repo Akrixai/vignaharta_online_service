@@ -10,9 +10,10 @@ import { formatCurrency } from '@/lib/utils';
 import { showToast } from '@/lib/toast';
 
 export default function AdminServicesPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fixingDropdowns, setFixingDropdowns] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingService, setEditingService] = useState<any>(null);
   const [formData, setFormData] = useState({
@@ -52,8 +53,22 @@ export default function AdminServicesPage() {
     fetchServices();
   }, []);
 
-  // Check admin access - moved after all hooks
-  if (!session || session.user.role !== UserRole.ADMIN) {
+  // Add console log for debugging
+
+  // Check loading state first
+  if (status === 'loading') {
+    return (
+      <DashboardLayout>
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Check admin access after session is loaded
+  if (!session || session?.user?.role !== UserRole.ADMIN) {
     return (
       <DashboardLayout>
         <div className="text-center py-12">
@@ -133,6 +148,14 @@ export default function AdminServicesPage() {
         required_documents: requiredDocuments,
         image_url: imageUrl
       };
+
+      // Add console logging for debugging dropdown options
+
+      dynamicFields.forEach((field, index) => {
+        if (field.type === 'select') {
+
+        }
+      });
 
       const url = editingService ? `/api/admin/services/${editingService.id}` : '/api/admin/services';
       const method = editingService ? 'PUT' : 'POST';
@@ -341,6 +364,31 @@ export default function AdminServicesPage() {
     }
   };
 
+  const fixDropdownFields = async () => {
+    setFixingDropdowns(true);
+    try {
+      const response = await fetch('/api/admin/fix-dropdown-fields', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert(`Fixed ${result.fixedServices?.length || 0} services with malformed dropdown fields`);
+        await fetchServices(); // Refresh the services list
+      } else {
+        alert(result.error || 'Failed to fix dropdown fields');
+      }
+    } catch (error) {
+      alert('Error fixing dropdown fields');
+    } finally {
+      setFixingDropdowns(false);
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -355,12 +403,21 @@ export default function AdminServicesPage() {
         {/* Add Service Button */}
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold text-red-800">Services ({services.length})</h2>
-          <Button
-            onClick={() => setShowAddForm(!showAddForm)}
-            className="bg-red-600 hover:bg-red-700 text-white"
-          >
-            {showAddForm ? '❌ Cancel' : '➕ Add Service'}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={fixDropdownFields}
+              disabled={fixingDropdowns}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              {fixingDropdowns ? '🔧 Fixing...' : '🔧 Fix Dropdowns'}
+            </Button>
+            <Button
+              onClick={() => setShowAddForm(!showAddForm)}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {showAddForm ? '❌ Cancel' : '➕ Add Service'}
+            </Button>
+          </div>
         </div>
 
         {/* Add/Edit Service Form */}

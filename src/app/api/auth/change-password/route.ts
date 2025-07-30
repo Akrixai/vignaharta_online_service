@@ -60,9 +60,6 @@ export async function POST(request: NextRequest) {
       .eq('id', session.user.id);
 
     if (updateError) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error updating password:', updateError);
-      }
       return NextResponse.json({
         error: 'Failed to update password'
       }, { status: 500 });

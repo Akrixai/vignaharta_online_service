@@ -27,8 +27,6 @@ export async function GET(request: NextRequest) {
     // Filter based on user role
     if (session.user.role === UserRole.RETAILER) {
       ordersQuery = ordersQuery.eq('user_id', session.user.id);
-    } else {
-      // All console.error statements removed
     }
 
     const { data: orders, error: ordersError } = await ordersQuery;
@@ -59,7 +57,7 @@ export async function GET(request: NextRequest) {
       .in('id', productIds);
 
     if (productsError) {
-      // All console.error statements removed
+      return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });
     }
 
     // Fetch users
@@ -69,7 +67,7 @@ export async function GET(request: NextRequest) {
       .in('id', userIds);
 
     if (usersError) {
-      // All console.error statements removed
+      return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 });
     }
 
     // Create lookup maps
@@ -219,7 +217,7 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (transactionError) {
-        // All console.error statements removed
+        // Error handled silently
       } else {
         walletTransaction = transaction;
       }
@@ -247,7 +245,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (orderError) {
-      // All console.error statements removed
+      // Error handled silently
       
       // If wallet payment was processed, we need to refund
       if (payment_method === 'WALLET' && walletTransaction) {

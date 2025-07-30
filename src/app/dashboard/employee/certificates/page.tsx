@@ -25,14 +25,27 @@ interface Certificate {
 }
 
 export default function EmployeeCertificatesPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [certificate, setCertificate] = useState<Certificate | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [branch] = useState('Main Branch');
 
-  // Check employee access
-  if (!session || session.user.role !== UserRole.EMPLOYEE) {
+  // Add console log for debugging
+
+  // Check loading state first
+  if (status === 'loading') {
+    return (
+      <DashboardLayout>
+        <div className="text-center py-12">
+          <LogoSpinner size="lg" text="Loading..." />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Check employee access after session is loaded
+  if (!session || session?.user?.role !== UserRole.EMPLOYEE) {
     return (
       <DashboardLayout>
         <div className="text-center py-12">

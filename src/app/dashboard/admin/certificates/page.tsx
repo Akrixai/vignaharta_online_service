@@ -29,7 +29,7 @@ interface Certificate {
 }
 
 export default function AdminCertificatesPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [filteredCertificates, setFilteredCertificates] = useState<Certificate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,6 +37,8 @@ export default function AdminCertificatesPage() {
   const [filterType, setFilterType] = useState<'all' | 'employee' | 'retailer'>('all');
   const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null);
   const [showCertificateModal, setShowCertificateModal] = useState(false);
+
+  // Add console log for debugging
 
   useEffect(() => {
     if (session?.user?.role === UserRole.ADMIN) {
@@ -127,7 +129,16 @@ export default function AdminCertificatesPage() {
     setShowCertificateModal(true);
   };
 
-  if (!session || session.user.role !== UserRole.ADMIN) {
+  // Check loading state first
+  if (status === 'loading') {
+    return (
+      <DashboardLayout>
+        <PageLoader text="Loading certificates..." />
+      </DashboardLayout>
+    );
+  }
+
+  if (!session || session?.user?.role !== UserRole.ADMIN) {
     return (
       <DashboardLayout>
         <div className="text-center py-8">

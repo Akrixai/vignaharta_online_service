@@ -61,6 +61,16 @@ export async function POST(request: NextRequest) {
       image_url
     } = body;
 
+    // Add console logging for debugging dropdown options
+
+    if (dynamic_fields && Array.isArray(dynamic_fields)) {
+      dynamic_fields.forEach((field: any, index: number) => {
+        if (field.type === 'select') {
+
+        }
+      });
+    }
+
     // Validation
     if (!name) {
       return NextResponse.json({ 
@@ -79,6 +89,34 @@ export async function POST(request: NextRequest) {
         error: 'Commission rate must be between 0 and 100'
       }, { status: 400 });
     }
+
+    // Process dynamic fields to ensure dropdown options are properly formatted
+    const processedDynamicFields = dynamic_fields ? dynamic_fields.map((field: any) => {
+      if (field.type === 'select' && field.options) {
+        // Ensure options is an array of strings
+        let processedOptions = [];
+        if (Array.isArray(field.options)) {
+          processedOptions = field.options.map((option: any) => {
+            if (typeof option === 'string') {
+              return option.trim();
+            }
+            return String(option).trim();
+          }).filter((option: string) => option.length > 0);
+        } else if (typeof field.options === 'string') {
+          // If options is a string, split by comma
+          processedOptions = field.options
+            .split(',')
+            .map((option: string) => option.trim())
+            .filter((option: string) => option.length > 0);
+        }
+
+        return {
+          ...field,
+          options: processedOptions
+        };
+      }
+      return field;
+    }) : [];
 
     // Verify the user exists in the database
     const { data: userExists, error: userError } = await supabaseAdmin
@@ -105,7 +143,7 @@ export async function POST(request: NextRequest) {
         documents: documents || [],
         processing_time_days: processing_time_days || 7,
         commission_rate: commission_rate || 0,
-        dynamic_fields: dynamic_fields || [],
+        dynamic_fields: processedDynamicFields,
         required_documents: required_documents || [],
         image_url: image_url || null,
         created_by: session.user.id

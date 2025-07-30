@@ -269,21 +269,6 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (applicationError) {
-      // Security: Never log sensitive user data in production
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Application POST: Error creating application:', applicationError);
-        console.error('Application data that failed:', {
-          user_id: session.user.id,
-          scheme_id,
-          form_data: form_data || {},
-          documents: documents || [],
-          customer_name,
-          customer_phone,
-          customer_email,
-          customer_address,
-          amount: amount || (scheme.is_free ? 0 : scheme.price)
-        });
-      }
       return NextResponse.json({
         error: 'Failed to create application',
         details: applicationError.message

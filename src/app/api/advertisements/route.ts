@@ -73,9 +73,6 @@ export async function POST(request: NextRequest) {
       .eq('is_active', true);
 
     if (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error updating click count:', error);
-      }
       return NextResponse.json({ error: 'Failed to update click count' }, { status: 500 });
     }
 

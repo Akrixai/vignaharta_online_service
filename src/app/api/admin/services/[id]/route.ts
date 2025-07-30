@@ -19,6 +19,16 @@ export async function PUT(
     const body = await request.json();
     const serviceId = params.id;
 
+    // Add console logging for debugging dropdown options
+
+    if (body.dynamic_fields && Array.isArray(body.dynamic_fields)) {
+      body.dynamic_fields.forEach((field: any, index: number) => {
+        if (field.type === 'select') {
+
+        }
+      });
+    }
+
     // Check if service exists
     const { data: existingService, error: fetchError } = await supabaseAdmin
       .from('schemes')
@@ -41,6 +51,36 @@ export async function PUT(
       return NextResponse.json({ 
         error: 'Commission rate must be between 0 and 100' 
       }, { status: 400 });
+    }
+
+    // Process dynamic fields to ensure dropdown options are properly formatted
+    if (body.dynamic_fields && Array.isArray(body.dynamic_fields)) {
+      body.dynamic_fields = body.dynamic_fields.map((field: any) => {
+        if (field.type === 'select' && field.options) {
+          // Ensure options is an array of strings
+          let processedOptions = [];
+          if (Array.isArray(field.options)) {
+            processedOptions = field.options.map((option: any) => {
+              if (typeof option === 'string') {
+                return option.trim();
+              }
+              return String(option).trim();
+            }).filter((option: string) => option.length > 0);
+          } else if (typeof field.options === 'string') {
+            // If options is a string, split by comma
+            processedOptions = field.options
+              .split(',')
+              .map((option: string) => option.trim())
+              .filter((option: string) => option.length > 0);
+          }
+
+          return {
+            ...field,
+            options: processedOptions
+          };
+        }
+        return field;
+      });
     }
 
     // If is_free is set to true, set price to 0
@@ -75,7 +115,7 @@ export async function PUT(
 
 // DELETE - Delete service (Admin only)
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
