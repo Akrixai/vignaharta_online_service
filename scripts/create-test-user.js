@@ -3,7 +3,6 @@ const bcrypt = require('bcryptjs');
 async function generatePasswordHash() {
   const passwords = {
     'admin123': await bcrypt.hash('admin123', 12),
-    'customer123': await bcrypt.hash('customer123', 12),
     'employee123': await bcrypt.hash('employee123', 12),
     'retailer123': await bcrypt.hash('retailer123', 12)
   };
