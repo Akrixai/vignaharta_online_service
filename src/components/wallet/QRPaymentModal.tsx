@@ -150,7 +150,7 @@ export default function QRPaymentModal({ isOpen, onClose, onSubmit, loading = fa
                             alt="AkrixPay QR Code"
                             className="w-full h-full object-contain"
                           />
-                          <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white p-2 sm:p-3 rounded-b-lg">
+                          <div className="absolute bottom-0 left-0 right-0 bg-gray-400 bg-opacity-75 text-white p-2 sm:p-3 rounded-b-lg">
                             <p className="text-lg sm:text-xl font-bold">₹{amount}</p>
                           </div>
                         </div>

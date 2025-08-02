@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
         branch: branch, // Use city from user registration
         certificate_number: certificateNumber,
         issue_date: issueDate, // Use retailer creation date
-        company_name: 'Vignaharta Online Services',
+        company_name: 'VIGHNAHARTA ONLINE SERVICES',
         digital_signature: digitalSignature,
         is_active: true,
         created_at: new Date().toISOString(),

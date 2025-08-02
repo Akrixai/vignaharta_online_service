@@ -56,7 +56,7 @@ export default function NotificationBell({ userRole, userId }: NotificationBellP
         variant="outline"
         size="sm"
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 hover:bg-gray-100"
+        className="relative p-2 bg-black hover:bg-gray-600"
       >
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
@@ -68,7 +68,7 @@ export default function NotificationBell({ userRole, userId }: NotificationBellP
 
       {/* Notification Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-96 bg-white rounded-xl shadow-2xl border-2 border-gray-200 z-50 max-h-96 overflow-hidden">
+        <div className="absolute right-0 top-full mt-2 w-96 bg-gray-400 rounded-xl shadow-2xl border-2 border-red-500 z-50 max-h-96 overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-red-400 bg-gradient-to-r from-red-500 to-red-600">
             <h3 className="font-bold text-black flex items-center">
