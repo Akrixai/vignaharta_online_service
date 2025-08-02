@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import { UserRole } from '@/types';
@@ -11,8 +11,8 @@ import PopupAdvertisement from '@/components/PopupAdvertisement';
 import NotificationBell from '@/components/NotificationBell';
 import PopupNotifications from '@/components/notifications/PopupNotifications';
 import ScreenNotifications from '@/components/ScreenNotifications';
+import { Wallet } from 'lucide-react';
 // Removed WhatsAppNotificationTrigger to fix chat initialization errors
-
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -69,7 +69,35 @@ const menuItems: MenuItem[] = [
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { data: session, status } = useSession();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [walletBalance, setWalletBalance] = useState<number>(0);
+  const [loadingWallet, setLoadingWallet] = useState(false);
 
+  // Fetch wallet balance for retailers
+  useEffect(() => {
+    if (session?.user?.role === UserRole.RETAILER) {
+      const fetchWalletBalance = async () => {
+        setLoadingWallet(true);
+        try {
+          const response = await fetch('/api/wallet');
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+              setWalletBalance(data.data.balance || 0);
+            }
+          }
+        } catch (error) {
+        } finally {
+          setLoadingWallet(false);
+        }
+      };
+
+      fetchWalletBalance();
+
+      // Refresh wallet balance every 30 seconds
+      const interval = setInterval(fetchWalletBalance, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [session?.user?.role]);
 
   if (status === 'loading') {
     return (
@@ -213,6 +241,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
 
           <div className="flex items-center space-x-4">
+            {/* Wallet Balance for Retailers */}
+            {session?.user?.role === UserRole.RETAILER && (
+              <div className="flex items-center bg-white/20 rounded-lg px-3 py-2 text-white">
+                <Wallet className="w-4 h-4 mr-2" />
+                <span className="text-sm font-medium">
+                  {loadingWallet ? '...' : `₹${walletBalance.toLocaleString()}`}
+                </span>
+              </div>
+            )}
+
             {/* Notification Bell for Admin/Employee */}
             <NotificationBell
               userRole={session?.user?.role}

@@ -131,7 +131,7 @@ export default function TrainingPage() {
               <div className="flex items-end">
                 <Button
                   onClick={refresh}
-                  className="w-full bg-red-600 hover:bg-red-700 text-white"
+                  className="w-full bg-red-600 hover:bg-red-700 text-black"
                 >
                   🔄 Refresh
                 </Button>

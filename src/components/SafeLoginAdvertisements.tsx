@@ -206,7 +206,7 @@ export default function SafeLoginAdvertisements({ className = '' }: SafeLoginAdv
                 {currentAd.description}
               </p>
 
-              {/* Link button for database advertisements */}
+              {/* Link button for database advertisements
               {currentAd.link_url && (
                 <div className="mb-4">
                   <a
@@ -223,7 +223,7 @@ export default function SafeLoginAdvertisements({ className = '' }: SafeLoginAdv
                     )}
                   </a>
                 </div>
-              )}
+              )} */}
 
               {/* Indicators */}
               {advertisements.length > 1 && (

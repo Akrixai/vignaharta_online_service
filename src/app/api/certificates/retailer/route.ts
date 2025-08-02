@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Generate unique certificate number with VJS prefix
+    // Generate unique certificate number with VOS prefix
     const year = retailerCreationDate.getFullYear();
 
     // Generate unique certificate number with retry mechanism
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
       const { data: existingCerts } = await supabaseAdmin
         .from('retailer_certificates')
         .select('certificate_number')
-        .like('certificate_number', `VJS-${year}-%`)
+        .like('certificate_number', `VOS-${year}-%`)
         .order('certificate_number', { ascending: false });
 
       let sequenceNumber = 1;
@@ -100,10 +100,10 @@ export async function POST(request: NextRequest) {
 
       // Add timestamp component to ensure uniqueness in concurrent requests
       const timestamp = Date.now().toString().slice(-4);
-      certificateNumber = `VJS-${year}-${String(sequenceNumber).padStart(5, '0')}`;
+      certificateNumber = `VOS-${year}-${String(sequenceNumber).padStart(5, '0')}`;
 
       // Generate digital signature (unique hash)
-      const digitalSignature = `VJS-SIG-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+      const digitalSignature = `VOS-SIG-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
 
       // Create certificate record
       const certificateData = {
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
         branch: branch, // Use city from user registration
         certificate_number: certificateNumber,
         issue_date: issueDate, // Use retailer creation date
-        company_name: 'Vignaharta Online Service',
+        company_name: 'Vignaharta Online Services',
         digital_signature: digitalSignature,
         is_active: true,
         created_at: new Date().toISOString(),

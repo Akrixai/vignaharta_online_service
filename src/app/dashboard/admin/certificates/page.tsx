@@ -480,7 +480,7 @@ export default function AdminCertificatesPage() {
                           <div className="text-center">
                             <div className="w-32 h-16 border-b-2 border-gray-400 mb-2 flex items-end justify-center">
                               <div className="text-xs text-gray-700 font-signature italic">
-                                Vignaharta Online Service
+                                Vignaharta Online Services
                               </div>
                             </div>
                             <div className="text-sm text-gray-600">Authorized Signature</div>

@@ -196,7 +196,7 @@ export default function RefundsPage() {
             </div>
             <Button
               onClick={() => setShowForm(!showForm)}
-              className="bg-white text-red-600 hover:bg-red-50"
+              className="bg-black text-red-600 hover:bg-red-500"
             >
               <Plus className="w-5 h-5 mr-2" />
               New Refund Request
@@ -213,7 +213,7 @@ export default function RefundsPage() {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
+                  <div >
                     <Label htmlFor="application_id">Related Application (Optional)</Label>
                     <Select
                       value={formData.application_id}
@@ -283,13 +283,13 @@ export default function RefundsPage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="qr_screenshot_url">QR Screenshot URL</Label>
+                    <Label htmlFor="qr_screenshot_url">UTR number or Transaction ID</Label>
                     <Input
                       id="qr_screenshot_url"
                       type="url"
                       value={formData.qr_screenshot_url}
                       onChange={(e) => setFormData(prev => ({ ...prev, qr_screenshot_url: e.target.value }))}
-                      placeholder="URL of QR code screenshot"
+                      placeholder="Transaction ID or UTR number"
                     />
                   </div>
                 </div>

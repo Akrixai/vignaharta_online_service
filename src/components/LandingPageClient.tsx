@@ -4,14 +4,68 @@ import Link from "next/link";
 import Logo from "@/components/ui/logo";
 import Footer from "@/components/Footer";
 import UserConsent from "@/components/UserConsent";
-import { useState } from "react";
+import LandingPageImageCarousel from "@/components/LandingPageImageCarousel";
+import { useState, useEffect } from "react";
+// Marquee-style floating text for descriptions
+function FloatingDescriptions({ descriptions, position = "top" }) {
+  if (!descriptions || descriptions.length === 0) return null;
+  return (
+    <div
+      className={`w-full overflow-hidden z-20 ${position === "bottom" ? "mt-4" : "mb-4"}`}
+      style={{ pointerEvents: "none", height: "2.5rem" }}
+    >
+      <div
+        className="whitespace-nowrap flex items-center"
+        style={{ height: "2.5rem" }}
+      >
+        <div
+          className="marquee-text px-4 py-2 bg-gradient-to-r from-red-200 via-orange-200 to-yellow-200 text-red-700 font-semibold shadow-lg rounded"
+          style={{
+            display: "inline-block",
+            minWidth: "fit-content",
+            animation: `marquee 18s linear infinite`,
+            pointerEvents: "none",
+            opacity: 0.95
+          }}
+        >
+          {descriptions.join("  |  ")}
+        </div>
+      </div>
+      <style jsx>{`
+        @keyframes marquee {
+          0% { transform: translateX(100%); }
+          100% { transform: translateX(-100%); }
+        }
+      `}</style>
+    </div>
+  );
+}
 
 export default function LandingPageClient() {
   const [, setConsentGiven] = useState(false);
+  const [descriptions, setDescriptions] = useState([]);
 
   const handleConsentGiven = () => {
     setConsentGiven(true);
   };
+
+  useEffect(() => {
+    async function fetchDescriptions() {
+      try {
+        const res = await fetch("/api/login-advertisements");
+        if (res.ok) {
+          const data = await res.json();
+          const descs = (data.advertisements || [])
+            .map(ad => ad.description)
+            .filter(d => d && d.trim().length > 0);
+          setDescriptions(descs);
+        }
+      } catch (e) {
+        // fail silently
+      }
+    }
+    fetchDescriptions();
+  }, []);
 
   return (
     <>
@@ -35,7 +89,7 @@ export default function LandingPageClient() {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="flex justify-between items-center py-6">
+          <div className="flex justify-between items-center py-3">
             <div className="flex items-center space-x-4">
               <Logo size="md" showText={true} animated={true} />
               <div className="hidden sm:block">
@@ -79,6 +133,17 @@ export default function LandingPageClient() {
         </div>
       </header>
 
+      {/* Full-width Advertisement Carousel Section */}
+      <section className="w-full relative z-10">
+        {/* Floating Descriptions Above Carousel */}
+        <FloatingDescriptions descriptions={descriptions} position="top" />
+        {/* Image Carousel with horizontal padding only */}
+        <div className="w-full px-4 md:px-8 lg:px-4">
+          <LandingPageImageCarousel className="h-[350px] md:h-[500px] lg:h-[570px] w-full rounded" />
+        </div>
+        <FloatingDescriptions descriptions={descriptions} position="bottom" />
+      </section>
+
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative">
         {/* Background decorative elements */}
@@ -88,44 +153,42 @@ export default function LandingPageClient() {
         </div>
 
         <div className="text-center relative z-10">
-          <div className="animate-fade-in mb-12">
-            <Logo size="2xl" showText={true} animated={true} className="justify-center mb-8" />
-          </div>
-
-          {/* Hero Title with gradient text */}
-          <h2 className="text-5xl md:text-6xl font-bold mb-6 animate-slide-in-left hero-title">
-            <span className="bg-gradient-to-r from-red-600 via-red-700 to-red-800 bg-clip-text text-transparent">
-              Welcome to
-            </span>
+          {/* <h1 className="text-4xl md:text-6xl font-bold text-red-800 mb-6 animate-fade-in">
+            Welcome to <span className="text-orange-600">विघ्नहर्ता</span>
             <br />
-            <span className="bg-gradient-to-r from-red-800 via-orange-600 to-red-600 bg-clip-text text-transparent animate-pulse marathi-text">
-              VIGHNAHARTA ONLINE SERVICES
-            </span>
+            <span className="text-red-700">ऑनलाईन सर्विसेस</span>
+          </h1>
+          <h2 className="text-xl md:text-2xl text-red-600 mb-4 max-w-3xl mx-auto animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            India's Premier Digital Government Services Portal
           </h2>
-
-          {/* Subtitle with animation */}
-          <p className="text-xl md:text-2xl text-gray-700 mb-8 max-w-4xl mx-auto animate-slide-in-right leading-relaxed hero-subtitle">
-            <span className="font-semibold text-red-700">Your one-stop digital portal</span> for government services, schemes, and applications.
-            <br />
-            <span className="text-gray-600">Access essential services digitally with ease, convenience, and complete security.</span>
+          <p className="text-lg md:text-xl text-gray-700 mb-8 max-w-4xl mx-auto animate-fade-in" style={{ animationDelay: '0.3s' }}>
+            Access <strong>Aadhaar Card</strong>, <strong>PAN Card</strong>, <strong>Passport</strong>, <strong>Birth Certificate</strong>, <strong>Death Certificate</strong>, <strong>Income Certificate</strong>, <strong>Caste Certificate</strong>, and <strong>100+ government services online</strong>. Fast, secure, and reliable government service portal with nationwide retailer network support.
           </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+            <Link href="/login" className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-lg text-lg font-semibold transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl">
+              🚀 Get Started - Apply Online
+            </Link>
+            <Link href="/about" className="bg-white hover:bg-red-50 text-red-600 border-2 border-red-600 px-8 py-4 rounded-lg text-lg font-semibold transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl">
+              📖 Learn More About Services
+            </Link>
+          </div> */}
 
           {/* Animated stats or features */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 animate-fade-in" style={{ animationDelay: '0.5s' }}>
             <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 border border-red-100 feature-card">
               <div className="text-3xl mb-3 animate-bounce">🏛️</div>
-              <h3 className="text-xl font-bold text-red-700 mb-2">Government Services</h3>
-              <p className="text-gray-600">Access official government services and schemes digitally</p>
+              <h3 className="text-xl font-bold text-red-700 mb-2">100+ Government Services Online</h3>
+              <p className="text-gray-600">Access Aadhaar, PAN, Passport, Birth Certificate, Death Certificate, Income Certificate, Caste Certificate, and all government schemes digitally</p>
             </div>
             <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 border border-red-100 feature-card" style={{ animationDelay: '0.2s' }}>
               <div className="text-3xl mb-3 animate-bounce" style={{ animationDelay: '0.5s' }}>🔒</div>
-              <h3 className="text-xl font-bold text-red-700 mb-2">Secure & Reliable</h3>
-              <p className="text-gray-600">Bank-level security with real-time tracking and support</p>
+              <h3 className="text-xl font-bold text-red-700 mb-2">Secure Digital India Portal</h3>
+              <p className="text-gray-600">Bank-level security with SSL encryption, real-time application tracking, and 24/7 customer support</p>
             </div>
             <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 border border-red-100 feature-card" style={{ animationDelay: '0.4s' }}>
               <div className="text-3xl mb-3 animate-bounce" style={{ animationDelay: '1s' }}>⚡</div>
-              <h3 className="text-xl font-bold text-red-700 mb-2">Fast & Easy</h3>
-              <p className="text-gray-600">Quick processing with user-friendly interface</p>
+              <h3 className="text-xl font-bold text-red-700 mb-2">Fast Government Service Processing</h3>
+              <p className="text-gray-600">Quick document processing with user-friendly interface and nationwide retailer network support</p>
             </div>
           </div>
 

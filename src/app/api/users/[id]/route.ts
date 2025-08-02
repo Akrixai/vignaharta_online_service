@@ -32,6 +32,16 @@ export async function GET(
         phone,
         role,
         is_active,
+        address,
+        city,
+        state,
+        pincode,
+        date_of_birth,
+        gender,
+        occupation,
+        employee_id,
+        department,
+        branch,
         created_at,
         updated_at,
         wallets (
@@ -76,7 +86,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const allowedFields = ['name', 'phone'];
+    const allowedFields = ['name', 'phone', 'address', 'city', 'state', 'pincode', 'date_of_birth', 'gender', 'occupation'];
     const updateData: any = {};
 
     // Only allow certain fields to be updated
@@ -96,6 +106,19 @@ export async function PUT(
       }
     }
 
+    // Admin and Employee can update employee-specific fields
+    if (session.user.role === 'ADMIN' || session.user.role === 'EMPLOYEE') {
+      if (body.employee_id !== undefined) {
+        updateData.employee_id = body.employee_id;
+      }
+      if (body.department !== undefined) {
+        updateData.department = body.department;
+      }
+      if (body.branch !== undefined) {
+        updateData.branch = body.branch;
+      }
+    }
+
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
     }
@@ -111,6 +134,16 @@ export async function PUT(
         phone,
         role,
         is_active,
+        address,
+        city,
+        state,
+        pincode,
+        date_of_birth,
+        gender,
+        occupation,
+        employee_id,
+        department,
+        branch,
         created_at,
         updated_at
       `)

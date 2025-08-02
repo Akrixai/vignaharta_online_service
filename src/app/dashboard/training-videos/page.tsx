@@ -136,7 +136,7 @@ export default function TrainingVideosPage() {
             <Button 
               onClick={refresh} 
               variant="outline" 
-              className="w-full border-red-200 text-red-600 hover:bg-red-50"
+              className="w-full border-red-700 text-black hover:bg-red-50"
             >
               🔄 Refresh
             </Button>

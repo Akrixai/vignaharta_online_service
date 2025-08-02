@@ -421,7 +421,7 @@ export default function WalletPage() {
               <Button
                 onClick={() => setShowWithdraw(true)}
                 variant="outline"
-                className="border-white text-white hover:bg-white hover:text-green-600 flex-1 h-12 font-semibold text-base shadow-md hover:shadow-lg transition-all duration-200"
+                className="border-white text-green-600 hover:bg-white hover:text-green-600 flex-1 h-12 font-semibold text-base shadow-md hover:shadow-lg transition-all duration-200"
               >
                 💸 Withdraw
               </Button>
@@ -517,7 +517,7 @@ export default function WalletPage() {
                     type="button"
                     variant="outline"
                     onClick={() => setShowAddMoney(false)}
-                    className="flex-1 h-12 border-2 border-gray-300 hover:border-gray-400 text-gray-700 font-medium"
+                    className="flex-1 h-12 bg-gradient-to-r from-gray-100 to-gray-200 border-2 border-gray-700 text-white font-medium"
                     disabled={isAddingMoney || paymentLoading}
                   >
                     Cancel
@@ -691,7 +691,7 @@ export default function WalletPage() {
                     type="button"
                     variant="outline"
                     onClick={() => setShowWithdraw(false)}
-                    className="flex-1 h-12 border-2 border-gray-300 hover:border-gray-400 text-gray-700 font-medium"
+                    className="flex-1 h-12 bg-gradient-to-r from-gray-100 to-gray-200 border-2 border-gray-300 hover:border-gray-700 text-gray-700 font-medium"
                     disabled={isWithdrawing}
                   >
                     Cancel

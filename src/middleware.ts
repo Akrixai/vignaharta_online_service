@@ -163,12 +163,19 @@ export default withAuth(
         }
       }
 
-      // Customer and Retailer routes
+      // Services and Support - Retailer only
       if (pathname.startsWith('/dashboard/services') ||
-          pathname.startsWith('/dashboard/products') ||
-          pathname.startsWith('/dashboard/training') ||
           pathname.startsWith('/dashboard/support')) {
         if (userRole !== UserRole.RETAILER) {
+          return NextResponse.redirect(new URL('/dashboard', req.url));
+        }
+      }
+
+      // Products and Training - Retailer and Employee access
+      if (pathname.startsWith('/dashboard/products') ||
+          pathname.startsWith('/dashboard/training') ||
+          pathname.startsWith('/dashboard/training-videos')) {
+        if (userRole !== UserRole.RETAILER && userRole !== UserRole.EMPLOYEE) {
           return NextResponse.redirect(new URL('/dashboard', req.url));
         }
       }

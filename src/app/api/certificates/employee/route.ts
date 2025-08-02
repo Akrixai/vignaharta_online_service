@@ -57,13 +57,13 @@ export async function POST(request: NextRequest) {
           branch: existingCert.branch,
           certificate_number: existingCert.certificate_number,
           issue_date: new Date(existingCert.issue_date).toLocaleDateString('en-GB'),
-          company_name: 'Vignaharta Online Service',
+          company_name: 'Vignaharta Online Services',
           digital_signature: existingCert.digital_signature
         }
       });
     }
 
-    // Generate unique certificate number with VJS-EMP prefix
+    // Generate unique certificate number with VOS-EMP prefix
     const year = employeeCreationDate.getFullYear();
 
     // Generate unique certificate number with retry mechanism
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
       const { data: existingCerts } = await supabaseAdmin
         .from('employee_certificates')
         .select('certificate_number')
-        .like('certificate_number', `VJS-EMP-${year}-%`)
+        .like('certificate_number', `VOS-EMP-${year}-%`)
         .order('certificate_number', { ascending: false });
 
       let sequenceNumber = 1;
@@ -97,10 +97,10 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      certificateNumber = `VJS-EMP-${year}-${String(sequenceNumber).padStart(5, '0')}`;
+      certificateNumber = `VOS-EMP-${year}-${String(sequenceNumber).padStart(5, '0')}`;
 
       // Generate digital signature (unique hash)
-      const digitalSignature = `VJS-EMP-SIG-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+      const digitalSignature = `VOS-EMP-SIG-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
 
       // Create certificate record
       const certificateData = {
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
         branch: branch || employeeData?.branch || null,
         certificate_number: certificateNumber,
         issue_date: issueDate, // Use employee creation date
-        company_name: 'Vignaharta Online Service',
+        company_name: 'Vignaharta Online Services',
         digital_signature: digitalSignature,
         is_active: true,
         created_at: new Date().toISOString(),

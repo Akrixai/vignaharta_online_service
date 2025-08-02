@@ -751,11 +751,34 @@ export default function AdminApplicationsPage() {
                           👁️ View
                         </Button>
                         <Button
-                          onClick={() => {
-                            const link = document.createElement('a');
-                            link.href = documentUrl;
-                            link.download = `document-${index + 1}`;
-                            link.click();
+                          onClick={async () => {
+                            try {
+                              // For images, fetch and download properly
+                              if (documentUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+                                const response = await fetch(documentUrl);
+                                const blob = await response.blob();
+                                const url = window.URL.createObjectURL(blob);
+                                const link = document.createElement('a');
+                                link.href = url;
+                                link.download = `document-${index + 1}.${documentUrl.split('.').pop()}`;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                window.URL.revokeObjectURL(url);
+                              } else {
+                                // For other files, use direct download
+                                const link = document.createElement('a');
+                                link.href = documentUrl;
+                                link.download = `document-${index + 1}`;
+                                link.target = '_blank';
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                              }
+                            } catch (error) {
+                              // Fallback to opening in new tab
+                              window.open(documentUrl, '_blank');
+                            }
                           }}
                           variant="outline"
                           className="flex-1 text-sm"

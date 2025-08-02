@@ -7,13 +7,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { UserRole } from '@/types';
 import ChangePasswordModal from '@/components/ChangePasswordModal';
-import { Lock } from 'lucide-react';
+import { Lock, RefreshCw } from 'lucide-react';
 import { showToast } from '@/lib/toast';
 
 export default function ProfilePage() {
   const { data: session, update } = useSession();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -25,28 +26,21 @@ export default function ProfilePage() {
     pincode: '',
     dateOfBirth: '',
     gender: '',
-    occupation: ''
+    occupation: '',
+    // Admin/Employee specific fields
+    employeeId: '',
+    department: '',
+    branch: ''
   });
 
   useEffect(() => {
-    if (session?.user) {
-      setFormData({
-        name: session.user.name || '',
-        email: session.user.email || '',
-        phone: session.user.phone || '',
-        address: session.user.address || '',
-        city: session.user.city || '',
-        state: session.user.state || '',
-        pincode: session.user.pincode || '',
-        dateOfBirth: session.user.dateOfBirth || '',
-        gender: session.user.gender || '',
-        occupation: session.user.occupation || ''
-      });
+    if (session?.user && !loading) {
+      fetchFreshProfileData();
     }
-  }, [session]);
+  }, [session?.user?.id]);
 
   if (!session) {
-    return null; // Middleware will redirect
+    return <div className="flex items-center justify-center min-h-screen text-gray-600 text-lg">Loading profile...</div>;
   }
 
   const user = session.user;
@@ -59,46 +53,151 @@ export default function ProfilePage() {
     }));
   };
 
+  // Function to fetch fresh profile data from database
+  const fetchFreshProfileData = async (showRefreshingState = false) => {
+    if (showRefreshingState) setRefreshing(true);
+
+    try {
+      const response = await fetch(`/api/users/${user.id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const responseData = await response.json();
+        const freshUser = responseData.data;
+
+        //
+
+        // Update session with fresh data
+        await update({
+          ...session,
+          user: {
+            ...session.user,
+            name: freshUser.name,
+            phone: freshUser.phone,
+            address: freshUser.address,
+            city: freshUser.city,
+            state: freshUser.state,
+            pincode: freshUser.pincode,
+            date_of_birth: freshUser.date_of_birth,
+            dateOfBirth: freshUser.date_of_birth,
+            gender: freshUser.gender,
+            occupation: freshUser.occupation,
+            employee_id: freshUser.employee_id,
+            department: freshUser.department,
+            branch: freshUser.branch
+          }
+        });
+
+        // Update form data with fresh data
+        setFormData({
+          name: freshUser.name || '',
+          email: freshUser.email || '',
+          phone: freshUser.phone || '',
+          address: freshUser.address || '',
+          city: freshUser.city || '',
+          state: freshUser.state || '',
+          pincode: freshUser.pincode || '',
+          dateOfBirth: freshUser.date_of_birth || '',
+          gender: freshUser.gender || '',
+          occupation: freshUser.occupation || '',
+          employeeId: freshUser.employee_id || '',
+          department: freshUser.department || '',
+          branch: freshUser.branch || ''
+        });
+
+        if (showRefreshingState) {
+          showToast.success('Profile data refreshed successfully!');
+        }
+
+        return freshUser;
+      }
+    } catch (error) {
+      //
+      if (showRefreshingState) {
+        showToast.error('Failed to refresh profile data');
+      }
+    } finally {
+      if (showRefreshingState) setRefreshing(false);
+    }
+    return null;
+  };
+
+  const handleRefresh = () => {
+    fetchFreshProfileData(true);
+  };
+
   const handleSave = async () => {
     setLoading(true);
     try {
-      // TODO: Implement API call to update user profile
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      
-      // Update session data
-      await update({
-        ...session,
-        user: {
-          ...session.user,
-          ...formData
-        }
+      // Prepare update data - include all fields for all roles
+      const updateData: any = {
+        name: formData.name,
+        phone: formData.phone,
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        pincode: formData.pincode,
+        date_of_birth: formData.dateOfBirth,
+        gender: formData.gender,
+        occupation: formData.occupation,
+      };
+
+      // Add admin/employee specific fields
+      if (user.role === 'EMPLOYEE' || user.role === 'ADMIN') {
+        updateData.employee_id = formData.employeeId;
+        updateData.department = formData.department;
+        updateData.branch = formData.branch;
+      }
+
+      //
+
+      // Call API to update profile
+      const response = await fetch(`/api/users/${user.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updateData),
       });
 
-      setIsEditing(false);
-      showToast.success('Profile updated successfully!');
+      if (!response.ok) {
+        const errorData = await response.json();
+        //
+        throw new Error(errorData.error || 'Failed to update profile');
+      }
+
+      const responseData = await response.json();
+      //
+
+      // Wait a moment for database to be consistent
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Fetch fresh data from database to ensure consistency
+      const freshUser = await fetchFreshProfileData();
+
+      if (freshUser) {
+        setIsEditing(false);
+        showToast.success('Profile updated successfully!');
+      } else {
+        throw new Error('Failed to fetch updated profile data');
+      }
     } catch (error) {
+      //
       showToast.error('Failed to update profile', {
-        description: 'Please try again.'
+        description: error instanceof Error ? error.message : 'Please try again.'
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCancel = () => {
-    // Reset form data to original values
-    setFormData({
-      name: user.name || '',
-      email: user.email || '',
-      phone: user.phone || '',
-      address: user.address || '',
-      city: user.city || '',
-      state: user.state || '',
-      pincode: user.pincode || '',
-      dateOfBirth: user.dateOfBirth || '',
-      gender: user.gender || '',
-      occupation: user.occupation || ''
-    });
+  const handleCancel = async () => {
+    // Fetch fresh data and reset form
+    await fetchFreshProfileData();
     setIsEditing(false);
   };
 
@@ -150,6 +249,15 @@ export default function ProfilePage() {
               <div className="flex gap-2">
                 {!isEditing ? (
                   <>
+                    <Button
+                      onClick={handleRefresh}
+                      variant="outline"
+                      disabled={refreshing}
+                      className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                    >
+                      <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+                      {refreshing ? 'Refreshing...' : 'Refresh'}
+                    </Button>
                     <Button
                       onClick={() => setShowChangePassword(true)}
                       variant="outline"
@@ -341,6 +449,56 @@ export default function ProfilePage() {
                   <p className="text-gray-900">{user.pincode || 'Not provided'}</p>
                 )}
               </div>
+
+              {/* Admin/Employee specific fields */}
+              {(user.role === 'ADMIN' || user.role === 'EMPLOYEE') && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Employee ID</label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        name="employeeId"
+                        value={formData.employeeId}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                      />
+                    ) : (
+                      <p className="text-gray-900">{user.employeeId || 'Not provided'}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        name="department"
+                        value={formData.department}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                      />
+                    ) : (
+                      <p className="text-gray-900">{user.department || 'Not provided'}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Branch</label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        name="branch"
+                        value={formData.branch}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                      />
+                    ) : (
+                      <p className="text-gray-900">{(user as any).branch || formData.branch || 'Not provided'}</p>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>

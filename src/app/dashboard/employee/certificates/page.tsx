@@ -33,7 +33,7 @@ export default function EmployeeCertificatesPage() {
 
   // All hooks must be called before any early returns to avoid React error #310
   useEffect(() => {
-    if (!session?.user?.id) return;
+    if (!session?.user?.id || certificate) return; // Don't fetch if certificate already exists
 
     const fetchOrGenerateCertificate = async () => {
       try {
@@ -57,7 +57,7 @@ export default function EmployeeCertificatesPage() {
           },
           body: JSON.stringify({
             employee_name: session.user.name,
-            employee_id: session.user.employee_id || session.user.id.substring(0, 8),
+            employee_id: session.user.employeeId || session.user.id.substring(0, 8),
             department: session.user.department || 'Government Services',
             branch: branch
           })
@@ -71,36 +71,36 @@ export default function EmployeeCertificatesPage() {
         } else {
           // Fallback to client-side generation if API fails
           const employeeCreationDate = new Date(session.user.createdAt || new Date());
-          const certificateNumber = `VJS-EMP-${employeeCreationDate.getFullYear()}-${String(Math.floor(Math.random() * 100000)).padStart(5, '0')}`;
+          const certificateNumber = `VOS-EMP-${employeeCreationDate.getFullYear()}-${String(Math.floor(Math.random() * 100000)).padStart(5, '0')}`;
 
           setCertificate({
             id: session.user.id,
             employee_name: session.user.name,
-            employee_id: session.user.employee_id || session.user.id.substring(0, 8),
+            employee_id: session.user.employeeId || session.user.id.substring(0, 8),
             department: session.user.department || 'Government Services',
             branch: branch,
             certificate_number: certificateNumber,
             issue_date: employeeCreationDate.toLocaleDateString('en-GB'),
             company_name: 'VIGHNAHARTA ONLINE SERVICES',
-            digital_signature: `VJS-EMP-SIG-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`
+            digital_signature: `VOS-EMP-SIG-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`
           });
         }
       } catch (err) {
         setError('Failed to generate certificate');
         // Fallback to client-side generation
         const employeeCreationDate = new Date(session.user.createdAt || new Date());
-        const certificateNumber = `VJS-EMP-${employeeCreationDate.getFullYear()}-${String(Math.floor(Math.random() * 100000)).padStart(5, '0')}`;
+        const certificateNumber = `VOS-EMP-${employeeCreationDate.getFullYear()}-${String(Math.floor(Math.random() * 100000)).padStart(5, '0')}`;
 
         setCertificate({
           id: session.user.id,
           employee_name: session.user.name,
-          employee_id: session.user.employee_id || session.user.id.substring(0, 8),
+          employee_id: session.user.employeeId || session.user.id.substring(0, 8),
           department: session.user.department || 'Government Services',
           branch: branch,
           certificate_number: certificateNumber,
           issue_date: employeeCreationDate.toLocaleDateString('en-GB'),
           company_name: 'VIGHNAHARTA ONLINE SERVICES',
-          digital_signature: `VJS-EMP-SIG-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`
+          digital_signature: `VOS-EMP-SIG-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`
         });
       } finally {
         setLoading(false);
@@ -108,7 +108,7 @@ export default function EmployeeCertificatesPage() {
     };
 
     fetchOrGenerateCertificate();
-  }, [session?.user?.id, session?.user?.name, session?.user?.employee_id, session?.user?.department, branch]);
+  }, [session?.user?.id]); // Only depend on user ID to prevent multiple calls
 
   // Check loading state first
   if (status === 'loading') {

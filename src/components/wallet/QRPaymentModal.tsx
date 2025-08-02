@@ -216,7 +216,7 @@ export default function QRPaymentModal({ isOpen, onClose, onSubmit, loading = fa
                 type="button"
                 variant="outline"
                 onClick={onClose}
-                className="flex-1 h-12 border-2 border-gray-300 hover:border-gray-400 text-gray-700 font-medium order-2 sm:order-1"
+                className="flex-1 h-12 bg-gradient-to-r border-2 border-gray-300 hover:border-gray-700 text-gray-700 font-medium order-2 sm:order-1"
                 disabled={loading}
               >
                 Cancel
