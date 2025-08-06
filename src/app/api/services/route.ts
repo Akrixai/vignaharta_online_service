@@ -1,3 +1,4 @@
+// app/api/services/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -8,9 +9,14 @@ import { UserRole } from '@/types';
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     // Allow access to retailers and employees
-    if (!session || (session.user.role !== UserRole.RETAILER && session.user.role !== UserRole.EMPLOYEE && session.user.role !== UserRole.ADMIN)) {
+    if (
+      !session ||
+      (session.user.role !== UserRole.RETAILER &&
+        session.user.role !== UserRole.EMPLOYEE &&
+        session.user.role !== UserRole.ADMIN)
+    ) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -18,7 +24,6 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category');
     const is_free = searchParams.get('is_free');
     const search = searchParams.get('search');
-    // No pagination: fetch all
 
     let query = supabaseAdmin
       .from('schemes')
@@ -40,8 +45,8 @@ export async function GET(request: NextRequest) {
         created_at,
         created_by_user:users!schemes_created_by_fkey(name)
       `)
-      .eq('is_active', true) // Only show active services
-      .is('external_url', null) // Only services without external URL (apply services)
+      .eq('is_active', true)
+      .is('external_url', null)
       .order('created_at', { ascending: false });
 
     if (category && category !== 'ALL') {
@@ -55,7 +60,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (search) {
-      query = query.or(name.ilike.%${search}%,description.ilike.%${search}%);
+      query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
     }
 
     const { data: services, error } = await query;
@@ -64,9 +69,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch services' }, { status: 500 });
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      services: services || []
+    return NextResponse.json({
+      success: true,
+      services: services || [],
     });
 
   } catch (error) {
