@@ -3,7 +3,13 @@
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import DashboardLayout from '@/components/dashboard/layout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { UserRole } from '@/types';
 import { useRealTimeServices } from '@/hooks/useRealTimeData';
@@ -18,10 +24,15 @@ export default function ServicesPage() {
   const [selectedService, setSelectedService] = useState<any>(null);
   const [showApplicationForm, setShowApplicationForm] = useState(false);
 
-  // Always call hooks before any early returns
-  const { data: services, loading, error, refresh } = useRealTimeServices(true);
+  // Fetch services with limit=unlimited using custom hook
+  const {
+    data: services,
+    loading,
+    error,
+    refresh
+  } = useRealTimeServices(true);
 
-  // Check retailer access after hooks
+  // Check access
   if (!session || session.user.role !== UserRole.RETAILER) {
     return (
       <DashboardLayout>
@@ -33,20 +44,25 @@ export default function ServicesPage() {
     );
   }
 
-  // Filter services based on search and filters
-  const filteredServices = services.filter(service => {
-    const matchesCategory = selectedCategory === 'ALL' || service.category === selectedCategory;
-    const matchesType = selectedType === 'ALL' ||
+  // Apply filters
+  const filteredServices = services.filter((service) => {
+    const matchesCategory =
+      selectedCategory === 'ALL' || service.category === selectedCategory;
+    const matchesType =
+      selectedType === 'ALL' ||
       (selectedType === 'FREE' && service.is_free) ||
       (selectedType === 'PAID' && !service.is_free);
-    const matchesSearch = searchTerm === '' ||
+    const matchesSearch =
+      searchTerm === '' ||
       service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       service.description?.toLowerCase().includes(searchTerm.toLowerCase());
 
     return matchesCategory && matchesType && matchesSearch;
   });
 
-  const categories = [...new Set(services.map(service => service.category).filter(Boolean))];
+  const categories = [
+    ...new Set(services.map((service) => service.category).filter(Boolean))
+  ];
 
   const handleApplyService = (service: any) => {
     setSelectedService(service);
@@ -69,12 +85,14 @@ export default function ServicesPage() {
           </div>
         </div>
 
-        {/* Search and Filters */}
+        {/* Filters */}
         <Card>
           <CardContent className="pt-6">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Search Services</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Search Services
+                </label>
                 <input
                   type="text"
                   value={searchTerm}
@@ -85,21 +103,27 @@ export default function ServicesPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Category
+                </label>
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
                 >
                   <option value="ALL">All Categories</option>
-                  {categories.map(category => (
-                    <option key={category} value={category}>{category}</option>
+                  {categories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Type
+                </label>
                 <select
                   value={selectedType}
                   onChange={(e) => setSelectedType(e.target.value)}
@@ -123,7 +147,7 @@ export default function ServicesPage() {
           </CardContent>
         </Card>
 
-        {/* Services Grid */}
+        {/* Service Results */}
         {loading ? (
           <Card>
             <CardContent className="text-center py-12">
@@ -135,9 +159,14 @@ export default function ServicesPage() {
           <Card>
             <CardContent className="text-center py-12">
               <div className="text-4xl mb-4">❌</div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Services</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Error Loading Services
+              </h3>
               <p className="text-gray-600 mb-4">{error}</p>
-              <Button onClick={refresh} className="bg-red-600 hover:bg-red-700 text-white">
+              <Button
+                onClick={refresh}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
                 Try Again
               </Button>
             </CardContent>
@@ -146,23 +175,26 @@ export default function ServicesPage() {
           <Card>
             <CardContent className="text-center py-12">
               <div className="text-4xl mb-4">🏛️</div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No services found</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No services found
+              </h3>
               <p className="text-gray-600">
-                {searchTerm || selectedCategory !== 'ALL' || selectedType !== 'ALL'
+                {searchTerm ||
+                selectedCategory !== 'ALL' ||
+                selectedType !== 'ALL'
                   ? 'Try adjusting your search or filters.'
-                  : 'No services are available yet.'
-                }
+                  : 'No services are available yet.'}
               </p>
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-6">
-            {/* All Services */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredServices.map((service) => (
-
-                <Card key={service.id} className="hover:shadow-lg transition-shadow border border-red-200">
-                  {/* Service Image */}
+                <Card
+                  key={service.id}
+                  className="hover:shadow-lg transition-shadow border border-red-200"
+                >
                   {service.image_url && (
                     <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
                       <img
@@ -170,15 +202,20 @@ export default function ServicesPage() {
                         alt={service.name}
                         className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                         onError={(e) => {
-                          // Hide image if it fails to load
                           (e.target as HTMLElement).style.display = 'none';
                         }}
                       />
                       <div className="absolute top-2 right-2">
-                        <div className={`px-3 py-1 rounded-full text-sm font-medium backdrop-blur-sm ${
-                          service.is_free ? 'bg-green-100/90 text-green-600' : 'bg-blue-100/90 text-blue-600'
-                        }`}>
-                          {service.is_free ? 'FREE' : formatCurrency(service.price)}
+                        <div
+                          className={`px-3 py-1 rounded-full text-sm font-medium backdrop-blur-sm ${
+                            service.is_free
+                              ? 'bg-green-100/90 text-green-600'
+                              : 'bg-blue-100/90 text-blue-600'
+                          }`}
+                        >
+                          {service.is_free
+                            ? 'FREE'
+                            : formatCurrency(service.price)}
                         </div>
                       </div>
                     </div>
@@ -186,14 +223,22 @@ export default function ServicesPage() {
                   <CardHeader className={service.image_url ? 'pb-2' : ''}>
                     <div className="flex justify-between items-start">
                       <div>
-                        <CardTitle className="text-lg line-clamp-2">{service.name}</CardTitle>
+                        <CardTitle className="text-lg line-clamp-2">
+                          {service.name}
+                        </CardTitle>
                         <CardDescription>{service.category}</CardDescription>
                       </div>
                       {!service.image_url && (
-                        <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          service.is_free ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'
-                        }`}>
-                          {service.is_free ? 'FREE' : formatCurrency(service.price)}
+                        <div
+                          className={`px-3 py-1 rounded-full text-sm font-medium ${
+                            service.is_free
+                              ? 'bg-green-100 text-green-600'
+                              : 'bg-blue-100 text-blue-600'
+                          }`}
+                        >
+                          {service.is_free
+                            ? 'FREE'
+                            : formatCurrency(service.price)}
                         </div>
                       )}
                     </div>
@@ -205,16 +250,28 @@ export default function ServicesPage() {
 
                     <div className="space-y-2 mb-4">
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-500">Processing Time:</span>
-                        <span className="font-medium">{service.processing_time_days} days</span>
+                        <span className="text-sm text-gray-500">
+                          Processing Time:
+                        </span>
+                        <span className="font-medium">
+                          {service.processing_time_days} days
+                        </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-500">Commission:</span>
-                        <span className="font-medium">{service.commission_rate}%</span>
+                        <span className="text-sm text-gray-500">
+                          Commission:
+                        </span>
+                        <span className="font-medium">
+                          {service.commission_rate}%
+                        </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-500">Documents:</span>
-                        <span className="font-medium">{service.documents?.length || 0} required</span>
+                        <span className="text-sm text-gray-500">
+                          Documents:
+                        </span>
+                        <span className="font-medium">
+                          {service.documents?.length || 0} required
+                        </span>
                       </div>
                     </div>
 
@@ -242,7 +299,7 @@ export default function ServicesPage() {
           onSuccess={() => {
             setShowApplicationForm(false);
             setSelectedService(null);
-            refresh(); // Refresh services list
+            refresh();
           }}
         />
       </div>
