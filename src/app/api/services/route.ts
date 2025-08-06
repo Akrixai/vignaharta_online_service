@@ -1,21 +1,16 @@
-// app/api/services/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { UserRole } from '@/types';
 
+// GET - Fetch active services for retailers and employees
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-
+    
     // Allow access to retailers and employees
-    if (
-      !session ||
-      (session.user.role !== UserRole.RETAILER &&
-        session.user.role !== UserRole.EMPLOYEE &&
-        session.user.role !== UserRole.ADMIN)
-    ) {
+    if (!session || (session.user.role !== UserRole.RETAILER && session.user.role !== UserRole.EMPLOYEE && session.user.role !== UserRole.ADMIN)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -23,16 +18,11 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category');
     const is_free = searchParams.get('is_free');
     const search = searchParams.get('search');
-    const limitParam = searchParams.get('limit');
-    const unlimited = limitParam === 'unlimited';
-    const limit = unlimited ? null : parseInt(limitParam || '20');
-    const page = parseInt(searchParams.get('page') || '1');
-    const offset = unlimited ? null : (page - 1) * limit!;
+    // No pagination: fetch all
 
     let query = supabaseAdmin
       .from('schemes')
-      .select(
-        `
+      .select(`
         id,
         name,
         description,
@@ -49,15 +39,10 @@ export async function GET(request: NextRequest) {
         external_url,
         created_at,
         created_by_user:users!schemes_created_by_fkey(name)
-      `
-      )
-      .eq('is_active', true)
-      .is('external_url', null)
+      `)
+      .eq('is_active', true) // Only show active services
+      .is('external_url', null) // Only services without external URL (apply services)
       .order('created_at', { ascending: false });
-
-    if (!unlimited && limit !== null && offset !== null) {
-      query = query.range(offset, offset + limit - 1);
-    }
 
     if (category && category !== 'ALL') {
       query = query.eq('category', category);
@@ -70,61 +55,21 @@ export async function GET(request: NextRequest) {
     }
 
     if (search) {
-      query = query.or(
-        `name.ilike.%${search}%,description.ilike.%${search}%`
-      );
+      query = query.or(name.ilike.%${search}%,description.ilike.%${search}%);
     }
 
     const { data: services, error } = await query;
 
     if (error) {
-      return NextResponse.json(
-        { error: 'Failed to fetch services' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to fetch services' }, { status: 500 });
     }
 
-    // Get total count for pagination
-    let countQuery = supabaseAdmin
-      .from('schemes')
-      .select('*', { count: 'exact', head: true })
-      .eq('is_active', true)
-      .is('external_url', null);
-
-    if (category && category !== 'ALL') {
-      countQuery = countQuery.eq('category', category);
-    }
-
-    if (is_free === 'true') {
-      countQuery = countQuery.eq('is_free', true);
-    } else if (is_free === 'false') {
-      countQuery = countQuery.eq('is_free', false);
-    }
-
-    if (search) {
-      countQuery = countQuery.or(
-        `name.ilike.%${search}%,description.ilike.%${search}%`
-      );
-    }
-
-    const { count: totalCount } = await countQuery;
-
-    return NextResponse.json({
-      success: true,
-      services: services || [],
-      pagination: {
-        page: unlimited ? 1 : page,
-        limit: unlimited ? null : limit,
-        total: totalCount || 0,
-        totalPages: unlimited
-          ? 1
-          : Math.ceil((totalCount || 0) / (limit || 1)),
-      },
+    return NextResponse.json({ 
+      success: true, 
+      services: services || []
     });
+
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
