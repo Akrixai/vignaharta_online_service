@@ -18,7 +18,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const variants = {
       default: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
       destructive: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
-      outline: "border border-red-600 text-red-600 bg-background hover:bg-red-50 hover:text-red-700",
+      outline: "border text-red-600 bg-blue-100 hover:bg-green-600 hover:text-white focus:ring-red-500 transition-colors",
       secondary: "bg-red-100 text-red-600 hover:bg-red-200",
       ghost: "text-red-600 hover:bg-red-50 hover:text-red-700",
       link: "text-red-600 underline-offset-4 hover:underline hover:text-red-700",

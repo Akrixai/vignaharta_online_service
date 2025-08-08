@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
       doc.setTextColor(...textColor);
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
-      doc.text(`Digital Signature: VJS-${certificate.certificate_number}-VERIFIED`, 105, 245, { align: 'center' });
+      doc.text(`Digital Signature: ${certificate.certificate_number}-VERIFIED`, 105, 245, { align: 'center' });
 
       // Footer
       doc.setTextColor(...lightGray);

@@ -6,7 +6,7 @@ import DashboardLayout from '@/components/dashboard/layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { UserRole } from '@/types';
-import { useRealTimeData } from '@/hooks/useRealTimeData';
+// import { useRealTimeData } from '@/hooks/useRealTimeData';
 import { Users, Plus, Edit, Trash2, Mail, Phone, Calendar, Building, Eye } from 'lucide-react';
 import { showToast } from '@/lib/toast';
 
@@ -57,18 +57,31 @@ export default function EmployeesManagementPage() {
   const [employeeDocs, setEmployeeDocs] = useState<EmployeeDocument[]>([]);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
 
-  // Memoize filter and orderBy to prevent infinite re-renders
-  const filter = useMemo(() => ({ column: 'role', value: 'EMPLOYEE' }), []);
-  const orderBy = useMemo(() => ({ column: 'created_at', ascending: false }), []);
-  const enabled = useMemo(() => !!session?.user?.role && session.user.role === UserRole.ADMIN, [session?.user?.role]);
 
-  // Stabilize useRealTimeData usage
-  const { data: employees, loading: employeesLoading, refresh } = useRealTimeData<Employee>({
-    table: 'users',
-    filter,
-    orderBy,
-    enabled
-  });
+  // Fetch employees from backend API
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [employeesLoading, setEmployeesLoading] = useState(true);
+  const refresh = async () => {
+    setEmployeesLoading(true);
+    try {
+      const res = await fetch('/api/admin/employees');
+      if (res.ok) {
+        const data = await res.json();
+        setEmployees(data || []);
+      } else {
+        setEmployees([]);
+      }
+    } catch {
+      setEmployees([]);
+    } finally {
+      setEmployeesLoading(false);
+    }
+  };
+  useEffect(() => {
+    if (session?.user?.role === UserRole.ADMIN) {
+      refresh();
+    }
+  }, [session?.user?.role]);
 
   if (!session || session.user.role !== UserRole.ADMIN) {
     return (
