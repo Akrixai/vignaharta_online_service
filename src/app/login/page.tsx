@@ -93,16 +93,16 @@ function LoginPageContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-red-100 py-12 px-4 sm:px-6 lg:px-8 relative">
-      {/* Akrix.ai Branding - Top Right Corner */}
+      {/* Akrix Solutions Branding - Top Right Corner */}
       <div className="absolute top-4 right-4 z-10">
         <a
-          href="https://akrix-ai.netlify.app"
+          href="https://akrixsolutions.in/"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-red-600/80 hover:text-red-600 text-xs font-medium px-3 py-2 rounded-lg hover:bg-white/50 transition-all duration-200 flex items-center space-x-1 backdrop-blur-sm"
+          className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 font-bold text-xs px-3 py-2 rounded-lg hover:from-pink-500 hover:via-purple-500 hover:to-blue-500 transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center space-x-1 backdrop-blur-sm"
         >
           <span className="text-xs">🚀</span>
-          <span>Developed by Akrix.ai</span>
+          <span>Developed by Akrix Solutions</span>
         </a>
       </div>
 

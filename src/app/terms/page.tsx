@@ -280,7 +280,7 @@ export default function TermsPage() {
                 © 2025 Vignaharta Online Service. All rights reserved. | Government of India Initiative
               </p>
 
-              {/* Akrix AI Branding */}
+              {/* Akrix Solutions Branding */}
               <div className="flex items-center justify-center space-x-2 animate-pulse">
                 <span className="text-pink-400 text-lg animate-bounce">💖</span>
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 font-semibold text-sm">
@@ -292,7 +292,7 @@ export default function TermsPage() {
                   rel="noopener noreferrer"
                   className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 font-bold text-sm hover:from-pink-500 hover:via-purple-500 hover:to-blue-500 transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
                 >
-                  Akrix AI
+                  Akrix Solutions
                 </a>
                 <span className="text-pink-400 text-lg animate-bounce">💖</span>
               </div>

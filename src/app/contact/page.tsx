@@ -125,8 +125,8 @@ ${formData.message}
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">Head Office</h3>
                     <p className="text-gray-600">
-                      Vignaharta Online Service Kendra<br />
-                      Bajrang Nagar, MIDC Kupwad<br />
+                      Vignaharta Online Services <br />
+                      Bajarang Nagar,Kupwad M.I.D.C. Kupwad Tal-Miraj,Dist-Sangli<br />
                       Maharashtra 416436, India
                     </p>
                   </div>
@@ -366,10 +366,10 @@ ${formData.message}
             </div>
             <div className="border-t border-red-700 pt-6 space-y-4">
               <p className="text-red-300 text-sm">
-                © 2025 Vignaharta Online Service. All rights reserved. | Government of India Initiative
+                © 2025 VIGHNAHARTA ONLINE SERVICES. All rights reserved.
               </p>
 
-              {/* Akrix AI Branding */}
+              {/* Akrix Solutions Branding */}
               <div className="flex items-center justify-center space-x-2 animate-pulse">
                 <span className="text-pink-400 text-lg animate-bounce">💖</span>
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 font-semibold text-sm">
@@ -381,7 +381,7 @@ ${formData.message}
                   rel="noopener noreferrer"
                   className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 font-bold text-sm hover:from-pink-500 hover:via-purple-500 hover:to-blue-500 transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
                 >
-                  Akrix AI
+                  Akrix Solutions
                 </a>
                 <span className="text-pink-400 text-lg animate-bounce">💖</span>
               </div>

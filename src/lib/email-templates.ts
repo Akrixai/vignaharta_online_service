@@ -31,7 +31,7 @@ function getAkrixBrandingText(): string {
   return `
 
 ---
-Powered by Akrix AI
+Powered by Akrix Solutions
 Visit: https://akrixsolutions.in/
 Advanced AI Solutions for Modern Applications
 `;

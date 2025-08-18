@@ -133,13 +133,13 @@ export default function HelpSupportPage() {
           </CardContent>
         </Card>
 
-        {/* Akrix AI Branding */}
+  {/* Akrix Solutions Branding */}
         <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-l-4 border-l-purple-500">
           <CardContent className="pt-6">
             <div className="text-center">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <span className="text-2xl">🤖</span>
-                <span className="font-bold text-gray-900">Powered by Akrix AI</span>
+                <span className="font-bold text-gray-900">Powered by Akrix Solutions</span>
               </div>
               <p className="text-sm text-gray-600 mb-3">
                 Advanced AI-powered support system for enhanced customer experience
@@ -150,7 +150,7 @@ export default function HelpSupportPage() {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 text-purple-600 hover:text-purple-800 font-medium text-sm transition-colors"
               >
-                🌐 Visit Akrix AI
+                🌐 Visit Akrix Solutions
                 <span className="text-xs">↗</span>
               </a>
             </div>

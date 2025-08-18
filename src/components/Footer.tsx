@@ -87,17 +87,21 @@ export default function Footer() {
                 © 2025 विघ्नहर्ता ऑनलाईन सर्विसेस. All rights reserved.
               </p>
               <div className="flex items-center space-x-4">
-                <span className="text-white font-medium">Powered by</span>
+                <div className="flex items-center justify-center space-x-2 animate-pulse">
+                <span className="text-pink-400 text-lg animate-bounce">💖</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 font-semibold text-sm">
+                  Developed with Love by
+                </span>
                 <a
                   href="https://akrixsolutions.in/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-500 text-white font-extrabold px-4 py-2 rounded-full shadow-lg animate-pulse hover:from-pink-500 hover:to-yellow-400 transition-all duration-300 flex items-center space-x-2 border-2 border-white/30"
-                  style={{textShadow: '0 0 8px #fff, 0 0 16px #f472b6'}}
+                  className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 font-bold text-sm hover:from-pink-500 hover:via-purple-500 hover:to-blue-500 transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
                 >
-                  <span className="text-lg animate-bounce">⚡</span>
-                  <span className="drop-shadow-lg">Akrix AI</span>
+                  Akrix Solutions
                 </a>
+                <span className="text-pink-400 text-lg animate-bounce">💖</span>
+              </div>
               </div>
             </div>
           </div>

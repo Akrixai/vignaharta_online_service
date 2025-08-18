@@ -205,13 +205,17 @@ export default function ServicesPage() {
                           (e.target as HTMLElement).style.display = 'none';
                         }}
                       />
-                      <div className="absolute top-2 right-2">
+                      <div className="absolute top-2 right-2 z-10">
                         <div
-                          className={`px-3 py-1 rounded-full text-sm font-medium backdrop-blur-sm ${
+                          className={`px-4 py-1 rounded-full text-base font-bold shadow-lg border-2 border-white ${
                             service.is_free
-                              ? 'bg-green-100/90 text-green-600'
-                              : 'bg-blue-100/90 text-blue-600'
+                              ? 'bg-green-500 text-white'
+                              : 'bg-red-600 text-white'
                           }`}
+                          style={{
+                            textShadow: '0 2px 8px rgba(0,0,0,0.25)',
+                            letterSpacing: '0.5px',
+                          }}
                         >
                           {service.is_free
                             ? 'FREE'
@@ -223,8 +227,16 @@ export default function ServicesPage() {
                   <CardHeader className={service.image_url ? 'pb-2' : ''}>
                     <div className="flex justify-between items-start">
                       <div>
-                        <CardTitle className="text-lg line-clamp-2">
-                          {service.name}
+                        <CardTitle className="text-lg line-clamp-2 flex items-center gap-2">
+                          <span>{service.name}</span>
+                          {!service.is_free && (
+                            <span className="ml-2 px-2 py-0.5 rounded bg-red-600 text-white text-xs font-semibold shadow">
+                              {formatCurrency(service.price)}
+                            </span>
+                          )}
+                          {service.is_free && (
+                            <span className="ml-2 px-2 py-0.5 rounded bg-green-500 text-white text-xs font-semibold shadow">FREE</span>
+                          )}
                         </CardTitle>
                         <CardDescription>{service.category}</CardDescription>
                       </div>
