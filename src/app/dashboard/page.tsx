@@ -90,10 +90,10 @@ export default function DashboardPage() {
       <div className="space-y-6">
         {/* Welcome Section */}
         <div className="bg-gradient-to-r from-red-600 to-red-700 rounded-xl p-8 text-white shadow-xl animate-fade-in border border-red-500">
-          <h1 className="text-4xl font-bold mb-3 text-white animate-slide-in-left">
+          <h1 className="text-3xl font-bold mb-3 text-white animate-slide-in-left">
             Welcome back, {user.name}! 👋
           </h1>
-          <p className="text-red-100 text-xl animate-slide-in-right">
+          <p className="text-red-100 text-md animate-slide-in-right">
             {user.role === UserRole.ADMIN && "Manage the entire system, employees, retailers, and monitor all activities."}
             {user.role === UserRole.EMPLOYEE && "Process applications, verify documents, and assist retailers."}
             {user.role === UserRole.RETAILER && "Provide government services to customers and earn commissions."}
@@ -102,16 +102,16 @@ export default function DashboardPage() {
 
         {/* Advertisement Carousel */}
         <Card className="bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-300 shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-[1.02]">
-          <CardHeader className="bg-gradient-to-r from-red-600 to-red-700 text-white rounded-t-lg">
-            <CardTitle className="text-white text-2xl font-bold flex items-center">
+          {/* <CardHeader className="bg-gradient-to-r from-red-600 to-red-700 text-white rounded-t-lg">
+            <CardTitle className="text-white text-xl font-bold flex items-center">
               📢 Featured Government Announcements
             </CardTitle>
-            <CardDescription className="text-red-100 text-lg">
+            <CardDescription className="text-red-100 text-sm">
               Latest schemes, updates, and important notifications
             </CardDescription>
-          </CardHeader>
-          <CardContent className="p-6">
-            <div className="bg-white rounded-xl shadow-inner p-4">
+          </CardHeader> */}
+          <CardContent className="p-1">
+            <div className="bg-white rounded-xl shadow-inner">
               <AdvertisementCarousel
                 position="dashboard"
                 height="h-96"

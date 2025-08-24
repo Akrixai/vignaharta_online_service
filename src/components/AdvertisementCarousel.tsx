@@ -135,19 +135,19 @@ export default function AdvertisementCarousel({
         <img
           src={currentAd.image_url}
           alt={currentAd.title}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          className="w-full h-full object-fill transition-transform duration-300 group-hover:scale-105"
         />
         
         {/* Overlay with content */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent">
-          <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-            <h3 className="text-lg font-semibold mb-1 line-clamp-1">{currentAd.title}</h3>
+          <div className="absolute bottom-0 left-0 right-0 p-2 sm:p-3 text-white">
+            <h3 className="text-sm sm:text-base font-semibold mb-0.5 line-clamp-1">{currentAd.title}</h3>
             {currentAd.description && (
-              <p className="text-sm opacity-90 line-clamp-2">{currentAd.description}</p>
+              <p className="text-xs sm:text-sm opacity-90 line-clamp-1 sm:line-clamp-2">{currentAd.description}</p>
             )}
             {currentAd.link_url && (
-              <div className="flex items-center mt-2 text-xs opacity-75">
-                <ExternalLink className="w-3 h-3 mr-1" />
+              <div className="flex items-center mt-1 text-xs opacity-75">
+                <ExternalLink className="w-2.5 h-2.5 mr-1" />
                 Click to learn more
               </div>
             )}

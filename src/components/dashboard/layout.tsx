@@ -179,7 +179,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <AdvertisementCarousel
             position="sidebar"
             height="h-32"
-            className="rounded-lg"
+            className="rounded-lg overflow-hidden"
             autoPlay={true}
             autoPlayInterval={6000}
             showControls={false}
@@ -216,7 +216,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-auto">
         {/* Top bar */}
-        <div className="sticky top-0 z-10 bg-gradient-to-r from-red-600 to-red-700 shadow-lg border-b border-red-500 flex items-center justify-between h-16 px-4">
+        <div className="sticky top-0 z-10 bg-gradient-to-r from-red-600 to-red-700 shadow-lg border-b border-red-500 flex items-center justify-between h-12 px-4">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="lg:hidden p-2 rounded-md text-red-100 hover:text-white hover:bg-red-700 transition-colors"
@@ -231,7 +231,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="hidden lg:block flex-1 max-w-lg mx-4">
             <AdvertisementCarousel
               position="header"
-              height="h-12"
+              height="h-10"
               className="rounded-md"
               autoPlay={true}
               autoPlayInterval={8000}
@@ -257,9 +257,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               userId={session?.user?.id}
             />
 
-            <span className="text-sm text-red-100 whitespace-nowrap">
+            <span className="text-xs sm:text-sm text-red-100 whitespace-nowrap mr-2">
               Welcome, {userName}
             </span>
+            
+            {/* Logout Button in Header */}
+            <button
+              onClick={() => signOut({ callbackUrl: '/' })}
+              className="bg-red-800 hover:bg-red-900 text-white text-xs sm:text-sm font-medium px-2 py-1.5 rounded-lg transition-colors duration-200 flex items-center"
+            >
+              <span className="mr-1">🚪</span>
+              <span className="hidden sm:inline">Logout</span>
+            </button>
           </div>
         </div>
 
@@ -274,7 +283,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <AdvertisementCarousel
               position="footer"
               height="h-24"
-              className="rounded-lg"
+              className="rounded-lg overflow-hidden"
               autoPlay={true}
               autoPlayInterval={7000}
               showControls={false}

@@ -113,18 +113,18 @@ export default function PopupAdvertisement() {
           <img
             src={currentAd.image_url}
             alt={currentAd.title}
-            className="w-full h-64 object-cover"
+            className="w-full h-64 object-fill"
           />
           
-          <div className="p-6">
-            <h4 className="text-xl font-bold text-gray-900 mb-2">{currentAd.title}</h4>
+          <div className="p-4">
+            <h4 className="text-lg sm:text-xl font-bold text-gray-900 mb-1">{currentAd.title}</h4>
             {currentAd.description && (
-              <p className="text-gray-600 mb-4">{currentAd.description}</p>
+              <p className="text-sm text-gray-600 mb-3">{currentAd.description}</p>
             )}
             
             {currentAd.link_url && (
               <div className="text-center">
-                <button className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                <button className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 text-sm rounded-lg font-medium transition-colors">
                   Learn More
                 </button>
               </div>

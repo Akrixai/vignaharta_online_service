@@ -117,21 +117,22 @@ export default function LandingPageClient() {
                 </Link>
               </nav>
 
-              {/* Akrix.ai Branding */}
-              <div className="flex items-center justify-center space-x-2 animate-pulse">
-                <span className="text-pink-400 text-lg animate-bounce">💖</span>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 font-semibold text-sm">
+              {/* Akrix.ai Branding - Responsive */}
+              <div className="flex items-center justify-center space-x-1 sm:space-x-2 animate-pulse">
+                <span className="text-pink-400 text-sm sm:text-lg animate-bounce hidden xs:inline-block">💖</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 font-semibold text-xs sm:text-sm hidden sm:inline-block">
                   Developed by
                 </span>
                 <a
                   href="https://akrixsolutions.in/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 font-bold text-sm hover:from-pink-500 hover:via-purple-500 hover:to-blue-500 transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                  className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 font-bold text-xs sm:text-sm hover:from-pink-500 hover:via-purple-500 hover:to-blue-500 transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
                 >
-                  Akrix Solutions
+                  <span className="hidden sm:inline">Akrix Solutions</span>
+                  <span className="sm:hidden">Akrix</span>
                 </a>
-                <span className="text-pink-400 text-lg animate-bounce">💖</span>
+                <span className="text-pink-400 text-sm sm:text-lg animate-bounce hidden xs:inline-block">💖</span>
               </div>
             </div>
           </div>
