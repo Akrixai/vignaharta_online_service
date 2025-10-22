@@ -40,8 +40,8 @@ export async function GET(request: NextRequest) {
 
     // Get all unique user IDs
     const allUserIds = [
-      ...(requests || []).map(r => r.user_id),
-      ...(transactions || []).map(t => t.user_id)
+      ...(requests || []).map((r: any) => r.user_id),
+      ...(transactions || []).map((t: any) => t.user_id)
     ];
     const uniqueUserIds = [...new Set(allUserIds)];
 
@@ -57,17 +57,17 @@ export async function GET(request: NextRequest) {
 
     // Create user lookup map
     const userMap = new Map();
-    (users || []).forEach(user => {
+    (users || []).forEach((user: any) => {
       userMap.set(user.id, user);
     });
 
     // Combine and format the data
     const allRequests = [
-      ...(requests || []).map(req => ({
+      ...(requests || []).map((req: any) => ({
         ...req,
         users: userMap.get(req.user_id) || { id: req.user_id, name: 'Unknown', email: 'Unknown', phone: null }
       })),
-      ...(transactions || []).map(tx => ({
+      ...(transactions || []).map((tx: any) => ({
         id: tx.id,
         user_id: tx.user_id,
         type: tx.type === 'DEPOSIT' ? 'TOPUP' : 'WITHDRAWAL',
@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
         updated_at: tx.updated_at,
         users: userMap.get(tx.user_id) || { id: tx.user_id, name: 'Unknown', email: 'Unknown', phone: null }
       }))
-    ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    ].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
     return NextResponse.json({
       success: true,
@@ -209,10 +209,10 @@ export async function PATCH(request: NextRequest) {
     // Handle wallet request approval (existing logic)
     const { data, error: processError } = await supabaseAdmin
       .rpc('process_wallet_request', {
-        request_id: request_id,
         action: action,
         processor_id: session.user.id,
-        rejection_reason: rejection_reason || null
+        reject_reason: rejection_reason && rejection_reason.trim() !== '' ? rejection_reason : null,
+        request_id: request_id
       });
 
     if (processError) {

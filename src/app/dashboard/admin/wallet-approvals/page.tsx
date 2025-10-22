@@ -311,7 +311,7 @@ export default function WalletApprovalsPage() {
                             handleApproval(request.id, 'REJECT', reason, request.metadata?.original_transaction);
                           },
                           onCancel: () => {
-                            handleApproval(request.id, 'REJECT', '', request.metadata?.original_transaction);
+                            handleApproval(request.id, 'REJECT', null, request.metadata?.original_transaction);
                           }
                         });
                       }}

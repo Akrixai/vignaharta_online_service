@@ -196,20 +196,20 @@ export async function PUT(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // If rejecting, rejection reason is required
-    if (action.toUpperCase() === 'REJECT' && !rejection_reason) {
+    // If rejecting, rejection reason is optional
+    if (action.toUpperCase() === 'REJECT' && rejection_reason && rejection_reason.trim() === '') {
       return NextResponse.json({
-        error: 'Rejection reason is required when rejecting a request'
+        error: 'Rejection reason cannot be empty'
       }, { status: 400 });
     }
 
     // Call the database function to process the request
     const { data: result, error: processError } = await supabaseAdmin
       .rpc('process_wallet_request', {
-        request_id,
         action: action.toUpperCase(),
         processor_id: session.user.id,
-        rejection_reason: rejection_reason || null
+        reject_reason: rejection_reason && rejection_reason.trim() !== '' ? rejection_reason : null,
+        request_id
       });
 
     if (processError) {

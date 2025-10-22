@@ -14,16 +14,20 @@ const notoSansDevanagari = Noto_Sans_Devanagari({
   variable: '--font-devanagari'
 });
 
-export const metadata: Metadata = {
-  ...defaultSEO,
+// Ensure defaultSEO is properly defined
+const metadataConfig: Metadata = {
+  ...(defaultSEO || {}),
   metadataBase: new URL('https://www.vighnahartaonlineservice.in'),
 };
+
+export const metadata: Metadata = metadataConfig;
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // For now, we'll keep English as default, but Marathi content is supported through Noto Sans Devanagari font
   return (
     <html lang="en">
       <head>
@@ -33,26 +37,85 @@ export default function RootLayout({
         <meta name="theme-color" content="#dc2626" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="format-detection" content="telephone=no" />
+        
+        {/* Hreflang tags for multilingual support */}
+        <link rel="alternate" hrefLang="en" href="https://www.vighnahartaonlineservice.in" />
+        <link rel="alternate" hrefLang="mr" href="https://www.vighnahartaonlineservice.in/mr" />
+        <link rel="alternate" hrefLang="x-default" href="https://www.vighnahartaonlineservice.in" />
 
         {/* Structured Data */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(structuredData.organization),
-          }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(structuredData.website),
-          }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(structuredData.governmentService),
-          }}
-        />
+        {structuredData?.organization && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(structuredData.organization),
+            }}
+          />
+        )}
+        {structuredData?.website && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(structuredData.website),
+            }}
+          />
+        )}
+        {structuredData?.governmentService && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(structuredData.governmentService),
+            }}
+          />
+        )}
+        {structuredData?.aadhaarService && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(structuredData.aadhaarService),
+            }}
+          />
+        )}
+        {structuredData?.panService && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(structuredData.panService),
+            }}
+          />
+        )}
+        {structuredData?.passportService && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(structuredData.passportService),
+            }}
+          />
+        )}
+        {structuredData?.birthCertificateService && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(structuredData.birthCertificateService),
+            }}
+          />
+        )}
+        {structuredData?.incomeCertificateService && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(structuredData.incomeCertificateService),
+            }}
+          />
+        )}
+        {structuredData?.faqPage && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(structuredData.faqPage),
+            }}
+          />
+        )}
       </head>
       <body className={`${inter.className} ${notoSansDevanagari.variable} antialiased`}>
         {/* Google Analytics */}
