@@ -5,66 +5,69 @@ import Link from 'next/link';
 import { ChevronDown, ChevronUp, Search, HelpCircle, Phone, Mail } from 'lucide-react';
 import Logo from '@/components/ui/logo';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import BlogPostTemplate from '@/components/blog/BlogPostTemplate';
+import InternalLink from '@/components/blog/InternalLink';
+import OutboundLink from '@/components/blog/OutboundLink';
 
 const faqData = [
   {
     id: '1',
     question: 'What is विघ्नहर्ता ऑनलाईन सर्विसेस?',
-    answer: 'विघ्नहर्ता ऑनलाईन सर्विसेस is a comprehensive digital government service portal that connects citizens with essential government services through our nationwide retailer network. We provide easy access to services like Aadhaar, PAN, passport applications, certificates, and more.',
+    answer: 'विघ्नहर्ता ऑनलाईन सर्विसेस is a comprehensive digital government service portal that connects citizens with essential government services through our nationwide retailer network. We provide easy access to services like <InternalLink href="/services/aadhaar-card" title="Aadhaar Card Services">Aadhaar</InternalLink>, <InternalLink href="/services/pan-card" title="PAN Card Services">PAN</InternalLink>, <InternalLink href="/services/passport" title="Passport Services">passport applications</InternalLink>, certificates, and more.',
     category: 'General'
   },
   {
     id: '2',
     question: 'How do I register as a retailer?',
-    answer: 'To register as a retailer, click on "Become a Retailer" from our homepage or footer. Fill out the registration form with your business details, upload required documents, and submit your application. Our team will review and approve your application within 2-3 business days.',
+    answer: 'To register as a retailer, click on "Become a Retailer" from our homepage or footer. Fill out the registration form with your business details, upload required documents, and submit your application. Our team will review and approve your application within 2-3 business days. You can find more information on our <InternalLink href="/register" title="Register as Retailer">registration page</InternalLink>.',
     category: 'Registration'
   },
   {
     id: '3',
     question: 'What services are available through the portal?',
-    answer: 'We offer a wide range of government services including Aadhaar card services, PAN card applications, passport services, birth/death certificates, income certificates, caste certificates, domicile certificates, and many more. New services are regularly added to our platform.',
+    answer: 'We offer a wide range of government services including Aadhaar card services, PAN card applications, passport services, birth/death certificates, income certificates, caste certificates, domicile certificates, and many more. New services are regularly added to our platform. Visit our <InternalLink href="/services" title="View All Services">services page</InternalLink> for a complete list.',
     category: 'Services'
   },
   {
     id: '4',
     question: 'How do I apply for a government service?',
-    answer: 'After logging into your account, go to the "Services" section, select the service you need, fill out the required information, upload necessary documents, and submit your application. You can track the status of your application in real-time.',
+    answer: 'After logging into your account, go to the "Services" section, select the service you need, fill out the required information, upload necessary documents, and submit your application. You can track the status of your application in real-time. For detailed instructions, check our <InternalLink href="/help" title="Help Center">help center</InternalLink>.',
     category: 'Applications'
   },
   {
     id: '5',
     question: 'What documents do I need for service applications?',
-    answer: 'Required documents vary by service. Common documents include Aadhaar card, PAN card, passport-size photographs, address proof, income proof, and service-specific documents. Each service page lists the exact requirements.',
+    answer: 'Required documents vary by service. Common documents include Aadhaar card, PAN card, passport-size photographs, address proof, income proof, and service-specific documents. Each service page lists the exact requirements. Refer to our <InternalLink href="/services" title="View All Services">services directory</InternalLink> for specific document requirements.',
     category: 'Documents'
   },
   {
     id: '6',
     question: 'How long does it take to process applications?',
-    answer: 'Processing times vary by service type. Most certificate services take 3-7 business days, while services like passport applications may take 2-4 weeks. You will receive real-time updates on your application status.',
+    answer: 'Processing times vary by service type. Most certificate services take 3-7 business days, while services like passport applications may take 2-4 weeks. You will receive real-time updates on your application status. Check our <InternalLink href="/services" title="View All Services">services page</InternalLink> for estimated processing times for each service.',
     category: 'Processing'
   },
   {
     id: '7',
     question: 'How can I track my application status?',
-    answer: 'You can track your application status by logging into your account and visiting the "My Applications" section. You will also receive SMS and email notifications for status updates.',
+    answer: 'You can track your application status by logging into your account and visiting the "My Applications" section. You will also receive SMS and email notifications for status updates. For more information, visit our <InternalLink href="/dashboard" title="User Dashboard">dashboard help section</InternalLink>.',
     category: 'Tracking'
   },
   {
     id: '8',
     question: 'What payment methods are accepted?',
-    answer: 'We accept various payment methods including UPI, net banking, debit/credit cards, and digital wallets. All payments are processed through secure payment gateways.',
+    answer: 'We accept various payment methods including UPI, net banking, debit/credit cards, and digital wallets. All payments are processed through secure payment gateways. For payment-related issues, contact our <InternalLink href="/contact" title="Contact Support">support team</InternalLink>.',
     category: 'Payment'
   },
   {
     id: '9',
     question: 'Is my personal information secure?',
-    answer: 'Yes, we take data security very seriously. All personal information is encrypted and stored securely. We follow government data protection guidelines and never share your information with unauthorized parties.',
+    answer: 'Yes, we take data security very seriously. All personal information is encrypted and stored securely. We follow government data protection guidelines and never share your information with unauthorized parties. Read our <InternalLink href="/privacy" title="Privacy Policy">Privacy Policy</InternalLink> for more details on how we protect your data.',
     category: 'Security'
   },
   {
     id: '10',
     question: 'How can I contact customer support?',
-    answer: 'You can contact our customer support team through phone at +91-7499116527, email at vighnahartaenterprises.sangli@gmail.com, or use the live chat feature available on our website. Our support team is available 24/7.',
+    answer: 'You can contact our customer support team through phone at +91-7499116527, email at vighnahartaenterprises.sangli@gmail.com, or use the live chat feature available on our website. Our support team is available 24/7. For government-related inquiries, you may also refer to the <OutboundLink href="https://www.india.gov.in" title="Government of India Official Portal">Government of India official portal</OutboundLink>.',
     category: 'Support'
   }
 ];
@@ -84,55 +87,25 @@ export default function FAQPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-red-100">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-red-600 to-red-700 shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <Link href="/" className="flex items-center">
-              <Logo size="lg" showText={true} animated={true} />
-              <span className="ml-4 text-sm text-red-100">
-                Government Service Portal
-              </span>
-            </Link>
-            <nav className="hidden md:flex space-x-8">
-              <Link href="/" className="text-red-100 hover:text-white transition-colors">
-                Home
-              </Link>
-              <Link href="/about" className="text-red-100 hover:text-white transition-colors">
-                About
-              </Link>
-              <Link href="/services" className="text-red-100 hover:text-white transition-colors">
-                Services
-              </Link>
-              <Link href="/contact" className="text-red-100 hover:text-white transition-colors">
-                Contact
-              </Link>
-              <Link href="/login" className="bg-white text-red-600 px-4 py-2 rounded-lg font-semibold hover:bg-red-50 transition-colors">
-                Login
-              </Link>
-            </nav>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Hero Section */}
-        <div className="text-center mb-12">
-          <div className="flex justify-center mb-6">
-            <div className="bg-gradient-to-r from-red-500 to-orange-500 p-4 rounded-full">
-              <HelpCircle className="w-12 h-12 text-white" />
-            </div>
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Frequently Asked Questions
-          </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Find quick answers to common questions about our services, registration process, and more.
-          </p>
-        </div>
-
+    <BlogPostTemplate
+      title="Frequently Asked Questions"
+      description="Find quick answers to common questions about our services, registration process, and more."
+      authorName="Customer Support Team"
+      authorTitle="Vignaharta Online Services"
+      publishDate="2025-10-22"
+      lastUpdated="2025-10-22"
+      readingTime="6 min read"
+      tldrSummary="This FAQ section provides answers to common questions about Vignaharta Online Services, including how to register as a retailer, apply for government services, track applications, and contact customer support."
+      tldrPoints={[
+        "Registration process for retailers takes 2-3 business days",
+        "Over 100 government services available through our portal",
+        "Real-time tracking for all applications",
+        "Multiple payment options with secure processing",
+        "24/7 customer support via phone, email, and chat"
+      ]}
+      keywords={["faq", "frequently asked questions", "government services", "customer support", "vignaharta online services"]}
+    >
+      <div className="prose max-w-none">
         {/* Search and Filter */}
         <Card className="mb-8">
           <CardContent className="p-6">
@@ -200,7 +173,10 @@ export default function FAQPage() {
                       </button>
                       {expandedFaq === faq.id && (
                         <div className="px-6 pb-4 text-gray-600 border-t border-gray-100">
-                          <p className="pt-4 leading-relaxed">{faq.answer}</p>
+                          <div 
+                            className="pt-4 leading-relaxed"
+                            dangerouslySetInnerHTML={{ __html: faq.answer }}
+                          />
                         </div>
                       )}
                     </CardContent>
@@ -267,7 +243,7 @@ export default function FAQPage() {
             </Card>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </BlogPostTemplate>
   );
 }

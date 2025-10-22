@@ -120,7 +120,7 @@ export default function RootLayout({
       <body className={`${inter.className} ${notoSansDevanagari.variable} antialiased`}>
         {/* Google Analytics */}
         <Script
-          src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"
+          src="https://www.googletagmanager.com/gtag/js?id=G-EH4ZLJQ4RK"
           strategy="afterInteractive"
         />
         <Script id="google-analytics" strategy="afterInteractive">
@@ -128,7 +128,7 @@ export default function RootLayout({
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'GA_MEASUREMENT_ID');
+            gtag('config', 'G-EH4ZLJQ4RK');
           `}
         </Script>
         <NextAuthSessionProvider>

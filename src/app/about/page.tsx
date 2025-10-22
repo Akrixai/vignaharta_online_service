@@ -1,6 +1,9 @@
 import Link from "next/link";
 import Logo from "@/components/ui/logo";
 import { Metadata } from "next";
+import BlogPostTemplate from "@/components/blog/BlogPostTemplate";
+import InternalLink from "@/components/blog/InternalLink";
+import OutboundLink from "@/components/blog/OutboundLink";
 
 export const metadata: Metadata = {
   title: "About Us - VIGHNAHARTA ONLINE SERVICES | Government Service Portal",
@@ -15,47 +18,24 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-red-100">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-red-600 to-red-700 shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <Link href="/" className="flex items-center">
-              <Logo size="lg" showText={true} animated={true} />
-              <span className="ml-4 text-sm text-red-100">
-                Government Service Portal
-              </span>
-            </Link>
-            <nav className="hidden md:flex space-x-8">
-              <Link href="/" className="text-red-100 hover:text-white transition-colors">
-                Home
-              </Link>
-              <Link href="/about" className="text-white font-semibold">
-                About
-              </Link>
-              <Link href="/services" className="text-red-100 hover:text-white transition-colors">
-                Services
-              </Link>
-              <Link href="/contact" className="text-red-100 hover:text-white transition-colors">
-                Contact
-              </Link>
-            </nav>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Hero Section */}
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 text-center">
-            About Vignaharta Online Service
-          </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto animate-slide-in-up">
-            Bridging the gap between citizens and government services through innovative digital solutions and a nationwide retailer network.
-          </p>
-        </div>
-
+    <BlogPostTemplate
+      title="About Vignaharta Online Service"
+      description="Bridging the gap between citizens and government services through innovative digital solutions and a nationwide retailer network."
+      authorName="Vignaharta Online Services Team"
+      authorTitle="Government Service Experts"
+      publishDate="2025-10-22"
+      lastUpdated="2025-10-22"
+      readingTime="5 min read"
+      tldrSummary="Vignaharta Online Service is India's premier digital government service portal that connects citizens with essential services through our nationwide retailer network, making government services accessible, fast, and secure for everyone."
+      tldrPoints={[
+        "Nationwide retailer network for local service access",
+        "Digital platform for 100+ government services",
+        "Secure document processing with real-time tracking",
+        "Support for Aadhaar, PAN, passport, and certificate applications"
+      ]}
+      keywords={["government services", "digital india", "online services", "retailer network", "vighnaharta online services"]}
+    >
+      <div className="prose max-w-none">
         {/* Mission & Vision */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
           <div className="bg-white p-8 rounded-xl shadow-lg hover-lift">
@@ -82,7 +62,7 @@ export default function AboutPage() {
               <div className="text-red-600 text-5xl mb-4">🏛️</div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">Government Services</h3>
               <p className="text-gray-600">
-                Provide easy access to essential government services including Aadhaar, PAN, passport applications, and various certificates.
+                Provide easy access to essential government services including <InternalLink href="/services/aadhaar-card" title="Aadhaar Card Services">Aadhaar</InternalLink>, <InternalLink href="/services/pan-card" title="PAN Card Services">PAN</InternalLink>, <InternalLink href="/services/passport" title="Passport Services">passport applications</InternalLink>, and various certificates.
               </p>
             </div>
             <div className="text-center">
@@ -129,7 +109,16 @@ export default function AboutPage() {
           </div>
         </div>
 
-
+        {/* Additional Information */}
+        <div className="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg my-8">
+          <h3 className="text-xl font-bold text-gray-900 mb-3">Learn More About Digital India</h3>
+          <p className="text-gray-700 mb-3">
+            For more information about the Digital India initiative and government services, visit the official <OutboundLink href="https://www.digitalindia.gov.in" title="Digital India Official Website">Digital India website</OutboundLink>.
+          </p>
+          <p className="text-gray-600 text-sm">
+            Vignaharta Online Services is proud to be part of the Government of India's Digital India initiative, working to transform India into a digitally empowered society and knowledge economy.
+          </p>
+        </div>
 
         {/* Call to Action */}
         <div className="text-center">
@@ -152,67 +141,7 @@ export default function AboutPage() {
             </Link>
           </div>
         </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-gradient-to-r from-red-800 to-red-900 text-white py-12 mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="mb-6">
-              <Logo size="md" showText={true} animated={false} className="justify-center" />
-            </div>
-            <p className="text-red-200 mb-6 text-lg">
-              Empowering citizens with digital government services through our retailer network
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-              <div>
-                <h4 className="text-lg font-semibold mb-3">Quick Links</h4>
-                <div className="space-y-2">
-                  <Link href="/about" className="block text-red-200 hover:text-white transition-colors">About Us</Link>
-                  <Link href="/services" className="block text-red-200 hover:text-white transition-colors">Services</Link>
-                  <Link href="/register" className="block text-red-200 hover:text-white transition-colors">Become a Retailer</Link>
-                </div>
-              </div>
-              <div>
-                <h4 className="text-lg font-semibold mb-3">Support</h4>
-                <div className="space-y-2">
-                  <Link href="/contact" className="block text-red-200 hover:text-white transition-colors">Contact Us</Link>
-                  <Link href="/help" className="block text-red-200 hover:text-white transition-colors">Help Center</Link>
-                </div>
-              </div>
-              <div>
-                <h4 className="text-lg font-semibold mb-3">Legal</h4>
-                <div className="space-y-2">
-                  <Link href="/privacy" className="block text-red-200 hover:text-white transition-colors">Privacy Policy</Link>
-                  <Link href="/terms" className="block text-red-200 hover:text-white transition-colors">Terms of Service</Link>
-                </div>
-              </div>
-            </div>
-            <div className="border-t border-red-700 pt-6 space-y-4">
-              <p className="text-red-300 text-sm">
-                © 2025 Vignaharta Online Service. All rights reserved. | Government of India Initiative
-              </p>
-
-              {/* Akrix Solutions Branding */}
-              <div className="flex items-center justify-center space-x-2 animate-pulse">
-                <span className="text-pink-400 text-lg animate-bounce">💖</span>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 font-semibold text-sm">
-                  Developed with Love by
-                </span>
-                <a
-                  href="https://akrixsolutions.in/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 font-bold text-sm hover:from-pink-500 hover:via-purple-500 hover:to-blue-500 transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
-                >
-                  Akrix Solutions
-                </a>
-                <span className="text-pink-400 text-lg animate-bounce">💖</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
-    </div>
+      </div>
+    </BlogPostTemplate>
   );
 }

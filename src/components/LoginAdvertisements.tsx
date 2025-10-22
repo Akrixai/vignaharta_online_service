@@ -16,6 +16,7 @@ interface LoginAdvertisement {
   link_url: string;
   display_order: number;
   is_active: boolean;
+  alt_text?: string;
 }
 
 interface LoginAdvertisementsProps {
@@ -128,7 +129,7 @@ function LoginAdvertisements({ className }: LoginAdvertisementsProps) {
               {currentAd.image_url ? (
                 <Image
                   src={currentAd.image_url}
-                  alt={currentAd.title}
+                  alt={currentAd.alt_text || currentAd.title || 'Advertisement Image'}
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   className="object-cover transition-transform duration-500 hover:scale-105"

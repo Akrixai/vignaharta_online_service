@@ -15,19 +15,22 @@ const fallbackImages = [
     id: 'fallback-1',
     image_url: '/images/government-services-1.jpg',
     title: 'Digital India Services',
-    is_active: true
+    is_active: true,
+    alt_text: 'Indian citizen accessing digital government services online through Vignaharta portal'
   },
   {
     id: 'fallback-2', 
     image_url: '/images/government-services-2.jpg',
     title: 'Online Government Portal',
-    is_active: true
+    is_active: true,
+    alt_text: 'Government service portal interface with document processing and secure authentication'
   },
   {
     id: 'fallback-3',
     image_url: '/images/government-services-3.jpg', 
     title: 'Secure Digital Services',
-    is_active: true
+    is_active: true,
+    alt_text: 'Secure digital government services with encryption protection and data privacy'
   }
 ];
 
@@ -123,7 +126,7 @@ export default function LandingPageImageCarousel({ className = '' }: LandingPage
         {currentAd.image_url ? (
           <Image
             src={currentAd.image_url}
-            alt={currentAd.title || 'Government Service'}
+            alt={currentAd.alt_text || currentAd.title || 'Government Service'}
             fill
             sizes="100vw"
             className="object-cover transition-all duration-700 ease-in-out"

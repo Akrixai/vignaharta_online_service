@@ -10,8 +10,20 @@ interface SafeLoginAdvertisementsProps {
   className?: string;
 }
 
+interface Advertisement {
+  id: string;
+  title: string;
+  description: string;
+  image_url: string | null;
+  link_url: string;
+  is_active: boolean;
+  background?: string;
+  icon?: string;
+  alt_text?: string;
+}
+
 // Safe fallback advertisements that don't require external images
-const fallbackAds = [
+const fallbackAds: Advertisement[] = [
   {
     id: 'fallback-1',
     title: 'विघ्नहर्ता ऑनलाईन सर्विसेस',
@@ -20,7 +32,8 @@ const fallbackAds = [
     link_url: '#',
     is_active: true,
     background: 'from-red-500 to-red-700',
-    icon: '🏛️'
+    icon: '🏛️',
+    alt_text: 'Vignaharta Online Services - Government Service Portal'
   },
   {
     id: 'fallback-2', 
@@ -30,7 +43,8 @@ const fallbackAds = [
     link_url: '#',
     is_active: true,
     background: 'from-blue-500 to-blue-700',
-    icon: '🇮🇳'
+    icon: '🇮🇳',
+    alt_text: 'Digital India Government Services Initiative'
   },
   {
     id: 'fallback-3',
@@ -40,7 +54,8 @@ const fallbackAds = [
     link_url: '#',
     is_active: true,
     background: 'from-green-500 to-green-700',
-    icon: '🔒'
+    icon: '🔒',
+    alt_text: 'Secure and Fast Government Document Processing'
   }
 ];
 
@@ -142,7 +157,7 @@ export default function SafeLoginAdvertisements({ className = '' }: SafeLoginAdv
                 <>
                   <Image
                     src={currentAd.image_url}
-                    alt={currentAd.title}
+                    alt={currentAd.alt_text || currentAd.title || 'Advertisement Image'}
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="object-cover transition-transform duration-500 hover:scale-105"
@@ -223,7 +238,7 @@ export default function SafeLoginAdvertisements({ className = '' }: SafeLoginAdv
                     )}
                   </a>
                 </div>
-              )} */}
+              ) */}
 
               {/* Indicators */}
               {advertisements.length > 1 && (
