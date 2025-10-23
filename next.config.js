@@ -48,17 +48,32 @@ const nextConfig = {
         hostname: 'localhost',
         port: '',
         pathname: '/**',
+      },
+      // CDN for static images
+      {
+        protocol: 'https',
+        hostname: 'cdn.vighnahartaonlineservice.in',
+        port: '',
+        pathname: '/**',
       }
     ],
 
     // Image formats to support
     formats: ['image/webp', 'image/avif'],
 
-    // Disable image optimization for static images in public folder
-    unoptimized: false,
+    // Image sizing for better performance
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+
+    // Disable image optimization for static images in public folder to use CDN
+    unoptimized: true,
   },
 
+  // Asset optimization for CDN usage
+  assetPrefix: process.env.NODE_ENV === 'production' ? 'https://cdn.vighnahartaonlineservice.in' : '',
 
+  // Font optimization
+  optimizeFonts: true,
 
   // Webpack configuration for better asset handling
   webpack: (config, { isServer }) => {
@@ -68,7 +83,7 @@ const nextConfig = {
       use: {
         loader: 'file-loader',
         options: {
-          publicPath: '/_next/static/images/',
+          publicPath: process.env.NODE_ENV === 'production' ? 'https://cdn.vighnahartaonlineservice.in/_next/static/images/' : '/_next/static/images/',
           outputPath: 'static/images/',
           name: '[name].[hash].[ext]',
         },
@@ -81,6 +96,8 @@ const nextConfig = {
   // Experimental features for better performance
   experimental: {
     optimizePackageImports: ['lucide-react'],
+    // Enable Server Components for better performance
+    serverComponentsExternalPackages: ['critters'],
   },
 
   // Compiler options
@@ -130,7 +147,7 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://nblvyqgtlsltuzbnhofz.supabase.co https://api.supabase.co wss://nblvyqgtlsltuzbnhofz.supabase.co; frame-src 'self' https://vercel.live;",
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://va.vercel-scripts.com https://cdn.vighnahartaonlineservice.in; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.vighnahartaonlineservice.in; font-src 'self' https://fonts.gstatic.com https://cdn.vighnahartaonlineservice.in; img-src 'self' data: https:; connect-src 'self' https://nblvyqgtlsltuzbnhofz.supabase.co https://api.supabase.co wss://nblvyqgtlsltuzbnhofz.supabase.co; frame-src 'self' https://vercel.live;",
           },
           {
             key: 'Permissions-Policy',

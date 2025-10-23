@@ -6,27 +6,30 @@ import Footer from "@/components/Footer";
 import UserConsent from "@/components/UserConsent";
 import LandingPageImageCarousel from "@/components/LandingPageImageCarousel";
 import { useState, useEffect } from "react";
+
+// Define types for our data
+interface Advertisement {
+  description: string;
+}
+
+interface SocialLink {
+  name: string;
+  url: string;
+  icon: string;
+}
+
 // Marquee-style floating text for descriptions
-function FloatingDescriptions({ descriptions, position = "top" }) {
+function FloatingDescriptions({ descriptions, position = "top" }: { descriptions: string[]; position?: "top" | "bottom" }) {
   if (!descriptions || descriptions.length === 0) return null;
   return (
     <div
-      className={`w-full overflow-hidden z-20 ${position === "bottom" ? "mt-4" : "mb-4"}`}
-      style={{ pointerEvents: "none", height: "2.5rem" }}
+      className={`w-full overflow-hidden z-20 ${position === "bottom" ? "mt-4" : "mb-4"} marquee-container`}
     >
       <div
-        className="whitespace-nowrap flex items-center"
-        style={{ height: "2.5rem" }}
+        className="whitespace-nowrap flex items-center marquee-content"
       >
         <div
           className="marquee-text px-4 py-2 bg-gradient-to-r from-red-200 via-orange-200 to-yellow-200 text-red-700 font-semibold shadow-lg rounded"
-          style={{
-            display: "inline-block",
-            minWidth: "fit-content",
-            animation: `marquee 18s linear infinite`,
-            pointerEvents: "none",
-            opacity: 0.95
-          }}
         >
           {descriptions.join("  |  ")}
         </div>
@@ -36,6 +39,13 @@ function FloatingDescriptions({ descriptions, position = "top" }) {
           0% { transform: translateX(100%); }
           100% { transform: translateX(-100%); }
         }
+        .marquee-text {
+          display: inline-block;
+          min-width: fit-content;
+          animation: marquee 18s linear infinite;
+          pointer-events: none;
+          opacity: 0.95;
+        }
       `}</style>
     </div>
   );
@@ -43,7 +53,7 @@ function FloatingDescriptions({ descriptions, position = "top" }) {
 
 export default function LandingPageClient() {
   const [, setConsentGiven] = useState(false);
-  const [descriptions, setDescriptions] = useState([]);
+  const [descriptions, setDescriptions] = useState<string[]>([]);
 
   const handleConsentGiven = () => {
     setConsentGiven(true);
@@ -56,8 +66,8 @@ export default function LandingPageClient() {
         if (res.ok) {
           const data = await res.json();
           const descs = (data.advertisements || [])
-            .map(ad => ad.description)
-            .filter(d => d && d.trim().length > 0);
+            .map((ad: Advertisement) => ad.description)
+            .filter((d: string) => d && d.trim().length > 0);
           setDescriptions(descs);
         }
       } catch (e) {
@@ -67,25 +77,49 @@ export default function LandingPageClient() {
     fetchDescriptions();
   }, []);
 
+  // Social media links
+  const socialLinks: SocialLink[] = [
+    {
+      name: "Facebook",
+      url: "https://www.facebook.com/share/171jarrh5y/",
+      icon: "📘"
+    },
+    {
+      name: "LinkedIn",
+      url: "https://www.linkedin.com/in/prem-sargar-802214390/?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+      icon: "👔"
+    },
+    {
+      name: "Twitter",
+      url: "https://x.com/services6527?t=mPY7WesWRbXSCF5rXSiRCg&s=08",
+      icon: "🐦"
+    },
+    {
+      name: "Instagram",
+      url: "https://www.instagram.com/invites/contact/?utm_source=ig_contact_invite&utm_medium=copy_link&utm_content=zrqm86t",
+      icon: "📸"
+    }
+  ];
+
   return (
     <>
       <UserConsent onConsentGiven={handleConsentGiven} />
       <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 relative overflow-hidden">
         {/* Floating Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-red-200/30 to-orange-200/30 rounded-full blur-3xl animate-float"></div>
-          <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-tr from-yellow-200/30 to-red-200/30 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-orange-200/20 to-red-200/20 rounded-full blur-2xl animate-pulse"></div>
+          <div className="absolute floating-bg-1 bg-gradient-to-br from-red-200/30 to-orange-200/30 rounded-full blur-3xl animate-float animate-delay-2000"></div>
+          <div className="absolute floating-bg-2 bg-gradient-to-tr from-yellow-200/30 to-red-200/30 rounded-full blur-3xl animate-float"></div>
+          <div className="absolute floating-bg-3 bg-gradient-to-r from-orange-200/20 to-red-200/20 rounded-full blur-2xl animate-pulse"></div>
         </div>
 
       {/* Header */}
       <header className="bg-gradient-to-r from-red-900 via-red-800 to-red-900 shadow-2xl relative overflow-hidden backdrop-blur-sm">
         {/* Animated background elements */}
         <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-full animate-float"></div>
-          <div className="absolute top-10 right-10 w-16 h-16 bg-gradient-to-br from-orange-400 to-red-400 rounded-full animate-bounce"></div>
-          <div className="absolute bottom-0 left-1/4 w-24 h-24 bg-gradient-to-br from-red-400 to-pink-400 rounded-full animate-ping"></div>
-          <div className="absolute top-1/2 right-1/3 w-12 h-12 bg-gradient-to-br from-yellow-300 to-orange-300 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute floating-bg-4 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-full animate-float"></div>
+          <div className="absolute floating-bg-5 bg-gradient-to-br from-orange-400 to-red-400 rounded-full animate-bounce"></div>
+          <div className="absolute floating-bg-6 bg-gradient-to-br from-red-400 to-pink-400 rounded-full animate-ping"></div>
+          <div className="absolute floating-bg-7 bg-gradient-to-br from-yellow-300 to-orange-300 rounded-full animate-pulse animate-delay-1000"></div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -113,6 +147,10 @@ export default function LandingPageClient() {
                 </Link>
                 <Link href="/contact" className="text-white hover:text-red-200 px-4 py-2 rounded-lg text-sm font-medium transform hover:scale-105 transition-all duration-200 hover:bg-red-700/50 relative group">
                   Contact
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
+                </Link>
+                <Link href="/social-media" className="text-white hover:text-red-200 px-4 py-2 rounded-lg text-sm font-medium transform hover:scale-105 transition-all duration-200 hover:bg-red-700/50 relative group">
+                  Social Media
                   <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
                 </Link>
               </nav>
@@ -155,46 +193,201 @@ export default function LandingPageClient() {
         {/* Background decorative elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-20 left-10 w-64 h-64 bg-gradient-to-r from-red-100 to-orange-100 rounded-full opacity-20 animate-float"></div>
-          <div className="absolute bottom-20 right-10 w-48 h-48 bg-gradient-to-r from-orange-100 to-red-100 rounded-full opacity-20 animate-float" style={{ animationDelay: '2s' }}></div>
+          <div className="absolute bottom-20 right-10 w-48 h-48 bg-gradient-to-r from-orange-100 to-red-100 rounded-full opacity-20 animate-float animate-delay-2000"></div>
         </div>
 
         <div className="text-center relative z-10">
-          {/* <h1 className="text-4xl md:text-6xl font-bold text-red-800 mb-6 animate-fade-in">
-            Welcome to <span className="text-orange-600">विघ्नहर्ता</span>
-            <br />
-            <span className="text-red-700">ऑनलाईन सर्विसेस</span>
+          {/* SEO-optimized H1 and H2 tags */}
+          <h1 className="text-4xl md:text-6xl font-bold text-red-800 mb-6 animate-fade-in">
+            Vignaharta Online Services - Government Services Portal India
           </h1>
-          <h2 className="text-xl md:text-2xl text-red-600 mb-4 max-w-3xl mx-auto animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            India's Premier Digital Government Services Portal
+          <h2 className="text-xl md:text-2xl text-red-600 mb-4 max-w-3xl mx-auto animate-fade-in animate-delay-200">
+            India's Premier Digital Government Services Portal - Apply for Aadhaar Card, PAN Card, Passport, Birth Certificate Online
           </h2>
-          <p className="text-lg md:text-xl text-gray-700 mb-8 max-w-4xl mx-auto animate-fade-in" style={{ animationDelay: '0.3s' }}>
-            Access <strong>Aadhaar Card</strong>, <strong>PAN Card</strong>, <strong>Passport</strong>, <strong>Birth Certificate</strong>, <strong>Death Certificate</strong>, <strong>Income Certificate</strong>, <strong>Caste Certificate</strong>, and <strong>100+ government services online</strong>. Fast, secure, and reliable government service portal with nationwide retailer network support.
+          <p className="text-lg md:text-xl text-gray-700 mb-8 max-w-4xl mx-auto animate-fade-in animate-delay-300">
+            Access <Link href="/services/aadhaar-card" className="text-red-600 hover:text-red-800 font-semibold underline">Aadhaar Card</Link>, <Link href="/services/pan-card" className="text-red-600 hover:text-red-800 font-semibold underline">PAN Card</Link>, <Link href="/services/passport" className="text-red-600 hover:text-red-800 font-semibold underline">Passport</Link>, <Link href="/services/birth-certificate" className="text-red-600 hover:text-red-800 font-semibold underline">Birth Certificate</Link>, <Link href="/services/death-certificate" className="text-red-600 hover:text-red-800 font-semibold underline">Death Certificate</Link>, <Link href="/services/income-certificate" className="text-red-600 hover:text-red-800 font-semibold underline">Income Certificate</Link>, <Link href="/services/caste-certificate" className="text-red-600 hover:text-red-800 font-semibold underline">Caste Certificate</Link>, and <Link href="/services" className="text-red-600 hover:text-red-800 font-semibold underline">100+ government services online</Link>. Fast, secure, and reliable government service portal with nationwide retailer network support.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12 animate-fade-in animate-delay-400">
             <Link href="/login" className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-lg text-lg font-semibold transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl">
               🚀 Get Started - Apply Online
             </Link>
             <Link href="/about" className="bg-white hover:bg-red-50 text-red-600 border-2 border-red-600 px-8 py-4 rounded-lg text-lg font-semibold transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl">
               📖 Learn More About Services
             </Link>
-          </div> */}
+          </div>
+
+          {/* Added: Government Services Benefits Section */}
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 mb-12 shadow-xl border border-red-100 max-w-4xl mx-auto">
+            <h3 className="text-2xl font-bold text-red-800 mb-6">Why Choose Vignaharta Online Services?</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+              <div className="flex items-start">
+                <div className="text-2xl mr-4 text-red-600">✅</div>
+                <div>
+                  <h4 className="font-bold text-lg text-gray-900 mb-2">Digital India Initiative</h4>
+                  <p className="text-gray-700">Part of the Government of India's <Link href="/about" className="text-red-600 hover:text-red-800 font-semibold underline">Digital India program</Link> to transform India into a digitally empowered society and knowledge economy.</p>
+                </div>
+              </div>
+              <div className="flex items-start">
+                <div className="text-2xl mr-4 text-red-600">✅</div>
+                <div>
+                  <h4 className="font-bold text-lg text-gray-900 mb-2">Nationwide Access</h4>
+                  <p className="text-gray-700">Access government services from anywhere in India through our extensive network of over <Link href="/about" className="text-red-600 hover:text-red-800 font-semibold underline">10,000+ service centers</Link>.</p>
+                </div>
+              </div>
+              <div className="flex items-start">
+                <div className="text-2xl mr-4 text-red-600">✅</div>
+                <div>
+                  <h4 className="font-bold text-lg text-gray-900 mb-2">Fast Processing</h4>
+                  <p className="text-gray-700">Quick document verification and processing with <Link href="/services" className="text-red-600 hover:text-red-800 font-semibold underline">real-time application tracking</Link> and status updates.</p>
+                </div>
+              </div>
+              <div className="flex items-start">
+                <div className="text-2xl mr-4 text-red-600">✅</div>
+                <div>
+                  <h4 className="font-bold text-lg text-gray-900 mb-2">Secure & Reliable</h4>
+                  <p className="text-gray-700">Bank-level security with SSL encryption and compliance with <Link href="/privacy-policy" className="text-red-600 hover:text-red-800 font-semibold underline">Indian data protection regulations</Link>.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Social Media Links */}
+          <div className="mb-12">
+            <h3 className="text-2xl font-bold text-red-800 mb-6">Follow Us on Social Media</h3>
+            <div className="flex justify-center space-x-6">
+              {socialLinks.map((social, index) => (
+                <Link 
+                  key={index}
+                  href={social.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-white rounded-full p-4 shadow-lg hover:shadow-xl transform hover:scale-110 transition-all duration-300 border border-red-200 hover:border-red-400"
+                  title={`Follow us on ${social.name}`}
+                >
+                  <span className="text-2xl">{social.icon}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Added: Popular Government Services Section */}
+          <div className="bg-gradient-to-r from-red-50 to-orange-50 rounded-2xl p-8 mb-12 shadow-lg border border-red-100 max-w-6xl mx-auto">
+            <h3 className="text-2xl font-bold text-red-800 mb-6 text-center">Popular Government Services</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
+                <h4 className="font-bold text-lg text-red-700 mb-3">_identity Services</h4>
+                <ul className="space-y-2 text-gray-700">
+                  <li className="flex items-center">
+                    <span className="text-red-500 mr-2">•</span>
+                    <Link href="/services/aadhaar-card" className="text-red-600 hover:text-red-800 font-medium">Aadhaar Card Services</Link>
+                  </li>
+                  <li className="flex items-center">
+                    <span className="text-red-500 mr-2">•</span>
+                    <Link href="/services/pan-card" className="text-red-600 hover:text-red-800 font-medium">PAN Card Services</Link>
+                  </li>
+                  <li className="flex items-center">
+                    <span className="text-red-500 mr-2">•</span>
+                    <Link href="/services/voter-id" className="text-red-600 hover:text-red-800 font-medium">Voter ID Services</Link>
+                  </li>
+                </ul>
+              </div>
+              <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
+                <h4 className="font-bold text-lg text-red-700 mb-3">_Certificates</h4>
+                <ul className="space-y-2 text-gray-700">
+                  <li className="flex items-center">
+                    <span className="text-red-500 mr-2">•</span>
+                    <Link href="/services/birth-certificate" className="text-red-600 hover:text-red-800 font-medium">Birth Certificate</Link>
+                  </li>
+                  <li className="flex items-center">
+                    <span className="text-red-500 mr-2">•</span>
+                    <Link href="/services/death-certificate" className="text-red-600 hover:text-red-800 font-medium">Death Certificate</Link>
+                  </li>
+                  <li className="flex items-center">
+                    <span className="text-red-500 mr-2">•</span>
+                    <Link href="/services/income-certificate" className="text-red-600 hover:text-red-800 font-medium">Income Certificate</Link>
+                  </li>
+                  <li className="flex items-center">
+                    <span className="text-red-500 mr-2">•</span>
+                    <Link href="/services/caste-certificate" className="text-red-600 hover:text-red-800 font-medium">Caste Certificate</Link>
+                  </li>
+                </ul>
+              </div>
+              <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
+                <h4 className="font-bold text-lg text-red-700 mb-3">_Travel & Financial</h4>
+                <ul className="space-y-2 text-gray-700">
+                  <li className="flex items-center">
+                    <span className="text-red-500 mr-2">•</span>
+                    <Link href="/services/passport" className="text-red-600 hover:text-red-800 font-medium">Passport Services</Link>
+                  </li>
+                  <li className="flex items-center">
+                    <span className="text-red-500 mr-2">•</span>
+                    <Link href="/services/bank-account" className="text-red-600 hover:text-red-800 font-medium">Bank Account Opening</Link>
+                  </li>
+                  <li className="flex items-center">
+                    <span className="text-red-500 mr-2">•</span>
+                    <Link href="/services" className="text-red-600 hover:text-red-800 font-medium">Insurance Services</Link>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div className="text-center mt-8">
+              <Link href="/services" className="inline-block bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold transform hover:scale-105 transition-all duration-200 shadow-md">
+                View All 100+ Services
+              </Link>
+            </div>
+          </div>
 
           {/* Animated stats or features */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 animate-fade-in" style={{ animationDelay: '0.5s' }}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 animate-fade-in animate-delay-500">
             <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 border border-red-100 feature-card">
               <div className="text-3xl mb-3 animate-bounce">🏛️</div>
               <h3 className="text-xl font-bold text-red-700 mb-2">100+ Government Services Online</h3>
               <p className="text-gray-600">Access Aadhaar, PAN, Passport, Birth Certificate, Death Certificate, Income Certificate, Caste Certificate, and all government schemes digitally</p>
             </div>
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 border border-red-100 feature-card" style={{ animationDelay: '0.2s' }}>
-              <div className="text-3xl mb-3 animate-bounce" style={{ animationDelay: '0.5s' }}>🔒</div>
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 border border-red-100 feature-card animate-delay-200">
+              <div className="text-3xl mb-3 animate-bounce animate-delay-500">🔒</div>
               <h3 className="text-xl font-bold text-red-700 mb-2">Secure Digital India Portal</h3>
               <p className="text-gray-600">Bank-level security with SSL encryption, real-time application tracking, and 24/7 customer support</p>
             </div>
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 border border-red-100 feature-card" style={{ animationDelay: '0.4s' }}>
-              <div className="text-3xl mb-3 animate-bounce" style={{ animationDelay: '1s' }}>⚡</div>
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 border border-red-100 feature-card animate-delay-400">
+              <div className="text-3xl mb-3 animate-bounce animate-delay-1000">⚡</div>
               <h3 className="text-xl font-bold text-red-700 mb-2">Fast Government Service Processing</h3>
               <p className="text-gray-600">Quick document processing with user-friendly interface and nationwide retailer network support</p>
+            </div>
+          </div>
+
+          {/* Added: How It Works Section */}
+          <div className="bg-white rounded-2xl p-8 mb-12 shadow-xl border border-red-100 max-w-4xl mx-auto">
+            <h3 className="text-2xl font-bold text-red-800 mb-6 text-center">How Vignaharta Online Services Works</h3>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="text-center">
+                <div className="bg-red-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl font-bold text-red-700">1</span>
+                </div>
+                <h4 className="font-bold text-gray-900 mb-2">Find Service</h4>
+                <p className="text-gray-700 text-sm">Browse our comprehensive list of government services</p>
+              </div>
+              <div className="text-center">
+                <div className="bg-red-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl font-bold text-red-700">2</span>
+                </div>
+                <h4 className="font-bold text-gray-900 mb-2">Visit Center</h4>
+                <p className="text-gray-700 text-sm">Locate and visit your nearest service center</p>
+              </div>
+              <div className="text-center">
+                <div className="bg-red-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl font-bold text-red-700">3</span>
+                </div>
+                <h4 className="font-bold text-gray-900 mb-2">Submit Documents</h4>
+                <p className="text-gray-700 text-sm">Provide required documents for processing</p>
+              </div>
+              <div className="text-center">
+                <div className="bg-red-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl font-bold text-red-700">4</span>
+                </div>
+                <h4 className="font-bold text-gray-900 mb-2">Get Service</h4>
+                <p className="text-gray-700 text-sm">Receive your government service digitally</p>
+              </div>
             </div>
           </div>
 
@@ -233,7 +426,7 @@ export default function LandingPageClient() {
               <div className="absolute inset-0 bg-gradient-to-br from-red-50/50 to-orange-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
               <div className="relative z-10">
-                <div className="text-red-600 text-6xl mb-6 animate-float group-hover:animate-bounce" style={{ animationDelay: '0.5s' }}>👨‍💼</div>
+                <div className="text-red-600 text-6xl mb-6 animate-float group-hover:animate-bounce animate-delay-500">👨‍💼</div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-red-700 transition-colors">
                   Employee Login
                 </h3>
@@ -258,7 +451,7 @@ export default function LandingPageClient() {
               <div className="absolute inset-0 bg-gradient-to-br from-red-50/50 to-orange-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
               <div className="relative z-10">
-                <div className="text-red-600 text-6xl mb-6 animate-float group-hover:animate-bounce" style={{ animationDelay: '1s' }}>⚙️</div>
+                <div className="text-red-600 text-6xl mb-6 animate-float group-hover:animate-bounce animate-delay-1000">⚙️</div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-red-700 transition-colors">
                   Admin Login
                 </h3>

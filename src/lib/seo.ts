@@ -26,6 +26,7 @@ export const defaultSEO: Metadata = {
     'online certificate application',
     'government portal india',
     'vignaharta online services',
+    'vighnaharta online services',
     'digital government services',
     'online license application',
     'government schemes online',
@@ -40,7 +41,12 @@ export const defaultSEO: Metadata = {
     'online government schemes',
     'government services platform',
     'digital government portal',
-    'online service center'
+    'online service center',
+    'vignaharta services',
+    'vighnaharta services',
+    'government service provider india',
+    'digital service provider india',
+    'online government service provider'
   ],
   authors: [{ name: 'Vignaharta Online Services' }],
   creator: 'Vignaharta Online Services',
@@ -140,14 +146,15 @@ export function generateSEO(config: SEOConfig): Metadata {
 // Page-specific SEO configurations
 export const pageSEO = {
   home: {
-    title: 'Vignaharta Online Services - Government Services Portal India | Digital India | Apply for Aadhaar, PAN, Passport Online',
-    description: 'Access all government services online with Vignaharta Online Services. Apply for Aadhaar card, PAN card, Passport, Birth Certificate, Income Certificate and 100+ government services digitally. Fast, secure, and reliable government service portal in India with nationwide retailer network.',
+    title: 'Vignaharta Online Services - Government Portal India',
+    description: 'Access 100+ government services online. Apply for Aadhaar, PAN, Passport, Birth Certificate and more. Fast, secure digital government services in India.',
     keywords: [
       'government services online india',
       'digital india services',
       'online certificate application',
       'government portal',
       'vignaharta online services',
+      'vighnaharta online services',
       'digital government services',
       'online license application',
       'government schemes online',
@@ -164,7 +171,12 @@ export const pageSEO = {
       'birth certificate online',
       'income certificate online',
       'government services near me',
-      'digital india government services'
+      'digital india government services',
+      'vignaharta services',
+      'vighnaharta services',
+      'government service provider india',
+      'digital service provider india',
+      'online government service provider'
     ],
     canonical: '/',
   },
@@ -281,6 +293,45 @@ export const structuredData = {
       'https://www.twitter.com/VighnahartaOnline',
       'https://www.linkedin.com/company/vignaharta-online-services',
     ],
+  },
+  // Local Business structured data for better local SEO
+  localBusiness: {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    '@id': `${baseUrl}/#organization`,
+    name: siteName,
+    url: baseUrl,
+    logo: `${baseUrl}/images/logo.png`,
+    description: defaultDescription,
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: 'India',
+      addressCountry: 'IN'
+    },
+    telephone: '+91-7499116527',
+    sameAs: [
+      'https://www.facebook.com/vighnahartaonlineservices',
+      'https://www.twitter.com/VighnahartaOnline',
+      'https://www.linkedin.com/company/vignaharta-online-services',
+    ],
+    areaServed: {
+      '@type': 'Country',
+      name: 'India'
+    },
+    availableLanguage: [
+      {
+        '@type': 'Language',
+        name: 'English'
+      },
+      {
+        '@type': 'Language',
+        name: 'Marathi'
+      },
+      {
+        '@type': 'Language',
+        name: 'Hindi'
+      }
+    ]
   },
   website: {
     '@context': 'https://schema.org',
@@ -447,6 +498,74 @@ export const structuredData = {
       audienceType: 'Indian Citizens'
     }
   },
+  // Additional GovernmentService schemas for popular services
+  casteCertificateService: {
+    '@context': 'https://schema.org',
+    '@type': 'GovernmentService',
+    name: 'Caste Certificate Services',
+    serviceType: 'Certificates',
+    description: 'Apply for caste certificates from government authorities',
+    provider: {
+      '@type': 'Organization',
+      name: siteName,
+      url: baseUrl,
+    },
+    areaServed: {
+      '@type': 'Country',
+      name: 'India',
+    },
+    category: 'Certificates',
+    serviceAudience: {
+      '@type': 'Audience',
+      audienceType: 'Indian Citizens'
+    }
+  },
+  voterIdService: {
+    '@context': 'https://schema.org',
+    '@type': 'GovernmentService',
+    name: 'Voter ID Services',
+    serviceType: 'Identity Services',
+    description: 'Apply for new Voter ID card or update existing details online',
+    provider: {
+      '@type': 'Organization',
+      name: siteName,
+      url: baseUrl,
+    },
+    areaServed: {
+      '@type': 'Country',
+      name: 'India',
+    },
+    serviceOperator: {
+      '@type': 'Organization',
+      name: 'Election Commission of India'
+    },
+    category: 'Identity Documents',
+    serviceAudience: {
+      '@type': 'Audience',
+      audienceType: 'Indian Citizens'
+    }
+  },
+  bankAccountService: {
+    '@context': 'https://schema.org',
+    '@type': 'GovernmentService',
+    name: 'Bank Account Opening Services',
+    serviceType: 'Financial Services',
+    description: 'Open bank accounts with government assistance and support',
+    provider: {
+      '@type': 'Organization',
+      name: siteName,
+      url: baseUrl,
+    },
+    areaServed: {
+      '@type': 'Country',
+      name: 'India',
+    },
+    category: 'Financial Services',
+    serviceAudience: {
+      '@type': 'Audience',
+      audienceType: 'Indian Citizens'
+    }
+  },
   // FAQ structured data for rich snippets
   faqPage: {
     '@context': 'https://schema.org',
@@ -482,6 +601,30 @@ export const structuredData = {
         acceptedAnswer: {
           '@type': 'Answer',
           text: 'Yes, we use bank-level security with SSL encryption to protect your personal information. All data is stored securely and complies with Indian data protection regulations.'
+        }
+      },
+      {
+        '@type': 'Question',
+        name: 'What is Vignaharta Online Services?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Vignaharta Online Services is India\'s premier digital government services portal that provides access to 100+ government services online. We help citizens apply for Aadhaar Card, PAN Card, Passport, Birth Certificate, Death Certificate, Income Certificate, Caste Certificate, and other government schemes digitally with fast, secure, and reliable processing.'
+        }
+      },
+      {
+        '@type': 'Question',
+        name: 'How can I find Vignaharta Online Services near me?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Vignaharta Online Services has a nationwide network of over 10,000+ service centers across India. You can locate the nearest service center through our website or mobile app, or call our customer support at +91-7499116527 for assistance.'
+        }
+      },
+      {
+        '@type': 'Question',
+        name: 'What are the benefits of using Vignaharta Online Services?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'The key benefits of using Vignaharta Online Services include: 1) Digital India Initiative participation, 2) Nationwide access to government services, 3) Fast processing with real-time tracking, 4) Secure and reliable service with bank-level encryption, 5) User-friendly interface, and 6) Extensive retailer network support across India.'
         }
       }
     ]

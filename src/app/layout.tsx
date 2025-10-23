@@ -8,9 +8,15 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { defaultSEO, structuredData } from "@/lib/seo";
 import Script from "next/script";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ 
+  subsets: ["latin"],
+  display: 'swap',
+  variable: '--font-inter'
+});
+
 const notoSansDevanagari = Noto_Sans_Devanagari({
   subsets: ["devanagari", "latin"],
+  display: 'swap',
   variable: '--font-devanagari'
 });
 
@@ -29,18 +35,20 @@ export default function RootLayout({
 }>) {
   // For now, we'll keep English as default, but Marathi content is supported through Noto Sans Devanagari font
   return (
-    <html lang="en">
+    <html lang="en" className={`${inter.variable} ${notoSansDevanagari.variable}`}>
       <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/vignaharta.png" type="image/png" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="icon" href="https://cdn.vighnahartaonlineservice.in/favicon.ico" sizes="any" />
+        <link rel="icon" href="https://cdn.vighnahartaonlineservice.in/vignaharta.png" type="image/png" />
+        <link rel="apple-touch-icon" href="https://cdn.vighnahartaonlineservice.in/apple-touch-icon.png" />
         <meta name="theme-color" content="#dc2626" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="format-detection" content="telephone=no" />
         
         {/* Hreflang tags for multilingual support */}
         <link rel="alternate" hrefLang="en" href="https://www.vighnahartaonlineservice.in" />
+        <link rel="alternate" hrefLang="en-IN" href="https://www.vighnahartaonlineservice.in" />
         <link rel="alternate" hrefLang="mr" href="https://www.vighnahartaonlineservice.in/mr" />
+        <link rel="alternate" hrefLang="mr-IN" href="https://www.vighnahartaonlineservice.in/mr" />
         <link rel="alternate" hrefLang="x-default" href="https://www.vighnahartaonlineservice.in" />
 
         {/* Structured Data */}
@@ -49,6 +57,14 @@ export default function RootLayout({
             type="application/ld+json"
             dangerouslySetInnerHTML={{
               __html: JSON.stringify(structuredData.organization),
+            }}
+          />
+        )}
+        {structuredData?.localBusiness && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(structuredData.localBusiness),
             }}
           />
         )}
@@ -108,6 +124,30 @@ export default function RootLayout({
             }}
           />
         )}
+        {structuredData?.casteCertificateService && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(structuredData.casteCertificateService),
+            }}
+          />
+        )}
+        {structuredData?.voterIdService && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(structuredData.voterIdService),
+            }}
+          />
+        )}
+        {structuredData?.bankAccountService && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(structuredData.bankAccountService),
+            }}
+          />
+        )}
         {structuredData?.faqPage && (
           <script
             type="application/ld+json"
@@ -117,7 +157,7 @@ export default function RootLayout({
           />
         )}
       </head>
-      <body className={`${inter.className} ${notoSansDevanagari.variable} antialiased`}>
+      <body className="antialiased">
         {/* Google Analytics */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-EH4ZLJQ4RK"

@@ -218,6 +218,14 @@
     <priority>0.7</priority>
   </url>
   
+  <!-- Social Media Page -->
+  <url>
+    <loc>https://www.vighnahartaonlineservice.in/social-media</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
   <!-- Legal Pages -->
   <url>
     <loc>https://www.vighnahartaonlineservice.in/privacy-policy</loc>
