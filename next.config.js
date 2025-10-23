@@ -70,7 +70,7 @@ const nextConfig = {
   },
 
   // Asset optimization for CDN usage
-  assetPrefix: process.env.NODE_ENV === 'production' ? 'https://cdn.vighnahartaonlineservice.in' : '',
+  // assetPrefix: process.env.NODE_ENV === 'production' ? 'https://cdn.vighnahartaonlineservice.in' : '',
 
 
 
@@ -93,6 +93,8 @@ const nextConfig = {
     if (process.env.NODE_ENV === 'production') {
       config.optimization.minimize = true;
     }
+
+
 
     return config;
   },
