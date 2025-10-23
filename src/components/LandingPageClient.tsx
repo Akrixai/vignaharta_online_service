@@ -356,40 +356,7 @@ export default function LandingPageClient() {
             </div>
           </div>
 
-          {/* Added: How It Works Section */}
-          <div className="bg-white rounded-2xl p-8 mb-12 shadow-xl border border-red-100 max-w-4xl mx-auto">
-            <h3 className="text-2xl font-bold text-red-800 mb-6 text-center">How Vignaharta Online Services Works</h3>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <div className="bg-red-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl font-bold text-red-700">1</span>
-                </div>
-                <h4 className="font-bold text-gray-900 mb-2">Find Service</h4>
-                <p className="text-gray-700 text-sm">Browse our comprehensive list of government services</p>
-              </div>
-              <div className="text-center">
-                <div className="bg-red-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl font-bold text-red-700">2</span>
-                </div>
-                <h4 className="font-bold text-gray-900 mb-2">Visit Center</h4>
-                <p className="text-gray-700 text-sm">Locate and visit your nearest service center</p>
-              </div>
-              <div className="text-center">
-                <div className="bg-red-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl font-bold text-red-700">3</span>
-                </div>
-                <h4 className="font-bold text-gray-900 mb-2">Submit Documents</h4>
-                <p className="text-gray-700 text-sm">Provide required documents for processing</p>
-              </div>
-              <div className="text-center">
-                <div className="bg-red-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl font-bold text-red-700">4</span>
-                </div>
-                <h4 className="font-bold text-gray-900 mb-2">Get Service</h4>
-                <p className="text-gray-700 text-sm">Receive your government service digitally</p>
-              </div>
-            </div>
-          </div>
+
 
           {/* Login Options */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16 max-w-5xl mx-auto">

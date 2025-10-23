@@ -72,8 +72,7 @@ const nextConfig = {
   // Asset optimization for CDN usage
   assetPrefix: process.env.NODE_ENV === 'production' ? 'https://cdn.vighnahartaonlineservice.in' : '',
 
-  // Font optimization
-  optimizeFonts: true,
+
 
   // Webpack configuration for better asset handling
   webpack: (config, { isServer }) => {
@@ -90,15 +89,20 @@ const nextConfig = {
       },
     });
 
+    // Handle CSS files in production
+    if (process.env.NODE_ENV === 'production') {
+      config.optimization.minimize = true;
+    }
+
     return config;
   },
 
   // Experimental features for better performance
   experimental: {
     optimizePackageImports: ['lucide-react'],
-    // Enable Server Components for better performance
-    serverComponentsExternalPackages: ['critters'],
   },
+  // Server external packages
+  serverExternalPackages: ['critters'],
 
   // Compiler options
   compiler: {

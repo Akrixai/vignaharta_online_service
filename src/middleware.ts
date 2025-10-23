@@ -108,7 +108,7 @@ export default withAuth(
     }
 
     // Allow access to public routes
-    const publicRoutes = ['/', '/login', '/register', '/about', '/services', '/contact', '/privacy', '/terms', '/refund-policy'];
+    const publicRoutes = ['/', '/login', '/register', '/about', '/services', '/contact', '/privacy', '/terms', '/refund-policy', '/social-media'];
     if (publicRoutes.includes(pathname)) {
       return response;
     }
@@ -196,7 +196,7 @@ export default withAuth(
         const pathname = req.nextUrl.pathname;
         
         // Allow public routes
-        const publicRoutes = ['/', '/login', '/register', '/about', '/services', '/contact', '/privacy', '/terms', '/refund-policy'];
+        const publicRoutes = ['/', '/login', '/register', '/about', '/services', '/contact', '/privacy', '/terms', '/refund-policy', '/social-media'];
         if (publicRoutes.includes(pathname)) {
           return true;
         }
