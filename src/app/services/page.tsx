@@ -178,7 +178,7 @@ export default function ServicesPage() {
                 <span className="text-2xl font-bold text-red-600">1</span>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Visit Retailer</h3>
-              <p className="text-gray-600">Find your nearest Vignaharta Online Service retailer</p>
+              <p className="text-gray-600">Find your nearest Vighnaharta Online Services retailer</p>
             </div>
             <div className="text-center">
               <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">

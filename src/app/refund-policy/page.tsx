@@ -3,11 +3,11 @@ import Logo from "@/components/ui/logo";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Refund Policy - Vignaharta Online Service | Government Service Portal",
-  description: "Learn about our refund policy and money-back guarantee for government services through Vignaharta Online Service.",
-  keywords: "refund policy, money back guarantee, vignaharta online service, government services refund",
+  title: "Refund Policy - Vighnaharta Online Services | Government Service Portal",
+  description: "Learn about our refund policy and money-back guarantee for government services through Vighnaharta Online Services.",
+  keywords: "refund policy, money back guarantee, vighnaharta online services, government services refund",
   openGraph: {
-    title: "Refund Policy - Vignaharta Online Service",
+    title: "Refund Policy - Vighnaharta Online Services",
     description: "Understand our refund policy for government services.",
     type: "website",
   },
@@ -207,7 +207,7 @@ export default function RefundPolicyPage() {
             </div>
             <div className="border-t border-red-700 pt-6">
               <p className="text-red-300 text-sm">
-                © 2025 Vignaharta Online Service. All rights reserved. |
+                © 2025 Vighnaharta Online Services. All rights reserved. |
                 <a
                   href="https://akrixsolutions.in/"
                   target="_blank"

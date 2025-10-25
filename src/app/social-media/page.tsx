@@ -2,8 +2,8 @@ import { generateSEO } from "@/lib/seo";
 import Link from "next/link";
 
 const socialMediaSEO = {
-  title: 'Follow Us on Social Media - Vignaharta Online Services',
-  description: 'Connect with Vignaharta Online Services on Facebook, Twitter, Instagram, and LinkedIn. Stay updated with the latest government services, announcements, and digital initiatives.',
+  title: 'Follow Us on Social Media - Vighnaharta Online Services',
+  description: 'Connect with Vighnaharta Online Services on Facebook, Twitter, Instagram, and LinkedIn. Stay updated with the latest government services, announcements, and digital initiatives.',
   keywords: [
     'vignaharta social media',
     'government services social media',
@@ -55,7 +55,7 @@ export default function SocialMediaPage() {
             Connect With Us
           </h1>
           <p className="text-xl text-gray-700 max-w-2xl mx-auto">
-            Follow Vignaharta Online Services on social media to stay updated with the latest government services, announcements, and digital initiatives.
+            Follow Vighnaharta Online Services on social media to stay updated with the latest government services, announcements, and digital initiatives.
           </p>
         </div>
 

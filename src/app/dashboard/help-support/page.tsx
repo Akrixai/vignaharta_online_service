@@ -84,7 +84,7 @@ export default function HelpSupportPage() {
               <div className="text-center p-4 bg-white rounded-lg shadow-sm">
                 <MapPin className="w-8 h-8 text-green-600 mx-auto mb-2" />
                 <p className="font-semibold text-gray-900">Office Address</p>
-                <p className="text-sm text-gray-600">Vignaharta Online Service</p>
+                <p className="text-sm text-gray-600">Vighnaharta Online Services</p>
                 <p className="text-xs text-gray-500">Sangli, Maharashtra</p>
               </div>
             </div>

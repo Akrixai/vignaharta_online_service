@@ -91,11 +91,11 @@ export default function FAQPage() {
       title="Frequently Asked Questions"
       description="Find quick answers to common questions about our services, registration process, and more."
       authorName="Customer Support Team"
-      authorTitle="Vignaharta Online Services"
+      authorTitle="Vighnaharta Online Services"
       publishDate="2025-10-22"
       lastUpdated="2025-10-22"
       readingTime="6 min read"
-      tldrSummary="This FAQ section provides answers to common questions about Vignaharta Online Services, including how to register as a retailer, apply for government services, track applications, and contact customer support."
+      tldrSummary="This FAQ section provides answers to common questions about Vighnaharta Online Services, including how to register as a retailer, apply for government services, track applications, and contact customer support."
       tldrPoints={[
         "Registration process for retailers takes 2-3 business days",
         "Over 100 government services available through our portal",

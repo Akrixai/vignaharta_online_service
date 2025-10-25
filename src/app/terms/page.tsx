@@ -22,11 +22,11 @@ export default function TermsPage() {
       title="Terms & Conditions"
       description="Please read these terms and conditions carefully before using our services."
       authorName="Legal Team"
-      authorTitle="Vignaharta Online Services"
+      authorTitle="Vighnaharta Online Services"
       publishDate="2025-12-01"
       lastUpdated="2025-12-01"
       readingTime="8 min read"
-      tldrSummary="These Terms & Conditions govern your use of the Vignaharta Online Service platform. By accessing and using our services, you agree to be bound by these terms which include user responsibilities, service descriptions, payment terms, and privacy provisions."
+      tldrSummary="These Terms & Conditions govern your use of the Vighnaharta Online Services platform. By accessing and using our services, you agree to be bound by these terms which include user responsibilities, service descriptions, payment terms, and privacy provisions."
       tldrPoints={[
         "Users must provide accurate information and maintain account security",
         "Services are provided 'as is' with no guarantees of uninterrupted access",
@@ -39,14 +39,14 @@ export default function TermsPage() {
         <section className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">1. Acceptance of Terms</h2>
           <div className="space-y-4 text-gray-600">
-            <p>By accessing and using the Vignaharta Online Service platform, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.</p>
+            <p>By accessing and using the Vighnaharta Online Services platform, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.</p>
           </div>
         </section>
 
         <section className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">2. Service Description</h2>
           <div className="space-y-4 text-gray-600">
-            <p>Vignaharta Online Service is a government service portal that provides:</p>
+            <p>Vighnaharta Online Services is a government service portal that provides:</p>
             <ul className="list-disc list-inside space-y-2 ml-4">
               <li>Digital access to government services</li>
               <li>Application processing and tracking</li>
@@ -133,7 +133,7 @@ export default function TermsPage() {
         <section className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">8. Intellectual Property</h2>
           <div className="space-y-4 text-gray-600">
-            <p>All content on this website, including but not limited to text, graphics, logos, images, audio clips, digital downloads, data compilations, and software, is the property of Vignaharta Online Service or its licensors and is protected by copyright and other intellectual property laws.</p>
+            <p>All content on this website, including but not limited to text, graphics, logos, images, audio clips, digital downloads, data compilations, and software, is the property of Vighnaharta Online Services or its licensors and is protected by copyright and other intellectual property laws.</p>
           </div>
         </section>
 

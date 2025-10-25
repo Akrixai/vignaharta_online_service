@@ -6,11 +6,11 @@ import InternalLink from "@/components/blog/InternalLink";
 import OutboundLink from "@/components/blog/OutboundLink";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy - Vignaharta Online Service | Government Service Portal",
-  description: "Read our comprehensive privacy policy to understand how Vignaharta Online Service protects and handles your personal information and data.",
-  keywords: "privacy policy, data protection, personal information, security, vignaharta online service",
+  title: "Privacy Policy - Vighnaharta Online Services | Government Service Portal",
+  description: "Read our comprehensive privacy policy to understand how Vighnaharta Online Services protects and handles your personal information and data.",
+  keywords: "privacy policy, data protection, personal information, security, vighnaharta online services",
   openGraph: {
-    title: "Privacy Policy - Vignaharta Online Service",
+    title: "Privacy Policy - Vighnaharta Online Services",
     description: "Learn how we protect your privacy and personal information.",
     type: "website",
   },
@@ -26,14 +26,14 @@ export default function PrivacyPage() {
       publishDate="2025-12-01"
       lastUpdated="2025-12-01"
       readingTime="7 min read"
-      tldrSummary="This Privacy Policy explains how Vignaharta Online Service collects, uses, and protects your personal information when you use our government service portal. We are committed to safeguarding your data and complying with Indian data protection regulations."
+      tldrSummary="This Privacy Policy explains how Vighnaharta Online Services collects, uses, and protects your personal information when you use our government service portal. We are committed to safeguarding your data and complying with Indian data protection regulations."
       tldrPoints={[
         "We collect information you provide directly to us for service applications",
         "Your data is used only for processing government services and communication",
         "We implement robust security measures to protect your information",
         "You have rights to access, correct, and delete your personal data"
       ]}
-      keywords={["privacy policy", "data protection", "personal information", "security", "vignaharta online service"]}
+      keywords={["privacy policy", "data protection", "personal information", "security", "vighnaharta online services"]}
     >
       <div className="prose max-w-none">
         <section className="mb-8">

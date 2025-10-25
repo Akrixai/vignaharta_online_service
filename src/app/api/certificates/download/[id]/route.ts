@@ -160,7 +160,7 @@ function generateCertificatePDF(certificate: {
 <body>
     <div class="certificate">
         <div class="header">
-            <div class="logo">🏛️ VIGNAHARTA ONLINE SERVICE KENDRA</div>
+            <div class="logo">🏛️ VIGHNAHARTA ONLINE SERVICES KENDRA</div>
             <div style="font-size: 14px; color: #7f8c8d;">Government of India</div>
         </div>
 

@@ -19,14 +19,14 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <BlogPostTemplate
-      title="About Vignaharta Online Service"
+      title="About Vighnaharta Online Services"
       description="Bridging the gap between citizens and government services through innovative digital solutions and a nationwide retailer network."
-      authorName="Vignaharta Online Services Team"
+      authorName="Vighnaharta Online Services Team"
       authorTitle="Government Service Experts"
       publishDate="2025-10-22"
       lastUpdated="2025-10-22"
       readingTime="5 min read"
-      tldrSummary="Vignaharta Online Service is India's premier digital government service portal that connects citizens with essential services through our nationwide retailer network, making government services accessible, fast, and secure for everyone."
+      tldrSummary="Vighnaharta Online Services is India's premier digital government service portal that connects citizens with essential services through our nationwide retailer network, making government services accessible, fast, and secure for everyone."
       tldrPoints={[
         "Nationwide retailer network for local service access",
         "Digital platform for 100+ government services",
@@ -84,7 +84,7 @@ export default function AboutPage() {
 
         {/* Key Features */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Why Choose Vignaharta Online Service?</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Why Choose Vighnaharta Online Services?</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="bg-gradient-to-br from-red-500 to-red-600 text-white p-6 rounded-xl hover-lift">
               <div className="text-3xl mb-3">⚡</div>
@@ -124,7 +124,7 @@ export default function AboutPage() {
         <div className="text-center">
           <h2 className="text-3xl font-bold text-gray-900 mb-6">Ready to Get Started?</h2>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Join thousands of satisfied users who trust Vignaharta Online Service for their government service needs.
+            Join thousands of satisfied users who trust Vighnaharta Online Services for their government service needs.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link

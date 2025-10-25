@@ -139,7 +139,8 @@ export default function OrdersPage() {
       doc.setTextColor(0, 0, 0); // Black text for better visibility
       doc.setFontSize(26);
       doc.setFont('helvetica', 'bold');
-      doc.text('Vignaharta Online Service', 105, 22, { align: 'center' });
+      doc.text('Vighnaharta Online Services', 105, 22, { align: 'center' });
+      doc.line(20, 25, 190, 25);
 
       doc.setFontSize(14);
       doc.setFont('helvetica', 'normal');
@@ -287,7 +288,7 @@ export default function OrdersPage() {
       doc.setTextColor(...lightGray);
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
-      doc.text('Thank you for choosing Vignaharta Online Service!', 105, 285, { align: 'center' });
+      doc.text('Thank you for choosing Vighnaharta Online Services!', 105, 285, { align: 'center' });
       doc.text('For support, contact: vighnahartaenterprises.sangli@gmail.com', 105, 292, { align: 'center' });
 
       // Save the PDF

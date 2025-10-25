@@ -55,13 +55,13 @@ export default function MarathiHome() {
             </div>
             <div className="flex items-center space-x-6">
               <nav className="hidden md:flex space-x-6">
-                <Link href="/mr/about" className="text-white hover:text-red-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700/50">
+                <Link href="/about" className="text-white hover:text-red-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700/50">
                   आमच्याबद्दल
                 </Link>
-                <Link href="/mr/services" className="text-white hover:text-red-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700/50">
+                <Link href="/services" className="text-white hover:text-red-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700/50">
                   सेवा
                 </Link>
-                <Link href="/mr/contact" className="text-white hover:text-red-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700/50">
+                <Link href="/contact" className="text-white hover:text-red-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700/50">
                   संपर्क
                 </Link>
               </nav>
@@ -85,10 +85,10 @@ export default function MarathiHome() {
             <strong>आधार कार्ड</strong>, <strong>पॅन कार्ड</strong>, <strong>पासपोर्ट</strong>, <strong>जन्म प्रमाणपत्र</strong>, <strong>मृत्यू प्रमाणपत्र</strong>, <strong>उत्पन्न प्रमाणपत्र</strong>, <strong>जात प्रमाणपत्र</strong>, आणि <strong>100+ सरकारी सेवा ऑनलाईन</strong> प्रवेश मिळवा. राष्ट्रव्यापी विक्रेता नेटवर्क समर्थनासह जलद, सुरक्षित आणि विश्वसनीय सरकारी सेवा पोर्टल.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Link href="/mr/login" className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-lg text-lg font-semibold transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl">
+            <Link href="/login" className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-lg text-lg font-semibold transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl">
               🚀 सुरूवात करा - ऑनलाईन अर्ज करा
             </Link>
-            <Link href="/mr/about" className="bg-white hover:bg-red-50 text-red-600 border-2 border-red-600 px-8 py-4 rounded-lg text-lg font-semibold transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl">
+            <Link href="/about" className="bg-white hover:bg-red-50 text-red-600 border-2 border-red-600 px-8 py-4 rounded-lg text-lg font-semibold transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl">
               📖 सेवांबद्दल अधिक जाणून घ्या
             </Link>
           </div>
@@ -147,10 +147,10 @@ export default function MarathiHome() {
             आपल्या सरकारी सेवा गरजा पूर्ण करण्यासाठी आमच्याशी जोडा
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/mr/register" className="bg-white text-red-600 px-8 py-4 rounded-lg font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+            <Link href="/register" className="bg-white text-black hover:text-red-600 px-8 py-4 rounded-lg font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
               🏪 विक्रेता बना
             </Link>
-            <Link href="/mr/login" className="border-2 border-white text-white px-8 py-4 rounded-lg font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+            <Link href="/login" className="border-2 border-white text-white px-8 py-4 rounded-lg font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
               👤 लॉगिन करा
             </Link>
           </div>
