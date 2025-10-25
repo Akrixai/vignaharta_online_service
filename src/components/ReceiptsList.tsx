@@ -72,7 +72,7 @@ export default function ReceiptsList({ className }: ReceiptsListProps) {
       pdf.setTextColor(0, 0, 0); // Black text for better visibility on orange
       pdf.setFontSize(20);
       pdf.setFont('helvetica', 'bold');
-      pdf.text('VIGNAHARTA ONLINE SERVICE', 105, 20, { align: 'center' });
+      pdf.text('VIGHNAHARTA ONLINE SERVICE', 105, 20, { align: 'center' });
 
       pdf.setFontSize(12);
       pdf.setFont('helvetica', 'normal');
@@ -207,7 +207,7 @@ export default function ReceiptsList({ className }: ReceiptsListProps) {
       pdf.setTextColor(0, 0, 0);
       pdf.setFontSize(10);
       pdf.setFont('helvetica', 'bold');
-      pdf.text('VIGNAHARTA ONLINE SERVICE - Government Services Portal', 105, yPos, { align: 'center' });
+      pdf.text('VIGHNAHARTA ONLINE SERVICE - Government Services Portal', 105, yPos, { align: 'center' });
 
       yPos += 8;
       pdf.setFont('helvetica', 'normal');

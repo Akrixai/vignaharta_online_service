@@ -33,7 +33,7 @@ const fallbackAds: Advertisement[] = [
     is_active: true,
     background: 'from-red-500 to-red-700',
     icon: '🏛️',
-    alt_text: 'Vignaharta Online Services - Government Service Portal'
+    alt_text: 'Vighnaharta Online Services - Government Service Portal'
   },
   {
     id: 'fallback-2', 

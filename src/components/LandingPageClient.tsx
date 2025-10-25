@@ -199,7 +199,7 @@ export default function LandingPageClient() {
         <div className="text-center relative z-10">
           {/* SEO-optimized H1 and H2 tags */}
           <h1 className="text-4xl md:text-6xl font-bold text-red-800 mb-6 animate-fade-in">
-            Vignaharta Online Services - Government Services Portal India
+            Vighnaharta Online Services - Government Services Portal India
           </h1>
           <h2 className="text-xl md:text-2xl text-red-600 mb-4 max-w-3xl mx-auto animate-fade-in animate-delay-200">
             India's Premier Digital Government Services Portal - Apply for Aadhaar Card, PAN Card, Passport, Birth Certificate Online
@@ -218,7 +218,7 @@ export default function LandingPageClient() {
 
           {/* Added: Government Services Benefits Section */}
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 mb-12 shadow-xl border border-red-100 max-w-4xl mx-auto">
-            <h3 className="text-2xl font-bold text-red-800 mb-6">Why Choose Vignaharta Online Services?</h3>
+            <h3 className="text-2xl font-bold text-red-800 mb-6">Why Choose Vighnaharta Online Services?</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
               <div className="flex items-start">
                 <div className="text-2xl mr-4 text-red-600">✅</div>

@@ -155,7 +155,7 @@ export function useRazorpay() {
         key,
         amount: orderAmount,
         currency,
-        name: 'Vignaharta Online Service',
+        name: 'Vighnaharta Online Service',
         description: 'Wallet Top-up',
         order_id,
         handler: async (response: any) => {

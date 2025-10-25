@@ -10,8 +10,8 @@ export interface SEOConfig {
 }
 
 const baseUrl = 'https://www.vighnahartaonlineservice.in';
-const siteName = 'Vignaharta Online Services';
-const defaultDescription = 'Vignaharta Online Services - Your trusted partner for all government services online. Apply for certificates, licenses, and government schemes digitally. Fast, secure, and reliable government service portal in India.';
+const siteName = 'Vighnaharta Online Services';
+const defaultDescription = 'Vighnaharta Online Services - Your trusted partner for all government services online. Apply for certificates, licenses, and government schemes digitally. Fast, secure, and reliable government service portal in India.';
 
 export const defaultSEO: Metadata = {
   metadataBase: new URL(baseUrl),
@@ -48,9 +48,9 @@ export const defaultSEO: Metadata = {
     'digital service provider india',
     'online government service provider'
   ],
-  authors: [{ name: 'Vignaharta Online Services' }],
-  creator: 'Vignaharta Online Services',
-  publisher: 'Vignaharta Online Services',
+  authors: [{ name: 'Vighnaharta Online Services' }],
+  creator: 'Vighnaharta Online Services',
+  publisher: 'Vighnaharta Online Services',
   formatDetection: {
     email: false,
     address: false,
@@ -68,7 +68,7 @@ export const defaultSEO: Metadata = {
         url: '/images/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'Vignaharta Online Services - Government Portal',
+        alt: 'Vighnaharta Online Services - Government Portal',
       }
     ],
   },
@@ -146,14 +146,14 @@ export function generateSEO(config: SEOConfig): Metadata {
 // Page-specific SEO configurations
 export const pageSEO = {
   home: {
-    title: 'Vignaharta Online Services - Government Portal India',
+    title: 'Vighnaharta Online Services - Government Portal India',
     description: 'Access 100+ government services online. Apply for Aadhaar, PAN, Passport, Birth Certificate and more. Fast, secure digital government services in India.',
     keywords: [
       'government services online india',
       'digital india services',
       'online certificate application',
       'government portal',
-      'vignaharta online services',
+      'vighnaharta online services',
       'vighnaharta online services',
       'digital government services',
       'online license application',
@@ -172,7 +172,7 @@ export const pageSEO = {
       'income certificate online',
       'government services near me',
       'digital india government services',
-      'vignaharta services',
+      'vighnaharta services',
       'vighnaharta services',
       'government service provider india',
       'digital service provider india',
@@ -181,12 +181,12 @@ export const pageSEO = {
     canonical: '/',
   },
   login: {
-    title: 'Login - Vignaharta Online Services | Secure Government Portal Access | Citizen, Retailer, Employee Login',
-    description: 'Secure login to Vignaharta Online Services. Access your government service applications, track status, and manage your digital certificates safely. Citizen, retailer, and employee login portals available.',
+    title: 'Login - Vighnaharta Online Services | Secure Government Portal Access | Citizen, Retailer, Employee Login',
+    description: 'Secure login to Vighnaharta Online Services. Access your government service applications, track status, and manage your digital certificates safely. Citizen, retailer, and employee login portals available.',
     keywords: [
       'government portal login',
       'secure login',
-      'vignaharta login',
+      'vighnaharta login',
       'government services access',
       'digital india login',
       'citizen login',
@@ -198,12 +198,12 @@ export const pageSEO = {
     canonical: '/login',
   },
   register: {
-    title: 'Register - Vignaharta Online Services | Become a Government Service Retailer | Join Digital India',
-    description: 'Register with Vignaharta Online Services to become a government service retailer. Join India\'s premier digital government services network. Quick registration process for digital government services in India with earning opportunities.',
+    title: 'Register - Vighnaharta Online Services | Become a Government Service Retailer | Join Digital India',
+    description: 'Register with Vighnaharta Online Services to become a government service retailer. Join India\'s premier digital government services network. Quick registration process for digital government services in India with earning opportunities.',
     keywords: [
       'government portal registration',
       'register government services',
-      'vignaharta registration',
+      'vighnaharta registration',
       'digital india registration',
       'government services signup',
       'become government service retailer',
@@ -215,10 +215,10 @@ export const pageSEO = {
     canonical: '/register',
   },
   about: {
-    title: 'About Us - Vignaharta Online Services | Leading Government Service Provider | Digital India Initiative',
-    description: 'Learn about Vignaharta Online Services, India\'s trusted government service portal. We provide digital access to government certificates, licenses, and schemes through our nationwide retailer network. Part of Digital India initiative.',
+    title: 'About Us - Vighnaharta Online Services | Leading Government Service Provider | Digital India Initiative',
+    description: 'Learn about Vighnaharta Online Services, India\'s trusted government service portal. We provide digital access to government certificates, licenses, and schemes through our nationwide retailer network. Part of Digital India initiative.',
     keywords: [
-      'about vignaharta',
+      'about vighnaharta',
       'government service provider',
       'digital india services',
       'online government portal',
@@ -232,11 +232,11 @@ export const pageSEO = {
     canonical: '/about',
   },
   contact: {
-    title: 'Contact Us - Vignaharta Online Services | Government Services Support | Help & Assistance',
-    description: 'Contact Vignaharta Online Services for support with government applications, certificates, and digital services. Get help with your government service needs through phone, email, or WhatsApp. 24/7 customer support available.',
+    title: 'Contact Us - Vighnaharta Online Services | Government Services Support | Help & Assistance',
+    description: 'Contact Vighnaharta Online Services for support with government applications, certificates, and digital services. Get help with your government service needs through phone, email, or WhatsApp. 24/7 customer support available.',
     keywords: [
       'government services contact',
-      'vignaharta contact',
+      'vighnaharta contact',
       'government portal support',
       'digital services help',
       'government services assistance',
@@ -249,8 +249,8 @@ export const pageSEO = {
     canonical: '/contact',
   },
   services: {
-    title: 'Government Services - Vignaharta Online Services | Apply for Aadhaar, PAN, Passport, Certificates Online',
-    description: 'Explore all 100+ government services available through Vignaharta Online Services. Apply for Aadhaar card, PAN card, Passport, Birth Certificate, Death Certificate, Income Certificate, Caste Certificate and access government schemes online with fast processing.',
+    title: 'Government Services - Vighnaharta Online Services | Apply for Aadhaar, PAN, Passport, Certificates Online',
+    description: 'Explore all 100+ government services available through Vighnaharta Online Services. Apply for Aadhaar card, PAN card, Passport, Birth Certificate, Death Certificate, Income Certificate, Caste Certificate and access government schemes online with fast processing.',
     keywords: [
       'government services list',
       'online certificates',
@@ -291,7 +291,7 @@ export const structuredData = {
     sameAs: [
       'https://www.facebook.com/vighnahartaonlineservices',
       'https://www.twitter.com/VighnahartaOnline',
-      'https://www.linkedin.com/company/vignaharta-online-services',
+      'https://www.linkedin.com/company/vighnaharta-online-services',
     ],
   },
   // Local Business structured data for better local SEO
@@ -312,7 +312,7 @@ export const structuredData = {
     sameAs: [
       'https://www.facebook.com/vighnahartaonlineservices',
       'https://www.twitter.com/VighnahartaOnline',
-      'https://www.linkedin.com/company/vignaharta-online-services',
+      'https://www.linkedin.com/company/vighnaharta-online-services',
     ],
     areaServed: {
       '@type': 'Country',
@@ -584,7 +584,7 @@ export const structuredData = {
         name: 'How do I apply for government services?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Visit your nearest Vignaharta Online Service retailer, submit required documents, and track your application status in real-time through our digital platform.'
+          text: 'Visit your nearest Vighnaharta Online Service retailer, submit required documents, and track your application status in real-time through our digital platform.'
         }
       },
       {
@@ -605,26 +605,26 @@ export const structuredData = {
       },
       {
         '@type': 'Question',
-        name: 'What is Vignaharta Online Services?',
+        name: 'What is Vighnaharta Online Services?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Vignaharta Online Services is India\'s premier digital government services portal that provides access to 100+ government services online. We help citizens apply for Aadhaar Card, PAN Card, Passport, Birth Certificate, Death Certificate, Income Certificate, Caste Certificate, and other government schemes digitally with fast, secure, and reliable processing.'
+          text: 'Vighnaharta Online Services is India\'s premier digital government services portal that provides access to 100+ government services online. We help citizens apply for Aadhaar Card, PAN Card, Passport, Birth Certificate, Death Certificate, Income Certificate, Caste Certificate, and other government schemes digitally with fast, secure, and reliable processing.'
         }
       },
       {
         '@type': 'Question',
-        name: 'How can I find Vignaharta Online Services near me?',
+        name: 'How can I find Vighnaharta Online Services near me?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Vignaharta Online Services has a nationwide network of over 10,000+ service centers across India. You can locate the nearest service center through our website or mobile app, or call our customer support at +91-7499116527 for assistance.'
+          text: 'Vighnaharta Online Services has a nationwide network of over 10,000+ service centers across India. You can locate the nearest service center through our website or mobile app, or call our customer support at +91-7499116527 for assistance.'
         }
       },
       {
         '@type': 'Question',
-        name: 'What are the benefits of using Vignaharta Online Services?',
+        name: 'What are the benefits of using Vighnaharta Online Services?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'The key benefits of using Vignaharta Online Services include: 1) Digital India Initiative participation, 2) Nationwide access to government services, 3) Fast processing with real-time tracking, 4) Secure and reliable service with bank-level encryption, 5) User-friendly interface, and 6) Extensive retailer network support across India.'
+          text: 'The key benefits of using Vighnaharta Online Services include: 1) Digital India Initiative participation, 2) Nationwide access to government services, 3) Fast processing with real-time tracking, 4) Secure and reliable service with bank-level encryption, 5) User-friendly interface, and 6) Extensive retailer network support across India.'
         }
       }
     ]

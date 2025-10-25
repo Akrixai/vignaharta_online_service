@@ -16,7 +16,7 @@ const fallbackImages = [
     image_url: '/images/government-services-1.jpg',
     title: 'Digital India Services',
     is_active: true,
-    alt_text: 'Indian citizen accessing digital government services online through Vignaharta portal'
+    alt_text: 'Indian citizen accessing digital government services online through Vighnaharta portal'
   },
   {
     id: 'fallback-2', 
