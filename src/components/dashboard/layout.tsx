@@ -137,16 +137,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         />
       )}
 
-      {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 min-w-[16rem] bg-gradient-to-b from-red-800 to-red-900 shadow-xl transform overflow-auto lg:overflow-visible ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:relative lg:flex lg:flex-col`}>
-        <div className="flex items-center justify-center h-16 px-4 bg-gradient-to-r from-red-700 to-red-800 border-b border-red-600 sticky top-0 z-10">
+      {/* Sidebar - Made sticky */}
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 min-w-[16rem] bg-gradient-to-b from-red-800 to-red-900 shadow-xl transform overflow-hidden ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:relative lg:flex lg:flex-col lg:sticky lg:top-0 lg:h-screen`}>
+        <div className="flex items-center justify-center h-16 px-4 bg-gradient-to-r from-red-700 to-red-800 border-b border-red-600">
           <Link href="/" className="text-white flex items-center space-x-2">
             <Logo size="md" showText={true} animated={false} />
           </Link>
         </div>
 
         {/* User Info */}
-        <div className="p-4 border-b border-red-600 sticky top-16 z-10 bg-gradient-to-b from-red-800 to-red-900">
+        <div className="p-4 border-b border-red-600">
           <div className="flex items-center space-x-3">
             <div className={`w-10 h-10 rounded-full ${getRoleColor(userRole)} flex items-center justify-center text-white font-bold shadow-lg`}>
               {userName.charAt(0).toUpperCase()}
@@ -158,8 +158,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </div>
 
-        {/* Navigation */}
-        <nav className="mt-4 px-2 flex-1 overflow-y-auto pb-4">
+        {/* Navigation - Made scrollable */}
+        <nav className="mt-4 px-2 flex-1 overflow-y-auto">
           <div className="space-y-1">
             {filteredMenuItems.map((item) => (
               <Link
@@ -175,7 +175,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </nav>
 
         {/* Sidebar Advertisement */}
-        <div className="p-4 border-t border-red-600 sticky bottom-20 bg-gradient-to-b from-red-800 to-red-900">
+        <div className="p-4 border-t border-red-600">
           <AdvertisementCarousel
             position="sidebar"
             height="h-32"
@@ -188,7 +188,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
 
         {/* Logout */}
-        <div className="p-4 border-t border-red-600 sticky bottom-0 bg-gradient-to-b from-red-800 to-red-900">
+        <div className="p-4 border-t border-red-600">
           <button
             onClick={() => signOut({ callbackUrl: '/' })}
             className="w-full flex items-center px-3 py-3 text-sm font-medium rounded-lg text-red-200 hover:bg-red-700 hover:text-white transition-all duration-200"
@@ -199,7 +199,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
 
         {/* Akrix.ai Branding */}
-        <div className="p-4 border-t border-red-600 sticky bottom-0 bg-gradient-to-b from-red-800 to-red-900">
+        <div className="p-4 border-t border-red-600">
           <a
             href="https://akrixsolutions.in/"
             target="_blank"
@@ -215,8 +215,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top bar */}
-        <div className="sticky top-0 z-10 bg-gradient-to-r from-red-600 to-red-700 shadow-lg border-b border-red-500 flex items-center justify-between h-16 px-4">
+        {/* Top bar - Made sticky */}
+        <div className="sticky top-0 z-10 bg-gradient-to-r from-red-600 to-red-700 shadow-lg border-b border-red-500 flex items-center justify-between h-12 px-4">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="lg:hidden p-2 rounded-md text-red-100 hover:text-white hover:bg-red-700 transition-colors"
@@ -272,8 +272,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </div>
 
-        {/* Page content */}
-        <main className="flex-1 p-4 sm:p-6 overflow-auto w-full max-w-full">
+        {/* Page content - Made scrollable */}
+        <main className="flex-1 p-4 sm:p-6 overflow-y-auto w-full max-w-full">
           {children}
         </main>
 
