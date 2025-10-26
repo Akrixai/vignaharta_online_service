@@ -129,6 +129,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-red-100 flex">
+      {/* Hide scrollbars for sidebar scroll container (webkit + firefox + ie) */}
+      <style>{`.hide-scrollbar::-webkit-scrollbar{display:none}.hide-scrollbar{scrollbar-width:none;-ms-overflow-style:none;}`}</style>
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
@@ -138,7 +140,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       )}
 
       {/* Sidebar - Made sticky */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 min-w-[16rem] bg-gradient-to-b from-red-800 to-red-900 shadow-xl transform overflow-hidden ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:relative lg:flex lg:flex-col lg:sticky lg:top-0 lg:h-screen`}>
+  <div className={`fixed inset-y-0 left-0 z-50 w-64 min-w-[16rem] bg-gradient-to-b from-red-800 to-red-900 shadow-xl transform overflow-hidden ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:top-0 lg:h-screen lg:flex lg:flex-col`}>
         <div className="flex items-center justify-center h-16 px-4 bg-gradient-to-r from-red-700 to-red-800 border-b border-red-600">
           <Link href="/" className="text-white flex items-center space-x-2">
             <Logo size="md" showText={true} animated={false} />
@@ -158,58 +160,60 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </div>
 
-        {/* Navigation - Made scrollable */}
-        <nav className="mt-4 px-2 flex-1 overflow-y-auto">
-          <div className="space-y-1">
-            {filteredMenuItems.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className="group flex items-center px-3 py-3 text-sm font-medium rounded-lg text-red-100 hover:bg-red-700 hover:text-white transition-all duration-200 hover:shadow-md"
-              >
-                <span className="mr-3 text-lg">{item.icon}</span>
-                {item.name}
-              </Link>
-            ))}
+        {/* Make the center area (menu + ad + logout + branding) a single scrollable column so the scrollbar covers all items */}
+        <div className="mt-4 px-2 flex-1 flex flex-col overflow-y-auto hide-scrollbar">
+          <nav className="flex-1">
+            <div className="space-y-1">
+              {filteredMenuItems.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className="group flex items-center px-3 py-3 text-sm font-medium rounded-lg text-red-100 hover:bg-red-700 hover:text-white transition-all duration-200 hover:shadow-md"
+                >
+                  <span className="mr-3 text-lg">{item.icon}</span>
+                  {item.name}
+                </Link>
+              ))}
+            </div>
+          </nav>
+
+          {/* Sidebar Advertisement */}
+          <div className="p-4 border-t border-red-600">
+            <AdvertisementCarousel
+              position="sidebar"
+              height="h-32"
+              className="rounded-lg overflow-hidden"
+              autoPlay={true}
+              autoPlayInterval={6000}
+              showControls={false}
+              showIndicators={false}
+            />
           </div>
-        </nav>
 
-        {/* Sidebar Advertisement */}
-        <div className="p-4 border-t border-red-600">
-          <AdvertisementCarousel
-            position="sidebar"
-            height="h-32"
-            className="rounded-lg overflow-hidden"
-            autoPlay={true}
-            autoPlayInterval={6000}
-            showControls={false}
-            showIndicators={false}
-          />
-        </div>
+          {/* Logout */}
+          <div className="p-4 border-t border-red-600">
+            <button
+              onClick={() => signOut({ callbackUrl: '/' })}
+              className="w-full flex items-center px-3 py-3 text-sm font-medium rounded-lg text-red-200 hover:bg-red-700 hover:text-white transition-all duration-200"
+            >
+              <span className="mr-3 text-lg">🚪</span>
+              Logout
+            </button>
+          </div>
 
-        {/* Logout */}
-        <div className="p-4 border-t border-red-600">
-          <button
-            onClick={() => signOut({ callbackUrl: '/' })}
-            className="w-full flex items-center px-3 py-3 text-sm font-medium rounded-lg text-red-200 hover:bg-red-700 hover:text-white transition-all duration-200"
-          >
-            <span className="mr-3 text-lg">🚪</span>
-            Logout
-          </button>
-        </div>
-
-        {/* Akrix.ai Branding */}
-        <div className="p-4 border-t border-red-600">
-          <a
-            href="https://akrixsolutions.in/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-500 text-white font-extrabold px-4 py-2 rounded-full shadow-lg animate-pulse hover:from-pink-500 hover:to-yellow-400 transition-all duration-300 flex items-center space-x-2 border-2 border-white/30 w-full justify-center"
-            style={{textShadow: '0 0 8px #fff, 0 0 16px #f472b6'}}
-          >
-            <span className="text-lg animate-bounce">🚀</span>
-            <span className="drop-shadow-lg">Developed by Akrix.ai</span>
-          </a>
+          {/* Akrix.ai Branding - compact single-line pill */}
+          <div className="p-4 border-t border-red-600">
+            <a
+              href="https://akrixsolutions.in/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-500 text-white font-semibold px-3 py-1.5 rounded-full shadow-sm hover:from-pink-500 hover:to-yellow-400 transition-all duration-200 inline-flex items-center justify-center space-x-2 w-full"
+              style={{ textShadow: '0 0 6px rgba(255,255,255,0.7)' }}
+            >
+              <span className="text-sm">🚀</span>
+              <span className="text-sm">Developed by Akrix.ai</span>
+            </a>
+          </div>
         </div>
       </div>
 
