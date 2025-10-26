@@ -4,13 +4,31 @@ import { authOptions } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import Razorpay from 'razorpay';
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!,
-});
+// Initialize Razorpay only when needed to avoid build errors
+let razorpay: Razorpay | null = null;
+
+function getRazorpayInstance(): Razorpay {
+  if (!razorpay) {
+    const key_id = process.env.RAZORPAY_KEY_ID;
+    const key_secret = process.env.RAZORPAY_KEY_SECRET;
+    
+    if (!key_id || !key_secret) {
+      throw new Error('Razorpay credentials are not configured');
+    }
+    
+    razorpay = new Razorpay({
+      key_id,
+      key_secret,
+    });
+  }
+  return razorpay;
+}
 
 export async function GET(request: NextRequest) {
   try {
+    // Initialize Razorpay instance
+    const razorpayInstance = getRazorpayInstance();
+    
     const session = await getServerSession(authOptions);
     
     if (!session) {
@@ -33,7 +51,7 @@ export async function GET(request: NextRequest) {
     // Check payment status from Razorpay
     if (paymentId) {
       try {
-        const payment = await razorpay.payments.fetch(paymentId);
+        const payment = await razorpayInstance.payments.fetch(paymentId);
         paymentStatus = {
           id: payment.id,
           status: payment.status,
@@ -53,7 +71,7 @@ export async function GET(request: NextRequest) {
     // Check order status from Razorpay
     if (orderId) {
       try {
-        const order = await razorpay.orders.fetch(orderId);
+        const order = await razorpayInstance.orders.fetch(orderId);
         orderStatus = {
           id: order.id,
           status: order.status,
@@ -122,6 +140,9 @@ export async function GET(request: NextRequest) {
 // POST method to manually sync payment status
 export async function POST(request: NextRequest) {
   try {
+    // Initialize Razorpay instance
+    const razorpayInstance = getRazorpayInstance();
+    
     const session = await getServerSession(authOptions);
     
     if (!session) {
@@ -137,7 +158,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch payment details from Razorpay
-    const payment = await razorpay.payments.fetch(payment_id);
+    const payment = await razorpayInstance.payments.fetch(payment_id);
 
     if (payment.status === 'captured') {
       // Check if already processed
@@ -167,7 +188,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Wallet not found' }, { status: 404 });
       }
 
-      const amountInRupees = payment.amount / 100;
+      const amountInRupees = parseFloat(payment.amount.toString()) / 100;
       const newBalance = parseFloat(wallet.balance.toString()) + amountInRupees;
 
       // Update wallet balance

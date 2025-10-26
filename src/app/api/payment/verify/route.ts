@@ -29,9 +29,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify signature
+    const razorpay_key_secret = process.env.RAZORPAY_KEY_SECRET;
+    
+    if (!razorpay_key_secret) {
+      return NextResponse.json(
+        { error: 'Razorpay credentials are not configured' },
+        { status: 500 }
+      );
+    }
+    
     const body_string = razorpay_order_id + '|' + razorpay_payment_id;
     const expected_signature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET!)
+      .createHmac('sha256', razorpay_key_secret)
       .update(body_string)
       .digest('hex');
 
@@ -54,7 +63,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Convert amount from paise to rupees
-    const amountInRupees = amount / 100;
+    const amountInRupees = parseFloat(amount.toString()) / 100;
 
     // Create transaction record
     const { data: transaction, error: transactionError } = await supabaseAdmin
