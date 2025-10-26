@@ -6,7 +6,7 @@ import { Toaster } from "react-hot-toast";
 import NotificationManager from "@/components/NotificationManager";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { defaultSEO, structuredData } from "@/lib/seo";
-import Script from "next/script";
+// removed google analytics Script import to disable GA
 
 const inter = Inter({ 
   subsets: ["latin"],
@@ -158,19 +158,7 @@ export default function RootLayout({
         )}
       </head>
       <body className="antialiased">
-        {/* Google Analytics */}
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-EH4ZLJQ4RK"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-EH4ZLJQ4RK');
-          `}
-        </Script>
+        {/* Google Analytics removed to avoid CSP/script loading issues */}
         <NextAuthSessionProvider>
           <NotificationManager>
               <ErrorBoundary>

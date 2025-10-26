@@ -8,6 +8,7 @@ import { UserRole } from '@/types';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 import { useApi } from '@/hooks/useApi';
 import AdvertisementCarousel from '@/components/AdvertisementCarousel';
+import LandingPageClient from '@/components/LandingPageClient';
 
 
 const mockStats = {
@@ -49,7 +50,7 @@ export default function DashboardPage() {
   }, [getDashboardStats, session]);
 
   if (!session) {
-    return null; // Middleware will redirect
+    return <LandingPageClient />;
   }
 
   const user = session.user;

@@ -50,12 +50,7 @@ const nextConfig = {
         pathname: '/**',
       },
       // CDN for static images
-      {
-        protocol: 'https',
-        hostname: 'cdn.vighnahartaonlineservice.in',
-        port: '',
-        pathname: '/**',
-      }
+      // removed CDN hostname to avoid external CDN dependencies and CSP issues
     ],
 
     // Image formats to support
@@ -65,8 +60,9 @@ const nextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
 
-    // Disable image optimization for static images in public folder to use CDN
-    unoptimized: true,
+    // Disable image optimization for static images in public folder
+    // (set to false if you want next/image optimization in future)
+    unoptimized: false,
   },
 
   // Asset optimization for CDN usage
@@ -82,7 +78,8 @@ const nextConfig = {
       use: {
         loader: 'file-loader',
         options: {
-          publicPath: process.env.NODE_ENV === 'production' ? 'https://cdn.vighnahartaonlineservice.in/_next/static/images/' : '/_next/static/images/',
+          // Use local _next static path instead of external CDN
+          publicPath: '/_next/static/images/',
           outputPath: 'static/images/',
           name: '[name].[hash].[ext]',
         },
@@ -153,7 +150,8 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://va.vercel-scripts.com https://cdn.vighnahartaonlineservice.in; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.vighnahartaonlineservice.in; font-src 'self' https://fonts.gstatic.com https://cdn.vighnahartaonlineservice.in; img-src 'self' data: https:; connect-src 'self' https://nblvyqgtlsltuzbnhofz.supabase.co https://api.supabase.co wss://nblvyqgtlsltuzbnhofz.supabase.co; frame-src 'self' https://vercel.live;",
+            // Simplified CSP: allow only own origin and trusted font sources. Removed Google Analytics and CDN domains.
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://nblvyqgtlsltuzbnhofz.supabase.co https://api.supabase.co wss://nblvyqgtlsltuzbnhofz.supabase.co; frame-src 'self' https://vercel.live;",
           },
           {
             key: 'Permissions-Policy',

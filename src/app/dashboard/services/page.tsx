@@ -205,7 +205,7 @@ export default function ServicesPage() {
                           (e.target as HTMLElement).style.display = 'none';
                         }}
                       />
-                      <div className="absolute top-2 right-2 z-10">
+                      <div className="absolute top-2 right-2 z-0">
                         <div
                           className={`px-4 py-1 rounded-full text-base font-bold shadow-lg border-2 border-white ${
                             service.is_free
