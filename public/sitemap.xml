@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" 
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+  
+  <!-- Homepage -->
+  <url>
+    <loc>https://www.vighnahartaonlineservice.in/</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.vighnahartaonlineservice.in/" />
+    <xhtml:link rel="alternate" hreflang="mr" href="https://www.vighnahartaonlineservice.in/mr" />
+  </url>
+  
+  <!-- About Page -->
+  <url>
+    <loc>https://www.vighnahartaonlineservice.in/about</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.vighnahartaonlineservice.in/about" />
+    <xhtml:link rel="alternate" hreflang="mr" href="https://www.vighnahartaonlineservice.in/mr/about" />
+  </url>
+  
+  <!-- Services Overview -->
+  <url>
+    <loc>https://www.vighnahartaonlineservice.in/services</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.98</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.vighnahartaonlineservice.in/services" />
+    <xhtml:link rel="alternate" hreflang="mr" href="https://www.vighnahartaonlineservice.in/mr/services" />
+  </url>
+  
+  <!-- High-Priority Government Services -->
+  <url>
+    <loc>https://www.vighnahartaonlineservice.in/services/aadhaar-card</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.vighnahartaonlineservice.in/services/pan-card</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.vighnahartaonlineservice.in/services/passport</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.92</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.vighnahartaonlineservice.in/services/birth-certificate</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.vighnahartaonlineservice.in/services/income-certificate</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.vighnahartaonlineservice.in/services/voter-id</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.88</priority>
+  </url>
+  
+  <!-- Additional Government Services -->
+  <url>
+    <loc>https://www.vighnahartaonlineservice.in/services/death-certificate</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.vighnahartaonlineservice.in/services/caste-certificate</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.vighnahartaonlineservice.in/services/domicile-certificate</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.vighnahartaonlineservice.in/services/bank-account</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.vighnahartaonlineservice.in/services/electricity-connection</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.vighnahartaonlineservice.in/services/insurance</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  
+  <!-- Sub-service Pages -->
+  <url>
+    <loc>https://www.vighnahartaonlineservice.in/services/aadhaar-card/new-enrollment</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.vighnahartaonlineservice.in/services/aadhaar-card/update-details</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.vighnahartaonlineservice.in/services/pan-card/new-application</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.vighnahartaonlineservice.in/services/pan-card/correction</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  
+  <!-- Marathi Pages -->
+  <url>
+    <loc>https://www.vighnahartaonlineservice.in/mr</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.vighnahartaonlineservice.in/" />
+    <xhtml:link rel="alternate" hreflang="mr" href="https://www.vighnahartaonlineservice.in/mr" />
+  </url>
+  
+  <url>
+    <loc>https://www.vighnahartaonlineservice.in/mr/services</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.vighnahartaonlineservice.in/services" />
+    <xhtml:link rel="alternate" hreflang="mr" href="https://www.vighnahartaonlineservice.in/mr/services" />
+  </url>
+  
+  <url>
+    <loc>https://www.vighnahartaonlineservice.in/mr/about</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.vighnahartaonlineservice.in/about" />
+    <xhtml:link rel="alternate" hreflang="mr" href="https://www.vighnahartaonlineservice.in/mr/about" />
+  </url>
+  
+  <url>
+    <loc>https://www.vighnahartaonlineservice.in/mr/contact</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.vighnahartaonlineservice.in/contact" />
+    <xhtml:link rel="alternate" hreflang="mr" href="https://www.vighnahartaonlineservice.in/mr/contact" />
+  </url>
+  
+  <!-- Contact and Support -->
+  <url>
+    <loc>https://www.vighnahartaonlineservice.in/contact</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.vighnahartaonlineservice.in/contact" />
+    <xhtml:link rel="alternate" hreflang="mr" href="https://www.vighnahartaonlineservice.in/mr/contact" />
+  </url>
+  
+  <url>
+    <loc>https://www.vighnahartaonlineservice.in/faq</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <!-- User Account Pages -->
+  <url>
+    <loc>https://www.vighnahartaonlineservice.in/login</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.vighnahartaonlineservice.in/register</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <!-- Social Media Page -->
+  <url>
+    <loc>https://www.vighnahartaonlineservice.in/social-media</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <!-- Legal Pages -->
+  <url>
+    <loc>https://www.vighnahartaonlineservice.in/privacy-policy</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.vighnahartaonlineservice.in/terms-of-service</loc>
+    <lastmod>2025-10-21</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  
+</urlset>

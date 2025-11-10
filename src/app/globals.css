@@ -1,0 +1,400 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fef2f2;
+  --foreground: #7f1d1d;
+  --primary: #dc2626;
+  --primary-foreground: #ffffff;
+  --secondary: #fecaca;
+  --secondary-foreground: #991b1b;
+  --accent: #fee2e2;
+  --accent-foreground: #b91c1c;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter), Arial, Helvetica, sans-serif;
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #fef2f2;
+    --foreground: #1f2937;
+    --primary: #dc2626;
+    --primary-foreground: #ffffff;
+    --secondary: #fecaca;
+    --secondary-foreground: #991b1b;
+    --accent: #fee2e2;
+    --accent-foreground: #b91c1c;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+/* Marathi text support */
+.marathi-text {
+  font-family: var(--font-devanagari), 'Noto Sans Devanagari', 'Mangal', 'Shree Devanagari 714', system-ui, -apple-system, sans-serif;
+  font-feature-settings: "kern" 1, "liga" 1;
+  text-rendering: optimizeLegibility;
+}
+
+/* Logo specific styling */
+.logo-marathi {
+  font-family: var(--font-devanagari), 'Noto Sans Devanagari', 'Mangal', 'Shree Devanagari 714', system-ui, -apple-system, sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-rendering: optimizeLegibility;
+}
+
+/* Ensure text is readable in all contexts */
+input, textarea, select {
+  color: #1f2937 !important; /* Dark gray text */
+  background-color: white !important;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #6b7280 !important; /* Medium gray placeholder */
+}
+
+/* Select component specific styling */
+[data-radix-select-trigger] {
+  background-color: white !important;
+  color: #1f2937 !important;
+  border: 1px solid #d1d5db !important;
+}
+
+[data-radix-select-trigger]:hover {
+  background-color: #f9fafb !important;
+  border-color: #dc2626 !important;
+}
+
+[data-radix-select-content] {
+  background-color: white !important;
+  border: 1px solid #d1d5db !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-radix-select-item] {
+  color: #1f2937 !important;
+  background-color: transparent !important;
+}
+
+[data-radix-select-item]:hover,
+[data-radix-select-item][data-highlighted] {
+  background-color: #fee2e2 !important;
+  color: #991b1b !important;
+}
+
+[data-radix-select-item][data-state="checked"] {
+  background-color: #dc2626 !important;
+  color: white !important;
+}
+
+/* Content text should be dark for readability */
+.content-text,
+.product-text,
+.service-text,
+.video-text,
+p,
+span,
+div {
+  color: #1f2937;
+}
+
+/* Specific overrides for card content */
+.card-content p,
+.card-content span,
+.card-content div {
+  color: #374151 !important;
+}
+
+/* Form labels should be dark */
+label {
+  color: #1f2937 !important;
+}
+
+/* Stronger rule: All text on red backgrounds or red gradients should be white */
+.bg-red-600 *,
+.bg-red-700 *,
+.bg-red-500 *,
+.bg-red-800 *,
+.bg-red-900 *,
+.bg-gradient-to-r.from-red-600 *,
+.bg-gradient-to-r.from-red-700 *,
+.bg-gradient-to-r.from-red-800 *,
+.bg-gradient-to-r.from-red-900 *,
+.bg-gradient-to-br.from-red-600 *,
+.bg-gradient-to-br.from-red-700 *,
+.bg-gradient-to-br.from-red-800 *,
+.bg-gradient-to-br.from-red-900 *,
+.bg-gradient-to-t.from-red-600 *,
+.bg-gradient-to-t.from-red-700 *,
+.bg-gradient-to-t.from-red-800 *,
+.bg-gradient-to-t.from-red-900 *,
+.from-red-600 *,
+.from-red-700 *,
+.from-red-800 *,
+.from-red-900 *,
+.to-red-600 *,
+.to-red-700 *,
+.to-red-800 *,
+.to-red-900 * {
+  color: white !important;
+}
+
+/* Also ensure links and headings are white on red backgrounds */
+.bg-red-600 a, .bg-red-700 a, .bg-red-800 a, .bg-red-900 a,
+.bg-gradient-to-r.from-red-600 a, .bg-gradient-to-r.from-red-700 a, .bg-gradient-to-r.from-red-800 a, .bg-gradient-to-r.from-red-900 a,
+.bg-gradient-to-br.from-red-600 a, .bg-gradient-to-br.from-red-700 a, .bg-gradient-to-br.from-red-800 a, .bg-gradient-to-br.from-red-900 a {
+  color: white !important;
+  text-decoration: none;
+}
+
+.bg-red-600 h1, .bg-red-600 h2, .bg-red-600 h3, .bg-red-600 h4, .bg-red-600 h5, .bg-red-600 h6,
+.bg-red-700 h1, .bg-red-700 h2, .bg-red-700 h3, .bg-red-700 h4, .bg-red-700 h5, .bg-red-700 h6,
+.bg-red-800 h1, .bg-red-800 h2, .bg-red-800 h3, .bg-red-800 h4, .bg-red-800 h5, .bg-red-800 h6,
+.bg-red-900 h1, .bg-red-900 h2, .bg-red-900 h3, .bg-red-900 h4, .bg-red-900 h5, .bg-red-900 h6 {
+  color: white !important;
+}
+
+/* Ensure buttons have proper contrast */
+.bg-red-600, .bg-red-700, .bg-red-500 {
+  color: white !important;
+}
+
+/* Card titles and descriptions */
+.card-title, .card-description {
+  color: #1f2937 !important;
+}
+
+/* Navigation text */
+.nav-text {
+  color: #374151 !important;
+}
+
+/* Critical CSS for above-the-fold content */
+/* Custom Animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Animation Classes */
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Hover Effects */
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Loading Animations */
+.loading-dots::after {
+  content: '';
+  animation: loading-dots 1.5s infinite;
+}
+
+@keyframes loading-dots {
+  0%, 20% {
+    content: '.';
+  }
+  40% {
+    content: '..';
+  }
+  60%, 100% {
+    content: '...';
+  }
+}
+
+/* Enhanced button styles */
+.btn-primary {
+  background: linear-gradient(to right, #dc2626, #b91c1c);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+  transform: scale(1.05);
+}
+
+/* Card enhancements */
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: scale(1.05);
+  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Text enhancements */
+.text-gradient-red {
+  background: linear-gradient(to right, #dc2626, #b91c1c, #991b1b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Responsive design enhancements */
+@media (max-width: 768px) {
+  .grid-cols-3 {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .flex-row {
+    flex-direction: column !important;
+  }
+}
+
+/* Non-critical animations and styles - deferred loading */
+/* These will be loaded asynchronously in production */
+
+/* Animation delay classes */
+.animate-delay-100 {
+  animation-delay: 0.1s;
+}
+
+.animate-delay-200 {
+  animation-delay: 0.2s;
+}
+
+.animate-delay-300 {
+  animation-delay: 0.3s;
+}
+
+.animate-delay-400 {
+  animation-delay: 0.4s;
+}
+
+.animate-delay-500 {
+  animation-delay: 0.5s;
+}
+
+.animate-delay-1000 {
+  animation-delay: 1s;
+}
+
+.animate-delay-1500 {
+  animation-delay: 1.5s;
+}
+
+.animate-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animate-delay-2500 {
+  animation-delay: 2.5s;
+}
+
+/* Floating background elements positioning */
+.floating-bg-1 {
+  top: -2.5rem;
+  right: -2.5rem;
+  width: 20rem;
+  height: 20rem;
+}
+
+.floating-bg-2 {
+  bottom: -2.5rem;
+  left: -2.5rem;
+  width: 24rem;
+  height: 24rem;
+}
+
+.floating-bg-3 {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 16rem;
+  height: 16rem;
+}
+
+.floating-bg-4 {
+  top: 0;
+  left: 0;
+  width: 8rem;
+  height: 8rem;
+}
+
+.floating-bg-5 {
+  top: 2.5rem;
+  right: 2.5rem;
+  width: 4rem;
+  height: 4rem;
+}
+
+.floating-bg-6 {
+  bottom: 0;
+  left: 25%;
+  width: 6rem;
+  height: 6rem;
+}
+
+.floating-bg-7 {
+  top: 50%;
+  right: 33.33%;
+  width: 3rem;
+  height: 3rem;
+}
+
+.floating-bg-8 {
+  top: 5rem;
+  left: 2.5rem;
+  width: 16rem;
+  height: 16rem;
+}
+
+.floating-bg-9 {
+  bottom: 5rem;
+  right: 2.5rem;
+  width: 12rem;
+  height: 12rem;
+}
+
+/* Marquee text container */
+.marquee-container {
+  pointer-events: none;
+  height: 2.5rem;
+}
+
+.marquee-content {
+  height: 2.5rem;
+}
