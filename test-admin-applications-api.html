@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Admin Applications API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .result {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+        button {
+            background: #0070f3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0051cc;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Admin Applications API</h1>
+    <p>This page tests the admin applications API endpoint to verify all 35 records are fetched.</p>
+    
+    <button onclick="testAPI()">Test API (Fetch All Applications)</button>
+    <button onclick="testAPIWithLimit()">Test API (With Limit=20)</button>
+    
+    <div id="result" class="result"></div>
+
+    <script>
+        async function testAPI() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<p>Loading...</p>';
+            
+            try {
+                const response = await fetch('/api/admin/applications');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const count = data.applications.length;
+                    const total = data.pagination.total;
+                    
+                    resultDiv.innerHTML = `
+                        <h3 class="success">✓ Success!</h3>
+                        <p><strong>Applications fetched:</strong> ${count}</p>
+                        <p><strong>Total in database:</strong> ${total}</p>
+                        <p><strong>Status:</strong> ${count === total ? '✓ All records fetched!' : '✗ Not all records fetched'}</p>
+                        <details>
+                            <summary>View Response</summary>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </details>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<p class="error">Error: ${data.error}</p>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testAPIWithLimit() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<p>Loading...</p>';
+            
+            try {
+                const response = await fetch('/api/admin/applications?limit=20');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const count = data.applications.length;
+                    const total = data.pagination.total;
+                    
+                    resultDiv.innerHTML = `
+                        <h3 class="success">✓ Success!</h3>
+                        <p><strong>Applications fetched:</strong> ${count}</p>
+                        <p><strong>Total in database:</strong> ${total}</p>
+                        <p><strong>Limit applied:</strong> 20</p>
+                        <p><strong>Status:</strong> ${count === 20 ? '✓ Limit working correctly' : '✗ Unexpected count'}</p>
+                        <details>
+                            <summary>View Response</summary>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </details>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<p class="error">Error: ${data.error}</p>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

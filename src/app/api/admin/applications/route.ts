@@ -16,8 +16,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '20');
-    const offset = (page - 1) * limit;
+    const limitParam = searchParams.get('limit');
+    const limit = limitParam ? parseInt(limitParam) : null; // null means fetch all
+    const offset = limit ? (page - 1) * limit : 0;
 
     let query = supabaseAdmin
       .from('applications')
@@ -28,8 +29,12 @@ export async function GET(request: NextRequest) {
         approved_by_user:users!applications_approved_by_fkey(name),
         rejected_by_user:users!applications_rejected_by_fkey(name)
       `)
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+      .order('created_at', { ascending: false });
+
+    // Only apply range if limit is specified
+    if (limit) {
+      query = query.range(offset, offset + limit - 1);
+    }
 
     if (status && status !== 'ALL') {
       query = query.eq('status', status);
@@ -55,11 +60,16 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ 
       success: true, 
       applications: applications || [],
-      pagination: {
+      pagination: limit ? {
         page,
         limit,
         total: totalCount || 0,
         totalPages: Math.ceil((totalCount || 0) / limit)
+      } : {
+        page: 1,
+        limit: totalCount || 0,
+        total: totalCount || 0,
+        totalPages: 1
       }
     });
 
