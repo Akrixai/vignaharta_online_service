@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import { Inter, Noto_Sans_Devanagari } from "next/font/google";
 import "./globals.css";
 import NextAuthSessionProvider from "@/components/providers/session-provider";
@@ -169,12 +168,6 @@ export default function RootLayout({
         )}
       </head>
       <body className="antialiased">
-        {/* Load Cashfree SDK */}
-        <Script
-          src="https://sdk.cashfree.com/js/v3/cashfree.js"
-          strategy="beforeInteractive"
-          crossOrigin="anonymous"
-        />
         <NextAuthSessionProvider>
           <LanguageProvider>
             <NotificationManager>
