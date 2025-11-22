@@ -15,40 +15,57 @@ export function useCashfree() {
     return new Promise((resolve, reject) => {
       // Check if already loaded
       if (window.Cashfree) {
-        console.log('Cashfree SDK already loaded');
+        console.log('✅ Cashfree SDK already loaded');
         resolve(window.Cashfree);
         return;
       }
 
-      console.log('Loading Cashfree SDK from CDN...');
+      console.log('📦 Loading Cashfree SDK from CDN...');
       
       // Load Cashfree SDK script
       const script = document.createElement('script');
       script.src = 'https://sdk.cashfree.com/js/v3/cashfree.js';
       script.async = true;
       script.crossOrigin = 'anonymous';
+      script.type = 'text/javascript';
+      
+      let loadTimeout: NodeJS.Timeout;
       
       script.onload = () => {
-        console.log('Cashfree SDK script loaded successfully');
-        // Wait a bit for SDK to initialize on window object
-        setTimeout(() => {
+        console.log('✅ Cashfree SDK script loaded');
+        clearTimeout(loadTimeout);
+        
+        // Wait for SDK to initialize on window object
+        const checkSDK = (attempts = 0) => {
           if (window.Cashfree) {
-            console.log('Cashfree SDK initialized and ready');
+            console.log('✅ Cashfree SDK initialized successfully');
             resolve(window.Cashfree);
+          } else if (attempts < 20) {
+            // Retry up to 20 times (2 seconds total)
+            setTimeout(() => checkSDK(attempts + 1), 100);
           } else {
-            console.error('Cashfree SDK script loaded but not available on window object');
+            console.error('❌ Cashfree SDK loaded but not available on window');
             reject(new Error('Cashfree SDK failed to initialize'));
           }
-        }, 200);
+        };
+        
+        checkSDK();
       };
       
       script.onerror = (error) => {
-        console.error('Failed to load Cashfree SDK script:', error);
-        reject(new Error('Failed to load Cashfree SDK - Network error'));
+        console.error('❌ Failed to load Cashfree SDK script:', error);
+        clearTimeout(loadTimeout);
+        reject(new Error('Failed to load Cashfree SDK - Network error or blocked by CSP'));
       };
       
+      // Set timeout for loading
+      loadTimeout = setTimeout(() => {
+        console.error('❌ Cashfree SDK loading timeout');
+        reject(new Error('Cashfree SDK loading timeout'));
+      }, 10000); // 10 second timeout
+      
       document.head.appendChild(script);
-      console.log('Cashfree SDK script tag added to document');
+      console.log('📝 Cashfree SDK script tag added to document');
     });
   };
 
@@ -57,7 +74,7 @@ export function useCashfree() {
     onSuccess?: (data: any) => void,
     onFailure?: (error: string) => void
   ) => {
-    console.log('=== Cashfree Payment Initiation Started ===');
+    console.log('=== 💳 Cashfree Payment Initiation Started ===');
     console.log('Amount:', amount);
     console.log('Environment:', process.env.NEXT_PUBLIC_CASHFREE_ENVIRONMENT);
     
@@ -65,7 +82,7 @@ export function useCashfree() {
 
     try {
       // Step 1: Create order on backend
-      console.log('Step 1: Creating payment order...');
+      console.log('📝 Step 1: Creating payment order...');
       const orderResponse = await fetch('/api/wallet/cashfree/create-order', {
         method: 'POST',
         headers: {
@@ -75,10 +92,10 @@ export function useCashfree() {
       });
 
       const orderData = await orderResponse.json();
-      console.log('Order creation response:', {
+      console.log('✅ Order created:', {
         success: orderData.success,
-        hasSessionId: !!orderData.data?.payment_session_id,
-        orderId: orderData.data?.order_id
+        orderId: orderData.data?.order_id,
+        hasSessionId: !!orderData.data?.payment_session_id
       });
 
       if (!orderResponse.ok || !orderData.success) {
@@ -86,59 +103,56 @@ export function useCashfree() {
       }
 
       // Step 2: Load Cashfree SDK
-      console.log('Step 2: Loading Cashfree SDK...');
+      console.log('📦 Step 2: Loading Cashfree SDK...');
       const Cashfree = await loadCashfreeSDK();
-      console.log('Cashfree SDK loaded successfully');
+      console.log('✅ Cashfree SDK loaded successfully');
 
       // Step 3: Initialize Cashfree
-      console.log('Step 3: Initializing Cashfree checkout...');
+      console.log('🔧 Step 3: Initializing Cashfree checkout...');
       const mode = process.env.NEXT_PUBLIC_CASHFREE_ENVIRONMENT === 'PRODUCTION' ? 'production' : 'sandbox';
-      console.log('Cashfree mode:', mode);
+      console.log('Mode:', mode);
       
       const cashfree = Cashfree({
         mode: mode,
       });
 
-      // Step 4: Create checkout options
+      // Step 4: Create checkout options for modal
       const checkoutOptions = {
         paymentSessionId: orderData.data.payment_session_id,
-        redirectTarget: '_self', // Redirect to Cashfree hosted page
+        redirectTarget: '_modal', // Open in modal
       };
       
-      console.log('Step 4: Opening Cashfree checkout with options:', {
-        hasSessionId: !!checkoutOptions.paymentSessionId,
-        redirectTarget: checkoutOptions.redirectTarget
-      });
+      console.log('🚀 Step 4: Opening Cashfree payment modal...');
 
-      // Step 5: Open payment
+      // Step 5: Open payment modal
       cashfree.checkout(checkoutOptions).then((result: any) => {
-        console.log('Cashfree checkout completed with result:', result);
+        console.log('✅ Cashfree checkout completed:', result);
         setLoading(false);
         
         if (result.error) {
-          console.error('Payment error from Cashfree:', result.error);
+          console.error('❌ Payment error:', result.error);
           const errorMessage = result.error.message || 'Payment failed';
           showToast.error('Payment Failed', { description: errorMessage });
           window.location.href = `/payment/failed?order_id=${orderData.data.order_id}&amount=${amount}`;
           onFailure?.(errorMessage);
         } else if (result.paymentDetails) {
-          console.log('Payment successful, redirecting to success page');
+          console.log('✅ Payment successful');
+          showToast.success('Payment Successful!');
           window.location.href = `/payment/success?order_id=${orderData.data.order_id}&amount=${amount}`;
           onSuccess?.(result.paymentDetails);
         } else {
-          console.log('Payment page opened, user will be redirected');
-          // User will be redirected to Cashfree payment page
+          console.log('ℹ️ Payment in progress or user closed modal');
         }
       }).catch((error: any) => {
-        console.error('Cashfree checkout error:', error);
+        console.error('❌ Cashfree checkout error:', error);
         setLoading(false);
-        const errorMessage = error.message || 'Payment initialization failed';
+        const errorMessage = error.message || 'Payment failed';
         showToast.error('Payment Error', { description: errorMessage });
         window.location.href = `/payment/failed?order_id=${orderData.data.order_id}&amount=${amount}`;
         onFailure?.(errorMessage);
       });
     } catch (error) {
-      console.error('=== Payment Initiation Error ===');
+      console.error('=== ❌ Payment Initiation Error ===');
       console.error('Error details:', error);
       setLoading(false);
       const errorMessage = error instanceof Error ? error.message : 'Payment initialization failed';
