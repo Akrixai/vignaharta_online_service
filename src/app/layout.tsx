@@ -48,6 +48,15 @@ export default function RootLayout({
         {/* Preconnect to reCAPTCHA Enterprise */}
         <link rel="preconnect" href="https://www.google.com" />
         <link rel="preconnect" href="https://www.gstatic.com" crossOrigin="anonymous" />
+        
+        {/* Preconnect and preload Cashfree SDK */}
+        <link rel="preconnect" href="https://sdk.cashfree.com" />
+        <link rel="dns-prefetch" href="https://sdk.cashfree.com" />
+        <script 
+          src="https://sdk.cashfree.com/js/v3/cashfree.js" 
+          async 
+          crossOrigin="anonymous"
+        />
         <link rel="dns-prefetch" href="https://www.google.com" />
         <link rel="dns-prefetch" href="https://www.gstatic.com" />
         

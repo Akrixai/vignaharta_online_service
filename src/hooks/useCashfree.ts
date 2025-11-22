@@ -13,59 +13,22 @@ export function useCashfree() {
 
   const loadCashfreeSDK = (): Promise<any> => {
     return new Promise((resolve, reject) => {
-      // Check if already loaded
-      if (window.Cashfree) {
-        console.log('✅ Cashfree SDK already loaded');
-        resolve(window.Cashfree);
-        return;
-      }
-
-      console.log('📦 Loading Cashfree SDK from CDN...');
-      
-      // Load Cashfree SDK script
-      const script = document.createElement('script');
-      script.src = 'https://sdk.cashfree.com/js/v3/cashfree.js';
-      script.async = true;
-      script.crossOrigin = 'anonymous';
-      script.type = 'text/javascript';
-      
-      let loadTimeout: NodeJS.Timeout;
-      
-      script.onload = () => {
-        console.log('✅ Cashfree SDK script loaded');
-        clearTimeout(loadTimeout);
-        
-        // Wait for SDK to initialize on window object
-        const checkSDK = (attempts = 0) => {
-          if (window.Cashfree) {
-            console.log('✅ Cashfree SDK initialized successfully');
-            resolve(window.Cashfree);
-          } else if (attempts < 20) {
-            // Retry up to 20 times (2 seconds total)
-            setTimeout(() => checkSDK(attempts + 1), 100);
-          } else {
-            console.error('❌ Cashfree SDK loaded but not available on window');
-            reject(new Error('Cashfree SDK failed to initialize'));
-          }
-        };
-        
-        checkSDK();
+      // SDK should already be loaded from layout.tsx
+      const checkSDK = (attempts = 0) => {
+        if (window.Cashfree) {
+          console.log('✅ Cashfree SDK ready');
+          resolve(window.Cashfree);
+        } else if (attempts < 50) {
+          // Retry up to 50 times (5 seconds total)
+          console.log(`⏳ Waiting for Cashfree SDK... (attempt ${attempts + 1}/50)`);
+          setTimeout(() => checkSDK(attempts + 1), 100);
+        } else {
+          console.error('❌ Cashfree SDK not available after 5 seconds');
+          reject(new Error('Cashfree SDK failed to load. Please refresh the page.'));
+        }
       };
       
-      script.onerror = (error) => {
-        console.error('❌ Failed to load Cashfree SDK script:', error);
-        clearTimeout(loadTimeout);
-        reject(new Error('Failed to load Cashfree SDK - Network error or blocked by CSP'));
-      };
-      
-      // Set timeout for loading
-      loadTimeout = setTimeout(() => {
-        console.error('❌ Cashfree SDK loading timeout');
-        reject(new Error('Cashfree SDK loading timeout'));
-      }, 10000); // 10 second timeout
-      
-      document.head.appendChild(script);
-      console.log('📝 Cashfree SDK script tag added to document');
+      checkSDK();
     });
   };
 
