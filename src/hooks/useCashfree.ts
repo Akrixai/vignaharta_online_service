@@ -19,10 +19,11 @@ export function useCashfree() {
         return;
       }
 
-      // Load Cashfree SDK script
+      // Load Cashfree SDK script (using production-ready v3)
       const script = document.createElement('script');
       script.src = 'https://sdk.cashfree.com/js/v3/cashfree.js';
       script.async = true;
+      script.crossOrigin = 'anonymous';
       script.onload = () => {
         if (window.Cashfree) {
           resolve(window.Cashfree);
@@ -63,39 +64,47 @@ export function useCashfree() {
       // Load Cashfree SDK
       const Cashfree = await loadCashfreeSDK();
 
-      // Initialize Cashfree with seamless integration
+      // Initialize Cashfree with correct environment
       const cashfree = Cashfree({
-        mode: process.env.NEXT_PUBLIC_CASHFREE_ENVIRONMENT === 'PRODUCTION' ? 'production' : 'sandbox',
+        mode: process.env.NEXT_PUBLIC_CASHFREE_ENVIRONMENT || 'sandbox',
       });
 
-      // Create checkout options for seamless modal (in-app payment - no redirect)
+      // Create checkout options - use redirect mode for production stability
       const checkoutOptions = {
         paymentSessionId: orderData.data.payment_session_id,
-        redirectTarget: '_modal', // Force modal mode, no redirect
+        redirectTarget: '_self', // Use redirect mode instead of modal for better compatibility
       };
+      
+      console.log('Initiating Cashfree payment:', {
+        mode: process.env.NEXT_PUBLIC_CASHFREE_ENVIRONMENT,
+        orderId: orderData.data.order_id,
+        hasSessionId: !!orderData.data.payment_session_id
+      });
 
-      // Open payment modal (seamless integration)
+      // Open payment (will redirect to Cashfree hosted page)
       cashfree.checkout(checkoutOptions).then((result: any) => {
+        console.log('Cashfree checkout result:', result);
         setLoading(false);
         
         if (result.error) {
-          // Payment failed - redirect to failure page
+          console.error('Cashfree payment error:', result.error);
           const errorMessage = result.error.message || 'Payment failed';
+          showToast.error('Payment Failed', { description: errorMessage });
           window.location.href = `/payment/failed?order_id=${orderData.data.order_id}&amount=${amount}`;
           onFailure?.(errorMessage);
         } else if (result.paymentDetails) {
-          // Payment successful - redirect to success page
+          console.log('Payment successful:', result.paymentDetails);
           window.location.href = `/payment/success?order_id=${orderData.data.order_id}&amount=${amount}`;
           onSuccess?.(result.paymentDetails);
-        } else if (result.redirect) {
-          // Payment is being processed
-          showToast.info('Processing Payment', {
-            description: 'Please wait while we process your payment.'
-          });
+        } else {
+          // Payment page will open, user will be redirected back
+          console.log('Redirecting to Cashfree payment page...');
         }
       }).catch((error: any) => {
+        console.error('Cashfree checkout error:', error);
         setLoading(false);
-        const errorMessage = error.message || 'Payment failed';
+        const errorMessage = error.message || 'Payment initialization failed';
+        showToast.error('Payment Error', { description: errorMessage });
         window.location.href = `/payment/failed?order_id=${orderData.data.order_id}&amount=${amount}`;
         onFailure?.(errorMessage);
       });
