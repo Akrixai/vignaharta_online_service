@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Inter, Noto_Sans_Devanagari } from "next/font/google";
 import "./globals.css";
 import NextAuthSessionProvider from "@/components/providers/session-provider";
@@ -7,7 +8,6 @@ import { Toaster } from "react-hot-toast";
 import NotificationManager from "@/components/NotificationManager";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { defaultSEO, structuredData } from "@/lib/seo";
-// removed google analytics Script import to disable GA
 
 const inter = Inter({ 
   subsets: ["latin"],
@@ -49,14 +49,9 @@ export default function RootLayout({
         <link rel="preconnect" href="https://www.google.com" />
         <link rel="preconnect" href="https://www.gstatic.com" crossOrigin="anonymous" />
         
-        {/* Preconnect and preload Cashfree SDK */}
+        {/* Preconnect to Cashfree SDK */}
         <link rel="preconnect" href="https://sdk.cashfree.com" />
         <link rel="dns-prefetch" href="https://sdk.cashfree.com" />
-        <script 
-          src="https://sdk.cashfree.com/js/v3/cashfree.js" 
-          async 
-          crossOrigin="anonymous"
-        />
         <link rel="dns-prefetch" href="https://www.google.com" />
         <link rel="dns-prefetch" href="https://www.gstatic.com" />
         
@@ -174,7 +169,12 @@ export default function RootLayout({
         )}
       </head>
       <body className="antialiased">
-        {/* Google Analytics removed to avoid CSP/script loading issues */}
+        {/* Load Cashfree SDK */}
+        <Script
+          src="https://sdk.cashfree.com/js/v3/cashfree.js"
+          strategy="beforeInteractive"
+          crossOrigin="anonymous"
+        />
         <NextAuthSessionProvider>
           <LanguageProvider>
             <NotificationManager>
