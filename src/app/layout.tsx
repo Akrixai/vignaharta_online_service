@@ -168,6 +168,11 @@ export default function RootLayout({
         )}
       </head>
       <body className="antialiased">
+        {/* Load Cashfree SDK - NO crossOrigin to avoid CORS issues */}
+        <script 
+          src="https://sdk.cashfree.com/js/v3/cashfree.js"
+          defer
+        />
         <NextAuthSessionProvider>
           <LanguageProvider>
             <NotificationManager>
