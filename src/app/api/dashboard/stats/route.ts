@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     let stats: any = {};
 
-    if (userRole === 'RETAILER') {
+    if (userRole === 'RETAILER' || userRole === 'CUSTOMER') {
       // Customer/Retailer specific stats
       
       // Get wallet balance

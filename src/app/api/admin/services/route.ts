@@ -56,6 +56,9 @@ export async function POST(request: NextRequest) {
       documents,
       processing_time_days,
       commission_rate,
+      cashback_enabled,
+      cashback_min_percentage,
+      cashback_max_percentage,
       dynamic_fields,
       required_documents,
       image_url
@@ -88,6 +91,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         error: 'Commission rate must be between 0 and 100'
       }, { status: 400 });
+    }
+
+    // Validate cashback percentages
+    if (cashback_enabled) {
+      if (cashback_min_percentage < 0 || cashback_min_percentage > 100) {
+        return NextResponse.json({
+          error: 'Cashback minimum percentage must be between 0 and 100'
+        }, { status: 400 });
+      }
+      if (cashback_max_percentage < 0 || cashback_max_percentage > 100) {
+        return NextResponse.json({
+          error: 'Cashback maximum percentage must be between 0 and 100'
+        }, { status: 400 });
+      }
+      if (cashback_min_percentage > cashback_max_percentage) {
+        return NextResponse.json({
+          error: 'Cashback minimum percentage cannot be greater than maximum percentage'
+        }, { status: 400 });
+      }
     }
 
     // Process dynamic fields to ensure dropdown options are properly formatted
@@ -143,6 +165,9 @@ export async function POST(request: NextRequest) {
         documents: documents || [],
         processing_time_days: processing_time_days || 7,
         commission_rate: commission_rate || 0,
+        cashback_enabled: cashback_enabled || false,
+        cashback_min_percentage: cashback_enabled ? (cashback_min_percentage || 1) : 0,
+        cashback_max_percentage: cashback_enabled ? (cashback_max_percentage || 3) : 0,
         dynamic_fields: processedDynamicFields,
         required_documents: required_documents || [],
         image_url: image_url || null,

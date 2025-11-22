@@ -85,6 +85,6 @@ function generateCertificateURL(certificateId: string): string {
   // 3. Return actual download URL
   
   // For demo purposes, return a placeholder URL
-  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+  const baseUrl = process.env.NEXTAUTH_URL || 'https://www.vighnahartaonlineservice.in';
   return `${baseUrl}/api/certificates/download/${certificateId}`;
 }

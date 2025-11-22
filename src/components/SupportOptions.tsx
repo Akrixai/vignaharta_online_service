@@ -168,19 +168,16 @@ export default function SupportOptions({ className }: SupportOptionsProps) {
                 <Label htmlFor="priority" className="text-sm font-medium">
                   Priority Level
                 </Label>
-                <Select 
-                  value={emailForm.priority} 
-                  onValueChange={(value) => setEmailForm(prev => ({ ...prev, priority: value }))}
+                <select
+                  id="priority"
+                  value={emailForm.priority}
+                  onChange={(e) => setEmailForm(prev => ({ ...prev, priority: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white mt-1"
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">🟢 Low - General inquiry</SelectItem>
-                    <SelectItem value="medium">🟡 Medium - Standard support</SelectItem>
-                    <SelectItem value="high">🔴 High - Urgent issue</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <option value="low">🟢 Low - General inquiry</option>
+                  <option value="medium">🟡 Medium - Standard support</option>
+                  <option value="high">🔴 High - Urgent issue</option>
+                </select>
               </div>
 
               <div>

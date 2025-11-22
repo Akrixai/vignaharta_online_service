@@ -46,6 +46,50 @@ export default function AdminCertificatesPage() {
     }
   }, [session]);
 
+  // Add real-time subscription for certificate updates
+  useEffect(() => {
+    if (session?.user?.role !== UserRole.ADMIN) return;
+
+    const { supabaseClient } = require('@/lib/supabase');
+    
+    // Subscribe to changes in certificate tables
+    const employeeChannel = supabaseClient
+      .channel('employee-certificates-changes')
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'employee_certificates' },
+        () => {
+          fetchCertificates();
+        }
+      )
+      .subscribe();
+
+    const retailerChannel = supabaseClient
+      .channel('retailer-certificates-changes')
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'retailer_certificates' },
+        () => {
+          fetchCertificates();
+        }
+      )
+      .subscribe();
+
+    const usersChannel = supabaseClient
+      .channel('users-changes-certs')
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'users' },
+        () => {
+          fetchCertificates();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabaseClient.removeChannel(employeeChannel);
+      supabaseClient.removeChannel(retailerChannel);
+      supabaseClient.removeChannel(usersChannel);
+    };
+  }, [session]);
+
   useEffect(() => {
     applyFilters();
   }, [certificates, searchTerm, filterType]);
@@ -53,6 +97,10 @@ export default function AdminCertificatesPage() {
   const fetchCertificates = async () => {
     try {
       setLoading(true);
+      
+      // Fetch all users with their certificate information
+      const usersResponse = await fetch('/api/admin/users');
+      const usersData = await usersResponse.json();
       
       // Fetch employee certificates
       const employeeResponse = await fetch('/api/admin/employee-certificates');
@@ -62,21 +110,52 @@ export default function AdminCertificatesPage() {
       const retailerResponse = await fetch('/api/admin/retailer-certificates');
       const retailerData = await retailerResponse.json();
 
-      const allCertificates: Certificate[] = [
-        ...(employeeData.certificates || []).map((cert: any) => ({
-          ...cert,
-          name: cert.employee_name,
-          type: 'employee' as const
-        })),
-        ...(retailerData.certificates || []).map((cert: any) => ({
-          ...cert,
-          name: cert.retailer_name,
-          type: 'retailer' as const
-        }))
-      ];
+      // Create maps for quick lookup
+      const employeeCertMap = new Map(
+        (employeeData.certificates || []).map((cert: any) => [cert.user_id, cert])
+      );
+      const retailerCertMap = new Map(
+        (retailerData.certificates || []).map((cert: any) => [cert.user_id, cert])
+      );
+
+      // Combine users with their certificates
+      const allCertificates: Certificate[] = (usersData.users || [])
+        .filter((user: any) => user.role === 'EMPLOYEE' || user.role === 'RETAILER')
+        .map((user: any) => {
+          const isEmployee = user.role === 'EMPLOYEE';
+          const cert = isEmployee ? employeeCertMap.get(user.id) : retailerCertMap.get(user.id);
+          
+          if (cert) {
+            // User has a certificate
+            return {
+              ...cert,
+              name: isEmployee ? cert.employee_name : cert.retailer_name,
+              type: isEmployee ? 'employee' as const : 'retailer' as const
+            };
+          } else {
+            // User doesn't have a certificate yet - show placeholder
+            return {
+              id: user.id,
+              user_id: user.id,
+              name: user.name,
+              employee_id: user.employee_id,
+              department: user.department,
+              branch: user.branch,
+              certificate_number: 'NOT GENERATED',
+              issue_date: 'N/A',
+              company_name: 'Vignaharta Janseva',
+              digital_signature: '',
+              is_active: false,
+              created_at: user.created_at,
+              updated_at: user.updated_at,
+              type: isEmployee ? 'employee' as const : 'retailer' as const
+            };
+          }
+        });
 
       setCertificates(allCertificates);
     } catch (error) {
+      console.error('Error fetching certificates:', error);
     } finally {
       setLoading(false);
     }
@@ -127,6 +206,75 @@ export default function AdminCertificatesPage() {
   const handleViewCertificate = (certificate: Certificate) => {
     setSelectedCertificate(certificate);
     setShowCertificateModal(true);
+  };
+
+  const handleGenerateCertificate = async (certificate: Certificate) => {
+    try {
+      const response = await fetch('/api/admin/generate-certificate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: certificate.user_id,
+          user_role: certificate.type.toUpperCase()
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        alert(`Certificate generated successfully!\nCertificate Number: ${data.certificate.certificate_number}`);
+        // Refresh certificates list
+        fetchCertificates();
+      } else {
+        const error = await response.json();
+        alert(`Failed to generate certificate: ${error.error}`);
+      }
+    } catch (error) {
+      alert('Error generating certificate');
+    }
+  };
+
+  const handleGenerateAllCertificates = async () => {
+    const ungenerated = filteredCertificates.filter(c => c.certificate_number === 'NOT GENERATED');
+    
+    if (ungenerated.length === 0) {
+      alert('All certificates have already been generated!');
+      return;
+    }
+
+    if (!confirm(`Generate certificates for ${ungenerated.length} users?`)) {
+      return;
+    }
+
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const cert of ungenerated) {
+      try {
+        const response = await fetch('/api/admin/generate-certificate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user_id: cert.user_id,
+            user_role: cert.type.toUpperCase()
+          }),
+        });
+
+        if (response.ok) {
+          successCount++;
+        } else {
+          failCount++;
+        }
+      } catch (error) {
+        failCount++;
+      }
+    }
+
+    alert(`Certificate generation complete!\nSuccess: ${successCount}\nFailed: ${failCount}`);
+    fetchCertificates();
   };
 
   // Check loading state first
@@ -206,6 +354,15 @@ export default function AdminCertificatesPage() {
               </div>
 
               <Button
+                onClick={handleGenerateAllCertificates}
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+                disabled={filteredCertificates.filter(c => c.certificate_number === 'NOT GENERATED').length === 0}
+              >
+                <Award className="w-4 h-4 mr-2" />
+                Generate All
+              </Button>
+
+              <Button
                 onClick={exportToExcel}
                 className="bg-green-600 hover:bg-green-700 text-white"
                 disabled={filteredCertificates.length === 0}
@@ -237,18 +394,32 @@ export default function AdminCertificatesPage() {
         ) : (
           <div className="grid gap-6">
             {filteredCertificates.map((certificate) => (
-              <Card key={certificate.id} className="border-l-4 border-l-blue-500">
+              <Card key={certificate.id} className={`border-l-4 ${
+                certificate.certificate_number === 'NOT GENERATED' 
+                  ? 'border-l-gray-400 bg-gray-50' 
+                  : 'border-l-blue-500'
+              }`}>
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-4">
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                          certificate.type === 'employee' ? 'bg-blue-100' : 'bg-green-100'
+                          certificate.certificate_number === 'NOT GENERATED'
+                            ? 'bg-gray-200'
+                            : certificate.type === 'employee' ? 'bg-blue-100' : 'bg-green-100'
                         }`}>
                           {certificate.type === 'employee' ? (
-                            <UserCheck className={`w-6 h-6 ${certificate.type === 'employee' ? 'text-blue-600' : 'text-green-600'}`} />
+                            <UserCheck className={`w-6 h-6 ${
+                              certificate.certificate_number === 'NOT GENERATED'
+                                ? 'text-gray-500'
+                                : 'text-blue-600'
+                            }`} />
                           ) : (
-                            <Users className="w-6 h-6 text-green-600" />
+                            <Users className={`w-6 h-6 ${
+                              certificate.certificate_number === 'NOT GENERATED'
+                                ? 'text-gray-500'
+                                : 'text-green-600'
+                            }`} />
                           )}
                         </div>
                         <div>
@@ -263,9 +434,13 @@ export default function AdminCertificatesPage() {
                           </p>
                         </div>
                         <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          certificate.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          certificate.certificate_number === 'NOT GENERATED'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : certificate.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                         }`}>
-                          {certificate.is_active ? 'ACTIVE' : 'INACTIVE'}
+                          {certificate.certificate_number === 'NOT GENERATED' 
+                            ? 'NOT GENERATED' 
+                            : certificate.is_active ? 'ACTIVE' : 'INACTIVE'}
                         </div>
                       </div>
 
@@ -317,14 +492,25 @@ export default function AdminCertificatesPage() {
                     </div>
 
                     <div className="flex items-center space-x-2 ml-4">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleViewCertificate(certificate)}
-                      >
-                        <Eye className="w-4 h-4 mr-1" />
-                        View
-                      </Button>
+                      {certificate.certificate_number === 'NOT GENERATED' ? (
+                        <Button
+                          size="sm"
+                          onClick={() => handleGenerateCertificate(certificate)}
+                          className="bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                          <Award className="w-4 h-4 mr-1" />
+                          Generate
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewCertificate(certificate)}
+                        >
+                          <Eye className="w-4 h-4 mr-1" />
+                          View
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardContent>

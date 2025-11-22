@@ -9,19 +9,16 @@ import { Input } from '@/components/ui/input';
 import { UserRole } from '@/types';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 import { useApi } from '@/hooks/useApi';
-import { useRazorpay } from '@/hooks/useRazorpay';
-import QRPaymentModal from '@/components/wallet/QRPaymentModal';
+import { useCashfree } from '@/hooks/useCashfree';
 import PaymentSuccess from '@/components/PaymentSuccess';
 import LogoSpinner, { PageLoader } from '@/components/ui/logo-spinner';
 import { showToast } from '@/lib/toast';
 import { supabase } from '@/lib/supabase';
 
-
-
 export default function WalletPage() {
   const { data: session } = useSession();
   const { getWallet, getTransactions, createTransaction } = useApi();
-  const { initiatePayment, loading: paymentLoading } = useRazorpay();
+  const { initiatePayment, loading: paymentLoading } = useCashfree();
 
   const [wallet, setWallet] = useState<any>(null);
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -33,8 +30,6 @@ export default function WalletPage() {
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [showAddMoney, setShowAddMoney] = useState(false);
   const [showWithdraw, setShowWithdraw] = useState(false);
-  const [showQRPayment, setShowQRPayment] = useState(false);
-  const [qrPaymentLoading, setQRPaymentLoading] = useState(false);
   const [qrCodeImage, setQrCodeImage] = useState<File | null>(null);
   const [withdrawReason, setWithdrawReason] = useState('');
   const qrFileInputRef = useRef<HTMLInputElement>(null);
@@ -191,26 +186,12 @@ export default function WalletPage() {
         setIsAddingMoney(false);
         setPaymentStatusMessage('');
 
-        // Set success data for modal
-        setSuccessData({
-          amount: amount,
-          transactionId: data?.transaction?.reference || data?.transaction?.id || data?.payment?.id,
-          walletBalance: data?.wallet?.balance
+        showToast.success('Payment Successful!', {
+          description: 'Your wallet has been recharged successfully.'
         });
-        setShowPaymentSuccess(true);
 
         // Refresh wallet and transactions
-        getWallet().then(response => {
-          if (response?.success) {
-            setWallet(response.data);
-          }
-        });
-
-        getTransactions({ limit: 20 }).then(response => {
-          if (response?.success) {
-            setTransactions(response.data);
-          }
-        });
+        refreshWalletAndTransactions();
       },
       (error) => {
         // Payment failed
@@ -221,52 +202,6 @@ export default function WalletPage() {
         });
       }
     );
-  };
-
-  const handleQRPayment = async (paymentData: { amount: number; paymentMethod: string; transactionId: string; screenshot?: File }) => {
-    setQRPaymentLoading(true);
-
-    try {
-      // Create a payment verification request
-      const formData = new FormData();
-      formData.append('amount', paymentData.amount.toString());
-      formData.append('payment_method', paymentData.paymentMethod);
-      formData.append('transaction_id', paymentData.transactionId);
-      formData.append('type', 'WALLET_TOPUP');
-
-      if (paymentData.screenshot) {
-        formData.append('screenshot', paymentData.screenshot);
-      }
-
-      const response = await fetch('/api/wallet/payment-verification', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        setShowQRPayment(false);
-        showToast.success('Payment verification request submitted successfully!', {
-          description: 'Your wallet will be updated after admin approval.'
-        });
-
-        // Refresh transactions to show pending verification
-        getTransactions({ limit: 20 }).then(response => {
-          if (response?.success) {
-            setTransactions(response.data);
-          }
-        });
-      } else {
-        throw new Error(result.error || 'Failed to submit payment verification');
-      }
-    } catch (error) {
-      showToast.error('Payment verification failed', {
-        description: error instanceof Error ? error.message : 'Failed to submit payment verification'
-      });
-    } finally {
-      setQRPaymentLoading(false);
-    }
   };
 
   const handleWithdraw = async (e: React.FormEvent) => {
@@ -398,30 +333,16 @@ export default function WalletPage() {
               )}
             </div>
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-              {/* Online Payment Button - Commented Out */}
-              {/*
               <Button
-                onClick={() => {
-                  showToast.info('Coming Soon', {
-                    description: 'Online payment integration is under development. Please use QR payment for now.'
-                  });
-                }}
-                className="bg-white text-green-600 hover:bg-gray-100 flex-1"
+                onClick={() => setShowAddMoney(true)}
+                className="bg-white text-green-600 hover:bg-gray-100 flex-1 h-12 font-semibold text-base shadow-md hover:shadow-xl transition-all duration-200"
               >
-                💳 Online Payment
-              </Button>
-              */}
-
-              <Button
-                onClick={() => setShowQRPayment(true)}
-                className="bg-white text-green-600 hover:bg-gray-100 flex-1 h-12 font-semibold text-base shadow-md hover:shadow-lg transition-all duration-200"
-              >
-                📱 QR Pay
+                💳 Add Money
               </Button>
               <Button
                 onClick={() => setShowWithdraw(true)}
                 variant="outline"
-                className="border-white text-green-600 hover:bg-white hover:text-green-600 flex-1 h-12 font-semibold text-base shadow-md hover:shadow-lg transition-all duration-200"
+                className="border-white text-white hover:bg-white hover:text-green-600 flex-1 h-12 font-semibold text-base shadow-md hover:shadow-xl transition-all duration-200"
               >
                 💸 Withdraw
               </Button>
@@ -439,31 +360,30 @@ export default function WalletPage() {
                 </div>
                 <div>
                   <CardTitle className="text-xl font-bold text-white">Add Money to Wallet</CardTitle>
-                  <CardDescription className="text-red-100">Secure Razorpay payment gateway integration</CardDescription>
+                  <CardDescription className="text-red-100">Secure Cashfree payment gateway integration</CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="p-6">
-              {/* Important Notice */}
-              <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-lg">
+              {/* Payment Info */}
+              <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg">
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
-                    <span className="text-yellow-600 text-xl">⚠️</span>
+                    <span className="text-blue-600 text-xl">💳</span>
                   </div>
                   <div className="ml-3">
-                    <h3 className="text-sm font-medium text-yellow-800">
-                      Important: QR Form Requirement
+                    <h3 className="text-sm font-medium text-blue-800">
+                      Instant Wallet Recharge
                     </h3>
-                    <div className="mt-2 text-sm text-yellow-700">
+                    <div className="mt-2 text-sm text-blue-700">
                       <p>
-                        <strong>Whether you pay by Card or QR, you MUST fill the QR form</strong> to confirm your transaction.
-                        This is mandatory for all payments to ensure proper wallet credit.
+                        Pay securely using Cashfree payment gateway. Your wallet will be credited instantly after successful payment.
                       </p>
                       <ul className="mt-2 list-disc list-inside space-y-1">
-                        <li>Complete your payment (Card or QR)</li>
-                        <li>Then click "📱 QR Pay" button above</li>
-                        <li>Fill the QR form with payment details and type of payment</li>
-                        <li>Upload payment screenshot with note card or QR for verification</li>
+                        <li>Multiple payment options: UPI, Cards, Net Banking</li>
+                        <li>Instant wallet credit on successful payment</li>
+                        <li>Secure and encrypted transactions</li>
+                        <li>No manual approval required</li>
                       </ul>
                     </div>
                   </div>
@@ -508,7 +428,7 @@ export default function WalletPage() {
                 <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                   <p className="text-sm text-blue-800 flex items-center">
                     <span className="mr-2">🔒</span>
-                    <strong>Secure Payment:</strong> Your payment is processed through Razorpay&apos;s secure gateway
+                    <strong>Secure Payment:</strong> Your payment is processed through Cashfree&apos;s secure payment gateway
                   </p>
                 </div>
 
@@ -804,22 +724,7 @@ export default function WalletPage() {
         </div>
       </div>
 
-      {/* QR Payment Modal */}
-      <QRPaymentModal
-        isOpen={showQRPayment}
-        onClose={() => setShowQRPayment(false)}
-        onSubmit={handleQRPayment}
-        loading={qrPaymentLoading}
-      />
-      
-      {/* Payment Success Modal */}
-      <PaymentSuccess
-        isOpen={showPaymentSuccess}
-        onClose={() => setShowPaymentSuccess(false)}
-        amount={successData.amount}
-        transactionId={successData.transactionId}
-        walletBalance={successData.walletBalance}
-      />
+
     </DashboardLayout>
   );
 }

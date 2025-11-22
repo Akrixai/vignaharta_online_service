@@ -5,6 +5,9 @@ import Logo from "@/components/ui/logo";
 import Footer from "@/components/Footer";
 import UserConsent from "@/components/UserConsent";
 import LandingPageImageCarousel from "@/components/LandingPageImageCarousel";
+import Header from "@/components/Header";
+import HowItWorks from "@/components/HowItWorks";
+import TrustBadges from "@/components/TrustBadges";
 import { useState, useEffect } from "react";
 
 // Define types for our data
@@ -112,73 +115,11 @@ export default function LandingPageClient() {
           <div className="absolute floating-bg-3 bg-gradient-to-r from-orange-200/20 to-red-200/20 rounded-full blur-2xl animate-pulse"></div>
         </div>
 
-      {/* Header */}
-      <header className="bg-gradient-to-r from-red-900 via-red-800 to-red-900 shadow-2xl relative overflow-hidden backdrop-blur-sm">
-        {/* Animated background elements */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute floating-bg-4 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-full animate-float"></div>
-          <div className="absolute floating-bg-5 bg-gradient-to-br from-orange-400 to-red-400 rounded-full animate-bounce"></div>
-          <div className="absolute floating-bg-6 bg-gradient-to-br from-red-400 to-pink-400 rounded-full animate-ping"></div>
-          <div className="absolute floating-bg-7 bg-gradient-to-br from-yellow-300 to-orange-300 rounded-full animate-pulse animate-delay-1000"></div>
-        </div>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="flex justify-between items-center py-3">
-            <div className="flex items-center space-x-4">
-              <Logo size="md" showText={true} animated={true} />
-              <div className="hidden sm:block">
-                <span className="text-white/90 text-sm font-medium animate-fade-in">
-                  Online Service Portal
-                </span>
-                <div className="text-white/70 text-xs">
-                  Digital India Initiative
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center space-x-6">
-              <nav className="hidden md:flex space-x-6">
-                <Link href="/about" className="text-white hover:text-red-200 px-4 py-2 rounded-lg text-sm font-medium transform hover:scale-105 transition-all duration-200 hover:bg-red-700/50 relative group">
-                  About
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
-                </Link>
-                <Link href="/services" className="text-white hover:text-red-200 px-4 py-2 rounded-lg text-sm font-medium transform hover:scale-105 transition-all duration-200 hover:bg-red-700/50 relative group">
-                  Services
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
-                </Link>
-                <Link href="/contact" className="text-white hover:text-red-200 px-4 py-2 rounded-lg text-sm font-medium transform hover:scale-105 transition-all duration-200 hover:bg-red-700/50 relative group">
-                  Contact
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
-                </Link>
-                <Link href="/social-media" className="text-white hover:text-red-200 px-4 py-2 rounded-lg text-sm font-medium transform hover:scale-105 transition-all duration-200 hover:bg-red-700/50 relative group">
-                  Social Media
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
-                </Link>
-              </nav>
-
-              {/* Akrix.ai Branding - Responsive */}
-              <div className="flex items-center justify-center space-x-1 sm:space-x-2 animate-pulse">
-                <span className="text-pink-400 text-sm sm:text-lg animate-bounce hidden xs:inline-block">💖</span>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 font-semibold text-xs sm:text-sm hidden sm:inline-block">
-                  Developed by
-                </span>
-                <a
-                  href="https://akrixsolutions.in/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 font-bold text-xs sm:text-sm hover:from-pink-500 hover:via-purple-500 hover:to-blue-500 transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
-                >
-                  <span className="hidden sm:inline">Akrix Solutions</span>
-                  <span className="sm:hidden">Akrix</span>
-                </a>
-                <span className="text-pink-400 text-sm sm:text-lg animate-bounce hidden xs:inline-block">💖</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Header - Import from component */}
+      <Header />
 
       {/* Full-width Advertisement Carousel Section */}
-      <section className="w-full relative z-10">
+      <section className="w-full relative z-0">
         {/* Floating Descriptions Above Carousel */}
         <FloatingDescriptions descriptions={descriptions} position="top" />
         {/* Image Carousel with horizontal padding only */}
@@ -410,7 +351,7 @@ export default function LandingPageClient() {
             </Link>
 
             <Link
-              href="/login?role=admin"
+              href="/register?type=customer"
               className="group bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-xl hover:shadow-2xl hover:shadow-red-500/20 transition-all duration-500 border border-gray-300 hover:border-red-500 animate-scale-in transform hover:scale-105 relative overflow-hidden login-card focus:outline-none focus:ring-2 focus:ring-red-500"
               style={{ animationDelay: '0.2s' }}
             >
@@ -418,17 +359,17 @@ export default function LandingPageClient() {
               <div className="absolute inset-0 bg-gradient-to-br from-red-50/50 to-orange-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
               <div className="relative z-10">
-                <div className="text-red-600 text-6xl mb-6 animate-float group-hover:animate-bounce animate-delay-1000">⚙️</div>
+                <div className="text-red-600 text-6xl mb-6 animate-float group-hover:animate-bounce animate-delay-1000">👤</div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-red-700 transition-colors">
-                  Admin Login
+                  Customer Registration
                 </h3>
                 <p className="text-gray-600 group-hover:text-gray-700 leading-relaxed">
-                  Full system control, manage employees, retailers, and monitor all activities
+                  Register as a customer to access government services directly without commission benefits
                 </p>
 
                 {/* Hover indicator */}
                 <div className="mt-4 flex items-center text-red-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <span className="text-sm font-medium">Click to login</span>
+                  <span className="text-sm font-medium">Click to register</span>
                   <span className="ml-2 transform group-hover:translate-x-1 transition-transform">→</span>
                 </div>
               </div>
@@ -494,6 +435,13 @@ export default function LandingPageClient() {
           </div>
         </div>
       </main>
+
+      {/* How It Works Section */}
+      <HowItWorks />
+
+      {/* Trust & Transparency Section */}
+      <TrustBadges />
+
       <Footer />
       </div>
     </>

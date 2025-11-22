@@ -32,6 +32,7 @@ interface Receipt {
   application: {
     id: string;
     status: string;
+    customer_name?: string;
     application_data: any;
   };
 }
@@ -114,7 +115,12 @@ export default function ReceiptsList({ className }: ReceiptsListProps) {
       pdf.setFont('helvetica', 'bold');
       pdf.text('Service Name:', 25, yPos + 25);
       pdf.setFont('helvetica', 'normal');
-      pdf.text(receipt.serviceName || 'N/A', 70, yPos + 25);
+      
+      // Handle long service names with text wrapping
+      const serviceName = receipt.serviceName || 'N/A';
+      const maxWidth = 115; // Maximum width for service name text
+      const serviceNameLines = pdf.splitTextToSize(serviceName, maxWidth);
+      pdf.text(serviceNameLines, 70, yPos + 25);
 
       pdf.setFont('helvetica', 'bold');
       pdf.text('Service Fee:', 25, yPos + 35);
@@ -315,7 +321,13 @@ export default function ReceiptsList({ className }: ReceiptsListProps) {
                   </Badge>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                  <div className="flex items-center">
+                    <User className="w-4 h-4 mr-2 text-blue-500" />
+                    <span className="text-sm">
+                      Customer: <span className="font-semibold">{receipt.application?.customer_name || 'N/A'}</span>
+                    </span>
+                  </div>
                   <div className="flex items-center">
                     <DollarSign className="w-4 h-4 mr-2 text-gray-500" />
                     <span className="text-sm">

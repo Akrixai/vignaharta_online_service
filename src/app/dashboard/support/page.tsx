@@ -102,14 +102,30 @@ export default function SupportPage() {
     return matchesCategory && matchesSearch;
   });
 
-  const handleTicketSubmit = (e: React.FormEvent) => {
+  const handleTicketSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement ticket submission
-    showToast.success('Support ticket submitted successfully!', {
-      description: 'We will get back to you soon.'
-    });
-    setTicketForm({ subject: '', category: '', priority: 'medium', description: '' });
-    setShowTicketForm(false);
+    
+    try {
+      const response = await fetch('/api/support-tickets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(ticketForm)
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        showToast.success('Support ticket submitted successfully!', {
+          description: 'We will get back to you soon.'
+        });
+        setTicketForm({ subject: '', category: '', priority: 'medium', description: '' });
+        setShowTicketForm(false);
+      } else {
+        showToast.error(result.error || 'Failed to submit ticket');
+      }
+    } catch (error) {
+      showToast.error('Error submitting ticket');
+    }
   };
 
   return (
@@ -190,16 +206,17 @@ export default function SupportPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Priority Level</label>
                   <select
                     value={ticketForm.priority}
                     onChange={(e) => setTicketForm(prev => ({ ...prev, priority: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white"
+                    required
                   >
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                    <option value="urgent">Urgent</option>
+                    <option value="low">🟢 Low - General inquiry</option>
+                    <option value="medium">🟡 Medium - Standard issue</option>
+                    <option value="high">🟠 High - Important matter</option>
+                    <option value="urgent">🔴 Urgent - Critical issue</option>
                   </select>
                 </div>
                 <div>

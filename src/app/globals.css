@@ -398,3 +398,30 @@ label {
 .marquee-content {
   height: 2.5rem;
 }
+
+/* Header z-index fix - ensure header and language selector stay on top */
+header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 9999 !important;
+}
+
+/* Language selector dropdown should be above everything */
+.language-selector-dropdown {
+  position: absolute !important;
+  z-index: 10002 !important;
+}
+
+/* Ensure carousel and other content stay below header */
+section:not(header), main, .carousel-container, [class*="carousel"] {
+  position: relative;
+  z-index: 1 !important;
+}
+
+/* Force all carousels to stay below */
+div[class*="carousel"], 
+div[class*="Carousel"],
+.swiper-container,
+.slick-slider {
+  z-index: 1 !important;
+}

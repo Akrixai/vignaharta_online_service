@@ -1,6 +1,4 @@
 import Link from "next/link";
-import Logo from "@/components/ui/logo";
-import Footer from "@/components/Footer";
 import { generateSEO } from "@/lib/seo";
 
 // SEO configuration for Marathi home page
@@ -38,38 +36,6 @@ export const metadata = generateSEO(marathiHomeSEO);
 export default function MarathiHome() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-red-900 via-red-800 to-red-900 shadow-2xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-3">
-            <div className="flex items-center space-x-4">
-              <Logo size="md" showText={true} animated={true} />
-              <div className="hidden sm:block">
-                <span className="text-white/90 text-sm font-medium">
-                  ऑनलाईन सेवा पोर्टल
-                </span>
-                <div className="text-white/70 text-xs">
-                  डिजिटल इंडिया पुढाकार
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center space-x-6">
-              <nav className="hidden md:flex space-x-6">
-                <Link href="/about" className="text-white hover:text-red-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700/50">
-                  आमच्याबद्दल
-                </Link>
-                <Link href="/services" className="text-white hover:text-red-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700/50">
-                  सेवा
-                </Link>
-                <Link href="/contact" className="text-white hover:text-red-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700/50">
-                  संपर्क
-                </Link>
-              </nav>
-            </div>
-          </div>
-        </div>
-      </header>
-
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center">
@@ -156,8 +122,6 @@ export default function MarathiHome() {
           </div>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }

@@ -7,10 +7,12 @@ import { UserRole } from '@/types';
 import Logo from '@/components/ui/logo';
 import SafeLoginAdvertisements from '@/components/SafeLoginAdvertisements';
 import { showToast } from '@/lib/toast';
+import { useRecaptchaEnterprise } from '@/hooks/useRecaptchaEnterprise';
 
 function LoginPageContent() {
   const searchParams = useSearchParams();
   const roleParam = searchParams.get('role') as UserRole;
+  const { executeRecaptcha, isReady } = useRecaptchaEnterprise();
   
   const [formData, setFormData] = useState({
     email: '',
@@ -25,11 +27,25 @@ function LoginPageContent() {
     setIsLoading(true);
 
     try {
+      let recaptchaToken = '';
+      
+      // Execute reCAPTCHA Enterprise
+      if (isReady) {
+        try {
+          recaptchaToken = await executeRecaptcha('LOGIN');
+        } catch (error) {
+          console.warn('reCAPTCHA execution failed, proceeding without token:', error);
+        }
+      } else {
+        console.warn('reCAPTCHA not ready, proceeding without token');
+      }
+
       const { signIn } = await import('next-auth/react');
       const result = await signIn('credentials', {
         email: formData.email,
         password: formData.password,
         role: formData.role,
+        recaptchaToken,
         redirect: false,
       });
 
@@ -165,9 +181,9 @@ function LoginPageContent() {
                 onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
                 className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors text-sm sm:text-base"
               >
+                <option value={UserRole.CUSTOMER}>👤 Customer</option>
                 <option value={UserRole.RETAILER}>🏪 Retailer</option>
                 <option value={UserRole.EMPLOYEE}>👨‍💼 Employee</option>
-                <option value={UserRole.ADMIN}>⚙️ Admin</option>
               </select>
             </div>
 
@@ -233,40 +249,84 @@ function LoginPageContent() {
             </button>
           </div>
 
+          {/* Forgot Password Link */}
+          <div className="text-center pt-2">
+            <Link href="/forgot-password" className="text-sm text-red-600 hover:text-red-700 font-medium">
+              Forgot your password?
+            </Link>
+          </div>
+
+          {/* reCAPTCHA Notice */}
+          <div className="text-center text-xs text-gray-500 pt-2">
+            Protected by reCAPTCHA. Google{' '}
+            <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+              Privacy Policy
+            </a>
+            {' '}&{' '}
+            <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+              Terms of Service
+            </a>
+            {' '}apply.
+          </div>
+
           {/* Links */}
-          {formData.role && formData.role.toUpperCase() === 'RETAILER' && (
+          {formData.role && (formData.role.toUpperCase() === 'RETAILER' || formData.role.toUpperCase() === 'CUSTOMER') && (
             <div className="flex justify-center pt-4">
-              <div className="text-xs sm:text-sm">
-                <Link href="/register" className="font-medium text-red-600 hover:text-red-700 transition-colors">
-                  Register as Retailer
-                </Link>
+              <div className="text-xs sm:text-sm space-x-4">
+                {formData.role.toUpperCase() === 'RETAILER' && (
+                  <Link href="/register?type=retailer" className="font-medium text-red-600 hover:text-red-700 transition-colors">
+                    Register as Retailer
+                  </Link>
+                )}
+                {formData.role.toUpperCase() === 'CUSTOMER' && (
+                  <Link href="/register?type=customer" className="font-medium text-red-600 hover:text-red-700 transition-colors">
+                    Register as Customer
+                  </Link>
+                )}
               </div>
             </div>
           )}
         </form>
 
-        {/* Register as Retailer Button */}
-        {formData.role && formData.role.toUpperCase() === 'RETAILER' && (
-          <div className="mt-6 flex flex-col items-center animate-fade-in">
-            <Link
-              href="/register"
-              className="w-full max-w-xs bg-gradient-to-r from-yellow-400 via-pink-500 to-red-600 text-white font-extrabold text-lg py-4 rounded-2xl shadow-xl hover:from-pink-500 hover:to-yellow-400 transition-all duration-300 flex items-center justify-center space-x-3 border-2 border-white/30 animate-pulse mb-2"
-              style={{textShadow: '0 0 8px #fff, 0 0 16px #f472b6'}}
-            >
-              <span className="text-2xl animate-bounce">📝</span>
-              <span className="drop-shadow-lg">Not registered? Register as Retailer</span>
-            </Link>
+        {/* Register Buttons */}
+        {formData.role && (formData.role.toUpperCase() === 'RETAILER' || formData.role.toUpperCase() === 'CUSTOMER') && (
+          <div className="mt-6 flex flex-col items-center animate-fade-in space-y-3">
+            {formData.role.toUpperCase() === 'RETAILER' && (
+              <Link
+                href="/register?type=retailer"
+                className="w-full max-w-xs bg-gradient-to-r from-yellow-400 via-pink-500 to-red-600 text-white font-extrabold text-lg py-4 rounded-2xl shadow-xl hover:from-pink-500 hover:to-yellow-400 transition-all duration-300 flex items-center justify-center space-x-3 border-2 border-white/30 animate-pulse"
+                style={{textShadow: '0 0 8px #fff, 0 0 16px #f472b6'}}
+              >
+                <span className="text-2xl animate-bounce">📝</span>
+                <span className="drop-shadow-lg">Register as Retailer</span>
+              </Link>
+            )}
+            {formData.role.toUpperCase() === 'CUSTOMER' && (
+              <Link
+                href="/register?type=customer"
+                className="w-full max-w-xs bg-gradient-to-r from-blue-400 via-purple-500 to-pink-600 text-white font-extrabold text-lg py-4 rounded-2xl shadow-xl hover:from-purple-500 hover:to-blue-400 transition-all duration-300 flex items-center justify-center space-x-3 border-2 border-white/30 animate-pulse"
+                style={{textShadow: '0 0 8px #fff, 0 0 16px #a78bfa'}}
+              >
+                <span className="text-2xl animate-bounce">👤</span>
+                <span className="drop-shadow-lg">Register as Customer</span>
+              </Link>
+            )}
           </div>
         )}
 
         {/* Back to Home */}
-        <div className="text-center animate-fade-in">
+        <div className="text-center animate-fade-in space-y-2">
           <Link href="/" className="inline-flex items-center text-red-600 hover:text-red-700 transition-colors font-medium">
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
             Back to Home
           </Link>
+          <div>
+            <Link href="/admin/login" className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
+              Admin Access
+            </Link>
+          </div>
         </div>
           </div>
         </div>

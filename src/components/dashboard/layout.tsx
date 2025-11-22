@@ -26,15 +26,16 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
-  { name: 'Dashboard', href: '/dashboard', icon: '📊', roles: [UserRole.ADMIN, UserRole.EMPLOYEE, UserRole.RETAILER] },
-  { name: 'Wallet', href: '/dashboard/wallet', icon: '💰', roles: [UserRole.ADMIN, UserRole.RETAILER] },
-  { name: 'Apply Services', href: '/dashboard/services', icon: '📝', roles: [UserRole.RETAILER] },
-  { name: 'My Applications', href: '/dashboard/applications', icon: '📋', roles: [UserRole.RETAILER] },
+  { name: 'Dashboard', href: '/dashboard', icon: '📊', roles: [UserRole.ADMIN, UserRole.EMPLOYEE, UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'Wallet', href: '/dashboard/wallet', icon: '💰', roles: [UserRole.ADMIN, UserRole.RETAILER, UserRole.CUSTOMER] }, // Admin, Retailer, and Customer
+  { name: 'Apply Services', href: '/dashboard/services', icon: '📝', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'My Applications', href: '/dashboard/applications', icon: '📋', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'Cashback Earnings', href: '/dashboard/customer/cashback', icon: '🎁', roles: [UserRole.CUSTOMER] },
   { name: 'Commission Earnings', href: '/dashboard/commission', icon: '💸', roles: [UserRole.RETAILER] },
-  { name: 'Service Receipts', href: '/dashboard/receipts', icon: '📄', roles: [UserRole.RETAILER] },
-  { name: 'My Orders', href: '/dashboard/orders', icon: '📦', roles: [UserRole.RETAILER] },
-  { name: 'Refunds', href: '/dashboard/retailer/refunds', icon: '🔄', roles: [UserRole.RETAILER] },
-  { name: 'Products', href: '/dashboard/products', icon: '🛍️', roles: [UserRole.RETAILER, UserRole.EMPLOYEE] },
+  { name: 'Service Receipts', href: '/dashboard/receipts', icon: '📄', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'My Orders', href: '/dashboard/orders', icon: '📦', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'Refunds', href: '/dashboard/retailer/refunds', icon: '🔄', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'Products', href: '/dashboard/products', icon: '🛍️', roles: [UserRole.RETAILER, UserRole.EMPLOYEE, UserRole.CUSTOMER] },
   { name: 'Certificates', href: '/dashboard/certificates', icon: '🏆', roles: [UserRole.RETAILER] },
   { name: 'Employee Certificate', href: '/dashboard/employee/certificates', icon: '🏆', roles: [UserRole.EMPLOYEE] },
   { name: 'Free Services', href: '/dashboard/employee/free-services', icon: '🆓', roles: [UserRole.EMPLOYEE] },
@@ -53,17 +54,19 @@ const menuItems: MenuItem[] = [
   { name: 'Login Advertisements', href: '/dashboard/admin/advertisements', icon: '🔑', roles: [UserRole.ADMIN] },
   { name: 'All Certificates', href: '/dashboard/admin/certificates', icon: '🏆', roles: [UserRole.ADMIN] },
   { name: 'User Management', href: '/dashboard/admin/users', icon: '👥', roles: [UserRole.ADMIN] },
-  { name: 'Employee Management', href: '/dashboard/admin/employees', icon: '🧑‍💼', roles: [UserRole.ADMIN] },
+  { name: 'Employee Management', href: '/dashboard/employees', icon: '🧑‍💼', roles: [UserRole.ADMIN, UserRole.EMPLOYEE] },
+  { name: 'Organization Hierarchy', href: '/dashboard/organization-hierarchy', icon: '🏢', roles: [UserRole.ADMIN, UserRole.EMPLOYEE] },
   { name: 'Registration Fee', href: '/dashboard/admin/registration-fee', icon: '💵', roles: [UserRole.ADMIN] },
+  { name: 'Platform & Yearly Fees', href: '/dashboard/admin/platform-fees', icon: '💰', roles: [UserRole.ADMIN] },
   { name: 'Registration Requests', href: '/dashboard/admin/pending-registrations', icon: '👤', roles: [UserRole.ADMIN, UserRole.EMPLOYEE] },
   { name: 'Database Cleanup', href: '/dashboard/admin/data-cleanup', icon: '🗄️', roles: [UserRole.ADMIN] },
-  { name: 'Transactions', href: '/dashboard/transactions', icon: '💳', roles: [UserRole.ADMIN, UserRole.EMPLOYEE, UserRole.RETAILER] },
+  { name: 'Transactions', href: '/dashboard/transactions', icon: '💳', roles: [UserRole.ADMIN, UserRole.EMPLOYEE, UserRole.RETAILER, UserRole.CUSTOMER] },
   { name: 'Wallet Approvals', href: '/dashboard/admin/wallet-approvals', icon: '💰', roles: [UserRole.ADMIN, UserRole.EMPLOYEE] },
   { name: 'Refund Management', href: '/dashboard/admin/refunds', icon: '🔄', roles: [UserRole.ADMIN, UserRole.EMPLOYEE] },
-  { name: 'Help & Support', href: '/dashboard/help-support', icon: '🆘', roles: [UserRole.RETAILER] },
+  { name: 'Help & Support', href: '/dashboard/help-support', icon: '🆘', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
 
-  { name: 'My Profile', href: '/dashboard/profile', icon: '👤', roles: [UserRole.ADMIN, UserRole.EMPLOYEE, UserRole.RETAILER] },
-  { name: 'Change Password', href: '/dashboard/change-password', icon: '🔒', roles: [UserRole.RETAILER] },
+  { name: 'My Profile', href: '/dashboard/profile', icon: '👤', roles: [UserRole.ADMIN, UserRole.EMPLOYEE, UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'Change Password', href: '/dashboard/change-password', icon: '🔒', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
 ];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
@@ -72,9 +75,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const [loadingWallet, setLoadingWallet] = useState(false);
 
-  // Fetch wallet balance for retailers
+  // Fetch wallet balance for retailers and customers
   useEffect(() => {
-    if (session?.user?.role === UserRole.RETAILER) {
+    if (session?.user?.role === UserRole.RETAILER || session?.user?.role === UserRole.CUSTOMER) {
       const fetchWalletBalance = async () => {
         setLoadingWallet(true);
         try {
@@ -116,7 +119,44 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const userRole = session.user.role;
   const userName = session.user.name;
-  const filteredMenuItems = menuItems.filter(item => item.roles.includes(userRole));
+  const userDesignation = (session.user as any).designation;
+  
+  // Filter menu items based on role and designation
+  const filteredMenuItems = menuItems.filter(item => {
+    // First check if user's role is allowed
+    if (!item.roles.includes(userRole)) return false;
+    
+    // Special handling for Wallet - only Admin and Retailer
+    if (item.name === 'Wallet') {
+      return userRole === UserRole.ADMIN || userRole === UserRole.RETAILER;
+    }
+    
+    // Special handling for Employee Management - only show to those who can create employees
+    if (item.name === 'Employee Management') {
+      // Admin can always see it
+      if (userRole === UserRole.ADMIN) return true;
+      
+      // Employees with these designations can create subordinates
+      // MANAGER, STATE_MANAGER, DISTRICT_MANAGER, SUPERVISOR, DISTRIBUTOR can create employees
+      // Regular EMPLOYEE and RETAILER cannot
+      const canCreateEmployees = ['MANAGER', 'STATE_MANAGER', 'DISTRICT_MANAGER', 'SUPERVISOR', 'DISTRIBUTOR'];
+      return userRole === UserRole.EMPLOYEE && userDesignation && canCreateEmployees.includes(userDesignation);
+    }
+    
+    // Special handling for Organization Hierarchy - show to all employees with designation and admin
+    if (item.name === 'Organization Hierarchy') {
+      if (userRole === UserRole.ADMIN) return true;
+      // Show to employees with designation (they can see their subordinates)
+      return userRole === UserRole.EMPLOYEE && userDesignation;
+    }
+    
+    // Hide admin-only items from regular employees without proper designation
+    if (item.roles.includes(UserRole.ADMIN) && !item.roles.includes(UserRole.EMPLOYEE)) {
+      return userRole === UserRole.ADMIN;
+    }
+    
+    return true;
+  });
 
   const getRoleColor = (role: UserRole) => {
     switch (role) {
@@ -150,12 +190,30 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* User Info */}
         <div className="p-4 border-b border-red-600">
           <div className="flex items-center space-x-3">
-            <div className={`w-10 h-10 rounded-full ${getRoleColor(userRole)} flex items-center justify-center text-white font-bold shadow-lg`}>
+            {(session.user as any).profile_photo_url && (session.user as any).profile_photo_url !== 'null' ? (
+              <img
+                src={(session.user as any).profile_photo_url}
+                alt={userName}
+                className="w-10 h-10 rounded-full object-cover shadow-lg ring-2 ring-white"
+                onError={(e) => {
+                  // Fallback to initial if image fails to load
+                  e.currentTarget.style.display = 'none';
+                  const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                  if (fallback) fallback.style.display = 'flex';
+                }}
+              />
+            ) : null}
+            <div 
+              className={`w-10 h-10 rounded-full ${getRoleColor(userRole)} flex items-center justify-center text-white font-bold shadow-lg`}
+              style={{ display: (session.user as any).profile_photo_url && (session.user as any).profile_photo_url !== 'null' ? 'none' : 'flex' }}
+            >
               {userName.charAt(0).toUpperCase()}
             </div>
             <div>
               <p className="text-sm font-medium text-white">{userName}</p>
-              <p className="text-xs text-red-200 capitalize">{userRole.toLowerCase()}</p>
+              <p className="text-xs text-red-200 capitalize">
+                {userDesignation ? userDesignation.replace('_', ' ') : userRole.toLowerCase()}
+              </p>
             </div>
           </div>
         </div>
@@ -245,8 +303,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
 
           <div className="flex items-center space-x-4">
-            {/* Wallet Balance for Retailers */}
-            {session?.user?.role === UserRole.RETAILER && (
+            {/* Wallet Balance for Retailers and Customers */}
+            {(session?.user?.role === UserRole.RETAILER || session?.user?.role === UserRole.CUSTOMER) && (
               <div className="flex items-center bg-white/20 rounded-lg px-3 py-2 text-white">
                 <Wallet className="w-4 h-4 mr-2" />
                 <span className="text-sm font-medium">

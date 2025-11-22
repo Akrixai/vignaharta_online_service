@@ -7,7 +7,7 @@ import bcrypt from 'bcryptjs';
 // GET /api/users/[id] - Get user by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -16,7 +16,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const userId = params.id;
+    const { id: userId } = await params;
 
     // Users can only view their own profile unless they're admin/employee
     if (session.user.id !== userId && !['ADMIN', 'EMPLOYEE'].includes(session.user.role)) {
@@ -42,6 +42,7 @@ export async function GET(
         employee_id,
         department,
         branch,
+        profile_photo_url,
         created_at,
         updated_at,
         wallets (
@@ -69,7 +70,7 @@ export async function GET(
 // PUT /api/users/[id] - Update user
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -78,7 +79,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const userId = params.id;
+    const { id: userId } = await params;
     const body = await request.json();
 
     // Users can only update their own profile unless they're admin
@@ -144,6 +145,7 @@ export async function PUT(
         employee_id,
         department,
         branch,
+        profile_photo_url,
         created_at,
         updated_at
       `)
@@ -167,7 +169,7 @@ export async function PUT(
 // DELETE /api/users/[id] - Delete user (Admin only)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -176,7 +178,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const userId = params.id;
+    const { id: userId } = await params;
 
     // Prevent admin from deleting themselves
     if (session.user.id === userId) {

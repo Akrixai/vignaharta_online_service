@@ -25,6 +25,9 @@ export default function AdminServicesPage() {
     documents: '',
     processing_time_days: '',
     commission_rate: '',
+    cashback_enabled: false,
+    cashback_min_percentage: '1',
+    cashback_max_percentage: '3',
     image_url: ''
   });
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -143,6 +146,9 @@ export default function AdminServicesPage() {
         price: parseFloat(formData.price) || 0,
         processing_time_days: parseInt(formData.processing_time_days) || 7,
         commission_rate: parseFloat(formData.commission_rate) || 0,
+        cashback_enabled: formData.cashback_enabled,
+        cashback_min_percentage: parseFloat(formData.cashback_min_percentage) || 1,
+        cashback_max_percentage: parseFloat(formData.cashback_max_percentage) || 3,
         documents: formData.documents.split(',').map(doc => doc.trim()).filter(doc => doc),
         dynamic_fields: dynamicFields,
         required_documents: requiredDocuments,
@@ -202,6 +208,9 @@ export default function AdminServicesPage() {
       documents: service.documents?.join(', ') || '',
       processing_time_days: service.processing_time_days?.toString() || '7',
       commission_rate: service.commission_rate?.toString() || '0',
+      cashback_enabled: service.cashback_enabled || false,
+      cashback_min_percentage: service.cashback_min_percentage?.toString() || '1',
+      cashback_max_percentage: service.cashback_max_percentage?.toString() || '3',
       image_url: service.image_url || ''
     });
     setDynamicFields(service.dynamic_fields || []);
@@ -299,6 +308,9 @@ export default function AdminServicesPage() {
       documents: '',
       processing_time_days: '',
       commission_rate: '',
+      cashback_enabled: false,
+      cashback_min_percentage: '1',
+      cashback_max_percentage: '3',
       image_url: ''
     });
     setDynamicFields([]);
@@ -489,7 +501,7 @@ export default function AdminServicesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-red-700 mb-2">Commission Rate (%)</label>
+                  <label className="block text-sm font-medium text-red-700 mb-2">Commission Rate (%) - For Retailers</label>
                   <input
                     type="number"
                     name="commission_rate"
@@ -501,6 +513,78 @@ export default function AdminServicesPage() {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
                     placeholder="10.00"
                   />
+                  <p className="text-xs text-gray-500 mt-1">Commission percentage for retailers</p>
+                </div>
+
+                {/* Cashback Configuration for Customers */}
+                <div className="md:col-span-2 border-t pt-4 mt-4">
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h3 className="text-lg font-semibold text-blue-800">💰 Cashback for Customers</h3>
+                        <p className="text-sm text-blue-600">Configure cashback rewards for customer applications</p>
+                      </div>
+                      <label className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          name="cashback_enabled"
+                          checked={formData.cashback_enabled}
+                          onChange={handleInputChange}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-5 h-5"
+                        />
+                        <span className="text-sm font-medium text-blue-700">Enable Cashback</span>
+                      </label>
+                    </div>
+
+                    {formData.cashback_enabled && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div>
+                          <label className="block text-sm font-medium text-blue-700 mb-2">
+                            Minimum Cashback (%)
+                          </label>
+                          <input
+                            type="number"
+                            name="cashback_min_percentage"
+                            value={formData.cashback_min_percentage}
+                            onChange={handleInputChange}
+                            min="0.01"
+                            max="100"
+                            step="0.01"
+                            className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            placeholder="1.00"
+                          />
+                          <p className="text-xs text-blue-600 mt-1">Minimum cashback percentage (e.g., 1%)</p>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-blue-700 mb-2">
+                            Maximum Cashback (%)
+                          </label>
+                          <input
+                            type="number"
+                            name="cashback_max_percentage"
+                            value={formData.cashback_max_percentage}
+                            onChange={handleInputChange}
+                            min="0.01"
+                            max="100"
+                            step="0.01"
+                            className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            placeholder="3.00"
+                          />
+                          <p className="text-xs text-blue-600 mt-1">Maximum cashback percentage (e.g., 3%)</p>
+                        </div>
+
+                        <div className="md:col-span-2 bg-white p-3 rounded border border-blue-200">
+                          <p className="text-sm text-blue-800">
+                            <strong>ℹ️ How it works:</strong> Customers will receive a random cashback percentage between{' '}
+                            <strong>{formData.cashback_min_percentage}%</strong> and{' '}
+                            <strong>{formData.cashback_max_percentage}%</strong> when they apply for this service.
+                            They can reveal their cashback through a scratch card after application completion.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="md:col-span-2">

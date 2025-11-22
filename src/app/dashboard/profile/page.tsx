@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { UserRole } from '@/types';
 import ChangePasswordModal from '@/components/ChangePasswordModal';
+import ProfilePhotoUpload from '@/components/ProfilePhotoUpload';
 import { Lock, RefreshCw } from 'lucide-react';
 import { showToast } from '@/lib/toast';
 
@@ -16,6 +17,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
+  const [currentUserData, setCurrentUserData] = useState<any>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -39,6 +41,27 @@ export default function ProfilePage() {
     }
   }, [session?.user?.id]);
 
+  useEffect(() => {
+    if (currentUserData) {
+      // Update form data whenever currentUserData changes
+      setFormData({
+        name: currentUserData.name || '',
+        email: currentUserData.email || '',
+        phone: currentUserData.phone || '',
+        address: currentUserData.address || '',
+        city: currentUserData.city || '',
+        state: currentUserData.state || '',
+        pincode: currentUserData.pincode || '',
+        dateOfBirth: currentUserData.date_of_birth || '',
+        gender: currentUserData.gender || '',
+        occupation: currentUserData.occupation || '',
+        employeeId: currentUserData.employee_id || '',
+        department: currentUserData.department || '',
+        branch: currentUserData.branch || ''
+      });
+    }
+  }, [currentUserData]);
+
   if (!session) {
     return <div className="flex items-center justify-center min-h-screen text-gray-600 text-lg">Loading profile...</div>;
   }
@@ -58,10 +81,14 @@ export default function ProfilePage() {
     if (showRefreshingState) setRefreshing(true);
 
     try {
-      const response = await fetch(`/api/users/${user.id}`, {
+      // Add cache-busting parameter to ensure fresh data
+      const timestamp = new Date().getTime();
+      const response = await fetch(`/api/users/${user.id}?t=${timestamp}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
         },
       });
 
@@ -69,7 +96,8 @@ export default function ProfilePage() {
         const responseData = await response.json();
         const freshUser = responseData.data;
 
-        //
+        // Update local state with fresh data
+        setCurrentUserData(freshUser);
 
         // Update session with fresh data
         await update({
@@ -87,26 +115,10 @@ export default function ProfilePage() {
             gender: freshUser.gender,
             occupation: freshUser.occupation,
             employee_id: freshUser.employee_id,
+            employeeId: freshUser.employee_id,
             department: freshUser.department,
             branch: freshUser.branch
           }
-        });
-
-        // Update form data with fresh data
-        setFormData({
-          name: freshUser.name || '',
-          email: freshUser.email || '',
-          phone: freshUser.phone || '',
-          address: freshUser.address || '',
-          city: freshUser.city || '',
-          state: freshUser.state || '',
-          pincode: freshUser.pincode || '',
-          dateOfBirth: freshUser.date_of_birth || '',
-          gender: freshUser.gender || '',
-          occupation: freshUser.occupation || '',
-          employeeId: freshUser.employee_id || '',
-          department: freshUser.department || '',
-          branch: freshUser.branch || ''
         });
 
         if (showRefreshingState) {
@@ -116,7 +128,7 @@ export default function ProfilePage() {
         return freshUser;
       }
     } catch (error) {
-      //
+      console.error('Error fetching profile data:', error);
       if (showRefreshingState) {
         showToast.error('Failed to refresh profile data');
       }
@@ -153,40 +165,54 @@ export default function ProfilePage() {
         updateData.branch = formData.branch;
       }
 
-      //
-
       // Call API to update profile
       const response = await fetch(`/api/users/${user.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
         },
         body: JSON.stringify(updateData),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        //
         throw new Error(errorData.error || 'Failed to update profile');
       }
 
       const responseData = await response.json();
-      //
+      const updatedUser = responseData.data;
 
-      // Wait a moment for database to be consistent
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Update local state immediately with the response
+      setCurrentUserData(updatedUser);
 
-      // Fetch fresh data from database to ensure consistency
-      const freshUser = await fetchFreshProfileData();
+      // Update session with the response data
+      await update({
+        ...session,
+        user: {
+          ...session.user,
+          name: updatedUser.name,
+          phone: updatedUser.phone,
+          address: updatedUser.address,
+          city: updatedUser.city,
+          state: updatedUser.state,
+          pincode: updatedUser.pincode,
+          date_of_birth: updatedUser.date_of_birth,
+          dateOfBirth: updatedUser.date_of_birth,
+          gender: updatedUser.gender,
+          occupation: updatedUser.occupation,
+          employee_id: updatedUser.employee_id,
+          employeeId: updatedUser.employee_id,
+          department: updatedUser.department,
+          branch: updatedUser.branch
+        }
+      });
 
-      if (freshUser) {
-        setIsEditing(false);
-        showToast.success('Profile updated successfully!');
-      } else {
-        throw new Error('Failed to fetch updated profile data');
-      }
+      setIsEditing(false);
+      showToast.success('Profile updated successfully!');
     } catch (error) {
-      //
+      console.error('Profile update error:', error);
       showToast.error('Failed to update profile', {
         description: error instanceof Error ? error.message : 'Please try again.'
       });
@@ -219,20 +245,28 @@ export default function ProfilePage() {
     }
   };
 
+  // Use currentUserData if available, otherwise fall back to session user
+  const displayUser = currentUserData || user;
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
         <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg p-6 text-white">
-          <div className="flex items-center space-x-4">
-            <div className={`w-16 h-16 rounded-full ${getRoleColor(user.role)} flex items-center justify-center text-white text-2xl font-bold`}>
-              {user.name.charAt(0).toUpperCase()}
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold">{user.name}</h1>
-              <p className="text-indigo-100">{user.email}</p>
-              <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium mt-2 ${getRoleBadgeColor(user.role)}`}>
-                {user.role.charAt(0) + user.role.slice(1).toLowerCase()}
+          <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
+            <ProfilePhotoUpload
+              userId={user.id}
+              currentPhotoUrl={displayUser.profile_photo_url}
+              userName={displayUser.name}
+              onPhotoUpdate={(photoUrl) => {
+                setCurrentUserData({ ...displayUser, profile_photo_url: photoUrl });
+              }}
+            />
+            <div className="text-center md:text-left">
+              <h1 className="text-2xl font-bold">{displayUser.name}</h1>
+              <p className="text-indigo-100">{displayUser.email}</p>
+              <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium mt-2 ${getRoleBadgeColor(displayUser.role)}`}>
+                {displayUser.role.charAt(0) + displayUser.role.slice(1).toLowerCase()}
               </span>
             </div>
           </div>
@@ -307,7 +341,7 @@ export default function ProfilePage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                   />
                 ) : (
-                  <p className="text-gray-900">{user.name || 'Not provided'}</p>
+                  <p className="text-gray-900">{displayUser.name || 'Not provided'}</p>
                 )}
               </div>
 
@@ -322,7 +356,7 @@ export default function ProfilePage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                   />
                 ) : (
-                  <p className="text-gray-900">{user.email}</p>
+                  <p className="text-gray-900">{displayUser.email}</p>
                 )}
               </div>
 
@@ -337,7 +371,7 @@ export default function ProfilePage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                   />
                 ) : (
-                  <p className="text-gray-900">{user.phone || 'Not provided'}</p>
+                  <p className="text-gray-900">{displayUser.phone || 'Not provided'}</p>
                 )}
               </div>
 
@@ -352,7 +386,7 @@ export default function ProfilePage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                   />
                 ) : (
-                  <p className="text-gray-900">{user.dateOfBirth || 'Not provided'}</p>
+                  <p className="text-gray-900">{displayUser.date_of_birth || displayUser.dateOfBirth || 'Not provided'}</p>
                 )}
               </div>
 
@@ -371,7 +405,7 @@ export default function ProfilePage() {
                     <option value="other">Other</option>
                   </select>
                 ) : (
-                  <p className="text-gray-900">{user.gender || 'Not provided'}</p>
+                  <p className="text-gray-900">{displayUser.gender || 'Not provided'}</p>
                 )}
               </div>
 
@@ -386,7 +420,7 @@ export default function ProfilePage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                   />
                 ) : (
-                  <p className="text-gray-900">{user.occupation || 'Not provided'}</p>
+                  <p className="text-gray-900">{displayUser.occupation || 'Not provided'}</p>
                 )}
               </div>
 
@@ -401,7 +435,7 @@ export default function ProfilePage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                   />
                 ) : (
-                  <p className="text-gray-900">{user.address || 'Not provided'}</p>
+                  <p className="text-gray-900">{displayUser.address || 'Not provided'}</p>
                 )}
               </div>
 
@@ -416,7 +450,7 @@ export default function ProfilePage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                   />
                 ) : (
-                  <p className="text-gray-900">{user.city || 'Not provided'}</p>
+                  <p className="text-gray-900">{displayUser.city || 'Not provided'}</p>
                 )}
               </div>
 
@@ -431,7 +465,7 @@ export default function ProfilePage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                   />
                 ) : (
-                  <p className="text-gray-900">{user.state || 'Not provided'}</p>
+                  <p className="text-gray-900">{displayUser.state || 'Not provided'}</p>
                 )}
               </div>
 
@@ -446,12 +480,12 @@ export default function ProfilePage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                   />
                 ) : (
-                  <p className="text-gray-900">{user.pincode || 'Not provided'}</p>
+                  <p className="text-gray-900">{displayUser.pincode || 'Not provided'}</p>
                 )}
               </div>
 
               {/* Admin/Employee specific fields */}
-              {(user.role === 'ADMIN' || user.role === 'EMPLOYEE') && (
+              {(displayUser.role === 'ADMIN' || displayUser.role === 'EMPLOYEE') && (
                 <>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Employee ID</label>
@@ -464,7 +498,7 @@ export default function ProfilePage() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                       />
                     ) : (
-                      <p className="text-gray-900">{user.employeeId || 'Not provided'}</p>
+                      <p className="text-gray-900">{displayUser.employee_id || displayUser.employeeId || 'Not provided'}</p>
                     )}
                   </div>
 
@@ -479,7 +513,7 @@ export default function ProfilePage() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                       />
                     ) : (
-                      <p className="text-gray-900">{user.department || 'Not provided'}</p>
+                      <p className="text-gray-900">{displayUser.department || 'Not provided'}</p>
                     )}
                   </div>
 
@@ -494,7 +528,7 @@ export default function ProfilePage() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                       />
                     ) : (
-                      <p className="text-gray-900">{(user as any).branch || formData.branch || 'Not provided'}</p>
+                      <p className="text-gray-900">{displayUser.branch || 'Not provided'}</p>
                     )}
                   </div>
                 </>
@@ -513,17 +547,17 @@ export default function ProfilePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">User ID</label>
-                <p className="text-gray-900 font-mono">{user.id}</p>
+                <p className="text-gray-900 font-mono">{displayUser.id}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Account Type</label>
-                <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getRoleBadgeColor(user.role)}`}>
-                  {user.role.charAt(0) + user.role.slice(1).toLowerCase()}
+                <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getRoleBadgeColor(displayUser.role)}`}>
+                  {displayUser.role.charAt(0) + displayUser.role.slice(1).toLowerCase()}
                 </span>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Member Since</label>
-                <p className="text-gray-900">{new Date(user.createdAt || Date.now()).toLocaleDateString()}</p>
+                <p className="text-gray-900">{new Date(displayUser.created_at || displayUser.createdAt || Date.now()).toLocaleDateString()}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Account Status</label>

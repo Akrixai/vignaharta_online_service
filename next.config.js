@@ -150,8 +150,8 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            // Simplified CSP: allow only own origin and trusted font sources. Removed Google Analytics and CDN domains.
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://nblvyqgtlsltuzbnhofz.supabase.co https://api.supabase.co wss://nblvyqgtlsltuzbnhofz.supabase.co; frame-src 'self' https://vercel.live;",
+            // Simplified CSP: allow only own origin and trusted font sources. Added Cashfree and reCAPTCHA Enterprise domains.
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://va.vercel-scripts.com https://sdk.cashfree.com https://www.google.com https://www.gstatic.com https://www.recaptcha.net https://recaptchaenterprise.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://nblvyqgtlsltuzbnhofz.supabase.co https://api.supabase.co wss://nblvyqgtlsltuzbnhofz.supabase.co https://sandbox.cashfree.com https://api.cashfree.com https://www.google.com https://www.gstatic.com https://recaptchaenterprise.googleapis.com; frame-src 'self' https://vercel.live https://sandbox.cashfree.com https://payments.cashfree.com https://www.google.com https://www.recaptcha.net;",
           },
           {
             key: 'Permissions-Policy',

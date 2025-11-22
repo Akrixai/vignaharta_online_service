@@ -85,10 +85,11 @@ export default function ServicesPage() {
           </div>
         </div>
 
-        {/* Filters */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Filters - Sticky */}
+        <div className="sticky top-0 z-10 bg-white">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Search Services
@@ -143,9 +144,10 @@ export default function ServicesPage() {
                   🔄 Refresh
                 </Button>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Service Results */}
         {loading ? (

@@ -6,7 +6,7 @@ export const env = {
   SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
   
   // NextAuth Configuration
-  NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'http://localhost:3000',
+  NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'https://www.vighnahartaonlineservice.in',
   NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || '',
   
   // JWT Configuration

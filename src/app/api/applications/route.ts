@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
+    const limit = parseInt(searchParams.get('limit') || '1000'); // Increased default limit to show all applications
     const offset = (page - 1) * limit;
 
     let query = supabaseAdmin
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session || session.user.role !== UserRole.RETAILER) {
+    if (!session || (session.user.role !== UserRole.RETAILER && session.user.role !== UserRole.CUSTOMER)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -227,6 +227,24 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Calculate cashback for customers
+    let cashbackPercentage = 0;
+    let cashbackAmount = 0;
+    
+    if (session.user.role === UserRole.CUSTOMER && scheme.cashback_enabled) {
+      const minCashback = parseFloat(scheme.cashback_min_percentage || 1);
+      const maxCashback = parseFloat(scheme.cashback_max_percentage || 3);
+      
+      // Generate random cashback percentage between min and max
+      cashbackPercentage = Math.random() * (maxCashback - minCashback) + minCashback;
+      cashbackPercentage = Math.round(cashbackPercentage * 100) / 100; // Round to 2 decimals
+      
+      // Calculate cashback amount
+      const servicePrice = parseFloat(amount || scheme.price || 0);
+      cashbackAmount = (servicePrice * cashbackPercentage) / 100;
+      cashbackAmount = Math.round(cashbackAmount * 100) / 100; // Round to 2 decimals
+    }
+
     // Create application
     const { data: application, error: applicationError } = await supabaseAdmin
       .from('applications')
@@ -243,8 +261,12 @@ export async function POST(request: NextRequest) {
         amount: amount || (scheme.is_free ? 0 : scheme.price),
         status: 'PENDING',
         notes: is_reapply ? `REAPPLICATION - Original Application ID: ${original_application_id}` : null,
-        commission_rate: scheme.commission_rate || 0,
-        commission_paid: false
+        commission_rate: session.user.role === UserRole.RETAILER ? (scheme.commission_rate || 0) : 0,
+        commission_paid: false,
+        cashback_percentage: cashbackPercentage,
+        cashback_amount: cashbackAmount,
+        cashback_claimed: false,
+        scratch_card_revealed: false
       })
       .select(`
         id,

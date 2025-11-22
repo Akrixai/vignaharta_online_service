@@ -108,8 +108,40 @@ export default withAuth(
     }
 
     // Allow access to public routes
-    const publicRoutes = ['/', '/login', '/register', '/about', '/services', '/contact', '/privacy', '/terms', '/refund-policy', '/social-media'];
-    if (publicRoutes.includes(pathname)) {
+    const publicRoutes = [
+      '/', 
+      '/login',
+      '/admin/login',
+      '/register', 
+      '/about', 
+      '/services', 
+      '/contact', 
+      '/privacy', 
+      '/terms', 
+      '/refund-policy', 
+      '/social-media', 
+      '/forgot-password', 
+      '/reset-password', 
+      '/faq',
+      '/testimonials',
+      '/trust',
+      '/how-it-works',
+      '/service-centers'
+    ];
+    
+    // Allow language-specific routes (Marathi and Hindi)
+    const isLanguageRoute = pathname.startsWith('/mr/') || pathname.startsWith('/hi/') || pathname === '/mr' || pathname === '/hi';
+    
+    // Allow all registration routes
+    const isRegisterRoute = pathname.startsWith('/register');
+    
+    // Allow payment callback routes
+    const isPaymentRoute = pathname.startsWith('/payment/');
+    
+    // Allow webhook routes (Cashfree, etc.)
+    const isWebhookRoute = pathname.includes('/webhook');
+    
+    if (publicRoutes.includes(pathname) || isLanguageRoute || isRegisterRoute || isPaymentRoute || isWebhookRoute) {
       return response;
     }
 
@@ -139,12 +171,31 @@ export default withAuth(
     if (pathname.startsWith('/dashboard')) {
       const userRole = token.role as UserRole;
 
-      // Admin routes
-      if (pathname.startsWith('/dashboard/employees') || 
-          pathname.startsWith('/dashboard/retailers') ||
+      // Admin routes (but NOT /dashboard/employees - that's handled separately)
+      if (pathname.startsWith('/dashboard/retailers') ||
           pathname.startsWith('/dashboard/queries') ||
           pathname.startsWith('/dashboard/refunds')) {
         if (userRole !== UserRole.ADMIN) {
+          return NextResponse.redirect(new URL('/dashboard', req.url));
+        }
+      }
+      
+      // Employee Management - Admin and Employees with designation
+      if (pathname.startsWith('/dashboard/employees') || 
+          pathname.startsWith('/dashboard/organization-hierarchy')) {
+        const userDesignation = token.designation as string;
+        const canCreateEmployees = ['MANAGER', 'STATE_MANAGER', 'DISTRICT_MANAGER', 'SUPERVISOR', 'DISTRIBUTOR'];
+        
+        // Allow Admin always
+        if (userRole === UserRole.ADMIN) {
+          // Allow access
+        }
+        // Allow Employees with proper designation
+        else if (userRole === UserRole.EMPLOYEE && userDesignation && canCreateEmployees.includes(userDesignation)) {
+          // Allow access
+        }
+        // Block everyone else
+        else {
           return NextResponse.redirect(new URL('/dashboard', req.url));
         }
       }
@@ -196,8 +247,37 @@ export default withAuth(
         const pathname = req.nextUrl.pathname;
         
         // Allow public routes
-        const publicRoutes = ['/', '/login', '/register', '/about', '/services', '/contact', '/privacy', '/terms', '/refund-policy', '/social-media'];
-        if (publicRoutes.includes(pathname)) {
+        const publicRoutes = [
+          '/', 
+          '/login',
+          '/admin/login',
+          '/register', 
+          '/about', 
+          '/services', 
+          '/contact', 
+          '/privacy', 
+          '/terms', 
+          '/refund-policy', 
+          '/social-media', 
+          '/forgot-password', 
+          '/reset-password', 
+          '/faq',
+          '/testimonials',
+          '/trust',
+          '/how-it-works',
+          '/service-centers'
+        ];
+        
+        // Allow language-specific routes (Marathi and Hindi)
+        const isLanguageRoute = pathname.startsWith('/mr/') || pathname.startsWith('/hi/') || pathname === '/mr' || pathname === '/hi';
+        
+        // Allow all registration routes
+        const isRegisterRoute = pathname.startsWith('/register');
+        
+        // Allow payment callback routes
+        const isPaymentRoute = pathname.startsWith('/payment/');
+        
+        if (publicRoutes.includes(pathname) || isLanguageRoute || isRegisterRoute || isPaymentRoute) {
           return true;
         }
 

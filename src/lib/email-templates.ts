@@ -202,7 +202,7 @@ export function getWelcomeRetailerEmailTemplate(
             </div>
             
             <div style="text-align: center;">
-                <a href="http://localhost:3000/login?role=retailer" class="cta-button">
+                <a href="${process.env.NEXTAUTH_URL || 'https://www.vighnahartaonlineservice.in'}/login?role=retailer" class="cta-button">
                     🚀 Login to Dashboard
                 </a>
             </div>
@@ -253,7 +253,7 @@ Password: ${password}
 
 IMPORTANT: Please change your password after your first login for security.
 
-Login here: http://localhost:3000/login?role=retailer
+Login here: ${process.env.NEXTAUTH_URL || 'https://www.vighnahartaonlineservice.in'}/login?role=retailer
 
 What You Can Do:
 - Offer Government Services: Help customers with various government applications
@@ -327,7 +327,7 @@ export function getWelcomeEmployeeEmailTemplate(
             </div>
 
             <div style="text-align: center;">
-                <a href="http://localhost:3000/login?role=employee" class="cta-button">
+                <a href="${process.env.NEXTAUTH_URL || 'https://www.vighnahartaonlineservice.in'}/login?role=employee" class="cta-button">
                     🚀 Login to Dashboard
                 </a>
             </div>
@@ -378,7 +378,7 @@ Password: ${password}
 
 IMPORTANT: Please change your password after your first login for security.
 
-Login here: http://localhost:3000/login?role=employee
+Login here: ${process.env.NEXTAUTH_URL || 'https://www.vighnahartaonlineservice.in'}/login?role=employee
 
 Your Responsibilities:
 - Support Retailers: Help retailers with service-related queries
@@ -592,7 +592,7 @@ export function getRegistrationRejectionEmailTemplate(
             </div>
             
             <div style="text-align: center;">
-                <a href="http://localhost:3000/register" class="cta-button">
+                <a href="${process.env.NEXTAUTH_URL || 'https://www.vighnahartaonlineservice.in'}/register" class="cta-button">
                     🔄 Submit New Application
                 </a>
             </div>
@@ -635,7 +635,7 @@ Tips for Reapplication:
 - Double-check your phone number and email
 - Ensure you meet all eligibility requirements
 
-Submit a new application: http://localhost:3000/register
+Submit a new application: ${process.env.NEXTAUTH_URL || 'https://www.vighnahartaonlineservice.in'}/register
 
 Need help? Contact us at vighnahartaenterprises.sangli@gmail.com
 

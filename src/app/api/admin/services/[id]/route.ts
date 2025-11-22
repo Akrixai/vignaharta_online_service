@@ -53,6 +53,32 @@ export async function PUT(
       }, { status: 400 });
     }
 
+    // Validate cashback percentages
+    if (body.cashback_enabled) {
+      if (body.cashback_min_percentage !== undefined && (body.cashback_min_percentage < 0 || body.cashback_min_percentage > 100)) {
+        return NextResponse.json({
+          error: 'Cashback minimum percentage must be between 0 and 100'
+        }, { status: 400 });
+      }
+      if (body.cashback_max_percentage !== undefined && (body.cashback_max_percentage < 0 || body.cashback_max_percentage > 100)) {
+        return NextResponse.json({
+          error: 'Cashback maximum percentage must be between 0 and 100'
+        }, { status: 400 });
+      }
+      if (body.cashback_min_percentage !== undefined && body.cashback_max_percentage !== undefined && 
+          body.cashback_min_percentage > body.cashback_max_percentage) {
+        return NextResponse.json({
+          error: 'Cashback minimum percentage cannot be greater than maximum percentage'
+        }, { status: 400 });
+      }
+    }
+
+    // If cashback is disabled, reset cashback percentages
+    if (body.cashback_enabled === false) {
+      body.cashback_min_percentage = 0;
+      body.cashback_max_percentage = 0;
+    }
+
     // Process dynamic fields to ensure dropdown options are properly formatted
     if (body.dynamic_fields && Array.isArray(body.dynamic_fields)) {
       body.dynamic_fields = body.dynamic_fields.map((field: any) => {

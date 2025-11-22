@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Noto_Sans_Devanagari } from "next/font/google";
 import "./globals.css";
 import NextAuthSessionProvider from "@/components/providers/session-provider";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import { Toaster } from "react-hot-toast";
 import NotificationManager from "@/components/NotificationManager";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -43,6 +44,12 @@ export default function RootLayout({
         <meta name="theme-color" content="#dc2626" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="format-detection" content="telephone=no" />
+        
+        {/* Preconnect to reCAPTCHA Enterprise */}
+        <link rel="preconnect" href="https://www.google.com" />
+        <link rel="preconnect" href="https://www.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://www.google.com" />
+        <link rel="dns-prefetch" href="https://www.gstatic.com" />
         
         {/* Hreflang tags for multilingual support */}
         <link rel="alternate" hrefLang="en" href="https://www.vighnahartaonlineservice.in" />
@@ -160,33 +167,35 @@ export default function RootLayout({
       <body className="antialiased">
         {/* Google Analytics removed to avoid CSP/script loading issues */}
         <NextAuthSessionProvider>
-          <NotificationManager>
-              <ErrorBoundary>
-                {children}
-              <Toaster
-                position="top-right"
-                toastOptions={{
-                  duration: 4000,
-                  style: {
-                    background: '#363636',
-                    color: '#fff',
-                  },
-                  success: {
-                    duration: 3000,
+          <LanguageProvider>
+            <NotificationManager>
+                <ErrorBoundary>
+                  {children}
+                <Toaster
+                  position="top-right"
+                  toastOptions={{
+                    duration: 4000,
                     style: {
-                      background: '#10b981',
+                      background: '#363636',
+                      color: '#fff',
                     },
-                  },
-                  error: {
-                    duration: 5000,
-                    style: {
-                      background: '#ef4444',
+                    success: {
+                      duration: 3000,
+                      style: {
+                        background: '#10b981',
+                      },
                     },
-                  },
-                }}
-              />
-            </ErrorBoundary>
-          </NotificationManager>
+                    error: {
+                      duration: 5000,
+                      style: {
+                        background: '#ef4444',
+                      },
+                    },
+                  }}
+                />
+              </ErrorBoundary>
+            </NotificationManager>
+          </LanguageProvider>
         </NextAuthSessionProvider>
       </body>
     </html>

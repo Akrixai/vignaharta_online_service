@@ -47,6 +47,7 @@ declare module 'next-auth' {
     };
     createdAt?: string;
     isActive?: boolean;
+    profile_photo_url?: string;
   }
 }
 
@@ -69,5 +70,6 @@ declare module 'next-auth/jwt' {
     };
     createdAt?: string;
     isActive?: boolean;
+    profile_photo_url?: string;
   }
 }

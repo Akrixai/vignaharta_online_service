@@ -1,7 +1,23 @@
 export enum UserRole {
   ADMIN = 'ADMIN',
   EMPLOYEE = 'EMPLOYEE',
-  RETAILER = 'RETAILER'
+  RETAILER = 'RETAILER',
+  CUSTOMER = 'CUSTOMER'
+}
+
+export enum EmployeeDesignation {
+  MANAGER = 'MANAGER', // Company-wide manager, reports to Admin
+  STATE_MANAGER = 'STATE_MANAGER', // Manages a state
+  DISTRICT_MANAGER = 'DISTRICT_MANAGER', // Manages a district
+  SUPERVISOR = 'SUPERVISOR', // Manages an area
+  DISTRIBUTOR = 'DISTRIBUTOR', // Commission-based product distributor
+  EMPLOYEE = 'EMPLOYEE', // Field employee
+  RETAILER = 'RETAILER' // Service provider
+}
+
+export enum CompensationType {
+  FIXED_SALARY = 'FIXED_SALARY',
+  COMMISSION_BASED = 'COMMISSION_BASED'
 }
 
 export enum TransactionType {
@@ -32,6 +48,12 @@ export interface User {
   name: string;
   phone?: string;
   role: UserRole;
+  designation?: EmployeeDesignation;
+  parentEmployeeId?: string;
+  territoryState?: string;
+  territoryDistrict?: string;
+  territoryArea?: string;
+  compensationType?: CompensationType;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
