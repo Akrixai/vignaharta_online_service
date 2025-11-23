@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { createPortal } from 'react-dom';
 import DashboardLayout from '@/components/dashboard/layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,6 +32,11 @@ export default function AdminApplicationsPage() {
   const [actionType, setActionType] = useState<'approve' | 'reject' | 'delete' | null>(null);
   const [notes, setNotes] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Use real-time data hook for admin applications
   const { data: allApplications, loading, refresh } = useRealTimeAdminApplications(
@@ -181,11 +187,10 @@ export default function AdminApplicationsPage() {
                   <button
                     key={option.value}
                     onClick={() => setFilter(option.value)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      filter === option.value
-                        ? 'bg-red-600 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-600'
-                    }`}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === option.value
+                      ? 'bg-red-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-600'
+                      }`}
                   >
                     {option.label}
                   </button>
@@ -212,7 +217,7 @@ export default function AdminApplicationsPage() {
               <div className="text-4xl mb-4">📋</div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">No applications found</h3>
               <p className="text-gray-600">
-                {filter !== 'ALL' 
+                {filter !== 'ALL'
                   ? `No ${filter.toLowerCase()} applications found.`
                   : 'No applications have been submitted yet.'
                 }
@@ -262,11 +267,11 @@ export default function AdminApplicationsPage() {
                         <span className="text-gray-500">Documents</span>
                         <p className="font-medium text-gray-900">
                           {(application.documents?.length || 0) +
-                           (application.dynamic_field_documents ?
-                             Object.keys(application.dynamic_field_documents).reduce((total, key) =>
-                               total + (application.dynamic_field_documents[key]?.length || 0), 0
-                             ) : 0
-                           )} files
+                            (application.dynamic_field_documents ?
+                              Object.keys(application.dynamic_field_documents).reduce((total, key) =>
+                                total + (application.dynamic_field_documents[key]?.length || 0), 0
+                              ) : 0
+                            )} files
                         </p>
                       </div>
                     </div>
@@ -302,14 +307,14 @@ export default function AdminApplicationsPage() {
 
                       {((application.documents && application.documents.length > 0) ||
                         (application.dynamic_field_documents && Object.keys(application.dynamic_field_documents).length > 0)) && (
-                        <Button
-                          onClick={() => handleViewDocuments(application)}
-                          className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs py-1"
-                        >
-                          <FileText className="w-3 h-3 mr-1" />
-                          Documents
-                        </Button>
-                      )}
+                          <Button
+                            onClick={() => handleViewDocuments(application)}
+                            className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs py-1"
+                          >
+                            <FileText className="w-3 h-3 mr-1" />
+                            Documents
+                          </Button>
+                        )}
 
                       {isAdmin && (
                         <Button
@@ -328,13 +333,13 @@ export default function AdminApplicationsPage() {
         )}
 
         {/* Action Modal */}
-        {showModal && selectedApp && actionType && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        {mounted && showModal && selectedApp && actionType && createPortal(
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
             <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
               <h3 className="text-lg font-semibold mb-4">
                 {actionType === 'delete' ? 'Delete Application' : `${actionType.charAt(0).toUpperCase() + actionType.slice(1)} Application`}
               </h3>
-              
+
               <p className="text-gray-600 mb-4">
                 {actionType === 'delete' ? (
                   <>
@@ -365,11 +370,10 @@ export default function AdminApplicationsPage() {
               <div className="flex gap-3">
                 <Button
                   onClick={handleAction}
-                  className={`flex-1 ${
-                    actionType === 'approve' ? 'bg-green-600 hover:bg-green-700' :
+                  className={`flex-1 ${actionType === 'approve' ? 'bg-green-600 hover:bg-green-700' :
                     actionType === 'reject' ? 'bg-red-600 hover:bg-red-700' :
-                    'bg-red-600 hover:bg-red-700'
-                  } text-white`}
+                      'bg-red-600 hover:bg-red-700'
+                    } text-white`}
                 >
                   {actionType === 'delete' ? 'Delete' : actionType.charAt(0).toUpperCase() + actionType.slice(1)}
                 </Button>
@@ -387,12 +391,13 @@ export default function AdminApplicationsPage() {
                 </Button>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* Full Details Modal */}
-        {showDetailsModal && selectedApp && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        {mounted && showDetailsModal && selectedApp && createPortal(
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
             <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[95vh] overflow-hidden">
               {/* Modal Header */}
               <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6">
@@ -654,17 +659,17 @@ export default function AdminApplicationsPage() {
 
                     {((selectedApp.documents && selectedApp.documents.length > 0) ||
                       (selectedApp.dynamic_field_documents && Object.keys(selectedApp.dynamic_field_documents).length > 0)) && (
-                      <Button
-                        onClick={() => {
-                          setShowDetailsModal(false);
-                          handleViewDocuments(selectedApp);
-                        }}
-                        className="bg-blue-600 hover:bg-blue-700 text-white"
-                      >
-                        <FileText className="w-4 h-4 mr-2" />
-                        View Documents
-                      </Button>
-                    )}
+                        <Button
+                          onClick={() => {
+                            setShowDetailsModal(false);
+                            handleViewDocuments(selectedApp);
+                          }}
+                          className="bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                          <FileText className="w-4 h-4 mr-2" />
+                          View Documents
+                        </Button>
+                      )}
 
                     {isAdmin && (
                       <Button
@@ -681,12 +686,13 @@ export default function AdminApplicationsPage() {
                 </div>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* Document Modal */}
-        {showDocumentModal && selectedApp && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        {mounted && showDocumentModal && selectedApp && createPortal(
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
             <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold">
@@ -708,11 +714,11 @@ export default function AdminApplicationsPage() {
                 <p className="text-gray-600 mb-4">
                   Application: {selectedApp.scheme?.name} •
                   {(selectedApp.documents?.length || 0) +
-                   (selectedApp.dynamic_field_documents ?
-                     Object.keys(selectedApp.dynamic_field_documents).reduce((total, key) =>
-                       total + (selectedApp.dynamic_field_documents[key]?.length || 0), 0
-                     ) : 0
-                   )} documents
+                    (selectedApp.dynamic_field_documents ?
+                      Object.keys(selectedApp.dynamic_field_documents).reduce((total, key) =>
+                        total + (selectedApp.dynamic_field_documents[key]?.length || 0), 0
+                      ) : 0
+                    )} documents
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -868,15 +874,16 @@ export default function AdminApplicationsPage() {
                 </div>
 
                 {(!selectedApp.documents || selectedApp.documents.length === 0) &&
-                 (!selectedApp.dynamic_field_documents || Object.keys(selectedApp.dynamic_field_documents).length === 0) && (
-                  <div className="text-center py-8 text-gray-500">
-                    <div className="text-4xl mb-2">📄</div>
-                    <p>No documents found for this application</p>
-                  </div>
-                )}
+                  (!selectedApp.dynamic_field_documents || Object.keys(selectedApp.dynamic_field_documents).length === 0) && (
+                    <div className="text-center py-8 text-gray-500">
+                      <div className="text-4xl mb-2">📄</div>
+                      <p>No documents found for this application</p>
+                    </div>
+                  )}
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
     </DashboardLayout>
