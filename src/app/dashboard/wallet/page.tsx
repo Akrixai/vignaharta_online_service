@@ -403,7 +403,7 @@ export default function WalletPage() {
                 <div className="space-y-2">
                   <label htmlFor="addAmount" className="text-sm font-semibold text-gray-800 flex items-center">
                     <span className="mr-2">💰</span>
-                    Amount (₹10 - ₹50,000)
+                    Amount (₹1 - ₹50,000)
                   </label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">₹</span>
@@ -412,6 +412,7 @@ export default function WalletPage() {
                       type="number"
                       min="1"
                       max="50000"
+                      step="0.01"
                       value={addMoneyAmount}
                       onChange={(e) => setAddMoneyAmount(e.target.value)}
                       placeholder="Enter amount"
