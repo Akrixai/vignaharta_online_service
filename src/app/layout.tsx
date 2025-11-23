@@ -7,6 +7,7 @@ import { Toaster } from "react-hot-toast";
 import NotificationManager from "@/components/NotificationManager";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { defaultSEO, structuredData } from "@/lib/seo";
+// removed google analytics Script import to disable GA
 
 const inter = Inter({ 
   subsets: ["latin"],
@@ -47,10 +48,6 @@ export default function RootLayout({
         {/* Preconnect to reCAPTCHA Enterprise */}
         <link rel="preconnect" href="https://www.google.com" />
         <link rel="preconnect" href="https://www.gstatic.com" crossOrigin="anonymous" />
-        
-        {/* Preconnect to Cashfree SDK */}
-        <link rel="preconnect" href="https://sdk.cashfree.com" />
-        <link rel="dns-prefetch" href="https://sdk.cashfree.com" />
         <link rel="dns-prefetch" href="https://www.google.com" />
         <link rel="dns-prefetch" href="https://www.gstatic.com" />
         
@@ -168,11 +165,7 @@ export default function RootLayout({
         )}
       </head>
       <body className="antialiased">
-        {/* Load Cashfree SDK - NO crossOrigin to avoid CORS issues */}
-        <script 
-          src="https://sdk.cashfree.com/js/v3/cashfree.js"
-          defer
-        />
+        {/* Google Analytics removed to avoid CSP/script loading issues */}
         <NextAuthSessionProvider>
           <LanguageProvider>
             <NotificationManager>

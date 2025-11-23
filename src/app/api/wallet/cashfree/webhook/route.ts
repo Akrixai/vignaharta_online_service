@@ -25,17 +25,12 @@ export async function POST(request: NextRequest) {
       environment: process.env.CASHFREE_ENVIRONMENT || 'TEST'
     });
 
-    // Skip signature verification if no webhook secret is configured
-    // Many production Cashfree accounts don't provide webhook secrets
-    const hasWebhookSecret = !!process.env.CASHFREE_WEBHOOK_SECRET;
+    // Skip signature verification in TEST mode (Cashfree test mode doesn't provide valid webhook secret)
     const isTestMode = process.env.CASHFREE_ENVIRONMENT === 'TEST';
     
-    if (!hasWebhookSecret) {
-      console.log('⚠️ No webhook secret configured - signature verification SKIPPED');
-      console.log('This is normal for many Cashfree production accounts');
-    } else if (isTestMode) {
+    if (isTestMode) {
       console.log('⚠️ TEST MODE: Webhook signature verification DISABLED');
-    } else if (signature && timestamp) {
+    } else if (process.env.CASHFREE_WEBHOOK_SECRET && signature && timestamp) {
       try {
         // Cashfree signature format: base64(hmac_sha256(timestamp + raw_body))
         const signatureString = timestamp + body;
