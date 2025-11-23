@@ -161,9 +161,9 @@ export default function WalletPage() {
       return;
     }
 
-    if (amount < 10) {
+    if (amount < 1) {
       showToast.error('Amount too low', {
-        description: 'Minimum amount is ₹10'
+        description: 'Minimum amount is ₹1'
       });
       return;
     }
@@ -410,7 +410,7 @@ export default function WalletPage() {
                     <Input
                       id="addAmount"
                       type="number"
-                      min="10"
+                      min="1"
                       max="50000"
                       value={addMoneyAmount}
                       onChange={(e) => setAddMoneyAmount(e.target.value)}
@@ -420,7 +420,7 @@ export default function WalletPage() {
                     />
                   </div>
                   <div className="flex justify-between text-xs">
-                    <span className="text-green-600 font-medium">Minimum: ₹10</span>
+                    <span className="text-green-600 font-medium">Minimum: ₹1</span>
                     <span className="text-orange-600 font-medium">Maximum: ₹50,000</span>
                   </div>
                 </div>
