@@ -44,12 +44,13 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 flex items-center justify-center" style={{ zIndex: 9999 }}>
       <div 
         className="fixed inset-0 bg-black bg-opacity-50"
         onClick={() => onOpenChange(false)}
+        style={{ zIndex: 9998 }}
       />
-      <div className="relative z-10">
+      <div className="relative" style={{ zIndex: 10000 }}>
         {children}
       </div>
     </div>

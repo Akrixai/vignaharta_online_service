@@ -135,13 +135,22 @@ export default function Header() {
                 </button>
               </div>
             ) : (
-              <button
-                onClick={handleLogin}
-                className="bg-red-600 hover:bg-red-700 text-white px-3 sm:px-6 py-2 rounded-lg text-xs sm:text-sm font-bold transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-1 sm:space-x-2 border-2 border-white whitespace-nowrap"
-              >
-                <span className="text-sm sm:text-base">🔐</span>
-                <span>{t.login}</span>
-              </button>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={handleLogin}
+                  className="bg-red-600 hover:bg-red-700 text-white px-3 sm:px-6 py-2 rounded-lg text-xs sm:text-sm font-bold transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-1 sm:space-x-2 border-2 border-white whitespace-nowrap"
+                >
+                  <span className="text-sm sm:text-base">🔐</span>
+                  <span>{t.login}</span>
+                </button>
+                <Link
+                  href="/register"
+                  className="bg-red-600 hover:bg-red-700 text-white px-3 sm:px-6 py-2 rounded-lg text-xs sm:text-sm font-bold transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-1 sm:space-x-2 border-2 border-white whitespace-nowrap"
+                >
+                  <span className="text-sm sm:text-base">📝</span>
+                  <span>Register</span>
+                </Link>
+              </div>
             )}
 
             {/* Akrix Solutions Branding */}

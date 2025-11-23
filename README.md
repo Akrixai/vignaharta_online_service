@@ -328,7 +328,7 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 - 📚 **Documentation**: [Wiki](https://github.com/RajNakti/vighnahartaonineservice/wiki)
 - 🐛 **Bug Reports**: [Issues](https://github.com/RajNakti/vighnahartaonineservice/issues)
 - 💬 **Discussions**: [GitHub Discussions](https://github.com/RajNakti/vighnahartaonineservice/discussions)
-- 📧 **Email**: [Contact Us](mailto:support@vighnahartajanseva.com)
+- 📧 **Email**: [Contact Us](mailto:vighnahartaonlineservices.india@gmail.com)
 
 ## 📄 License
 

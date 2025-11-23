@@ -197,6 +197,8 @@ export default function RootLayout({
             </NotificationManager>
           </LanguageProvider>
         </NextAuthSessionProvider>
+        {/* Portal container for modals - highest z-index */}
+        <div id="modal-root"></div>
       </body>
     </html>
   );

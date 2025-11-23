@@ -76,6 +76,11 @@ export default function ApplicationsPage() {
     });
   };
 
+  const handleViewDetails = (application: any) => {
+    // Open modal or navigate to details page
+    router.push(`/dashboard/applications/${application.id}`);
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'PENDING': return 'bg-yellow-100 text-yellow-600';
@@ -310,20 +315,30 @@ export default function ApplicationsPage() {
                           </div>
                         )}
 
-                        {/* Reapply Button for Rejected Applications Only */}
-                        {application.status === 'REJECTED' && (
-                          <div className="mt-3">
-                            <Button
-                              onClick={() => handleReapply(application)}
-                              className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm py-2"
-                            >
-                              🔄 Reapply for Service
-                            </Button>
-                            <div className="text-xs text-gray-500 mt-1 text-center">
-                              No additional charges will apply for reapplication
-                            </div>
-                          </div>
-                        )}
+                        {/* Action Buttons */}
+                        <div className="mt-3 space-y-2">
+                          <Button
+                            onClick={() => handleViewDetails(application)}
+                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-sm py-2"
+                          >
+                            👁️ View Details
+                          </Button>
+                          
+                          {/* Reapply Button for Rejected Applications Only */}
+                          {application.status === 'REJECTED' && (
+                            <>
+                              <Button
+                                onClick={() => handleReapply(application)}
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm py-2"
+                              >
+                                🔄 Reapply for Service
+                              </Button>
+                              <div className="text-xs text-gray-500 mt-1 text-center">
+                                No additional charges will apply for reapplication
+                              </div>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>

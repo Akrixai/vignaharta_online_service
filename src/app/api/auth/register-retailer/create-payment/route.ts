@@ -60,12 +60,40 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user already exists
+    // Check if email already exists
+    const { data: existingEmail } = await supabaseAdmin
+      .from('users')
+      .select('id')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (existingEmail) {
+      return NextResponse.json(
+        { error: 'Email already registered' },
+        { status: 400 }
+      );
+    }
+
+    // Check if phone already exists
+    const { data: existingPhone } = await supabaseAdmin
+      .from('users')
+      .select('id')
+      .eq('phone', phone)
+      .maybeSingle();
+
+    if (existingPhone) {
+      return NextResponse.json(
+        { error: 'Phone number already registered' },
+        { status: 400 }
+      );
+    }
+
+    // Original check kept for compatibility
     const { data: existingUser } = await supabaseAdmin
       .from('users')
       .select('id')
       .eq('email', email)
-      .single();
+      .maybeSingle();
 
     if (existingUser) {
       return NextResponse.json(

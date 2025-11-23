@@ -35,7 +35,7 @@ const menuItems: MenuItem[] = [
   { name: 'Service Receipts', href: '/dashboard/receipts', icon: '📄', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
   { name: 'My Orders', href: '/dashboard/orders', icon: '📦', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
   { name: 'Refunds', href: '/dashboard/retailer/refunds', icon: '🔄', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
-  { name: 'Products', href: '/dashboard/products', icon: '🛍️', roles: [UserRole.RETAILER, UserRole.EMPLOYEE, UserRole.CUSTOMER] },
+  { name: 'My Store', href: '/dashboard/products', icon: '🛍️', roles: [UserRole.RETAILER, UserRole.EMPLOYEE, UserRole.CUSTOMER] },
   { name: 'Certificates', href: '/dashboard/certificates', icon: '🏆', roles: [UserRole.RETAILER] },
   { name: 'Employee Certificate', href: '/dashboard/employee/certificates', icon: '🏆', roles: [UserRole.EMPLOYEE] },
   { name: 'Free Services', href: '/dashboard/employee/free-services', icon: '🆓', roles: [UserRole.EMPLOYEE] },
@@ -174,13 +174,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden"
+          className="fixed inset-0 z-[5] bg-gray-600 bg-opacity-75 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* Sidebar - Made sticky */}
-  <div className={`fixed inset-y-0 left-0 z-50 w-64 min-w-[16rem] bg-gradient-to-b from-red-800 to-red-900 shadow-xl transform overflow-hidden ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:top-0 lg:h-screen lg:flex lg:flex-col`}>
+      {/* Sidebar - Made sticky with lower z-index */}
+  <div className={`fixed inset-y-0 left-0 z-10 w-64 min-w-[16rem] bg-gradient-to-b from-red-800 to-red-900 shadow-xl transform overflow-hidden ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:top-0 lg:h-screen lg:flex lg:flex-col`}>
         <div className="flex items-center justify-center h-16 px-4 bg-gradient-to-r from-red-700 to-red-800 border-b border-red-600">
           <Link href="/" className="text-white flex items-center space-x-2">
             <Logo size="md" showText={true} animated={false} />
@@ -277,8 +277,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top bar - Made sticky */}
-        <div className="sticky top-0 z-10 bg-gradient-to-r from-red-600 to-red-700 shadow-lg border-b border-red-500 flex items-center justify-between h-12 px-4">
+        {/* Top bar - Made sticky with medium z-index */}
+        <div className="sticky top-0 z-20 bg-gradient-to-r from-red-600 to-red-700 shadow-lg border-b border-red-500 flex items-center justify-between h-12 px-4">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="lg:hidden p-2 rounded-md text-red-100 hover:text-white hover:bg-red-700 transition-colors"
@@ -334,8 +334,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </div>
 
-        {/* Page content - Made scrollable */}
-        <main className="flex-1 p-4 sm:p-6 overflow-y-auto w-full max-w-full">
+        {/* Page content - Made scrollable with proper z-index */}
+        <main className="flex-1 p-4 sm:p-6 overflow-y-auto w-full max-w-full relative z-0">
           {children}
         </main>
 

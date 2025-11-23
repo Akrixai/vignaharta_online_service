@@ -19,7 +19,11 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          const { data: user, error } = await supabaseAdmin
+          // Check if input is email or phone number
+          const isPhone = /^\d{10}$/.test(credentials.email);
+          
+          // Query by email or phone with role filter
+          let query = supabaseAdmin
             .from('users')
             .select(`
               id,
@@ -49,9 +53,31 @@ export const authOptions: NextAuthOptions = {
                 id,
                 balance
               )
-            `)
-            .eq('email', credentials.email)
-            .single();
+            `);
+          
+          if (isPhone) {
+            query = query.eq('phone', credentials.email);
+          } else {
+            query = query.eq('email', credentials.email);
+          }
+          
+          // Add role filter
+          query = query.eq('role', credentials.role.toUpperCase());
+          
+          const { data: users, error } = await query;
+
+          if (error) {
+            console.error('Database query error:', error);
+            throw new Error(`Database error: ${error.message}`);
+          }
+
+          if (!users || users.length === 0) {
+            console.error('No user found with provided credentials');
+            throw new Error('User not found');
+          }
+
+          // If multiple users found (shouldn't happen but handle it), take the first one
+          const user = users[0];
 
           if (error) {
             throw new Error(`Database error: ${error.message}`);

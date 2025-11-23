@@ -351,7 +351,7 @@ export default function LandingPageClient() {
             </Link>
 
             <Link
-              href="/register?type=customer"
+              href="/login?role=customer"
               className="group bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-xl hover:shadow-2xl hover:shadow-red-500/20 transition-all duration-500 border border-gray-300 hover:border-red-500 animate-scale-in transform hover:scale-105 relative overflow-hidden login-card focus:outline-none focus:ring-2 focus:ring-red-500"
               style={{ animationDelay: '0.2s' }}
             >
@@ -361,15 +361,15 @@ export default function LandingPageClient() {
               <div className="relative z-10">
                 <div className="text-red-600 text-6xl mb-6 animate-float group-hover:animate-bounce animate-delay-1000">👤</div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-red-700 transition-colors">
-                  Customer Registration
+                  Customer Login
                 </h3>
                 <p className="text-gray-600 group-hover:text-gray-700 leading-relaxed">
-                  Register as a customer to access government services directly without commission benefits
+                  Login as a customer to access government services and track your applications
                 </p>
 
                 {/* Hover indicator */}
                 <div className="mt-4 flex items-center text-red-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <span className="text-sm font-medium">Click to register</span>
+                  <span className="text-sm font-medium">Click to login</span>
                   <span className="ml-2 transform group-hover:translate-x-1 transition-transform">→</span>
                 </div>
               </div>

@@ -43,6 +43,11 @@ export default function EmployeesPage() {
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [updating, setUpdating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -63,6 +68,13 @@ export default function EmployeesPage() {
     employee_id: '',
     department: ''
   });
+
+  const [documents, setDocuments] = useState<{
+    aadhar_card?: File;
+    pan_card?: File;
+    photo?: File;
+    other?: File;
+  }>({});
 
   const userDesignation = (session?.user as any)?.designation || (session?.user?.role === 'ADMIN' ? 'ADMIN' : null);
   const allowedDesignations = userDesignation ? DESIGNATION_HIERARCHY[userDesignation] || [] : [];
@@ -87,6 +99,117 @@ export default function EmployeesPage() {
       toast.error('Failed to fetch employees');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleView = (employee: Employee) => {
+    setSelectedEmployee(employee);
+    setShowViewModal(true);
+  };
+
+  const handleEdit = (employee: Employee) => {
+    setSelectedEmployee(employee);
+    setFormData({
+      name: employee.name,
+      email: employee.email,
+      password: '',
+      phone: employee.phone || '',
+      designation: employee.designation,
+      role: employee.role,
+      territory_state: employee.territory_state || '',
+      territory_district: employee.territory_district || '',
+      territory_area: employee.territory_area || '',
+      address: employee.address || '',
+      city: employee.city || '',
+      state: employee.state || '',
+      pincode: employee.pincode || '',
+      date_of_birth: employee.date_of_birth || '',
+      gender: employee.gender || '',
+      employee_id: employee.employee_id || '',
+      department: employee.department || ''
+    });
+    setShowEditForm(true);
+  };
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!selectedEmployee) return;
+    
+    if (!formData.name || !formData.email || !formData.designation) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      setUpdating(true);
+      const response = await fetch(`/api/employees/${selectedEmployee.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success('Employee updated successfully!');
+        setShowEditForm(false);
+        setSelectedEmployee(null);
+        setFormData({
+          name: '',
+          email: '',
+          password: '',
+          phone: '',
+          designation: '',
+          role: 'EMPLOYEE',
+          territory_state: '',
+          territory_district: '',
+          territory_area: '',
+          address: '',
+          city: '',
+          state: '',
+          pincode: '',
+          date_of_birth: '',
+          gender: '',
+          employee_id: '',
+          department: ''
+        });
+        fetchEmployees();
+      } else {
+        toast.error(data.error || 'Failed to update employee');
+      }
+    } catch (error) {
+      console.error('Error updating employee:', error);
+      toast.error('Failed to update employee');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleDelete = async (employee: Employee) => {
+    if (!confirm(`Are you sure you want to delete ${employee.name}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      setDeleting(true);
+      const response = await fetch(`/api/employees/${employee.id}`, {
+        method: 'DELETE'
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success('Employee deleted successfully!');
+        fetchEmployees();
+      } else {
+        toast.error(data.error || 'Failed to delete employee');
+      }
+    } catch (error) {
+      console.error('Error deleting employee:', error);
+      toast.error('Failed to delete employee');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -369,10 +492,10 @@ export default function EmployeesPage() {
                       value={formData.gender}
                       onValueChange={(value) => setFormData({ ...formData, gender: value })}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-white">
                         <SelectValue placeholder="Select gender" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-white">
                         <SelectItem value="Male">Male</SelectItem>
                         <SelectItem value="Female">Female</SelectItem>
                         <SelectItem value="Other">Other</SelectItem>
@@ -457,6 +580,68 @@ export default function EmployeesPage() {
                   </div>
                 </div>
 
+                {/* Employee Documents Section */}
+                <div className="border-t pt-4 mt-4">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">📄 Employee Documents</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="aadhar_card">Aadhar Card</Label>
+                      <Input
+                        id="aadhar_card"
+                        type="file"
+                        accept="image/*,application/pdf"
+                        onChange={(e) => setDocuments({ ...documents, aadhar_card: e.target.files?.[0] })}
+                        className="cursor-pointer"
+                      />
+                      {documents.aadhar_card && (
+                        <p className="text-xs text-green-600 mt-1">✓ {documents.aadhar_card.name}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label htmlFor="pan_card">PAN Card</Label>
+                      <Input
+                        id="pan_card"
+                        type="file"
+                        accept="image/*,application/pdf"
+                        onChange={(e) => setDocuments({ ...documents, pan_card: e.target.files?.[0] })}
+                        className="cursor-pointer"
+                      />
+                      {documents.pan_card && (
+                        <p className="text-xs text-green-600 mt-1">✓ {documents.pan_card.name}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label htmlFor="photo">Employee Photo</Label>
+                      <Input
+                        id="photo"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setDocuments({ ...documents, photo: e.target.files?.[0] })}
+                        className="cursor-pointer"
+                      />
+                      {documents.photo && (
+                        <p className="text-xs text-green-600 mt-1">✓ {documents.photo.name}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label htmlFor="other">Other Documents</Label>
+                      <Input
+                        id="other"
+                        type="file"
+                        accept="image/*,application/pdf"
+                        onChange={(e) => setDocuments({ ...documents, other: e.target.files?.[0] })}
+                        className="cursor-pointer"
+                      />
+                      {documents.other && (
+                        <p className="text-xs text-green-600 mt-1">✓ {documents.other.name}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
                 <div className="flex justify-end gap-2">
                   <Button type="button" variant="outline" onClick={() => setShowCreateForm(false)}>
                     Cancel
@@ -497,6 +682,7 @@ export default function EmployeesPage() {
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Designation</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Territory</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -530,6 +716,32 @@ export default function EmployeesPage() {
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
                           {new Date(employee.created_at).toLocaleDateString()}
                         </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm">
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() => handleView(employee)}
+                              className="text-blue-600 hover:text-blue-800 font-medium"
+                              title="View Details"
+                            >
+                              👁️
+                            </button>
+                            <button
+                              onClick={() => handleEdit(employee)}
+                              className="text-green-600 hover:text-green-800 font-medium"
+                              title="Edit"
+                            >
+                              ✏️
+                            </button>
+                            <button
+                              onClick={() => handleDelete(employee)}
+                              className="text-red-600 hover:text-red-800 font-medium"
+                              title="Delete"
+                              disabled={deleting}
+                            >
+                              🗑️
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -538,6 +750,190 @@ export default function EmployeesPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* View Employee Modal */}
+        {showViewModal && selectedEmployee && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" style={{ zIndex: 99999 }}>
+            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-bold">Employee Details</h2>
+                  <button
+                    onClick={() => setShowViewModal(false)}
+                    className="text-white hover:text-gray-200"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+              <div className="p-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Name</label>
+                    <p className="text-lg font-semibold">{selectedEmployee.name}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Email</label>
+                    <p className="text-lg">{selectedEmployee.email}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Phone</label>
+                    <p className="text-lg">{selectedEmployee.phone || '-'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Designation</label>
+                    <p className="text-lg">
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${getDesignationBadgeColor(selectedEmployee.designation)}`}>
+                        {selectedEmployee.designation.replace('_', ' ')}
+                      </span>
+                    </p>
+                  </div>
+                  {selectedEmployee.employee_id && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Employee ID</label>
+                      <p className="text-lg">{selectedEmployee.employee_id}</p>
+                    </div>
+                  )}
+                  {selectedEmployee.department && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Department</label>
+                      <p className="text-lg">{selectedEmployee.department}</p>
+                    </div>
+                  )}
+                  {selectedEmployee.territory_state && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Territory State</label>
+                      <p className="text-lg">{selectedEmployee.territory_state}</p>
+                    </div>
+                  )}
+                  {selectedEmployee.territory_district && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Territory District</label>
+                      <p className="text-lg">{selectedEmployee.territory_district}</p>
+                    </div>
+                  )}
+                  <div className="col-span-2">
+                    <label className="text-sm font-medium text-gray-500">Created</label>
+                    <p className="text-lg">{new Date(selectedEmployee.created_at).toLocaleString()}</p>
+                  </div>
+                </div>
+                <div className="mt-6 flex justify-end space-x-2">
+                  <Button onClick={() => setShowViewModal(false)} variant="outline">
+                    Close
+                  </Button>
+                  <Button onClick={() => {
+                    setShowViewModal(false);
+                    handleEdit(selectedEmployee);
+                  }}>
+                    Edit Employee
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Employee Modal */}
+        {showEditForm && selectedEmployee && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" style={{ zIndex: 99999 }}>
+            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white p-6">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-bold">Edit Employee</h2>
+                  <button
+                    onClick={() => setShowEditForm(false)}
+                    className="text-white hover:text-gray-200"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+              <div className="p-6">
+                <form onSubmit={handleUpdate} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="edit_name">Full Name *</Label>
+                      <Input
+                        id="edit_name"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="edit_email">Email *</Label>
+                      <Input
+                        id="edit_email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="edit_password">Password (leave blank to keep current)</Label>
+                      <Input
+                        id="edit_password"
+                        type="password"
+                        value={formData.password}
+                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                        placeholder="Enter new password or leave blank"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="edit_phone">Phone</Label>
+                      <Input
+                        id="edit_phone"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="edit_designation">Designation *</Label>
+                      <Select
+                        value={formData.designation}
+                        onValueChange={(value) => setFormData({ ...formData, designation: value })}
+                      >
+                        <SelectTrigger className="bg-white">
+                          <SelectValue placeholder="Select designation" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white">
+                          {allowedDesignations.map((des) => (
+                            <SelectItem key={des} value={des}>
+                              {des.replace('_', ' ')}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="edit_employee_id">Employee ID</Label>
+                      <Input
+                        id="edit_employee_id"
+                        value={formData.employee_id}
+                        onChange={(e) => setFormData({ ...formData, employee_id: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-4">
+                    <Button type="button" variant="outline" onClick={() => setShowEditForm(false)}>
+                      Cancel
+                    </Button>
+                    <Button type="submit" disabled={updating}>
+                      {updating ? 'Updating...' : 'Update Employee'}
+                    </Button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

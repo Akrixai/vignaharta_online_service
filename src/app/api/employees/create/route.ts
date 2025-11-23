@@ -44,17 +44,33 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if email already exists
-    const { data: existing } = await supabaseAdmin
+    const { data: existingEmail } = await supabaseAdmin
       .from('users')
       .select('id')
       .eq('email', email)
-      .single();
+      .maybeSingle();
 
-    if (existing) {
+    if (existingEmail) {
       return NextResponse.json({ 
         success: false,
         error: 'Email already exists' 
       }, { status: 400 });
+    }
+
+    // Check if phone already exists (if phone is provided)
+    if (phone) {
+      const { data: existingPhone } = await supabaseAdmin
+        .from('users')
+        .select('id')
+        .eq('phone', phone)
+        .maybeSingle();
+
+      if (existingPhone) {
+        return NextResponse.json({ 
+          success: false,
+          error: 'Phone number already exists' 
+        }, { status: 400 });
+      }
     }
 
     // Hash password

@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useSession } from 'next-auth/react';
 import { toast } from 'react-hot-toast';
 import { formatCurrency } from '@/lib/utils';
@@ -431,12 +432,20 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
     });
   };
 
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
   if (!service) return null;
   if (!isOpen) return null;
+  if (!mounted) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-6xl h-[95vh] bg-white rounded-lg shadow-2xl overflow-hidden flex flex-col">
+  const modalContent = (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" style={{ zIndex: 99999, position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
+      <div className="w-full max-w-6xl h-[95vh] bg-white rounded-lg shadow-2xl overflow-hidden flex flex-col" style={{ zIndex: 100000, position: 'relative' }}>
         {/* Header Section */}
         <div className="bg-gradient-to-r from-red-600 via-red-500 to-yellow-500 text-white p-6 shadow-lg">
           <div className="flex items-center justify-between">
@@ -780,4 +789,8 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
       </div>
     </div>
   );
+
+  // Render in portal to ensure it's above everything
+  const portalRoot = typeof document !== 'undefined' ? document.getElementById('modal-root') : null;
+  return portalRoot ? createPortal(modalContent, portalRoot) : modalContent;
 }

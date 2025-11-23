@@ -141,7 +141,7 @@ export default function FAQ() {
               📞 Call Us
             </a>
             <a
-              href="mailto:support@vighnaharta.in"
+              href="mailto:vighnahartaonlineservices.india@gmail.com"
               className="border-2 border-red-600 text-red-600 px-8 py-3 rounded-lg hover:bg-red-50 transition-colors font-semibold"
             >
               ✉️ Email Us

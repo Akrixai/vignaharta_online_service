@@ -20,7 +20,15 @@ function LoginPageContent() {
     role: roleParam || UserRole.RETAILER
   });
 
+  const [loginMethod, setLoginMethod] = useState<'email' | 'phone'>('email');
+
   const [isLoading, setIsLoading] = useState(false);
+
+  // Clear email field when switching login methods
+  const handleLoginMethodChange = (method: 'email' | 'phone') => {
+    setLoginMethod(method);
+    setFormData({ ...formData, email: '' }); // Clear the input
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -187,21 +195,49 @@ function LoginPageContent() {
               </select>
             </div>
 
-            {/* Email */}
+            {/* Login Method Toggle */}
+            <div className="flex justify-center space-x-2 mb-4">
+              <button
+                type="button"
+                onClick={() => handleLoginMethodChange('email')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  loginMethod === 'email'
+                    ? 'bg-red-600 text-white shadow-lg'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                📧 Email
+              </button>
+              <button
+                type="button"
+                onClick={() => handleLoginMethodChange('phone')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  loginMethod === 'phone'
+                    ? 'bg-red-600 text-white shadow-lg'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                📱 Phone
+              </button>
+            </div>
+
+            {/* Email or Phone */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-red-700 mb-2">
-                Email address
+                {loginMethod === 'email' ? '📧 Email address' : '📱 Phone number'}
               </label>
               <input
                 id="email"
                 name="email"
-                type="email"
-                autoComplete="email"
+                type={loginMethod === 'email' ? 'email' : 'tel'}
+                autoComplete={loginMethod === 'email' ? 'email' : 'tel'}
                 required
+                placeholder={loginMethod === 'email' ? 'Enter your email address' : 'Enter your 10-digit phone number'}
+                maxLength={loginMethod === 'phone' ? 10 : undefined}
+                pattern={loginMethod === 'phone' ? '[0-9]{10}' : undefined}
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors text-sm sm:text-base"
-                placeholder="Enter your email address"
               />
             </div>
 
