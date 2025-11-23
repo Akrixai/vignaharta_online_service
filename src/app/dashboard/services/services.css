@@ -1,0 +1,27 @@
+/* Sticky filter section for services page */
+.services-sticky-filter {
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 25 !important;
+  background-color: rgb(254, 242, 242) !important;
+  margin-left: -1.5rem !important;
+  margin-right: -1.5rem !important;
+  padding-left: 1.5rem !important;
+  padding-right: 1.5rem !important;
+  padding-top: 1rem !important;
+  padding-bottom: 1rem !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.services-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.services-scrollable {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
