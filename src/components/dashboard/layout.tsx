@@ -41,6 +41,22 @@ const menuItems: MenuItem[] = [
   { name: 'Free Services', href: '/dashboard/employee/free-services', icon: '🆓', roles: [UserRole.EMPLOYEE] },
   { name: 'Training Videos', href: '/dashboard/training-videos', icon: '🎥', roles: [UserRole.RETAILER, UserRole.EMPLOYEE] },
 
+  // New Services (Coming Soon)
+  { name: 'Mobile Recharge', href: '/dashboard/coming-soon', icon: '📱', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'Electricity Payment', href: '/dashboard/coming-soon', icon: '⚡', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'DTH Recharge', href: '/dashboard/coming-soon', icon: '📺', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'Cibil Report', href: '/dashboard/coming-soon', icon: '📊', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'Money Transfer', href: '/dashboard/coming-soon', icon: '💸', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'AEPS Cash Withdrawal', href: '/dashboard/coming-soon', icon: '🏧', roles: [UserRole.RETAILER] },
+  { name: 'Aadhar Pay', href: '/dashboard/coming-soon', icon: '💳', roles: [UserRole.RETAILER] },
+  { name: 'PAN Card', href: '/dashboard/coming-soon', icon: '🆔', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'Bus Ticket', href: '/dashboard/coming-soon', icon: '🚌', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'Flight Ticket', href: '/dashboard/coming-soon', icon: '✈️', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'Train Ticket', href: '/dashboard/coming-soon', icon: '🚂', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'Hotel Booking', href: '/dashboard/coming-soon', icon: '🏨', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'Loan Repayment', href: '/dashboard/coming-soon', icon: '🏦', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'Cash Deposit', href: '/dashboard/coming-soon', icon: '💰', roles: [UserRole.RETAILER] },
+
   // Admin Management Section
   { name: 'Manage Products', href: '/dashboard/admin/products', icon: '📦', roles: [UserRole.ADMIN] },
   { name: 'Manage Training', href: '/dashboard/admin/training', icon: '🎬', roles: [UserRole.ADMIN] },
@@ -120,41 +136,41 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const userRole = session.user.role;
   const userName = session.user.name;
   const userDesignation = (session.user as any).designation;
-  
+
   // Filter menu items based on role and designation
   const filteredMenuItems = menuItems.filter(item => {
     // First check if user's role is allowed
     if (!item.roles.includes(userRole)) return false;
-    
+
     // Special handling for Wallet - only Admin and Retailer
     if (item.name === 'Wallet') {
       return userRole === UserRole.ADMIN || userRole === UserRole.RETAILER;
     }
-    
+
     // Special handling for Employee Management - only show to those who can create employees
     if (item.name === 'Employee Management') {
       // Admin can always see it
       if (userRole === UserRole.ADMIN) return true;
-      
+
       // Employees with these designations can create subordinates
       // MANAGER, STATE_MANAGER, DISTRICT_MANAGER, SUPERVISOR, DISTRIBUTOR can create employees
       // Regular EMPLOYEE and RETAILER cannot
       const canCreateEmployees = ['MANAGER', 'STATE_MANAGER', 'DISTRICT_MANAGER', 'SUPERVISOR', 'DISTRIBUTOR'];
       return userRole === UserRole.EMPLOYEE && userDesignation && canCreateEmployees.includes(userDesignation);
     }
-    
+
     // Special handling for Organization Hierarchy - show to all employees with designation and admin
     if (item.name === 'Organization Hierarchy') {
       if (userRole === UserRole.ADMIN) return true;
       // Show to employees with designation (they can see their subordinates)
       return userRole === UserRole.EMPLOYEE && userDesignation;
     }
-    
+
     // Hide admin-only items from regular employees without proper designation
     if (item.roles.includes(UserRole.ADMIN) && !item.roles.includes(UserRole.EMPLOYEE)) {
       return userRole === UserRole.ADMIN;
     }
-    
+
     return true;
   });
 
@@ -180,7 +196,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       )}
 
       {/* Sidebar - Made sticky with lower z-index */}
-  <div className={`fixed inset-y-0 left-0 z-10 w-64 min-w-[16rem] bg-gradient-to-b from-red-800 to-red-900 shadow-xl transform overflow-hidden ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:top-0 lg:h-screen lg:flex lg:flex-col`}>
+      <div className={`fixed inset-y-0 left-0 z-10 w-64 min-w-[16rem] bg-gradient-to-b from-red-800 to-red-900 shadow-xl transform overflow-hidden ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:top-0 lg:h-screen lg:flex lg:flex-col`}>
         <div className="flex items-center justify-center h-16 px-4 bg-gradient-to-r from-red-700 to-red-800 border-b border-red-600">
           <Link href="/" className="text-white flex items-center space-x-2">
             <Logo size="md" showText={true} animated={false} />
@@ -203,7 +219,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 }}
               />
             ) : null}
-            <div 
+            <div
               className={`w-10 h-10 rounded-full ${getRoleColor(userRole)} flex items-center justify-center text-white font-bold shadow-lg`}
               style={{ display: (session.user as any).profile_photo_url && (session.user as any).profile_photo_url !== 'null' ? 'none' : 'flex' }}
             >
@@ -322,7 +338,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <span className="text-xs sm:text-sm text-red-100 whitespace-nowrap mr-2">
               Welcome, {userName}
             </span>
-            
+
             {/* Logout Button in Header */}
             <button
               onClick={() => signOut({ callbackUrl: '/' })}

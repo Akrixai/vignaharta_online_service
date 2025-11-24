@@ -16,6 +16,7 @@ export default function Header() {
   const { language, setLanguage } = useLanguage();
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showNotification, setShowNotification] = useState(true);
   const t = headerTranslations[language];
 
   const handleLogin = () => {
@@ -53,6 +54,35 @@ export default function Header() {
             </div>
           </div>
 
+          {/* New Features Notification Pill */}
+          {showNotification && (
+            <div className="flex items-center ml-2 animate-fade-in">
+              <div className="relative group flex items-center bg-gradient-to-r from-yellow-400/20 to-orange-400/20 border border-yellow-400/30 rounded-full pl-3 pr-2 py-1">
+                <Link href="/whats-new" className="flex items-center gap-2 mr-2">
+                  <span className="relative flex h-2 w-2 flex-shrink-0">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
+                  </span>
+                  <span className="text-[10px] md:text-xs font-bold text-yellow-100 group-hover:text-white whitespace-nowrap">
+                    <span className="hidden sm:inline">New Features Added! 🚀</span>
+                    <span className="sm:hidden">New! 🚀</span>
+                  </span>
+                </Link>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowNotification(false);
+                  }}
+                  className="text-yellow-200 hover:text-white transition-colors p-0.5 rounded-full hover:bg-white/10"
+                  aria-label="Close notification"
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center space-x-2 sm:space-x-4 md:space-x-6">
             <nav className="hidden lg:flex space-x-4 xl:space-x-6">
               <Link href={language === 'en' ? '/about' : `/${language}/about`} className="text-white hover:text-red-200 px-3 py-2 rounded-lg text-sm font-medium transform hover:scale-105 transition-all duration-200 hover:bg-red-700/50 relative group">
@@ -82,16 +112,16 @@ export default function Header() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              
+
               {showLanguageMenu && (
                 <>
                   {/* Backdrop to close menu */}
-                  <div 
-                    className="fixed inset-0" 
+                  <div
+                    className="fixed inset-0"
                     style={{ zIndex: 10001 }}
                     onClick={() => setShowLanguageMenu(false)}
                   />
-                  <div 
+                  <div
                     className="language-selector-dropdown absolute right-0 mt-2 w-44 sm:w-48 bg-gradient-to-br from-red-600 to-red-700 rounded-lg shadow-2xl overflow-hidden border-2 border-white animate-fade-in"
                     style={{ zIndex: 10002 }}
                   >
@@ -102,9 +132,8 @@ export default function Header() {
                           setLanguage(lang.code);
                           setShowLanguageMenu(false);
                         }}
-                        className={`w-full flex items-center space-x-2 sm:space-x-3 px-3 sm:px-4 py-2 sm:py-3 text-left text-white hover:bg-red-800 transition-colors duration-200 ${
-                          language === lang.code ? 'bg-red-800 font-bold' : 'font-medium'
-                        }`}
+                        className={`w-full flex items-center space-x-2 sm:space-x-3 px-3 sm:px-4 py-2 sm:py-3 text-left text-white hover:bg-red-800 transition-colors duration-200 ${language === lang.code ? 'bg-red-800 font-bold' : 'font-medium'
+                          }`}
                       >
                         <span className="text-xl sm:text-2xl">{lang.flag}</span>
                         <div className="flex-1">
@@ -154,7 +183,7 @@ export default function Header() {
             )}
 
             {/* Akrix Solutions Branding */}
-            <div className="hidden xl:flex items-center space-x-2 animate-pulse">
+            <div className="hidden lg:flex items-center space-x-2 animate-pulse">
               <span className="text-pink-400 text-base sm:text-lg animate-bounce">💖</span>
               <a
                 href="https://akrixsolutions.in/"
@@ -187,30 +216,30 @@ export default function Header() {
         {showMobileMenu && (
           <div className="lg:hidden py-4 border-t border-white/20 animate-fade-in">
             <nav className="flex flex-col space-y-2">
-              <Link 
-                href={language === 'en' ? '/about' : `/${language}/about`} 
+              <Link
+                href={language === 'en' ? '/about' : `/${language}/about`}
                 className="text-white hover:bg-white/10 px-4 py-3 rounded-lg text-sm font-medium transition-colors"
                 onClick={() => setShowMobileMenu(false)}
               >
                 {t.about}
               </Link>
-              <Link 
-                href={language === 'en' ? '/services' : `/${language}/services`} 
+              <Link
+                href={language === 'en' ? '/services' : `/${language}/services`}
                 className="text-white hover:bg-white/10 px-4 py-3 rounded-lg text-sm font-medium transition-colors"
                 onClick={() => setShowMobileMenu(false)}
               >
                 {t.services}
               </Link>
-              <Link 
-                href={language === 'en' ? '/contact' : `/${language}/contact`} 
+              <Link
+                href={language === 'en' ? '/contact' : `/${language}/contact`}
                 className="text-white hover:bg-white/10 px-4 py-3 rounded-lg text-sm font-medium transition-colors"
                 onClick={() => setShowMobileMenu(false)}
               >
                 {t.contact}
               </Link>
-              
+
               {/* Mobile Akrix Branding */}
-              <div className="xl:hidden flex items-center justify-center space-x-2 pt-4 border-t border-white/20">
+              <div className="lg:hidden flex items-center justify-center space-x-2 pt-4 border-t border-white/20">
                 <span className="text-pink-400 text-sm animate-bounce">💖</span>
                 <a
                   href="https://akrixsolutions.in/"
