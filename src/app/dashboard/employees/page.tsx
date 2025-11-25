@@ -754,7 +754,7 @@ export default function EmployeesPage() {
         {/* View Employee Modal */}
         {showViewModal && selectedEmployee && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" style={{ zIndex: 99999 }}>
-            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
               <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6">
                 <div className="flex justify-between items-center">
                   <h2 className="text-2xl font-bold">Employee Details</h2>
@@ -800,6 +800,18 @@ export default function EmployeesPage() {
                       <p className="text-lg">{selectedEmployee.department}</p>
                     </div>
                   )}
+                  {selectedEmployee.gender && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Gender</label>
+                      <p className="text-lg">{selectedEmployee.gender}</p>
+                    </div>
+                  )}
+                  {selectedEmployee.date_of_birth && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Date of Birth</label>
+                      <p className="text-lg">{new Date(selectedEmployee.date_of_birth).toLocaleDateString()}</p>
+                    </div>
+                  )}
                   {selectedEmployee.territory_state && (
                     <div>
                       <label className="text-sm font-medium text-gray-500">Territory State</label>
@@ -812,11 +824,65 @@ export default function EmployeesPage() {
                       <p className="text-lg">{selectedEmployee.territory_district}</p>
                     </div>
                   )}
+                  {selectedEmployee.territory_area && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Territory Area</label>
+                      <p className="text-lg">{selectedEmployee.territory_area}</p>
+                    </div>
+                  )}
+                  {selectedEmployee.address && (
+                    <div className="col-span-2">
+                      <label className="text-sm font-medium text-gray-500">Address</label>
+                      <p className="text-lg">{selectedEmployee.address}</p>
+                    </div>
+                  )}
+                  {selectedEmployee.city && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">City</label>
+                      <p className="text-lg">{selectedEmployee.city}</p>
+                    </div>
+                  )}
+                  {selectedEmployee.state && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">State</label>
+                      <p className="text-lg">{selectedEmployee.state}</p>
+                    </div>
+                  )}
+                  {selectedEmployee.pincode && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Pincode</label>
+                      <p className="text-lg">{selectedEmployee.pincode}</p>
+                    </div>
+                  )}
                   <div className="col-span-2">
                     <label className="text-sm font-medium text-gray-500">Created</label>
                     <p className="text-lg">{new Date(selectedEmployee.created_at).toLocaleString()}</p>
                   </div>
                 </div>
+
+                {/* Employee Documents Section */}
+                <div className="mt-6 border-t pt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">📄 Employee Documents</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <p className="text-sm font-medium text-gray-700 mb-2">Aadhar Card</p>
+                      <p className="text-xs text-gray-500">Status: {selectedEmployee.aadhar_card_url ? '✓ Uploaded' : '✗ Not uploaded'}</p>
+                    </div>
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <p className="text-sm font-medium text-gray-700 mb-2">PAN Card</p>
+                      <p className="text-xs text-gray-500">Status: {selectedEmployee.pan_card_url ? '✓ Uploaded' : '✗ Not uploaded'}</p>
+                    </div>
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <p className="text-sm font-medium text-gray-700 mb-2">Employee Photo</p>
+                      <p className="text-xs text-gray-500">Status: {selectedEmployee.photo_url ? '✓ Uploaded' : '✗ Not uploaded'}</p>
+                    </div>
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <p className="text-sm font-medium text-gray-700 mb-2">Other Documents</p>
+                      <p className="text-xs text-gray-500">Status: {selectedEmployee.other_documents_url ? '✓ Uploaded' : '✗ Not uploaded'}</p>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="mt-6 flex justify-end space-x-2">
                   <Button onClick={() => setShowViewModal(false)} variant="outline">
                     Close
@@ -917,6 +983,108 @@ export default function EmployeesPage() {
                         id="edit_employee_id"
                         value={formData.employee_id}
                         onChange={(e) => setFormData({ ...formData, employee_id: e.target.value })}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="edit_department">Department</Label>
+                      <Input
+                        id="edit_department"
+                        value={formData.department}
+                        onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="edit_gender">Gender</Label>
+                      <Select
+                        value={formData.gender}
+                        onValueChange={(value) => setFormData({ ...formData, gender: value })}
+                      >
+                        <SelectTrigger className="bg-white">
+                          <SelectValue placeholder="Select gender" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white">
+                          <SelectItem value="Male">Male</SelectItem>
+                          <SelectItem value="Female">Female</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="edit_territory_state">Territory State</Label>
+                      <Input
+                        id="edit_territory_state"
+                        value={formData.territory_state}
+                        onChange={(e) => setFormData({ ...formData, territory_state: e.target.value })}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="edit_territory_district">Territory District</Label>
+                      <Input
+                        id="edit_territory_district"
+                        value={formData.territory_district}
+                        onChange={(e) => setFormData({ ...formData, territory_district: e.target.value })}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="edit_territory_area">Territory Area</Label>
+                      <Input
+                        id="edit_territory_area"
+                        value={formData.territory_area}
+                        onChange={(e) => setFormData({ ...formData, territory_area: e.target.value })}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="edit_date_of_birth">Date of Birth</Label>
+                      <Input
+                        id="edit_date_of_birth"
+                        type="date"
+                        value={formData.date_of_birth}
+                        onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="edit_address">Address</Label>
+                      <Input
+                        id="edit_address"
+                        value={formData.address}
+                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="edit_city">City</Label>
+                      <Input
+                        id="edit_city"
+                        value={formData.city}
+                        onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="edit_state">State</Label>
+                      <Input
+                        id="edit_state"
+                        value={formData.state}
+                        onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="edit_pincode">Pincode</Label>
+                      <Input
+                        id="edit_pincode"
+                        value={formData.pincode}
+                        onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
+                        placeholder="6-digit pincode"
                       />
                     </div>
                   </div>

@@ -217,14 +217,14 @@ function LoginPageContent() {
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
-                📱 Phone
+                📱 Mobile Number
               </button>
             </div>
 
             {/* Email or Phone */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-red-700 mb-2">
-                {loginMethod === 'email' ? '📧 Email address' : '📱 Phone number'}
+                {loginMethod === 'email' ? '📧 Email address' : '📱 Mobile Number'}
               </label>
               <input
                 id="email"

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { createPortal } from 'react-dom';
 import DashboardLayout from '@/components/dashboard/layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ export default function AdminServicesPage() {
   const [fixingDropdowns, setFixingDropdowns] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingService, setEditingService] = useState<any>(null);
+  const [mounted, setMounted] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -69,6 +71,7 @@ export default function AdminServicesPage() {
   };
 
   useEffect(() => {
+    setMounted(true);
     fetchServices();
   }, []);
 
@@ -432,15 +435,24 @@ export default function AdminServicesPage() {
           </div>
         </div>
 
-        {/* Add/Edit Service Form */}
-        {showAddForm && (
-          <Card className="border-red-200">
-            <CardHeader>
-              <CardTitle className="text-red-800">
-                {editingService ? 'Edit Service' : 'Add New Service'}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+        {/* Add/Edit Service Form Modal - Using Portal */}
+        {showAddForm && mounted && createPortal(
+          <div className="fixed inset-0 flex items-center justify-center p-4 overflow-y-auto" style={{ zIndex: 100000, backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+            <Card className="border-red-200 w-full max-w-6xl my-8 max-h-[90vh] overflow-y-auto relative bg-white shadow-2xl">
+              <CardHeader className="sticky top-0 bg-white border-b" style={{ zIndex: 1 }}>
+                <div className="flex justify-between items-center">
+                  <CardTitle className="text-red-800">
+                    {editingService ? 'Edit Service' : 'Add New Service'}
+                  </CardTitle>
+                  <button
+                    onClick={resetForm}
+                    className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </CardHeader>
+              <CardContent>
               <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-red-700 mb-2">Service Name *</label>
@@ -851,6 +863,8 @@ export default function AdminServicesPage() {
               </form>
             </CardContent>
           </Card>
+          </div>,
+          document.body
         )}
 
         {/* Services List */}
