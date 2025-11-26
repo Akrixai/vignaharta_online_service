@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
         required_documents,
         image_url,
         external_url,
+        share_token,
         created_at,
         show_to_customer,
         customer_price,
@@ -60,7 +61,11 @@ export async function GET(request: NextRequest) {
     if (session?.user?.role === 'CUSTOMER') {
       // Customers only see services marked as show_to_customer = true
       query = query.eq('show_to_customer', true);
+    } else if (session?.user?.role === 'RETAILER' || session?.user?.role === 'EMPLOYEE') {
+      // Retailers and Employees only see services marked as show_to_customer = false
+      query = query.eq('show_to_customer', false);
     }
+    // Admin sees all services (no filter)
 
     if (category && category !== 'ALL') {
       query = query.eq('category', category);

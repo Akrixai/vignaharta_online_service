@@ -105,7 +105,7 @@ export default function HelpSupportPage() {
               <div className="border-l-4 border-red-500 pl-4">
                 <h4 className="font-semibold text-gray-900 mb-2">How do I get support through WhatsApp?</h4>
                 <p className="text-sm text-gray-600">
-                  Click the "Open WhatsApp Support" button above to send a pre-formatted message to our support team at +91-7499116527.
+                  Click the "Open WhatsApp Support" button above to send a pre-formatted message to our support team at {contactConfig?.contact_whatsapp || '+91-7499116527'}.
                 </p>
               </div>
 

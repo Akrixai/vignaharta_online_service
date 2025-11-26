@@ -15,6 +15,7 @@ import { UserRole } from '@/types';
 import { useRealTimeServices } from '@/hooks/useRealTimeData';
 import { formatCurrency } from '@/lib/utils';
 import ServiceApplicationForm from '@/components/ServiceApplicationForm';
+import ShareServiceButton from '@/components/ShareServiceButton';
 import './services.css';
 
 export default function ServicesPage() {
@@ -313,12 +314,22 @@ export default function ServicesPage() {
                         </div>
                       </div>
 
-                      <Button
-                        onClick={() => handleApplyService(service)}
-                        className="w-full bg-red-600 hover:bg-red-700 text-white"
-                      >
-                        📝 Apply Now
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => handleApplyService(service)}
+                          className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                        >
+                          📝 Apply Now
+                        </Button>
+                        <ShareServiceButton
+                          serviceId={service.id}
+                          serviceName={service.name}
+                          shareToken={service.share_token}
+                          variant="outline"
+                          size="default"
+                          className="border-red-600 text-red-600 hover:bg-red-50"
+                        />
+                      </div>
                     </CardContent>
                   </Card>
                 ))}

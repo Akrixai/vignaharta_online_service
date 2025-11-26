@@ -89,6 +89,7 @@ export const authOptions: NextAuthOptions = {
               employee_id,
               department,
               profile_photo_url,
+              referral_code,
               territory_state,
               territory_district,
               territory_area,
@@ -168,6 +169,7 @@ export const authOptions: NextAuthOptions = {
             occupation: user.occupation,
             employeeId: user.employee_id,
             department: user.department,
+            referralCode: user.referral_code,
             territoryState: user.territory_state,
             territoryDistrict: user.territory_district,
             territoryArea: user.territory_area,
@@ -204,6 +206,7 @@ export const authOptions: NextAuthOptions = {
         token.occupation = userData.occupation;
         token.employeeId = userData.employeeId;
         token.department = userData.department;
+        token.referralCode = userData.referralCode;
         token.territoryState = userData.territoryState;
         token.territoryDistrict = userData.territoryDistrict;
         token.territoryArea = userData.territoryArea;
@@ -238,6 +241,7 @@ export const authOptions: NextAuthOptions = {
         session.user.occupation = token.occupation as string;
         session.user.employeeId = token.employeeId as string;
         session.user.department = token.department as string;
+        (session.user as any).referral_code = token.referralCode as string;
         (session.user as any).territoryState = token.territoryState as string;
         (session.user as any).territoryDistrict = token.territoryDistrict as string;
         (session.user as any).territoryArea = token.territoryArea as string;

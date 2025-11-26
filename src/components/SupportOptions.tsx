@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MessageCircle, Mail, Send, Phone, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useContactConfig } from '@/hooks/useContactConfig';
 
 interface SupportOptionsProps {
   className?: string;
@@ -17,6 +18,7 @@ interface SupportOptionsProps {
 
 export default function SupportOptions({ className }: SupportOptionsProps) {
   const { data: session } = useSession();
+  const { config } = useContactConfig();
   const [emailForm, setEmailForm] = useState({
     subject: '',
     message: '',
@@ -30,7 +32,7 @@ export default function SupportOptions({ className }: SupportOptionsProps) {
       return;
     }
 
-    const phoneNumber = '917499116527'; // Admin WhatsApp number
+    const phoneNumber = config.whatsapp_support_number;
     const message = `🙏 नमस्ते! मैं ${session.user.name} हूं।
 
 📧 Email: ${session.user.email}
@@ -138,7 +140,7 @@ export default function SupportOptions({ className }: SupportOptionsProps) {
           </Button>
           
           <p className="text-xs text-gray-500 text-center break-words">
-            📱 +91-7499116527 | Instant response guaranteed
+            📱 WhatsApp Support | Instant response guaranteed
           </p>
         </CardContent>
       </Card>

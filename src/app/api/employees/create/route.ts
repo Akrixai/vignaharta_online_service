@@ -19,7 +19,8 @@ export async function POST(request: NextRequest) {
     const { 
       name, email, password, phone, designation, role,
       territory_state, territory_district, territory_area,
-      address, city, state, pincode, date_of_birth, gender, employee_id, department, branch
+      address, city, state, pincode, date_of_birth, gender, employee_id, department, branch,
+      referral_code
     } = body;
 
     // Validate designation hierarchy
@@ -147,10 +148,141 @@ export async function POST(request: NextRequest) {
         balance: 0
       });
 
+    // Handle referral code if provided
+    let referralData = null;
+    if (referral_code && referral_code.trim()) {
+      try {
+        // Get referral configuration
+        const { data: configs } = await supabaseAdmin
+          .from('site_configuration')
+          .select('config_key, config_value')
+          .in('config_key', [
+            'employee_referral_enabled',
+            'employee_referral_referrer_reward',
+            'employee_referral_referred_reward'
+          ]);
+
+        const referralEnabled = configs?.find(c => c.config_key === 'employee_referral_enabled')?.config_value === 'true';
+        const referrerReward = parseFloat(configs?.find(c => c.config_key === 'employee_referral_referrer_reward')?.config_value || '500');
+        const referredReward = parseFloat(configs?.find(c => c.config_key === 'employee_referral_referred_reward')?.config_value || '250');
+
+        if (referralEnabled) {
+          // Find referrer by code
+          const { data: referrer } = await supabaseAdmin
+            .from('users')
+            .select('id, name, email')
+            .eq('referral_code', referral_code.trim().toUpperCase())
+            .eq('role', 'EMPLOYEE')
+            .single();
+
+          if (referrer) {
+            // Create referral record
+            const { data: referralRecord } = await supabaseAdmin
+              .from('employee_referrals')
+              .insert({
+                referrer_id: referrer.id,
+                referred_employee_id: newUser.id,
+                referral_code: referral_code.trim().toUpperCase(),
+                referrer_reward_amount: referrerReward,
+                referred_reward_amount: referredReward,
+                status: 'COMPLETED'
+              })
+              .select()
+              .single();
+
+            // Credit referrer wallet
+            const { data: referrerWallet } = await supabaseAdmin
+              .from('wallets')
+              .select('id, balance')
+              .eq('user_id', referrer.id)
+              .single();
+
+            if (referrerWallet) {
+              await supabaseAdmin
+                .from('wallets')
+                .update({ balance: parseFloat(referrerWallet.balance.toString()) + referrerReward })
+                .eq('id', referrerWallet.id);
+
+              // Create transaction for referrer
+              await supabaseAdmin
+                .from('transactions')
+                .insert({
+                  user_id: referrer.id,
+                  wallet_id: referrerWallet.id,
+                  type: 'DEPOSIT',
+                  amount: referrerReward,
+                  status: 'COMPLETED',
+                  description: `Employee referral reward for referring ${newUser.name}`,
+                  reference: `REFERRAL_${referralRecord.id}`,
+                  metadata: {
+                    referral_id: referralRecord.id,
+                    referred_employee_id: newUser.id,
+                    referred_employee_name: newUser.name
+                  }
+                });
+            }
+
+            // Credit referred employee wallet
+            const { data: referredWallet } = await supabaseAdmin
+              .from('wallets')
+              .select('id, balance')
+              .eq('user_id', newUser.id)
+              .single();
+
+            if (referredWallet) {
+              await supabaseAdmin
+                .from('wallets')
+                .update({ balance: parseFloat(referredWallet.balance.toString()) + referredReward })
+                .eq('id', referredWallet.id);
+
+              // Create transaction for referred employee
+              await supabaseAdmin
+                .from('transactions')
+                .insert({
+                  user_id: newUser.id,
+                  wallet_id: referredWallet.id,
+                  type: 'DEPOSIT',
+                  amount: referredReward,
+                  status: 'COMPLETED',
+                  description: `Welcome bonus for joining via referral code ${referral_code}`,
+                  reference: `REFERRAL_BONUS_${referralRecord.id}`,
+                  metadata: {
+                    referral_id: referralRecord.id,
+                    referrer_id: referrer.id,
+                    referrer_name: referrer.name
+                  }
+                });
+            }
+
+            // Mark rewards as paid
+            await supabaseAdmin
+              .from('employee_referrals')
+              .update({
+                referrer_reward_paid: true,
+                referred_reward_paid: true,
+                referrer_reward_paid_at: new Date().toISOString(),
+                referred_reward_paid_at: new Date().toISOString()
+              })
+              .eq('id', referralRecord.id);
+
+            referralData = {
+              referrer: referrer.name,
+              referrerReward,
+              referredReward
+            };
+          }
+        }
+      } catch (referralError) {
+        console.error('Referral processing error:', referralError);
+        // Don't fail employee creation if referral fails
+      }
+    }
+
     return NextResponse.json({ 
       success: true,
       user: newUser,
-      hierarchy 
+      hierarchy,
+      referral: referralData
     }, { status: 201 });
   } catch (error: any) {
     console.error('Error creating employee:', error);

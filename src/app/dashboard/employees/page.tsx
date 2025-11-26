@@ -78,7 +78,8 @@ export default function EmployeesPage() {
     gender: '',
     employee_id: '',
     department: '',
-    branch: ''
+    branch: '',
+    referral_code: ''
   });
 
   const [documents, setDocuments] = useState<{
@@ -317,11 +318,14 @@ export default function EmployeesPage() {
         }
       }
 
+      let successMessage = 'Employee created successfully!';
       if (uploadedCount > 0) {
-        toast.success(`Employee created successfully! ${uploadedCount} document(s) uploaded.`);
-      } else {
-        toast.success('Employee created successfully!');
+        successMessage += ` ${uploadedCount} document(s) uploaded.`;
       }
+      if (data.referral) {
+        successMessage += ` Referral rewards: ₹${data.referral.referrerReward} to ${data.referral.referrer}, ₹${data.referral.referredReward} to new employee.`;
+      }
+      toast.success(successMessage);
       
       setShowCreateForm(false);
       setFormData({
@@ -627,6 +631,20 @@ export default function EmployeesPage() {
                       value={formData.date_of_birth}
                       onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
                     />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="referral_code">Referral Code (Optional)</Label>
+                    <Input
+                      id="referral_code"
+                      value={formData.referral_code}
+                      onChange={(e) => setFormData({ ...formData, referral_code: e.target.value.toUpperCase() })}
+                      placeholder="Enter referral code"
+                      className="uppercase"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      If you have a referral code from another employee, enter it here to earn rewards
+                    </p>
                   </div>
                 </div>
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import DashboardLayout from '@/components/dashboard/layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -48,36 +48,47 @@ const faqData = [
   }
 ];
 
-const contactMethods = [
-  {
-    id: '1',
-    title: 'Phone Support',
-    description: 'Call our helpline for immediate assistance',
-    contact: '+91-7499116527',
-    hours: 'Mon-Fri: 9 AM - 6 PM',
-    icon: '📞'
-  },
-  {
-    id: '2',
-    title: 'Email Support',
-    description: 'Send us an email and we\'ll respond within 24 hours',
-    contact: 'vighnahartaenterprises.sangli@gmail.com',
-    hours: '24/7 Response',
-    icon: '📧'
-  },
-
-  {
-    id: '4',
-    title: 'Visit Office',
-    description: 'Visit our nearest service center',
-    contact: 'Find locations on our website',
-    hours: 'Mon-Fri: 10 AM - 5 PM',
-    icon: '🏢'
-  }
-];
-
 export default function SupportPage() {
   const { data: session } = useSession();
+  const [contactConfig, setContactConfig] = useState<any>(null);
+
+  useState(() => {
+    fetch('/api/public/contact')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setContactConfig(data.data);
+        }
+      })
+      .catch(console.error);
+  });
+
+  const contactMethods = [
+    {
+      id: '1',
+      title: 'Phone Support',
+      description: 'Call our helpline for immediate assistance',
+      contact: contactConfig?.contact_phone_secondary || '+91-7499116527',
+      hours: contactConfig?.support_hours || 'Mon-Fri: 9 AM - 6 PM',
+      icon: '📞'
+    },
+    {
+      id: '2',
+      title: 'Email Support',
+      description: 'Send us an email and we\'ll respond within 24 hours',
+      contact: contactConfig?.support_email || 'vighnahartaenterprises.sangli@gmail.com',
+      hours: '24/7 Response',
+      icon: '📧'
+    },
+    {
+      id: '4',
+      title: 'Visit Office',
+      description: 'Visit our nearest service center',
+      contact: contactConfig?.office_address || 'Find locations on our website',
+      hours: contactConfig?.office_hours || 'Mon-Fri: 10 AM - 5 PM',
+      icon: '🏢'
+    }
+  ];
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedFaq, setExpandedFaq] = useState<string | null>(null);

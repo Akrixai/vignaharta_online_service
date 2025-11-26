@@ -537,6 +537,39 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
+        {/* Referral Code Section - Only for Employees and Admin */}
+        {(displayUser.role === 'EMPLOYEE' || displayUser.role === 'ADMIN') && displayUser.referral_code && (
+          <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+            <CardHeader>
+              <CardTitle className="text-green-900">🎁 Your Referral Code</CardTitle>
+              <CardDescription>Share this code when creating new employees to earn rewards</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between p-4 bg-white rounded-lg border-2 border-green-300">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Your Unique Referral Code</p>
+                  <p className="text-3xl font-bold text-green-600 tracking-wider">{displayUser.referral_code}</p>
+                </div>
+                <Button
+                  onClick={() => {
+                    navigator.clipboard.writeText(displayUser.referral_code);
+                    showToast.success('Referral code copied to clipboard!');
+                  }}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  📋 Copy Code
+                </Button>
+              </div>
+              <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                <p className="text-sm text-gray-700">
+                  <strong>How it works:</strong> When you create a new employee and they enter your referral code, 
+                  both of you will receive rewards in your wallets automatically!
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Account Information */}
         <Card>
           <CardHeader>

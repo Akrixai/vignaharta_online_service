@@ -43,6 +43,8 @@ export async function GET(
         department,
         branch,
         profile_photo_url,
+        referral_code,
+        designation,
         created_at,
         updated_at,
         wallets (
@@ -146,6 +148,8 @@ export async function PUT(
         department,
         branch,
         profile_photo_url,
+        referral_code,
+        designation,
         created_at,
         updated_at
       `)
