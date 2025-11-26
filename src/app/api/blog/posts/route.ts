@@ -1,17 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
-import jwt from 'jsonwebtoken';
 
 // GET - List all published blog posts (public) or all posts (admin/employee)
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createClient();
+    const supabase = supabaseAdmin;
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const status = searchParams.get('status');
     const tag = searchParams.get('tag');
     const featured = searchParams.get('featured');
+    const slug = searchParams.get('slug');
     
     const offset = (page - 1) * limit;
 
@@ -22,12 +24,11 @@ export async function GET(request: NextRequest) {
       .range(offset, offset + limit - 1);
 
     // Check if user is authenticated
-    const authHeader = request.headers.get('authorization');
+    const session = await getServerSession(authOptions);
     let isAdmin = false;
     
-    if (authHeader) {
-      const user = await verifyAuth(authHeader);
-      isAdmin = user?.role === 'ADMIN' || user?.role === 'EMPLOYEE';
+    if (session?.user) {
+      isAdmin = session.user.role === 'ADMIN' || session.user.role === 'EMPLOYEE';
     }
 
     // Public users only see published posts
@@ -43,6 +44,10 @@ export async function GET(request: NextRequest) {
 
     if (featured === 'true') {
       query = query.eq('is_featured', true);
+    }
+
+    if (slug) {
+      query = query.eq('slug', slug);
     }
 
     const { data, error, count } = await query;
@@ -66,13 +71,14 @@ export async function GET(request: NextRequest) {
 // POST - Create new blog post (admin/employee only)
 export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader) {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await verifyAuth(authHeader);
-    if (!user || (user.role !== 'ADMIN' && user.role !== 'EMPLOYEE')) {
+    const user = session.user;
+    if (user.role !== 'ADMIN' && user.role !== 'EMPLOYEE') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -83,7 +89,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const supabase = createClient();
+    const supabase = supabaseAdmin;
     
     const postData: any = {
       title,

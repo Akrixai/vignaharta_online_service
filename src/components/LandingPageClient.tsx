@@ -8,6 +8,7 @@ import LandingPageImageCarousel from "@/components/LandingPageImageCarousel";
 import Header from "@/components/Header";
 import HowItWorks from "@/components/HowItWorks";
 import TrustBadges from "@/components/TrustBadges";
+import LatestBlogPosts from "@/components/LatestBlogPosts";
 import { useState, useEffect } from "react";
 
 // Define types for our data
@@ -441,6 +442,9 @@ export default function LandingPageClient() {
 
         {/* Trust & Transparency Section */}
         <TrustBadges />
+
+        {/* Latest Blog Posts Section */}
+        <LatestBlogPosts />
 
         <Footer />
       </div>

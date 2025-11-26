@@ -1,24 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase';
-import { verifyAuth } from '@/lib/auth';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { supabaseAdmin } from '@/lib/supabase';
 
 // GET - Get comments for a post
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
+    const postSlug = searchParams.get('post_slug');
     const postId = searchParams.get('postId');
 
-    if (!postId) {
-      return NextResponse.json({ error: 'Post ID required' }, { status: 400 });
+    if (!postSlug && !postId) {
+      return NextResponse.json({ error: 'Post slug or ID required' }, { status: 400 });
     }
 
-    const supabase = createClient();
-    const { data, error } = await supabase
+    const supabase = supabaseAdmin;
+    
+    let query = supabase
       .from('blog_comments')
-      .select('*, users(name, email)')
-      .eq('post_id', postId)
+      .select('*, users!blog_comments_user_id_fkey(name, email)')
       .eq('status', 'APPROVED')
       .order('created_at', { ascending: false });
+
+    if (postId) {
+      query = query.eq('post_id', postId);
+    } else if (postSlug) {
+      // Get post ID from slug first
+      const { data: post } = await supabase
+        .from('blog_posts')
+        .select('id')
+        .eq('slug', postSlug)
+        .single();
+      
+      if (post) {
+        query = query.eq('post_id', post.id);
+      }
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
 
@@ -28,43 +47,58 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Add comment
+// POST - Add comment (auto-approved for logged-in users)
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { post_id, content, author_name, author_email, parent_comment_id } = body;
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    if (!post_id || !content || !author_name) {
+    const body = await request.json();
+    const { post_slug, content, parent_comment_id } = body;
+
+    if (!post_slug || !content) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const authHeader = request.headers.get('authorization');
-    let user_id = null;
+    const supabase = supabaseAdmin;
+    
+    // Get post ID from slug
+    const { data: post, error: postError } = await supabase
+      .from('blog_posts')
+      .select('id')
+      .eq('slug', post_slug)
+      .single();
 
-    if (authHeader) {
-      const user = await verifyAuth(authHeader);
-      user_id = user?.id;
+    if (postError || !post) {
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
 
-    const supabase = createClient();
     const { data, error } = await supabase
       .from('blog_comments')
       .insert({
-        post_id,
-        user_id,
-        author_name,
-        author_email,
+        post_id: post.id,
+        user_id: session.user.id,
+        author_name: session.user.name,
+        author_email: session.user.email,
         content,
         parent_comment_id,
-        status: 'PENDING' // Requires moderation
+        status: 'APPROVED' // Auto-approve for logged-in users
       })
-      .select()
+      .select('*, users!blog_comments_user_id_fkey(name, email)')
       .single();
 
     if (error) throw error;
 
     // Update comment count
-    await supabase.rpc('increment_comment_count', { post_id });
+    await supabase
+      .from('blog_posts')
+      .update({ 
+        comments_count: supabase.raw('comments_count + 1')
+      })
+      .eq('id', post.id);
 
     return NextResponse.json({ comment: data }, { status: 201 });
   } catch (error: any) {

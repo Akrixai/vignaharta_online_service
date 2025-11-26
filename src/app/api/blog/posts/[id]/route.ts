@@ -1,18 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase';
-import { verifyAuth } from '@/lib/auth';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { supabaseAdmin } from '@/lib/supabase';
 
 // GET - Get single blog post
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = createClient();
+    const { id } = await params;
+    const supabase = supabaseAdmin;
     const { data, error } = await supabase
       .from('blog_posts')
       .select('*, users!blog_posts_author_id_fkey(name, email)')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (error) throw error;
@@ -21,7 +23,7 @@ export async function GET(
     await supabase
       .from('blog_posts')
       .update({ views_count: (data.views_count || 0) + 1 })
-      .eq('id', params.id);
+      .eq('id', id);
 
     return NextResponse.json({ post: data });
   } catch (error: any) {
@@ -32,27 +34,29 @@ export async function GET(
 // PUT - Update blog post (admin/employee only)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader) {
+    const { id } = await params;
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await verifyAuth(authHeader);
-    if (!user || (user.role !== 'ADMIN' && user.role !== 'EMPLOYEE')) {
+    const user = session.user;
+    if (user.role !== 'ADMIN' && user.role !== 'EMPLOYEE') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const body = await request.json();
-    const supabase = createClient();
+    const supabase = supabaseAdmin;
 
     // Check if post exists and user has permission
     const { data: existingPost } = await supabase
       .from('blog_posts')
       .select('author_id')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (!existingPost) {
@@ -76,7 +80,7 @@ export async function PUT(
     const { data, error } = await supabase
       .from('blog_posts')
       .update(updateData)
-      .eq('id', params.id)
+      .eq('id', id)
       .select()
       .single();
 
@@ -91,24 +95,26 @@ export async function PUT(
 // DELETE - Delete blog post (admin only)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader) {
+    const { id } = await params;
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await verifyAuth(authHeader);
-    if (!user || user.role !== 'ADMIN') {
+    const user = session.user;
+    if (user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const supabase = createClient();
+    const supabase = supabaseAdmin;
     const { error } = await supabase
       .from('blog_posts')
       .delete()
-      .eq('id', params.id);
+      .eq('id', id);
 
     if (error) throw error;
 

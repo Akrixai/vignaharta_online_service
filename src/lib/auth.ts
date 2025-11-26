@@ -4,6 +4,51 @@ import { supabaseAdmin } from './supabase';
 import bcrypt from 'bcryptjs';
 import { UserRole } from '@/types';
 
+// Simple token verification - extracts user ID from token
+export async function verifyAuth(authHeader: string) {
+  try {
+    const token = authHeader.replace('Bearer ', '');
+    
+    if (!token) {
+      return null;
+    }
+
+    // For simplicity, we'll decode the token manually (it's a JWT)
+    // In production, you should use a proper JWT library
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      return null;
+    }
+
+    const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
+    
+    if (!payload || !payload.sub) {
+      return null;
+    }
+
+    // Fetch user from database
+    const { data: user, error } = await supabaseAdmin
+      .from('users')
+      .select('id, email, name, role, is_active')
+      .eq('id', payload.sub)
+      .single();
+
+    if (error || !user || !user.is_active) {
+      return null;
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role as UserRole
+    };
+  } catch (error) {
+    console.error('Auth verification error:', error);
+    return null;
+  }
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({

@@ -63,6 +63,7 @@ const menuItems: MenuItem[] = [
   { name: 'Cash Deposit', href: '/dashboard/coming-soon', icon: '💰', roles: [UserRole.RETAILER] },
 
   // Admin Management Section
+  { name: 'Blog Management', href: '/dashboard/admin/blog', icon: '📝', roles: [UserRole.ADMIN, UserRole.EMPLOYEE] },
   { name: 'Manage Products', href: '/dashboard/admin/products', icon: '📦', roles: [UserRole.ADMIN] },
   { name: 'Manage Training', href: '/dashboard/admin/training', icon: '🎬', roles: [UserRole.ADMIN] },
   { name: 'Manage Applications', href: '/dashboard/admin/applications', icon: '📋', roles: [UserRole.ADMIN, UserRole.EMPLOYEE] },

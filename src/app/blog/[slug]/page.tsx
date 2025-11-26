@@ -38,7 +38,7 @@ export default function BlogPostPage() {
   const params = useParams();
   const router = useRouter();
   const { language } = useLanguage();
-  const { user } = useAuth();
+  const { data: session } = useSession();
   const slug = params.slug as string;
 
   const [post, setPost] = useState<BlogPost | null>(null);
@@ -82,7 +82,7 @@ export default function BlogPostPage() {
   };
 
   const checkIfLiked = async () => {
-    if (!user) return;
+    if (!session?.user) return;
     
     try {
       const response = await fetch(`/api/blog/likes?post_slug=${slug}`, {
@@ -98,8 +98,10 @@ export default function BlogPostPage() {
   };
 
   const handleLike = async () => {
-    if (!user) {
-      alert(language === 'mr' ? 'कृपया लॉगिन करा' : language === 'hi' ? 'कृपया लॉगिन करें' : 'Please login');
+    if (!session?.user) {
+      if (confirm(language === 'mr' ? 'लाइक करण्यासाठी लॉगिन करा. लॉगिन पेजवर जायचे?' : language === 'hi' ? 'लाइक करने के लिए लॉगिन करें। लॉगिन पेज पर जाएं?' : 'Please login to like. Go to login page?')) {
+        router.push('/login');
+      }
       return;
     }
 
@@ -175,8 +177,10 @@ export default function BlogPostPage() {
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user) {
-      alert(language === 'mr' ? 'कृपया लॉगिन करा' : language === 'hi' ? 'कृपया लॉगिन करें' : 'Please login');
+    if (!session?.user) {
+      if (confirm(language === 'mr' ? 'टिप्पणी करण्यासाठी लॉगिन करा. लॉगिन पेजवर जायचे?' : language === 'hi' ? 'टिप्पणी करने के लिए लॉगिन करें। लॉगिन पेज पर जाएं?' : 'Please login to comment. Go to login page?')) {
+        router.push('/login');
+      }
       return;
     }
 
@@ -198,11 +202,12 @@ export default function BlogPostPage() {
 
       if (response.ok) {
         setCommentText('');
+        fetchComments(); // Refresh comments
         alert(language === 'mr' 
-          ? 'तुमची टिप्पणी मंजुरीसाठी सबमिट केली आहे' 
+          ? 'तुमची टिप्पणी पोस्ट केली आहे' 
           : language === 'hi' 
-          ? 'आपकी टिप्पणी अनुमोदन के लिए सबमिट की गई है'
-          : 'Your comment has been submitted for approval');
+          ? 'आपकी टिप्पणी पोस्ट की गई है'
+          : 'Your comment has been posted');
       }
     } catch (error) {
       console.error('Error submitting comment:', error);
@@ -317,7 +322,7 @@ export default function BlogPostPage() {
             </div>
 
             {/* Like and Share Buttons */}
-            <div className="flex items-center gap-4 py-6 border-t border-b">
+            <div className="flex flex-wrap items-center gap-4 py-6 border-t border-b">
               <button
                 onClick={handleLike}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
@@ -332,37 +337,47 @@ export default function BlogPostPage() {
                 }
               </button>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-gray-600">
                   {language === 'mr' ? 'शेअर करा:' : language === 'hi' ? 'शेयर करें:' : 'Share:'}
                 </span>
                 <button
                   onClick={() => handleShare('facebook')}
-                  className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                  title="Facebook"
+                  className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  title="Share on Facebook"
                 >
                   📘
                 </button>
                 <button
                   onClick={() => handleShare('twitter')}
-                  className="p-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600"
-                  title="Twitter"
+                  className="p-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors"
+                  title="Share on Twitter"
                 >
                   🐦
                 </button>
                 <button
                   onClick={() => handleShare('whatsapp')}
-                  className="p-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-                  title="WhatsApp"
+                  className="p-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                  title="Share on WhatsApp"
                 >
                   💬
                 </button>
                 <button
                   onClick={() => handleShare('linkedin')}
-                  className="p-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800"
-                  title="LinkedIn"
+                  className="p-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors"
+                  title="Share on LinkedIn"
                 >
                   💼
+                </button>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(window.location.href);
+                    alert(language === 'mr' ? 'लिंक कॉपी केली' : language === 'hi' ? 'लिंक कॉपी किया' : 'Link copied!');
+                  }}
+                  className="p-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                  title="Copy Link"
+                >
+                  🔗
                 </button>
               </div>
             </div>
@@ -394,16 +409,9 @@ export default function BlogPostPage() {
                 >
                   {submittingComment 
                     ? (language === 'mr' ? 'सबमिट करत आहे...' : language === 'hi' ? 'सबमिट कर रहे हैं...' : 'Submitting...')
-                    : (language === 'mr' ? 'टिप्पणी सबमिट करा' : language === 'hi' ? 'टिप्पणी सबमिट करें' : 'Submit Comment')
+                    : (language === 'mr' ? 'टिप्पणी पोस्ट करा' : language === 'hi' ? 'टिप्पणी पोस्ट करें' : 'Post Comment')
                   }
                 </button>
-                <p className="text-sm text-gray-500 mt-2">
-                  {language === 'mr' 
-                    ? 'तुमची टिप्पणी मंजुरीनंतर प्रदर्शित होईल' 
-                    : language === 'hi' 
-                    ? 'आपकी टिप्पणी अनुमोदन के बाद प्रदर्शित होगी'
-                    : 'Your comment will be displayed after approval'}
-                </p>
               </form>
 
               {/* Comments List */}

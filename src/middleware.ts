@@ -130,6 +130,9 @@ export default withAuth(
       '/whats-new'
     ];
 
+    // Allow blog routes (public access)
+    const isBlogRoute = pathname.startsWith('/blog');
+
     // Allow language-specific routes (Marathi and Hindi)
     const isLanguageRoute = pathname.startsWith('/mr/') || pathname.startsWith('/hi/') || pathname === '/mr' || pathname === '/hi';
 
@@ -142,7 +145,7 @@ export default withAuth(
     // Allow webhook routes (Cashfree, etc.)
     const isWebhookRoute = pathname.includes('/webhook');
 
-    if (publicRoutes.includes(pathname) || isLanguageRoute || isRegisterRoute || isPaymentRoute || isWebhookRoute) {
+    if (publicRoutes.includes(pathname) || isLanguageRoute || isRegisterRoute || isPaymentRoute || isWebhookRoute || isBlogRoute) {
       return response;
     }
 
@@ -293,7 +296,10 @@ export default withAuth(
         // Allow payment callback routes
         const isPaymentRoute = pathname.startsWith('/payment/');
 
-        if (publicRoutes.includes(pathname) || isLanguageRoute || isRegisterRoute || isPaymentRoute) {
+        // Allow blog routes (public access)
+        const isBlogRoute = pathname.startsWith('/blog');
+
+        if (publicRoutes.includes(pathname) || isLanguageRoute || isRegisterRoute || isPaymentRoute || isBlogRoute) {
           return true;
         }
 
