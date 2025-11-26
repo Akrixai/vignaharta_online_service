@@ -61,7 +61,10 @@ export async function POST(request: NextRequest) {
       cashback_max_percentage,
       dynamic_fields,
       required_documents,
-      image_url
+      image_url,
+      show_to_customer,
+      customer_price,
+      customer_cashback_percentage
     } = body;
 
     // Add console logging for debugging dropdown options
@@ -171,6 +174,8 @@ export async function POST(request: NextRequest) {
         dynamic_fields: processedDynamicFields,
         required_documents: required_documents || [],
         image_url: image_url || null,
+        show_to_customer: show_to_customer !== false,
+        customer_price: customer_price || null,
         created_by: session.user.id
       })
       .select()

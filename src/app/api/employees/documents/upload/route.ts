@@ -22,6 +22,16 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
+    // Map frontend document types to database enum values
+    const documentTypeMap: Record<string, string> = {
+      'aadhar_card': 'AADHAR',
+      'pan_card': 'PANCARD',
+      'photo': 'PHOTO',
+      'other': 'IMAGE'
+    };
+
+    const dbDocumentType = documentTypeMap[documentType] || 'IMAGE';
+
     // Upload file to Supabase Storage
     const fileExt = file.name.split('.').pop();
     const fileName = `${userId}_${documentType}_${Date.now()}.${fileExt}`;
@@ -41,22 +51,51 @@ export async function POST(request: NextRequest) {
       .from('documents')
       .getPublicUrl(filePath);
 
-    // Save document record to database
-    const { data: document, error: dbError } = await supabaseAdmin
+    // Check if document already exists and update, otherwise insert
+    const { data: existingDoc } = await supabaseAdmin
       .from('employee_documents')
-      .insert({
-        user_id: userId,
-        document_type: documentType,
-        file_url: publicUrl,
-        file_name: file.name,
-        file_size: file.size,
-        mime_type: file.type,
-        created_by: session.user.id
-      })
-      .select()
-      .single();
+      .select('id')
+      .eq('user_id', userId)
+      .eq('document_type', dbDocumentType)
+      .maybeSingle();
 
-    if (dbError) throw dbError;
+    let document;
+    if (existingDoc) {
+      // Update existing document
+      const { data: updatedDoc, error: updateError } = await supabaseAdmin
+        .from('employee_documents')
+        .update({
+          file_url: publicUrl,
+          file_name: file.name,
+          file_size: file.size,
+          mime_type: file.type,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existingDoc.id)
+        .select()
+        .single();
+
+      if (updateError) throw updateError;
+      document = updatedDoc;
+    } else {
+      // Insert new document
+      const { data: newDoc, error: insertError } = await supabaseAdmin
+        .from('employee_documents')
+        .insert({
+          user_id: userId,
+          document_type: dbDocumentType,
+          file_url: publicUrl,
+          file_name: file.name,
+          file_size: file.size,
+          mime_type: file.type,
+          created_by: session.user.id
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+      document = newDoc;
+    }
 
     return NextResponse.json({
       success: true,

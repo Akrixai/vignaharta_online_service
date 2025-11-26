@@ -19,17 +19,19 @@ export default function ProductsPage() {
   // Always call hooks before any early returns
   const { data: products, loading, error, refresh } = useRealTimeProducts(true);
 
-  // Check access - allow retailers and employees
-  if (!session || !['RETAILER', 'EMPLOYEE'].includes(session.user.role)) {
+  // Check access - allow retailers, employees, and customers
+  if (!session || !['RETAILER', 'EMPLOYEE', 'CUSTOMER', 'ADMIN'].includes(session.user.role)) {
     return (
       <DashboardLayout>
         <div className="text-center py-12">
           <h1 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h1>
-          <p className="text-gray-600">Only retailers and employees can access this page.</p>
+          <p className="text-gray-600">Only retailers, employees, and customers can access this page.</p>
         </div>
       </DashboardLayout>
     );
   }
+
+  const isCustomer = session.user.role === UserRole.CUSTOMER;
 
   const categories = [...new Set(products.map(product => product.category).filter(Boolean))];
 

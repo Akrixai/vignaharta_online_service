@@ -30,6 +30,13 @@ export async function GET(request: NextRequest) {
         territory_area,
         employee_id,
         department,
+        address,
+        city,
+        state,
+        pincode,
+        date_of_birth,
+        gender,
+        branch,
         is_active,
         created_at
       `)
@@ -39,7 +46,7 @@ export async function GET(request: NextRequest) {
     
     if (error) throw error;
 
-    // Get hierarchy data separately for each employee
+    // Get hierarchy data and documents separately for each employee
     const employeesWithHierarchy = await Promise.all(
       (employees || []).map(async (emp) => {
         const { data: hierarchy } = await supabaseAdmin
@@ -48,8 +55,24 @@ export async function GET(request: NextRequest) {
           .eq('employee_id', emp.id)
           .single();
         
+        // Get employee documents
+        const { data: documents } = await supabaseAdmin
+          .from('employee_documents')
+          .select('document_type, file_url')
+          .eq('user_id', emp.id);
+        
+        // Map documents to specific fields
+        const docMap: Record<string, string> = {};
+        documents?.forEach(doc => {
+          if (doc.document_type === 'AADHAR') docMap.aadhar_card_url = doc.file_url;
+          if (doc.document_type === 'PANCARD') docMap.pan_card_url = doc.file_url;
+          if (doc.document_type === 'PHOTO') docMap.photo_url = doc.file_url;
+          if (doc.document_type === 'IMAGE') docMap.other_documents_url = doc.file_url;
+        });
+        
         return {
           ...emp,
+          ...docMap,
           employee_hierarchy: hierarchy
         };
       })

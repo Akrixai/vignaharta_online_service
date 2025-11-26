@@ -22,8 +22,19 @@ interface Employee {
   territory_area?: string;
   employee_id?: string;
   department?: string;
+  branch?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
+  date_of_birth?: string;
+  gender?: string;
   created_at: string;
   employee_hierarchy?: any;
+  aadhar_card_url?: string;
+  pan_card_url?: string;
+  photo_url?: string;
+  other_documents_url?: string;
 }
 
 const DESIGNATION_HIERARCHY: Record<string, string[]> = {
@@ -66,10 +77,18 @@ export default function EmployeesPage() {
     date_of_birth: '',
     gender: '',
     employee_id: '',
-    department: ''
+    department: '',
+    branch: ''
   });
 
   const [documents, setDocuments] = useState<{
+    aadhar_card?: File;
+    pan_card?: File;
+    photo?: File;
+    other?: File;
+  }>({});
+
+  const [editDocuments, setEditDocuments] = useState<{
     aadhar_card?: File;
     pan_card?: File;
     photo?: File;
@@ -126,8 +145,10 @@ export default function EmployeesPage() {
       date_of_birth: employee.date_of_birth || '',
       gender: employee.gender || '',
       employee_id: employee.employee_id || '',
-      department: employee.department || ''
+      department: employee.department || '',
+      branch: employee.branch || ''
     });
+    setEditDocuments({});
     setShowEditForm(true);
   };
 
@@ -143,6 +164,8 @@ export default function EmployeesPage() {
 
     try {
       setUpdating(true);
+      
+      // Update employee basic info
       const response = await fetch(`/api/employees/${selectedEmployee.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -151,33 +174,65 @@ export default function EmployeesPage() {
 
       const data = await response.json();
 
-      if (data.success) {
-        toast.success('Employee updated successfully!');
-        setShowEditForm(false);
-        setSelectedEmployee(null);
-        setFormData({
-          name: '',
-          email: '',
-          password: '',
-          phone: '',
-          designation: '',
-          role: 'EMPLOYEE',
-          territory_state: '',
-          territory_district: '',
-          territory_area: '',
-          address: '',
-          city: '',
-          state: '',
-          pincode: '',
-          date_of_birth: '',
-          gender: '',
-          employee_id: '',
-          department: ''
-        });
-        fetchEmployees();
-      } else {
+      if (!data.success) {
         toast.error(data.error || 'Failed to update employee');
+        return;
       }
+
+      // Upload documents if any
+      const documentTypes = ['aadhar_card', 'pan_card', 'photo', 'other'] as const;
+      let uploadedCount = 0;
+      
+      for (const docType of documentTypes) {
+        const file = editDocuments[docType];
+        if (file) {
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('userId', selectedEmployee.id);
+          formData.append('documentType', docType);
+
+          const uploadResponse = await fetch('/api/employees/documents/upload', {
+            method: 'POST',
+            body: formData
+          });
+
+          const uploadData = await uploadResponse.json();
+          if (uploadData.success) {
+            uploadedCount++;
+          }
+        }
+      }
+
+      if (uploadedCount > 0) {
+        toast.success(`Employee updated successfully! ${uploadedCount} document(s) uploaded.`);
+      } else {
+        toast.success('Employee updated successfully!');
+      }
+      
+      setShowEditForm(false);
+      setSelectedEmployee(null);
+      setFormData({
+        name: '',
+        email: '',
+        password: '',
+        phone: '',
+        designation: '',
+        role: 'EMPLOYEE',
+        territory_state: '',
+        territory_district: '',
+        territory_area: '',
+        address: '',
+        city: '',
+        state: '',
+        pincode: '',
+        date_of_birth: '',
+        gender: '',
+        employee_id: '',
+        department: '',
+        branch: ''
+      });
+      setEditDocuments({});
+      fetchEmployees();
     } catch (error) {
       console.error('Error updating employee:', error);
       toast.error('Failed to update employee');
@@ -223,6 +278,8 @@ export default function EmployeesPage() {
 
     try {
       setCreating(true);
+      
+      // Create employee first
       const response = await fetch('/api/employees/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -231,32 +288,64 @@ export default function EmployeesPage() {
 
       const data = await response.json();
 
-      if (data.success) {
-        toast.success('Employee created successfully!');
-        setShowCreateForm(false);
-        setFormData({
-          name: '',
-          email: '',
-          password: '',
-          phone: '',
-          designation: '',
-          role: 'EMPLOYEE',
-          territory_state: '',
-          territory_district: '',
-          territory_area: '',
-          address: '',
-          city: '',
-          state: '',
-          pincode: '',
-          date_of_birth: '',
-          gender: '',
-          employee_id: '',
-          department: ''
-        });
-        fetchEmployees();
-      } else {
+      if (!data.success) {
         toast.error(data.error || 'Failed to create employee');
+        return;
       }
+
+      // Upload documents if any
+      const documentTypes = ['aadhar_card', 'pan_card', 'photo', 'other'] as const;
+      let uploadedCount = 0;
+      
+      for (const docType of documentTypes) {
+        const file = documents[docType];
+        if (file) {
+          const uploadFormData = new FormData();
+          uploadFormData.append('file', file);
+          uploadFormData.append('userId', data.user.id);
+          uploadFormData.append('documentType', docType);
+
+          const uploadResponse = await fetch('/api/employees/documents/upload', {
+            method: 'POST',
+            body: uploadFormData
+          });
+
+          const uploadData = await uploadResponse.json();
+          if (uploadData.success) {
+            uploadedCount++;
+          }
+        }
+      }
+
+      if (uploadedCount > 0) {
+        toast.success(`Employee created successfully! ${uploadedCount} document(s) uploaded.`);
+      } else {
+        toast.success('Employee created successfully!');
+      }
+      
+      setShowCreateForm(false);
+      setFormData({
+        name: '',
+        email: '',
+        password: '',
+        phone: '',
+        designation: '',
+        role: 'EMPLOYEE',
+        territory_state: '',
+        territory_district: '',
+        territory_area: '',
+        address: '',
+        city: '',
+        state: '',
+        pincode: '',
+        date_of_birth: '',
+        gender: '',
+        employee_id: '',
+        department: '',
+        branch: ''
+      });
+      setDocuments({});
+      fetchEmployees();
     } catch (error) {
       console.error('Error creating employee:', error);
       toast.error('Failed to create employee');
@@ -800,6 +889,12 @@ export default function EmployeesPage() {
                       <p className="text-lg">{selectedEmployee.department}</p>
                     </div>
                   )}
+                  {selectedEmployee.branch && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Branch</label>
+                      <p className="text-lg">{selectedEmployee.branch}</p>
+                    </div>
+                  )}
                   {selectedEmployee.gender && (
                     <div>
                       <label className="text-sm font-medium text-gray-500">Gender</label>
@@ -866,19 +961,75 @@ export default function EmployeesPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="p-4 bg-gray-50 rounded-lg">
                       <p className="text-sm font-medium text-gray-700 mb-2">Aadhar Card</p>
-                      <p className="text-xs text-gray-500">Status: {selectedEmployee.aadhar_card_url ? '✓ Uploaded' : '✗ Not uploaded'}</p>
+                      {selectedEmployee.aadhar_card_url ? (
+                        <div>
+                          <p className="text-xs text-green-600 mb-2">✓ Uploaded</p>
+                          <a 
+                            href={selectedEmployee.aadhar_card_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-xs text-blue-600 hover:text-blue-800 underline"
+                          >
+                            View Document
+                          </a>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-gray-500">✗ Not uploaded</p>
+                      )}
                     </div>
                     <div className="p-4 bg-gray-50 rounded-lg">
                       <p className="text-sm font-medium text-gray-700 mb-2">PAN Card</p>
-                      <p className="text-xs text-gray-500">Status: {selectedEmployee.pan_card_url ? '✓ Uploaded' : '✗ Not uploaded'}</p>
+                      {selectedEmployee.pan_card_url ? (
+                        <div>
+                          <p className="text-xs text-green-600 mb-2">✓ Uploaded</p>
+                          <a 
+                            href={selectedEmployee.pan_card_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-xs text-blue-600 hover:text-blue-800 underline"
+                          >
+                            View Document
+                          </a>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-gray-500">✗ Not uploaded</p>
+                      )}
                     </div>
                     <div className="p-4 bg-gray-50 rounded-lg">
                       <p className="text-sm font-medium text-gray-700 mb-2">Employee Photo</p>
-                      <p className="text-xs text-gray-500">Status: {selectedEmployee.photo_url ? '✓ Uploaded' : '✗ Not uploaded'}</p>
+                      {selectedEmployee.photo_url ? (
+                        <div>
+                          <p className="text-xs text-green-600 mb-2">✓ Uploaded</p>
+                          <a 
+                            href={selectedEmployee.photo_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-xs text-blue-600 hover:text-blue-800 underline"
+                          >
+                            View Photo
+                          </a>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-gray-500">✗ Not uploaded</p>
+                      )}
                     </div>
                     <div className="p-4 bg-gray-50 rounded-lg">
                       <p className="text-sm font-medium text-gray-700 mb-2">Other Documents</p>
-                      <p className="text-xs text-gray-500">Status: {selectedEmployee.other_documents_url ? '✓ Uploaded' : '✗ Not uploaded'}</p>
+                      {selectedEmployee.other_documents_url ? (
+                        <div>
+                          <p className="text-xs text-green-600 mb-2">✓ Uploaded</p>
+                          <a 
+                            href={selectedEmployee.other_documents_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-xs text-blue-600 hover:text-blue-800 underline"
+                          >
+                            View Document
+                          </a>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-gray-500">✗ Not uploaded</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1086,6 +1237,81 @@ export default function EmployeesPage() {
                         onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
                         placeholder="6-digit pincode"
                       />
+                    </div>
+                  </div>
+
+                  {/* Employee Documents Section */}
+                  <div className="border-t pt-4 mt-4">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4">📄 Update Employee Documents</h4>
+                    <p className="text-sm text-gray-600 mb-4">Upload new documents to replace existing ones (optional)</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="edit_aadhar_card">Aadhar Card</Label>
+                        <Input
+                          id="edit_aadhar_card"
+                          type="file"
+                          accept="image/*,application/pdf"
+                          onChange={(e) => setEditDocuments({ ...editDocuments, aadhar_card: e.target.files?.[0] })}
+                          className="cursor-pointer"
+                        />
+                        {editDocuments.aadhar_card && (
+                          <p className="text-xs text-green-600 mt-1">✓ {editDocuments.aadhar_card.name}</p>
+                        )}
+                        {selectedEmployee.aadhar_card_url && !editDocuments.aadhar_card && (
+                          <p className="text-xs text-blue-600 mt-1">Current: ✓ Uploaded</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <Label htmlFor="edit_pan_card">PAN Card</Label>
+                        <Input
+                          id="edit_pan_card"
+                          type="file"
+                          accept="image/*,application/pdf"
+                          onChange={(e) => setEditDocuments({ ...editDocuments, pan_card: e.target.files?.[0] })}
+                          className="cursor-pointer"
+                        />
+                        {editDocuments.pan_card && (
+                          <p className="text-xs text-green-600 mt-1">✓ {editDocuments.pan_card.name}</p>
+                        )}
+                        {selectedEmployee.pan_card_url && !editDocuments.pan_card && (
+                          <p className="text-xs text-blue-600 mt-1">Current: ✓ Uploaded</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <Label htmlFor="edit_photo">Employee Photo</Label>
+                        <Input
+                          id="edit_photo"
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => setEditDocuments({ ...editDocuments, photo: e.target.files?.[0] })}
+                          className="cursor-pointer"
+                        />
+                        {editDocuments.photo && (
+                          <p className="text-xs text-green-600 mt-1">✓ {editDocuments.photo.name}</p>
+                        )}
+                        {selectedEmployee.photo_url && !editDocuments.photo && (
+                          <p className="text-xs text-blue-600 mt-1">Current: ✓ Uploaded</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <Label htmlFor="edit_other">Other Documents</Label>
+                        <Input
+                          id="edit_other"
+                          type="file"
+                          accept="image/*,application/pdf"
+                          onChange={(e) => setEditDocuments({ ...editDocuments, other: e.target.files?.[0] })}
+                          className="cursor-pointer"
+                        />
+                        {editDocuments.other && (
+                          <p className="text-xs text-green-600 mt-1">✓ {editDocuments.other.name}</p>
+                        )}
+                        {selectedEmployee.other_documents_url && !editDocuments.other && (
+                          <p className="text-xs text-blue-600 mt-1">Current: ✓ Uploaded</p>
+                        )}
+                      </div>
                     </div>
                   </div>
 

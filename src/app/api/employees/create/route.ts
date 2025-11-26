@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     const { 
       name, email, password, phone, designation, role,
       territory_state, territory_district, territory_area,
-      address, city, state, pincode, date_of_birth, gender, employee_id, department
+      address, city, state, pincode, date_of_birth, gender, employee_id, department, branch
     } = body;
 
     // Validate designation hierarchy
@@ -98,6 +98,7 @@ export async function POST(request: NextRequest) {
         gender,
         employee_id,
         department,
+        branch,
         created_by: user.id,
         is_active: true
       })

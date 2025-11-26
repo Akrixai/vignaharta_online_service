@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react';
 import { toast } from 'react-hot-toast';
 import { formatCurrency } from '@/lib/utils';
 import { FileText, X } from 'lucide-react';
+import { useRecaptchaEnterprise } from '@/hooks/useRecaptchaEnterprise';
 
 interface ServiceApplicationFormProps {
   service: any;
@@ -16,6 +17,7 @@ interface ServiceApplicationFormProps {
 
 export default function ServiceApplicationForm({ service, isOpen, onClose, onSuccess }: ServiceApplicationFormProps) {
   const { data: session } = useSession();
+  const { executeRecaptcha, isReady } = useRecaptchaEnterprise();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     customer_name: '',
@@ -119,6 +121,44 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    // Execute reCAPTCHA Enterprise
+    let recaptchaToken = '';
+    if (isReady) {
+      try {
+        recaptchaToken = await executeRecaptcha('APPLY_SERVICE');
+      } catch (error) {
+        console.warn('reCAPTCHA execution failed, proceeding without token:', error);
+      }
+    } else {
+      console.warn('reCAPTCHA not ready, proceeding without token');
+    }
+
+    // Verify reCAPTCHA token with backend if we have one
+    if (recaptchaToken) {
+      try {
+        const verifyResponse = await fetch('/api/verify-recaptcha', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            token: recaptchaToken,
+            action: 'APPLY_SERVICE'
+          }),
+        });
+
+        const verifyData = await verifyResponse.json();
+
+        if (!verifyData.success) {
+          toast.error('Security verification failed. Please try again.');
+          setLoading(false);
+          return;
+        }
+      } catch (error) {
+        console.warn('Failed to verify reCAPTCHA, proceeding anyway:', error);
+      }
+    }
 
     // Validate phone number
     if (!formData.customer_phone || formData.customer_phone.length !== 10) {
@@ -439,6 +479,23 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
     return () => setMounted(false);
   }, []);
 
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setFormData({
+        customer_name: '',
+        customer_phone: '',
+        customer_email: '',
+        customer_address: '',
+        purpose: '',
+        remarks: '',
+        service_specific_data: {}
+      });
+      setDocuments([]);
+      setUploadedFiles({});
+    }
+  }, [isOpen]);
+
   if (!service) return null;
   if (!isOpen) return null;
   if (!mounted) return null;
@@ -755,6 +812,46 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
                       </p>
                     )}
                   </div>
+                </div>
+              </div>
+
+              {/* reCAPTCHA Notice */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">🔒</span>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-semibold text-blue-900 mb-1">
+                      Security Verification
+                    </h4>
+                    <p className="text-xs text-blue-700">
+                      This form is protected by reCAPTCHA Enterprise to prevent spam and abuse. 
+                      Your submission will be automatically verified when you click Submit.
+                    </p>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Protected by reCAPTCHA. Google{' '}
+                      <a 
+                        href="https://policies.google.com/privacy" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-blue-600 hover:underline"
+                      >
+                        Privacy Policy
+                      </a>
+                      {' '}and{' '}
+                      <a 
+                        href="https://policies.google.com/terms" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-blue-600 hover:underline"
+                      >
+                        Terms of Service
+                      </a>
+                      {' '}apply.
+                    </p>
+                  </div>
+                  {isReady && (
+                    <span className="text-green-500 text-sm">✓</span>
+                  )}
                 </div>
               </div>
 

@@ -33,17 +33,19 @@ export default function ServicesPage() {
     refresh
   } = useRealTimeServices(true);
 
-  // Check access
-  if (!session || session.user.role !== UserRole.RETAILER) {
+  // Check access - Allow both retailers and customers
+  if (!session || (session.user.role !== UserRole.RETAILER && session.user.role !== UserRole.CUSTOMER)) {
     return (
       <DashboardLayout>
         <div className="text-center py-12">
           <h1 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h1>
-          <p className="text-gray-600">Only retailers can access this page.</p>
+          <p className="text-gray-600">Only retailers and customers can access this page.</p>
         </div>
       </DashboardLayout>
     );
   }
+
+  const isCustomer = session.user.role === UserRole.CUSTOMER;
 
   // Apply filters
   const filteredServices = services.filter((service) => {
@@ -72,7 +74,7 @@ export default function ServicesPage() {
 
   return (
     <DashboardLayout>
-      <div>
+      <div className="services-page-container">
         {/* Header */}
         <div className="bg-gradient-to-r from-red-600 to-red-700 rounded-xl p-8 text-white shadow-xl mb-6">
           <h1 className="text-4xl font-bold mb-3">Government Services</h1>
@@ -220,24 +222,16 @@ export default function ServicesPage() {
                           >
                             {service.is_free
                               ? 'FREE'
-                              : formatCurrency(service.price)}
+                              : formatCurrency(isCustomer && service.customer_price ? service.customer_price : service.price)}
                           </div>
                         </div>
                       </div>
                     )}
                     <CardHeader className={service.image_url ? 'pb-2' : ''}>
                       <div className="flex justify-between items-start">
-                        <div>
-                          <CardTitle className="text-lg line-clamp-2 flex items-center gap-2">
-                            <span>{service.name}</span>
-                            {!service.is_free && (
-                              <span className="ml-2 px-2 py-0.5 rounded bg-red-600 text-white text-xs font-semibold shadow">
-                                {formatCurrency(service.price)}
-                              </span>
-                            )}
-                            {service.is_free && (
-                              <span className="ml-2 px-2 py-0.5 rounded bg-green-500 text-white text-xs font-semibold shadow">FREE</span>
-                            )}
+                        <div className="flex-1">
+                          <CardTitle className="text-lg line-clamp-2">
+                            {service.name}
                           </CardTitle>
                           <CardDescription>{service.category}</CardDescription>
                         </div>
@@ -250,7 +244,7 @@ export default function ServicesPage() {
                           >
                             {service.is_free
                               ? 'FREE'
-                              : formatCurrency(service.price)}
+                              : formatCurrency(isCustomer && service.customer_price ? service.customer_price : service.price)}
                           </div>
                         )}
                       </div>
@@ -269,14 +263,46 @@ export default function ServicesPage() {
                             {service.processing_time_days} days
                           </span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-sm text-gray-500">
-                            Commission:
-                          </span>
-                          <span className="font-medium">
-                            {service.commission_rate}%
-                          </span>
-                        </div>
+                        
+                        {/* Show different info for customers vs retailers */}
+                        {isCustomer ? (
+                          <>
+                            {/* Customer sees cashback info */}
+                            {service.cashback_enabled && (
+                              <div className="flex justify-between">
+                                <span className="text-sm text-gray-500">
+                                  💰 Cashback:
+                                </span>
+                                <span className="font-medium text-green-600">
+                                  {service.cashback_min_percentage}% - {service.cashback_max_percentage}%
+                                </span>
+                              </div>
+                            )}
+                            {service.customer_cashback_percentage > 0 && (
+                              <div className="flex justify-between">
+                                <span className="text-sm text-gray-500">
+                                  🎁 Fixed Cashback:
+                                </span>
+                                <span className="font-medium text-green-600">
+                                  {service.customer_cashback_percentage}%
+                                </span>
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            {/* Retailers see commission info */}
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-500">
+                                Commission:
+                              </span>
+                              <span className="font-medium">
+                                {service.commission_rate}%
+                              </span>
+                            </div>
+                          </>
+                        )}
+                        
                         <div className="flex justify-between">
                           <span className="text-sm text-gray-500">
                             Documents:

@@ -1,31 +1,31 @@
 'use client';
 
-import { useRef, useEffect, useState } from 'react';
-import { showToast } from '@/lib/toast';
-import confetti from 'canvas-confetti';
+import { useState, useRef, useEffect } from 'react';
+import { formatCurrency } from '@/lib/utils';
 
 interface ScratchCardProps {
-  applicationId: string;
-  cashbackAmount: number;
   cashbackPercentage: number;
-  onReveal: () => void;
+  cashbackAmount: number;
+  onReveal: () => Promise<void>;
+  revealed?: boolean;
 }
 
-export default function ScratchCard({
-  applicationId,
-  cashbackAmount,
-  cashbackPercentage,
+export default function ScratchCard({ 
+  cashbackPercentage, 
+  cashbackAmount, 
   onReveal,
+  revealed = false 
 }: ScratchCardProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isScratching, setIsScratching] = useState(false);
-  const [isRevealed, setIsRevealed] = useState(false);
+  const [scratchPercentage, setScratchPercentage] = useState(0);
+  const [isRevealed, setIsRevealed] = useState(revealed);
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvasRef.current || isRevealed) return;
 
+    const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -33,24 +33,34 @@ export default function ScratchCard({
     canvas.width = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
 
-    // Draw scratch layer
-    ctx.fillStyle = '#e5e7eb';
+    // Draw scratch-off layer
+    ctx.fillStyle = '#e74c3c';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Add scratch pattern
-    ctx.fillStyle = '#9ca3af';
-    ctx.font = 'bold 20px Arial';
+    // Add pattern
+    ctx.fillStyle = '#c0392b';
+    for (let i = 0; i < canvas.width; i += 20) {
+      for (let j = 0; j < canvas.height; j += 20) {
+        if ((i + j) % 40 === 0) {
+          ctx.fillRect(i, j, 10, 10);
+        }
+      }
+    }
+
+    // Add text
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 24px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('🎁 SCRATCH HERE 🎁', canvas.width / 2, canvas.height / 2);
-  }, []);
+    ctx.fillText('SCRATCH HERE', canvas.width / 2, canvas.height / 2 - 20);
+    ctx.font = '16px Arial';
+    ctx.fillText('to reveal your cashback!', canvas.width / 2, canvas.height / 2 + 10);
+  }, [isRevealed]);
 
   const scratch = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (isRevealed || isProcessing) return;
+    if (!canvasRef.current || isRevealed || isProcessing) return;
 
     const canvas = canvasRef.current;
-    if (!canvas) return;
-
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -65,17 +75,16 @@ export default function ScratchCard({
       y = e.clientY - rect.top;
     }
 
-    // Erase the scratch layer
+    // Scale coordinates
+    x = (x / rect.width) * canvas.width;
+    y = (y / rect.height) * canvas.height;
+
     ctx.globalCompositeOperation = 'destination-out';
     ctx.beginPath();
-    ctx.arc(x, y, 20, 0, Math.PI * 2);
+    ctx.arc(x, y, 30, 0, Math.PI * 2);
     ctx.fill();
 
-    // Check if enough is scratched
-    checkScratchProgress(ctx, canvas);
-  };
-
-  const checkScratchProgress = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
+    // Calculate scratch percentage
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const pixels = imageData.data;
     let transparent = 0;
@@ -84,98 +93,101 @@ export default function ScratchCard({
       if (pixels[i] === 0) transparent++;
     }
 
-    const scratchedPercentage = (transparent / (pixels.length / 4)) * 100;
+    const percentage = (transparent / (pixels.length / 4)) * 100;
+    setScratchPercentage(percentage);
 
-    if (scratchedPercentage > 50 && !isRevealed) {
-      revealCashback();
+    // Auto-reveal when 50% scratched
+    if (percentage > 50 && !isRevealed) {
+      handleReveal();
     }
   };
 
-  const revealCashback = async () => {
-    setIsRevealed(true);
+  const handleReveal = async () => {
+    if (isProcessing || isRevealed) return;
+    
     setIsProcessing(true);
-
-    // Trigger confetti
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'],
-    });
-
     try {
-      const response = await fetch(`/api/applications/${applicationId}/reveal-cashback`, {
-        method: 'POST',
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        showToast.success('🎉 Cashback Revealed!', {
-          description: `₹${cashbackAmount.toFixed(2)} has been added to your wallet!`,
-        });
-        onReveal();
-      } else {
-        showToast.error('Failed to claim cashback', {
-          description: data.error || 'Please try again',
-        });
-      }
+      await onReveal();
+      setIsRevealed(true);
     } catch (error) {
-      showToast.error('Error claiming cashback', {
-        description: 'Please contact support',
-      });
+      console.error('Failed to reveal:', error);
     } finally {
       setIsProcessing(false);
     }
   };
 
-  return (
-    <div className="relative w-full max-w-md mx-auto">
-      {/* Background card with cashback amount */}
-      <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-8 shadow-2xl">
-        <div className="text-center text-white">
-          <div className="text-6xl mb-4">🎁</div>
-          <h3 className="text-2xl font-bold mb-2">Congratulations!</h3>
-          <p className="text-lg mb-4">You've earned cashback!</p>
-          <div className="bg-white bg-opacity-20 rounded-xl p-6 backdrop-blur-sm">
-            <div className="text-5xl font-bold mb-2">₹{cashbackAmount.toFixed(2)}</div>
-            <div className="text-xl">{cashbackPercentage.toFixed(2)}% Cashback</div>
+  if (isRevealed) {
+    return (
+      <div className="relative w-full h-64 bg-gradient-to-br from-green-400 to-green-600 rounded-xl shadow-2xl overflow-hidden">
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-6">
+          <div className="text-6xl mb-4 animate-bounce">🎉</div>
+          <div className="text-2xl font-bold mb-2">Congratulations!</div>
+          <div className="text-5xl font-black mb-2">{cashbackPercentage}%</div>
+          <div className="text-xl mb-4">Cashback Earned!</div>
+          <div className="text-3xl font-bold bg-white text-green-600 px-6 py-3 rounded-lg shadow-lg">
+            {formatCurrency(cashbackAmount)}
+          </div>
+          <div className="mt-4 text-sm opacity-90">
+            ✅ Credited to your wallet
           </div>
         </div>
+        <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute animate-float"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 2}s`,
+                fontSize: `${20 + Math.random() * 20}px`,
+              }}
+            >
+              ✨
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative w-full h-64 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl shadow-2xl overflow-hidden">
+      {/* Hidden content */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-6">
+        <div className="text-6xl mb-4">🎁</div>
+        <div className="text-2xl font-bold mb-2">Your Cashback</div>
+        <div className="text-5xl font-black mb-2">{cashbackPercentage}%</div>
+        <div className="text-3xl font-bold">{formatCurrency(cashbackAmount)}</div>
       </div>
 
       {/* Scratch layer */}
-      {!isRevealed && (
-        <canvas
-          ref={canvasRef}
-          className="absolute top-0 left-0 w-full h-full rounded-2xl cursor-pointer"
-          onMouseDown={() => setIsScratching(true)}
-          onMouseUp={() => setIsScratching(false)}
-          onMouseMove={(e) => isScratching && scratch(e)}
-          onTouchStart={() => setIsScratching(true)}
-          onTouchEnd={() => setIsScratching(false)}
-          onTouchMove={(e) => isScratching && scratch(e)}
-        />
-      )}
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 w-full h-full cursor-pointer touch-none"
+        onMouseDown={() => setIsScratching(true)}
+        onMouseUp={() => setIsScratching(false)}
+        onMouseMove={(e) => isScratching && scratch(e)}
+        onTouchStart={() => setIsScratching(true)}
+        onTouchEnd={() => setIsScratching(false)}
+        onTouchMove={(e) => scratch(e)}
+      />
 
-      {/* Processing overlay */}
-      {isProcessing && (
-        <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-50 rounded-2xl flex items-center justify-center">
-          <div className="text-white text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-            <p className="text-lg font-semibold">Adding to wallet...</p>
-          </div>
+      {/* Progress indicator */}
+      {scratchPercentage > 0 && scratchPercentage < 50 && (
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white/90 px-4 py-2 rounded-full text-sm font-medium text-gray-800">
+          {Math.round(scratchPercentage)}% scratched
         </div>
       )}
 
-      {/* Instructions */}
-      {!isRevealed && !isProcessing && (
-        <div className="mt-4 text-center">
-          <p className="text-sm text-gray-600">
-            👆 Scratch the card to reveal your cashback!
-          </p>
-        </div>
-      )}
+      {/* Skip button */}
+      <button
+        onClick={handleReveal}
+        disabled={isProcessing}
+        className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm font-medium backdrop-blur-sm transition-colors disabled:opacity-50"
+      >
+        {isProcessing ? 'Revealing...' : 'Skip & Reveal'}
+      </button>
     </div>
   );
 }

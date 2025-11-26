@@ -6,6 +6,7 @@ import { authOptions } from '@/lib/auth';
 // GET /api/schemes - Get all active schemes
 export async function GET(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
     const search = searchParams.get('search');
@@ -19,6 +20,11 @@ export async function GET(request: NextRequest) {
       .eq('is_active', true)
       .range(offset, offset + limit - 1)
       .order('created_at', { ascending: false });
+
+    // Filter by customer visibility if user is a customer
+    if (session?.user?.role === 'CUSTOMER') {
+      query = query.eq('show_to_customer', true);
+    }
 
     if (category) {
       query = query.eq('category', category);
@@ -34,9 +40,21 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch schemes' }, { status: 500 });
     }
 
+    // For customers, use customer_price if available
+    const processedSchemes = schemes?.map(scheme => {
+      if (session?.user?.role === 'CUSTOMER' && scheme.customer_price !== null) {
+        return {
+          ...scheme,
+          price: scheme.customer_price,
+          original_price: scheme.price
+        };
+      }
+      return scheme;
+    });
+
     return NextResponse.json({
       success: true,
-      data: schemes,
+      data: processedSchemes,
       pagination: {
         page,
         limit,

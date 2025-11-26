@@ -36,9 +36,27 @@ export async function GET(
 
     if (error) throw error;
 
+    // Get employee documents
+    const { data: documents } = await supabaseAdmin
+      .from('employee_documents')
+      .select('document_type, file_url')
+      .eq('user_id', id);
+    
+    // Map documents to specific fields
+    const docMap: Record<string, string> = {};
+    documents?.forEach(doc => {
+      if (doc.document_type === 'AADHAR') docMap.aadhar_card_url = doc.file_url;
+      if (doc.document_type === 'PANCARD') docMap.pan_card_url = doc.file_url;
+      if (doc.document_type === 'PHOTO') docMap.photo_url = doc.file_url;
+      if (doc.document_type === 'IMAGE') docMap.other_documents_url = doc.file_url;
+    });
+
     return NextResponse.json({ 
       success: true,
-      employee 
+      employee: {
+        ...employee,
+        ...docMap
+      }
     });
   } catch (error: any) {
     console.error('Error fetching employee:', error);
@@ -66,7 +84,7 @@ export async function PUT(
     const { 
       name, email, phone, designation,
       territory_state, territory_district, territory_area,
-      address, city, state, pincode, date_of_birth, gender, employee_id, department,
+      address, city, state, pincode, date_of_birth, gender, employee_id, department, branch,
       password // Optional password update
     } = body;
 
@@ -121,6 +139,7 @@ export async function PUT(
       gender,
       employee_id,
       department,
+      branch,
       updated_at: new Date().toISOString()
     };
 

@@ -31,7 +31,9 @@ export default function AdminProductsPage() {
     category: '',
     features: '',
     stock_quantity: '',
-    image_url: ''
+    image_url: '',
+    show_to_customer: true,
+    customer_price: ''
   });
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -112,7 +114,9 @@ export default function AdminProductsPage() {
         price: parseFloat(formData.price),
         stock_quantity: parseInt(formData.stock_quantity),
         features: formData.features.split(',').map(f => f.trim()).filter(f => f),
-        image_url: imageUrl
+        image_url: imageUrl,
+        show_to_customer: formData.show_to_customer,
+        customer_price: formData.customer_price ? parseFloat(formData.customer_price) : null
       };
 
       const url = editingProduct ? `/api/admin/products/${editingProduct.id}` : '/api/admin/products';
@@ -149,7 +153,9 @@ export default function AdminProductsPage() {
       category: product.category || '',
       features: product.features?.join(', ') || '',
       stock_quantity: product.stock_quantity.toString(),
-      image_url: product.image_url || ''
+      image_url: product.image_url || '',
+      show_to_customer: product.show_to_customer !== false,
+      customer_price: product.customer_price?.toString() || ''
     });
     setSelectedImage(null);
     setImagePreview(product.image_url);
@@ -211,7 +217,9 @@ export default function AdminProductsPage() {
       category: '',
       features: '',
       stock_quantity: '',
-      image_url: ''
+      image_url: '',
+      show_to_customer: true,
+      customer_price: ''
     });
     setSelectedImage(null);
     setImagePreview(null);
@@ -220,8 +228,13 @@ export default function AdminProductsPage() {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
+      setFormData(prev => ({ ...prev, [name]: checked }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   return (
@@ -335,6 +348,58 @@ export default function AdminProductsPage() {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
                     placeholder="Feature 1, Feature 2, Feature 3"
                   />
+                </div>
+
+                {/* Customer Visibility & Pricing */}
+                <div className="md:col-span-2 border-t pt-4 mt-4">
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h3 className="text-lg font-semibold text-green-800">👥 Customer Settings</h3>
+                        <p className="text-sm text-green-600">Configure product visibility and pricing for customers</p>
+                      </div>
+                      <label className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          name="show_to_customer"
+                          checked={formData.show_to_customer}
+                          onChange={handleInputChange}
+                          className="rounded border-gray-300 text-green-600 focus:ring-green-500 w-5 h-5"
+                        />
+                        <span className="text-sm font-medium text-green-700">Show to Customers</span>
+                      </label>
+                    </div>
+
+                    {formData.show_to_customer && (
+                      <div className="grid grid-cols-1 gap-4 mt-4">
+                        <div>
+                          <label className="block text-sm font-medium text-green-700 mb-2">
+                            Customer Price (₹)
+                          </label>
+                          <input
+                            type="number"
+                            name="customer_price"
+                            value={formData.customer_price}
+                            onChange={handleInputChange}
+                            min="0"
+                            step="0.01"
+                            className="w-full px-4 py-2 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                            placeholder="Leave empty to use regular price"
+                          />
+                          <p className="text-xs text-green-600 mt-1">
+                            Optional: Set a different price for customers. Leave empty to use the regular price (₹{formData.price || '0'})
+                          </p>
+                        </div>
+
+                        <div className="bg-white p-3 rounded border border-green-200">
+                          <p className="text-sm text-green-800">
+                            <strong>ℹ️ Note:</strong> When enabled, this product will be visible to customers in their dashboard.
+                            {formData.customer_price && ` Customers will see a price of ₹${formData.customer_price}.`}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="md:col-span-2">

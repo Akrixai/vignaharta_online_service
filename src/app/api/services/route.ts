@@ -10,12 +10,13 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    // Allow access to retailers and employees
+    // Allow access to retailers, employees, customers, and admin
     if (
       !session ||
       (session.user.role !== UserRole.RETAILER &&
         session.user.role !== UserRole.EMPLOYEE &&
-        session.user.role !== UserRole.ADMIN)
+        session.user.role !== UserRole.ADMIN &&
+        session.user.role !== UserRole.CUSTOMER)
     ) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -43,11 +44,23 @@ export async function GET(request: NextRequest) {
         image_url,
         external_url,
         created_at,
+        show_to_customer,
+        customer_price,
+        customer_cashback_percentage,
+        cashback_enabled,
+        cashback_min_percentage,
+        cashback_max_percentage,
         created_by_user:users!schemes_created_by_fkey(name)
       `)
       .eq('is_active', true)
       .is('external_url', null)
       .order('created_at', { ascending: false });
+
+    // Filter services based on user role
+    if (session?.user?.role === 'CUSTOMER') {
+      // Customers only see services marked as show_to_customer = true
+      query = query.eq('show_to_customer', true);
+    }
 
     if (category && category !== 'ALL') {
       query = query.eq('category', category);

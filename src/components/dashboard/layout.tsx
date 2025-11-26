@@ -27,7 +27,7 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: '📊', roles: [UserRole.ADMIN, UserRole.EMPLOYEE, UserRole.RETAILER, UserRole.CUSTOMER] },
-  { name: 'Wallet', href: '/dashboard/wallet', icon: '💰', roles: [UserRole.ADMIN, UserRole.RETAILER, UserRole.CUSTOMER] }, // Admin, Retailer, and Customer
+  { name: 'Wallet', href: '/dashboard/wallet', icon: '💰', roles: [UserRole.ADMIN, UserRole.RETAILER, UserRole.CUSTOMER] }, // Admin, Retailer, and Customer can access wallet
   { name: 'Apply Services', href: '/dashboard/services', icon: '📝', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
   { name: 'My Applications', href: '/dashboard/applications', icon: '📋', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
   { name: 'Cashback Earnings', href: '/dashboard/customer/cashback', icon: '🎁', roles: [UserRole.CUSTOMER] },
@@ -110,6 +110,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             }
           }
         } catch (error) {
+          // Silently fail - wallet balance will show 0
         } finally {
           setLoadingWallet(false);
         }
@@ -147,9 +148,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     // First check if user's role is allowed
     if (!item.roles.includes(userRole)) return false;
 
-    // Special handling for Wallet - only Admin and Retailer
+    // Special handling for Wallet - Admin, Retailer, and Customer
     if (item.name === 'Wallet') {
-      return userRole === UserRole.ADMIN || userRole === UserRole.RETAILER;
+      return userRole === UserRole.ADMIN || userRole === UserRole.RETAILER || userRole === UserRole.CUSTOMER;
     }
 
     // Special handling for Employee Management - only show to those who can create employees

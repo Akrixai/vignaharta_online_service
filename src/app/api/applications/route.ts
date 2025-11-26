@@ -57,7 +57,8 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false });
 
     // Filter based on user role
-    if (session.user.role === 'RETAILER') {
+    if (session.user.role === 'RETAILER' || session.user.role === 'CUSTOMER') {
+      // Retailers and Customers only see their own applications
       query = query.eq('user_id', session.user.id);
     }
     // Admin and Employee can see all applications
@@ -78,7 +79,7 @@ export async function GET(request: NextRequest) {
       .select('*', { count: 'exact', head: true });
 
     // Filter based on user role for count
-    if (session.user.role === 'RETAILER') {
+    if (session.user.role === 'RETAILER' || session.user.role === 'CUSTOMER') {
       countQuery = countQuery.eq('user_id', session.user.id);
     }
 

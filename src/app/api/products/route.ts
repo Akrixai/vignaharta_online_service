@@ -9,8 +9,8 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
-    // Allow access to retailers and employees
-    if (!session || (session.user.role !== UserRole.RETAILER && session.user.role !== UserRole.EMPLOYEE && session.user.role !== UserRole.ADMIN)) {
+    // Allow access to retailers, employees, customers, and admin
+    if (!session || (session.user.role !== UserRole.RETAILER && session.user.role !== UserRole.EMPLOYEE && session.user.role !== UserRole.ADMIN && session.user.role !== UserRole.CUSTOMER)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -34,11 +34,19 @@ export async function GET(request: NextRequest) {
         stock_quantity,
         features,
         created_at,
+        show_to_customer,
+        customer_price,
         created_by_user:users!products_created_by_fkey(name)
       `)
       .eq('is_active', true) // Only show active products
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
+
+    // Filter products based on user role
+    if (session.user.role === UserRole.CUSTOMER) {
+      // Customers only see products marked as show_to_customer
+      query = query.eq('show_to_customer', true);
+    }
 
     if (category && category !== 'ALL') {
       query = query.eq('category', category);

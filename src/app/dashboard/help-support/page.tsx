@@ -10,13 +10,13 @@ import SupportOptions from '@/components/SupportOptions';
 export default function HelpSupportPage() {
   const { data: session } = useSession();
 
-  // Check retailer access
-  if (!session || session.user.role !== UserRole.RETAILER) {
+  // Check access - Allow both retailers and customers
+  if (!session || (session.user.role !== UserRole.RETAILER && session.user.role !== UserRole.CUSTOMER)) {
     return (
       <DashboardLayout>
         <div className="text-center py-12">
           <h1 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h1>
-          <p className="text-gray-600">Only retailers can access this page.</p>
+          <p className="text-gray-600">Only retailers and customers can access this page.</p>
         </div>
       </DashboardLayout>
     );

@@ -49,7 +49,8 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false });
 
     // Filter based on user role
-    if (session.user.role === 'RETAILER') {
+    if (session.user.role === 'RETAILER' || session.user.role === 'CUSTOMER') {
+      // Retailers and Customers only see their own transactions
       query = query.eq('user_id', session.user.id);
     }
     // Admin and Employee can see all transactions

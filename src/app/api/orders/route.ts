@@ -25,9 +25,11 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false });
 
     // Filter based on user role
-    if (session.user.role === UserRole.RETAILER) {
+    if (session.user.role === UserRole.RETAILER || session.user.role === UserRole.CUSTOMER) {
+      // Retailers and Customers only see their own orders
       ordersQuery = ordersQuery.eq('user_id', session.user.id);
     }
+    // Admin and Employee can see all orders
 
     const { data: orders, error: ordersError } = await ordersQuery;
 
@@ -121,7 +123,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
-    if (!session || session.user.role !== UserRole.RETAILER) {
+    if (!session || (session.user.role !== UserRole.RETAILER && session.user.role !== UserRole.CUSTOMER)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

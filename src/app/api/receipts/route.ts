@@ -54,7 +54,8 @@ export async function GET(request: NextRequest) {
       .range(offset, offset + limit - 1);
 
     // Filter based on user role
-    if (session.user.role === UserRole.RETAILER) {
+    if (session.user.role === UserRole.RETAILER || session.user.role === UserRole.CUSTOMER) {
+      // Retailers and Customers only see their own receipts
       query = query.eq('retailer_id', session.user.id);
     }
     // Employees and admins can see all receipts
@@ -86,7 +87,7 @@ export async function HEAD(request: NextRequest) {
       .select('id', { count: 'exact', head: true });
 
     // Filter based on user role
-    if (session.user.role === UserRole.RETAILER) {
+    if (session.user.role === UserRole.RETAILER || session.user.role === UserRole.CUSTOMER) {
       query = query.eq('retailer_id', session.user.id);
     }
 

@@ -12,15 +12,19 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: wallet, error } = await supabaseAdmin
+    // First, try to get existing wallet
+    const { data: existingWallets, error: fetchError } = await supabaseAdmin
       .from('wallets')
       .select('*')
-      .eq('user_id', session.user.id)
-      .single();
+      .eq('user_id', session.user.id);
 
-    if (error) {
+    if (fetchError) {
+      console.error('Wallet fetch error:', fetchError);
       return NextResponse.json({ error: 'Failed to fetch wallet' }, { status: 500 });
     }
+
+    // If multiple wallets exist (shouldn't happen with unique constraint), use the first one
+    let wallet = existingWallets && existingWallets.length > 0 ? existingWallets[0] : null;
 
     if (!wallet) {
       // Create wallet if it doesn't exist
@@ -34,13 +38,11 @@ export async function GET(request: NextRequest) {
         .single();
 
       if (createError) {
+        console.error('Wallet creation error:', createError);
         return NextResponse.json({ error: 'Failed to create wallet' }, { status: 500 });
       }
 
-      return NextResponse.json({
-        success: true,
-        data: newWallet
-      });
+      wallet = newWallet;
     }
 
     // Ensure balance is properly formatted as number
@@ -55,7 +57,11 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Wallet API error:', error);
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }
 

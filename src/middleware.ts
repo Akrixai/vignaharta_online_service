@@ -215,26 +215,41 @@ export default withAuth(
         }
       }
 
-      // Services and Support - Retailer only
+      // Services and Support - Retailer and Customer access
       if (pathname.startsWith('/dashboard/services') ||
-        pathname.startsWith('/dashboard/support')) {
-        if (userRole !== UserRole.RETAILER) {
+        pathname.startsWith('/dashboard/support') ||
+        pathname.startsWith('/dashboard/help-support')) {
+        if (userRole !== UserRole.RETAILER && userRole !== UserRole.CUSTOMER) {
           return NextResponse.redirect(new URL('/dashboard', req.url));
         }
       }
 
-      // Products and Training - Retailer and Employee access
-      if (pathname.startsWith('/dashboard/products') ||
-        pathname.startsWith('/dashboard/training') ||
+      // Products - Retailer, Employee, and Customer access
+      if (pathname.startsWith('/dashboard/products')) {
+        if (userRole !== UserRole.RETAILER && userRole !== UserRole.EMPLOYEE && userRole !== UserRole.CUSTOMER) {
+          return NextResponse.redirect(new URL('/dashboard', req.url));
+        }
+      }
+
+      // Training - Retailer and Employee access only
+      if (pathname.startsWith('/dashboard/training') ||
         pathname.startsWith('/dashboard/training-videos')) {
         if (userRole !== UserRole.RETAILER && userRole !== UserRole.EMPLOYEE) {
           return NextResponse.redirect(new URL('/dashboard', req.url));
         }
       }
 
-      // Wallet access (Admin, Customer, Retailer)
+      // Applications and Receipts - Retailer and Customer access
+      if (pathname.startsWith('/dashboard/applications') ||
+        pathname.startsWith('/dashboard/receipts')) {
+        if (userRole !== UserRole.RETAILER && userRole !== UserRole.CUSTOMER) {
+          return NextResponse.redirect(new URL('/dashboard', req.url));
+        }
+      }
+
+      // Wallet access (Admin, Retailer, Customer only - not Employee)
       if (pathname.startsWith('/dashboard/wallet')) {
-        if (userRole === UserRole.EMPLOYEE) {
+        if (userRole !== UserRole.ADMIN && userRole !== UserRole.RETAILER && userRole !== UserRole.CUSTOMER) {
           return NextResponse.redirect(new URL('/dashboard', req.url));
         }
       }

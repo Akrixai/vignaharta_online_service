@@ -49,7 +49,9 @@ export async function POST(request: NextRequest) {
       category,
       features,
       stock_quantity,
-      image_url
+      image_url,
+      show_to_customer,
+      customer_price
     } = body;
 
     // Validation
@@ -81,6 +83,8 @@ export async function POST(request: NextRequest) {
         features: features || [],
         stock_quantity: stock_quantity || 0,
         image_url,
+        show_to_customer: show_to_customer !== false,
+        customer_price: customer_price || null,
         created_by: session.user.id
       })
       .select()
