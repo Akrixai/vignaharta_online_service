@@ -425,3 +425,37 @@ div[class*="Carousel"],
 .slick-slider {
   z-index: 1 !important;
 }
+
+/* Chaport Chat Widget - Force Right Side Positioning */
+#chaport-launcher,
+div[id^="chaport-launcher"],
+.chaport-launcher {
+  right: 20px !important;
+  left: auto !important;
+  bottom: 20px !important;
+  position: fixed !important;
+}
+
+#chaport-container,
+div[id^="chaport-container"],
+.chaport-container,
+#chaport-window,
+div[id^="chaport-window"],
+.chaport-window {
+  right: 20px !important;
+  left: auto !important;
+  bottom: 80px !important;
+  position: fixed !important;
+}
+
+iframe[id*="chaport"],
+iframe[src*="chaport"] {
+  right: 0 !important;
+  left: auto !important;
+}
+
+[class*="chaport"]:not(script),
+[id*="chaport"]:not(script) {
+  right: 20px !important;
+  left: auto !important;
+}

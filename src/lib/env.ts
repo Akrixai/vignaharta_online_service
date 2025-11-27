@@ -15,6 +15,9 @@ export const env = {
   // Payment Configuration
   RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID || '',
   RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET || '',
+  
+  // Chaport Live Chat Configuration
+  NEXT_PUBLIC_CHAPORT_APP_ID: process.env.NEXT_PUBLIC_CHAPORT_APP_ID || '692894e919eb4879974cd369',
 };
 
 // Validation function

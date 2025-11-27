@@ -51,6 +51,15 @@ const faqData = [
 export default function SupportPage() {
   const { data: session } = useSession();
   const [contactConfig, setContactConfig] = useState<any>(null);
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [expandedFaq, setExpandedFaq] = useState<string | null>(null);
+  const [ticketForm, setTicketForm] = useState({
+    subject: '',
+    category: '',
+    priority: 'medium',
+    description: ''
+  });
 
   useEffect(() => {
     fetch('/api/public/contact')
@@ -89,15 +98,6 @@ export default function SupportPage() {
       icon: '🏢'
     }
   ];
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [expandedFaq, setExpandedFaq] = useState<string | null>(null);
-  const [ticketForm, setTicketForm] = useState({
-    subject: '',
-    category: '',
-    priority: 'medium',
-    description: ''
-  });
   const [showTicketForm, setShowTicketForm] = useState(false);
 
   if (!session) {

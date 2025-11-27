@@ -9,6 +9,11 @@ import SupportOptions from '@/components/SupportOptions';
 
 export default function HelpSupportPage() {
   const { data: session } = useSession();
+  
+  // Default contact config
+  const contactConfig = {
+    contact_whatsapp: '+91-7499116527'
+  };
 
   // Check access - Allow both retailers and customers
   if (!session || (session.user.role !== UserRole.RETAILER && session.user.role !== UserRole.CUSTOMER)) {

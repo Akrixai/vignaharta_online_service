@@ -12,6 +12,8 @@ import NotificationBell from '@/components/NotificationBell';
 import PopupNotifications from '@/components/notifications/PopupNotifications';
 import ScreenNotifications from '@/components/ScreenNotifications';
 import { Wallet } from 'lucide-react';
+import ChaportChat from '@/components/ChaportChat';
+import { env } from '@/lib/env';
 // Removed WhatsAppNotificationTrigger to fix chat initialization errors
 
 interface DashboardLayoutProps {
@@ -400,6 +402,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Screen Notifications - Shows notifications as popups on screen for admin/employee */}
       {(session?.user?.role === UserRole.ADMIN || session?.user?.role === UserRole.EMPLOYEE) && (
         <ScreenNotifications />
+      )}
+
+      {/* Chaport Live Chat - Only for Retailers */}
+      {session?.user?.role === UserRole.RETAILER && (
+        <ChaportChat appId={env.NEXT_PUBLIC_CHAPORT_APP_ID} />
       )}
 
       {/* WhatsApp Notification Trigger removed to fix chat initialization errors */}

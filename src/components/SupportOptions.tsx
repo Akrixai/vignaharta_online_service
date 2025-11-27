@@ -32,7 +32,7 @@ export default function SupportOptions({ className }: SupportOptionsProps) {
       return;
     }
 
-    const phoneNumber = config.whatsapp_support_number;
+    const phoneNumber = config?.whatsapp_support_number || '917499116527';
     const message = `🙏 नमस्ते! मैं ${session.user.name} हूं।
 
 📧 Email: ${session.user.email}
