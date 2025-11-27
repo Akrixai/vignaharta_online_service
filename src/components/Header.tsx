@@ -39,9 +39,10 @@ export default function Header() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative" style={{ zIndex: 10000 }}>
-        <div className="flex justify-between items-center py-3 gap-2 md:gap-4">
-          <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
-            <Link href={language === 'en' ? '/' : `/${language}`}>
+        <div className="flex items-center justify-between py-3 gap-2">
+          {/* Logo Section - Far Left */}
+          <div className="flex items-center space-x-3 flex-shrink-0">
+            <Link href={language === 'en' ? '/' : `/${language}`} className="flex-shrink-0">
               <Logo size="md" showText={true} animated={true} />
             </Link>
             <div className="hidden lg:block">
@@ -54,51 +55,58 @@ export default function Header() {
             </div>
           </div>
 
-          {/* New Features Notification Pill */}
-          {showNotification && (
-            <div className="flex items-center ml-2 animate-fade-in">
-              <div className="relative group flex items-center bg-gradient-to-r from-yellow-400/20 to-orange-400/20 border border-yellow-400/30 rounded-full pl-3 pr-2 py-1">
-                <Link href="/whats-new" className="flex items-center gap-2 mr-2">
-                  <span className="relative flex h-2 w-2 flex-shrink-0">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
-                  </span>
-                  <span className="text-[10px] md:text-xs font-bold text-yellow-100 group-hover:text-white whitespace-nowrap">
-                    <span className="hidden sm:inline">New Features Added! 🚀</span>
-                    <span className="sm:hidden">New! 🚀</span>
-                  </span>
-                </Link>
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setShowNotification(false);
-                  }}
-                  className="text-yellow-200 hover:text-white transition-colors p-0.5 rounded-full hover:bg-white/10"
-                  aria-label="Close notification"
-                >
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                </button>
-              </div>
-            </div>
-          )}
-
-          <div className="flex items-center space-x-2 sm:space-x-4 md:space-x-6">
-            <nav className="hidden lg:flex space-x-4 xl:space-x-6">
-              <Link href={language === 'en' ? '/about' : `/${language}/about`} className="text-white hover:text-red-200 px-3 py-2 rounded-lg text-sm font-medium transform hover:scale-105 transition-all duration-200 hover:bg-red-700/50 relative group">
+          {/* Center Section - Navigation & New Badge */}
+          <div className="flex items-center space-x-3 flex-1 justify-center">
+            <nav className="hidden lg:flex items-center space-x-3 xl:space-x-4">
+              <Link href={language === 'en' ? '/about' : `/${language}/about`} className="text-white hover:text-red-200 px-3 py-2 rounded-lg text-sm font-medium transform hover:scale-105 transition-all duration-200 hover:bg-red-700/50 relative group whitespace-nowrap">
                 {t.about}
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
               </Link>
-              <Link href={language === 'en' ? '/services' : `/${language}/services`} className="text-white hover:text-red-200 px-3 py-2 rounded-lg text-sm font-medium transform hover:scale-105 transition-all duration-200 hover:bg-red-700/50 relative group">
+              <Link href={language === 'en' ? '/services' : `/${language}/services`} className="text-white hover:text-red-200 px-3 py-2 rounded-lg text-sm font-medium transform hover:scale-105 transition-all duration-200 hover:bg-red-700/50 relative group whitespace-nowrap">
                 {t.services}
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
               </Link>
-              <Link href={language === 'en' ? '/contact' : `/${language}/contact`} className="text-white hover:text-red-200 px-3 py-2 rounded-lg text-sm font-medium transform hover:scale-105 transition-all duration-200 hover:bg-red-700/50 relative group">
+              <Link href="/products" className="text-white hover:text-red-200 px-3 py-2 rounded-lg text-sm font-medium transform hover:scale-105 transition-all duration-200 hover:bg-red-700/50 relative group whitespace-nowrap">
+                Products
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
+              </Link>
+              <Link href={language === 'en' ? '/contact' : `/${language}/contact`} className="text-white hover:text-red-200 px-3 py-2 rounded-lg text-sm font-medium transform hover:scale-105 transition-all duration-200 hover:bg-red-700/50 relative group whitespace-nowrap">
                 {t.contact}
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
               </Link>
             </nav>
 
+            {/* New Features Notification Badge */}
+            {showNotification && (
+              <div className="hidden md:flex items-center animate-fade-in">
+                <div className="relative group flex items-center bg-gradient-to-r from-yellow-400/20 to-orange-400/20 border border-yellow-400/30 rounded-full pl-3 pr-2 py-1.5">
+                  <Link href="/whats-new" className="flex items-center gap-2 mr-2">
+                    <span className="relative flex h-2 w-2 flex-shrink-0">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
+                    </span>
+                    <span className="text-xs font-bold text-yellow-100 group-hover:text-white whitespace-nowrap">
+                      New! 🚀
+                    </span>
+                  </Link>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setShowNotification(false);
+                    }}
+                    className="text-yellow-200 hover:text-white transition-colors p-0.5 rounded-full hover:bg-white/10"
+                    aria-label="Close notification"
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right Section - Actions */}
+          <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
             {/* Language Selector */}
             <div className="relative" style={{ zIndex: 10001 }}>
               <button
@@ -229,6 +237,13 @@ export default function Header() {
                 onClick={() => setShowMobileMenu(false)}
               >
                 {t.services}
+              </Link>
+              <Link
+                href="/products"
+                className="text-white hover:bg-white/10 px-4 py-3 rounded-lg text-sm font-medium transition-colors"
+                onClick={() => setShowMobileMenu(false)}
+              >
+                Products
               </Link>
               <Link
                 href={language === 'en' ? '/contact' : `/${language}/contact`}

@@ -13,9 +13,11 @@ interface ServiceApplicationFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  draftData?: any;
+  draftId?: string;
 }
 
-export default function ServiceApplicationForm({ service, isOpen, onClose, onSuccess }: ServiceApplicationFormProps) {
+export default function ServiceApplicationForm({ service, isOpen, onClose, onSuccess, draftData, draftId }: ServiceApplicationFormProps) {
   const { data: session } = useSession();
   const { executeRecaptcha, isReady } = useRecaptchaEnterprise();
   const [loading, setLoading] = useState(false);
@@ -30,6 +32,84 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
   });
   const [documents, setDocuments] = useState<File[]>([]);
   const [uploadedFiles, setUploadedFiles] = useState<Record<string, string[]>>({});
+  const [savingDraft, setSavingDraft] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
+  const totalSteps = 5;
+
+  // Calculate progress based on filled fields
+  const calculateProgress = () => {
+    let filledFields = 0;
+    let totalFields = 5; // Basic fields
+
+    if (formData.customer_name) filledFields++;
+    if (formData.customer_phone) filledFields++;
+    if (formData.customer_address) filledFields++;
+    if (formData.purpose) filledFields++;
+    if (formData.remarks) filledFields++;
+
+    // Add dynamic fields
+    if (service?.dynamic_fields) {
+      totalFields += service.dynamic_fields.length;
+      service.dynamic_fields.forEach((field: any) => {
+        if (formData.service_specific_data[`dynamic_${field.id}`]) {
+          filledFields++;
+        }
+      });
+    }
+
+    const progress = Math.round((filledFields / totalFields) * 100);
+    const step = Math.ceil((progress / 100) * totalSteps);
+    return { progress, step: Math.max(1, Math.min(step, totalSteps)) };
+  };
+
+  // Update step based on progress
+  useEffect(() => {
+    if (service) {
+      const { step } = calculateProgress();
+      setCurrentStep(step);
+    }
+  }, [formData, service]);
+
+  // Save draft function
+  const handleSaveDraft = async () => {
+    try {
+      setSavingDraft(true);
+      const { progress } = calculateProgress();
+
+      const response = await fetch('/api/drafts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          scheme_id: service.id,
+          draft_data: {
+            formData,
+            uploadedFiles,
+            documents: documents.map(d => d.name)
+          },
+          progress_percentage: progress,
+          current_step: currentStep,
+          total_steps: totalSteps
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success('Draft saved successfully! You can continue later from Draft Applications');
+        // If we're updating an existing draft, keep the modal open
+        // If it's a new draft, user can continue editing
+      } else {
+        toast.error('Failed to save draft');
+      }
+    } catch (error) {
+      console.error('Error saving draft:', error);
+      toast.error('Failed to save draft');
+    } finally {
+      setSavingDraft(false);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -235,6 +315,18 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
 
       if (response.ok) {
         toast.success('Application submitted successfully!');
+        
+        // If this was from a draft, delete the draft
+        if (draftId) {
+          try {
+            await fetch(`/api/drafts?id=${draftId}`, {
+              method: 'DELETE'
+            });
+          } catch (error) {
+            console.error('Failed to delete draft:', error);
+          }
+        }
+        
         onSuccess();
         onClose();
       } else {
@@ -479,22 +571,38 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
     return () => setMounted(false);
   }, []);
 
+  // Load draft data when provided
+  useEffect(() => {
+    if (draftData && isOpen) {
+      if (draftData.formData) {
+        setFormData(draftData.formData);
+      }
+      if (draftData.uploadedFiles) {
+        setUploadedFiles(draftData.uploadedFiles);
+      }
+      toast.success('Draft loaded! Continue where you left off');
+    }
+  }, [draftData, isOpen]);
+
   // Reset form when modal closes
   useEffect(() => {
     if (!isOpen) {
-      setFormData({
-        customer_name: '',
-        customer_phone: '',
-        customer_email: '',
-        customer_address: '',
-        purpose: '',
-        remarks: '',
-        service_specific_data: {}
-      });
-      setDocuments([]);
-      setUploadedFiles({});
+      // Only reset if not loading from draft
+      if (!draftData) {
+        setFormData({
+          customer_name: '',
+          customer_phone: '',
+          customer_email: '',
+          customer_address: '',
+          purpose: '',
+          remarks: '',
+          service_specific_data: {}
+        });
+        setDocuments([]);
+        setUploadedFiles({});
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, draftData]);
 
   if (!service) return null;
   if (!isOpen) return null;
@@ -542,6 +650,64 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
                   Fill in all the required details and upload necessary documents
                 </p>
               </div>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="bg-white rounded-lg shadow-lg p-6 mb-6 border-2 border-purple-200">
+              <div className="mb-4">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm font-medium text-gray-700">Application Progress</span>
+                  <span className="text-sm font-bold text-purple-600">{calculateProgress().progress}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 h-3 rounded-full transition-all duration-500"
+                    style={{ width: `${calculateProgress().progress}%` }}
+                  ></div>
+                </div>
+              </div>
+
+              {/* Step Indicators */}
+              <div className="flex justify-between items-center mb-4">
+                {[1, 2, 3, 4, 5].map((step) => (
+                  <div key={step} className="flex flex-col items-center flex-1">
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                        step <= currentStep
+                          ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                          : 'bg-gray-200 text-gray-500'
+                      }`}
+                    >
+                      {step}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Save Draft Button */}
+              <div className="flex justify-center">
+                <button
+                  type="button"
+                  onClick={handleSaveDraft}
+                  disabled={savingDraft}
+                  className="bg-purple-50 hover:bg-purple-100 text-purple-700 border-2 border-purple-300 px-6 py-2 rounded-lg font-medium transition-all disabled:opacity-50"
+                >
+                  {savingDraft ? (
+                    <>
+                      <span className="inline-block animate-spin mr-2">⏳</span>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      💾 Save as Draft
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <p className="text-xs text-center text-gray-500 mt-2">
+                Your progress is saved. Continue later from Draft Applications page.
+              </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">

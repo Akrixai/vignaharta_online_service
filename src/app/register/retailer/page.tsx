@@ -17,6 +17,11 @@ export default function RetailerRegisterPage() {
   const [step, setStep] = useState(1); // 1 = Details, 2 = Payment
   const [pendingRegistrationId, setPendingRegistrationId] = useState('');
   const [registrationFee, setRegistrationFee] = useState<number>(1499);
+  
+  // Calculate GST breakdown instantly (4% GST)
+  const gstPercentage = 4;
+  const gstAmount = (registrationFee * gstPercentage) / 100;
+  const totalPayable = registrationFee + gstAmount;
 
   const [formData, setFormData] = useState({
     name: '',
@@ -121,7 +126,7 @@ export default function RetailerRegisterPage() {
         }
       }
 
-      // Create payment order with registration details
+      // Create payment order with registration details (including GST)
       const response = await fetch('/api/auth/register-retailer/create-payment', {
         method: 'POST',
         headers: {
@@ -137,6 +142,9 @@ export default function RetailerRegisterPage() {
           pincode: formData.pincode,
           password: formData.password,
           recaptchaToken,
+          base_amount: registrationFee,
+          gst_amount: gstAmount,
+          total_amount: totalPayable
         }),
       });
 
@@ -469,14 +477,36 @@ export default function RetailerRegisterPage() {
           <div className="bg-gradient-to-br from-white via-blue-50 to-purple-50 p-8 rounded-xl shadow-2xl border-2 border-blue-300 animate-slide-in-right">
             <h3 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6 text-center">💳 Step 2: Complete Payment</h3>
             
-            <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-8 rounded-2xl shadow-2xl mb-6 transform hover:scale-105 transition-all duration-300">
-              <div className="text-center">
-                <div className="text-7xl mb-4 animate-bounce">💰</div>
-                <h4 className="text-4xl font-extrabold text-white mb-2 drop-shadow-lg">₹{registrationFee.toFixed(2)}</h4>
-                <p className="text-white text-lg font-semibold">One-Time Registration Fee</p>
-                <div className="mt-4 bg-white/20 backdrop-blur-sm rounded-lg p-3">
-                  <p className="text-white text-sm">✨ Lifetime Access • No Hidden Charges • Instant Activation</p>
+            {/* Payment Breakdown Card */}
+            <div className="bg-gradient-to-br from-white to-blue-50 p-6 rounded-2xl shadow-2xl mb-6 border-2 border-blue-200">
+              <div className="text-center mb-4">
+                <div className="text-5xl mb-3">💰</div>
+                <h4 className="text-2xl font-bold text-gray-800 mb-1">Registration Fee Breakdown</h4>
+                <p className="text-sm text-gray-600">One-Time Payment</p>
+              </div>
+
+              {/* Fee Breakdown */}
+              <div className="bg-white rounded-xl p-5 shadow-lg border border-gray-200 space-y-3">
+                <div className="flex justify-between items-center pb-3 border-b border-gray-200">
+                  <span className="text-gray-700 font-medium">Registration Fee:</span>
+                  <span className="text-lg font-semibold text-gray-900">₹{registrationFee.toFixed(2)}</span>
                 </div>
+                
+                <div className="flex justify-between items-center pb-3 border-b border-gray-200">
+                  <span className="text-gray-700 font-medium">GST ({gstPercentage}%):</span>
+                  <span className="text-lg font-semibold text-gray-900">₹{gstAmount.toFixed(2)}</span>
+                </div>
+                
+                <div className="flex justify-between items-center pt-2">
+                  <span className="text-xl font-bold text-blue-600">Total Payable:</span>
+                  <span className="text-3xl font-extrabold text-blue-600">₹{totalPayable.toFixed(2)}</span>
+                </div>
+              </div>
+
+              <div className="mt-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-3 border border-green-200">
+                <p className="text-green-800 text-sm text-center font-medium">
+                  ✨ Lifetime Access • No Hidden Charges • Instant Activation
+                </p>
               </div>
             </div>
 
@@ -541,7 +571,7 @@ export default function RetailerRegisterPage() {
                 ) : (
                   <>
                     <span className="mr-3 text-2xl">💳</span>
-                    Pay ₹{registrationFee.toFixed(2)} Securely
+                    Pay ₹{totalPayable.toFixed(2)} Securely
                     <span className="ml-3">→</span>
                   </>
                 )}

@@ -14,12 +14,7 @@ import StateManagerDashboard from '@/components/dashboard/StateManagerDashboard'
 import DistrictManagerDashboard from '@/components/dashboard/DistrictManagerDashboard';
 import SupervisorDashboard from '@/components/dashboard/SupervisorDashboard';
 import DistributorDashboard from '@/components/dashboard/DistributorDashboard';
-
-const mockRecentTransactions = [
-  { id: '1', type: 'DEPOSIT', amount: 1000, description: 'Wallet top-up', createdAt: new Date('2024-01-15') },
-  { id: '2', type: 'SCHEME_PAYMENT', amount: -250, description: '7/12 Extract Application', createdAt: new Date('2024-01-14') },
-  { id: '3', type: 'DEPOSIT', amount: 500, description: 'Wallet top-up', createdAt: new Date('2024-01-13') },
-];
+import RetailerGamification from '@/components/dashboard/RetailerGamification';
 
 export default function DashboardPage() {
   const { data: session } = useSession();
@@ -315,6 +310,11 @@ export default function DashboardPage() {
 
 
 
+        {/* Gamification Dashboard for Retailers */}
+        {user.role === UserRole.RETAILER && (
+          <RetailerGamification />
+        )}
+
         {/* Advertisement Section */}
         <Card className="bg-white shadow-lg">
           <CardHeader>
@@ -331,37 +331,6 @@ export default function DashboardPage() {
               showControls={true}
               showIndicators={true}
             />
-          </CardContent>
-        </Card>
-
-        {/* Recent Transactions */}
-        <Card className="bg-white shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-gray-900">Recent Transactions</CardTitle>
-            <CardDescription className="text-gray-600">Your latest wallet activities</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {(stats?.recentTransactions || mockRecentTransactions).map((transaction: any) => (
-                <div key={transaction.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div>
-                    <p className="font-medium text-sm text-gray-900">{transaction.description}</p>
-                    <p className="text-xs text-gray-500">
-                      {formatDateTime(transaction.created_at || transaction.createdAt)}
-                      {transaction.reference && ` • Ref: ${transaction.reference}`}
-                    </p>
-                  </div>
-                  <div className={`font-bold ${getTransactionColor(transaction.type)}`}>
-                    {transaction.amount > 0 ? '+' : ''}{formatCurrency(Math.abs(transaction.amount))}
-                  </div>
-                </div>
-              ))}
-              <div className="text-center pt-2">
-                <button className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
-                  View All Transactions →
-                </button>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div >

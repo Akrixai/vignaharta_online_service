@@ -12,18 +12,25 @@ import { UserRole } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import { showToast } from '@/lib/toast';
 import { ArrowLeft, Upload, X, FileText } from 'lucide-react';
+import ServiceApplicationProgress from '@/components/ServiceApplicationProgress';
+import { useSearchParams } from 'next/navigation';
 
 export default function ServiceApplicationPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const serviceId = params.id as string;
+  const draftId = searchParams.get('draftId');
 
   const [service, setService] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
   const [isReapply, setIsReapply] = useState(false);
   const [reapplyData, setReapplyData] = useState<any>(null);
+  const [currentStep, setCurrentStep] = useState(1);
+  const totalSteps = 5;
 
   const [formData, setFormData] = useState({
     customer_name: '',
@@ -37,6 +44,110 @@ export default function ServiceApplicationPage() {
 
   const [documents, setDocuments] = useState<File[]>([]);
   const [uploadedFiles, setUploadedFiles] = useState<Record<string, string[]>>({});
+
+  // Calculate progress based on filled fields
+  const calculateProgress = () => {
+    let filledFields = 0;
+    let totalFields = 5; // Basic fields: name, phone, address, purpose, remarks
+
+    if (formData.customer_name) filledFields++;
+    if (formData.customer_phone) filledFields++;
+    if (formData.customer_address) filledFields++;
+    if (formData.purpose) filledFields++;
+    if (formData.remarks) filledFields++;
+
+    // Add dynamic fields to calculation
+    if (service?.dynamic_fields) {
+      totalFields += service.dynamic_fields.length;
+      service.dynamic_fields.forEach((field: any) => {
+        if (formData.service_specific_data[`dynamic_${field.id}`]) {
+          filledFields++;
+        }
+      });
+    }
+
+    const progress = Math.round((filledFields / totalFields) * 100);
+    const step = Math.ceil((progress / 100) * totalSteps);
+    return { progress, step: Math.max(1, Math.min(step, totalSteps)) };
+  };
+
+  // Update current step based on progress
+  useEffect(() => {
+    if (service) {
+      const { step } = calculateProgress();
+      setCurrentStep(step);
+    }
+  }, [formData, service]);
+
+  // Save draft function
+  const handleSaveDraft = async () => {
+    try {
+      setSavingDraft(true);
+      const { progress } = calculateProgress();
+
+      const response = await fetch('/api/drafts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          scheme_id: serviceId,
+          draft_data: {
+            formData,
+            uploadedFiles,
+            documents: documents.map(d => d.name)
+          },
+          progress_percentage: progress,
+          current_step: currentStep,
+          total_steps: totalSteps
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        showToast.success('Draft saved successfully!', {
+          description: 'You can continue this application later from Draft Applications'
+        });
+      } else {
+        showToast.error('Failed to save draft', {
+          description: result.error
+        });
+      }
+    } catch (error) {
+      console.error('Error saving draft:', error);
+      showToast.error('Failed to save draft');
+    } finally {
+      setSavingDraft(false);
+    }
+  };
+
+  // Load draft if draftId is present
+  useEffect(() => {
+    const loadDraft = async () => {
+      if (!draftId) return;
+
+      try {
+        const response = await fetch(`/api/drafts/${draftId}`);
+        const result = await response.json();
+
+        if (result.success && result.data) {
+          const draft = result.data;
+          if (draft.draft_data) {
+            setFormData(draft.draft_data.formData || formData);
+            setUploadedFiles(draft.draft_data.uploadedFiles || {});
+          }
+          showToast.info('Draft loaded', {
+            description: 'Continue where you left off'
+          });
+        }
+      } catch (error) {
+        console.error('Error loading draft:', error);
+      }
+    };
+
+    loadDraft();
+  }, [draftId]);
 
   // Check for reapply data on component mount
   useEffect(() => {
@@ -345,6 +456,14 @@ export default function ServiceApplicationPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Progress Bar */}
+        <ServiceApplicationProgress
+          currentStep={currentStep}
+          totalSteps={totalSteps}
+          onSaveDraft={handleSaveDraft}
+          isSaving={savingDraft}
+        />
 
         {/* Application Form */}
         <form onSubmit={handleSubmit}>

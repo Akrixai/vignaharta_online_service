@@ -1,86 +1,105 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
+// Create admin client to bypass RLS
+const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
 );
 
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const month = parseInt(searchParams.get('month') || new Date().getMonth() + 1 + '');
-    const year = parseInt(searchParams.get('year') || new Date().getFullYear() + '');
-    const limit = parseInt(searchParams.get('limit') || '10');
-
-    const { data, error } = await supabase
-      .from('monthly_leaderboard')
-      .select(`
-        *,
-        users!inner(id, name, city, state)
-      `)
-      .eq('month', month)
-      .eq('year', year)
-      .order('rank', { ascending: true })
-      .limit(limit);
-
-    if (error) throw error;
-
-    return NextResponse.json({ leaderboard: data || [] });
-  } catch (error: any) {
-    console.error('Get leaderboard error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
+    const { searchParams } = new URL(request.url);
+    const month = parseInt(searchParams.get('month') || String(new Date().getMonth() + 1));
+    const year = parseInt(searchParams.get('year') || String(new Date().getFullYear()));
 
-    // Check if user is admin
-    const { data: userData } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if (userData?.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    // Recalculate leaderboard for current month
-    const now = new Date();
-    const month = now.getMonth() + 1;
-    const year = now.getFullYear();
-
-    // Get all retailers with their stats
-    const { data: stats, error: statsError } = await supabase.rpc('calculate_monthly_stats', {
+    // Use direct SQL query to calculate leaderboard (bypasses RLS issues)
+    const { data: leaderboardData, error: queryError } = await supabaseAdmin.rpc('get_monthly_leaderboard', {
       target_month: month,
       target_year: year
     });
 
-    if (statsError) {
-      console.error('Stats calculation error:', statsError);
-      return NextResponse.json({ error: 'Failed to calculate stats' }, { status: 500 });
+    if (queryError) {
+      console.error('RPC Error:', queryError);
+      throw queryError;
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Leaderboard updated successfully',
-      stats 
+    const sortedRetailers = (leaderboardData || []).map((retailer: any) => ({
+      ...retailer,
+      users: {
+        id: retailer.user_id,
+        name: retailer.name,
+        email: retailer.email,
+        profile_photo_url: retailer.profile_photo_url
+      }
+    }));
+    
+    // Get top 3
+    const topRetailers = sortedRetailers.slice(0, 3);
+
+    // Get current user's rank if they're a retailer
+    let currentUserRank = null;
+    if (session.user.role === 'RETAILER') {
+      const userRank = sortedRetailers.find((r: any) => r.user_id === session.user.id);
+      if (userRank) {
+        currentUserRank = userRank;
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        topRetailers,
+        currentUserRank,
+        month,
+        year,
+        totalRetailers: sortedRetailers.length
+      }
     });
   } catch (error: any) {
-    console.error('Update leaderboard error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('Error fetching leaderboard:', error);
+    return NextResponse.json(
+      { success: false, error: error.message || 'Failed to fetch leaderboard' },
+      { status: 500 }
+    );
+  }
+}
+
+// Update leaderboard (admin only)
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || session.user.role !== 'ADMIN') {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Call the database function to update leaderboard
+    const { error } = await supabase.rpc('update_monthly_leaderboard');
+
+    if (error) throw error;
+
+    return NextResponse.json({
+      success: true,
+      message: 'Leaderboard updated successfully'
+    });
+  } catch (error: any) {
+    console.error('Error updating leaderboard:', error);
+    return NextResponse.json(
+      { success: false, error: error.message || 'Failed to update leaderboard' },
+      { status: 500 }
+    );
   }
 }

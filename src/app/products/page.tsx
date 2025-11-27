@@ -1,190 +1,256 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { formatCurrency } from '@/lib/utils';
+import { showToast } from '@/lib/toast';
 
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  image_url: string;
-  category: string;
-  features: string[];
-  stock_quantity: number;
-}
-
-export default function ProductsPage() {
+export default function PublicProductsPage() {
+  const { data: session } = useSession();
   const router = useRouter();
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [categories, setCategories] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState('ALL');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('name');
 
   useEffect(() => {
     fetchProducts();
-  }, [selectedCategory]);
+  }, []);
 
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const url = selectedCategory === 'all' 
-        ? '/api/products/public'
-        : `/api/products/public?category=${selectedCategory}`;
+      const response = await fetch('/api/products/public');
+      const result = await response.json();
       
-      const response = await fetch(url);
-      const data = await response.json();
-      setProducts(data.products || []);
-      
-      // Extract unique categories
-      const uniqueCategories = [...new Set(data.products.map((p: Product) => p.category))];
-      setCategories(uniqueCategories as string[]);
+      if (result.success) {
+        setProducts(result.data || []);
+      } else {
+        showToast.error('Failed to load products');
+      }
     } catch (error) {
       console.error('Error fetching products:', error);
+      showToast.error('Error loading products');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleProductClick = (productId: string) => {
-    // Track view
-    fetch('/api/products/public', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ product_id: productId })
-    });
+  const categories = [...new Set(products.map(product => product.category).filter(Boolean))];
 
-    // Redirect to login
-    router.push('/login?redirect=/dashboard/products');
+  const filteredProducts = products.filter(product => {
+    const matchesCategory = selectedCategory === 'ALL' || product.category === selectedCategory;
+    const matchesSearch = searchTerm === '' ||
+      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    switch (sortBy) {
+      case 'price-low':
+        return a.price - b.price;
+      case 'price-high':
+        return b.price - a.price;
+      case 'name':
+      default:
+        return a.name.localeCompare(b.name);
+    }
+  });
+
+  const handleBuyProduct = (product: any) => {
+    if (!session) {
+      showToast.info('Login Required', {
+        description: 'Please login to view product details and purchase'
+      });
+      router.push(`/login?redirect=/dashboard/products/${product.id}`);
+      return;
+    }
+
+    if (product.stock_quantity === 0) {
+      showToast.error('Product out of stock');
+      return;
+    }
+
+    // Redirect to dashboard product details page
+    router.push(`/dashboard/products/${product.id}`);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-red-50 to-orange-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">
-            Our Products
-          </h1>
-          <p className="text-xl text-gray-600">
-            Quality products for your business needs
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-red-600 to-red-700 text-white py-16">
+        <div className="container mx-auto px-4">
+          <h1 className="text-5xl font-bold mb-4">Our Products</h1>
+          <p className="text-xl text-red-100">
+            Discover quality products and services for your needs
           </p>
+          <div className="mt-6 flex items-center gap-4 text-red-100">
+            <span>🛍️ {products.length} Products Available</span>
+            <span>•</span>
+            <span>🚚 Fast Delivery</span>
+            <span>•</span>
+            <span>💯 Quality Assured</span>
+          </div>
         </div>
+      </div>
 
-        {/* Category Filter */}
-        <div className="flex flex-wrap justify-center gap-4 mb-8">
-          <button
-            onClick={() => setSelectedCategory('all')}
-            className={`px-6 py-2 rounded-full font-semibold transition-all ${
-              selectedCategory === 'all'
-                ? 'bg-red-600 text-white shadow-lg'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            All Products
-          </button>
-          {categories.map((category) => (
-            <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`px-6 py-2 rounded-full font-semibold transition-all ${
-                selectedCategory === category
-                  ? 'bg-red-600 text-white shadow-lg'
-                  : 'bg-white text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
+      {/* Filters */}
+      <div className="container mx-auto px-4 py-8">
+        <Card className="mb-8">
+          <CardContent className="pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Search Products</label>
+                <input
+                  type="text"
+                  placeholder="Search products..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
+                />
+              </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
+                >
+                  <option value="ALL">All Categories</option>
+                  {categories.map(category => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
+                >
+                  <option value="name">Sort by Name</option>
+                  <option value="price-low">Price: Low to High</option>
+                  <option value="price-high">Price: High to Low</option>
+                </select>
+              </div>
+
+              <div className="flex items-end">
+                <Button
+                  onClick={fetchProducts}
+                  className="w-full bg-red-600 hover:bg-red-700 text-white"
+                >
+                  🔄 Refresh
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Products Grid */}
         {loading ? (
           <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-red-600 mx-auto"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading products...</p>
           </div>
-        ) : products.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-600 text-lg">No products available</p>
-          </div>
+        ) : sortedProducts.length === 0 ? (
+          <Card>
+            <CardContent className="text-center py-12">
+              <div className="text-4xl mb-4">🛍️</div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
+              <p className="text-gray-600">
+                {searchTerm || selectedCategory !== 'ALL'
+                  ? 'Try adjusting your search or filters.'
+                  : 'No products are available yet.'
+                }
+              </p>
+            </CardContent>
+          </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {products.map((product) => (
-              <div
-                key={product.id}
-                onClick={() => handleProductClick(product.id)}
-                className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer"
-              >
-                <div className="relative h-64 bg-gray-200">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {sortedProducts.map((product) => (
+              <Card key={product.id} className={`hover:shadow-xl transition-all duration-300 ${product.stock_quantity === 0 ? 'opacity-75' : ''}`}>
+                <CardHeader className="p-0">
                   {product.image_url ? (
-                    <Image
+                    <img
                       src={product.image_url}
                       alt={product.name}
-                      fill
-                      className="object-cover"
+                      className="w-full h-56 object-cover rounded-t-lg"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        target.nextElementSibling?.classList.remove('hidden');
+                      }}
                     />
-                  ) : (
-                    <div className="flex items-center justify-center h-full text-gray-400 text-6xl">
-                      📦
-                    </div>
-                  )}
-                  {product.stock_quantity === 0 && (
-                    <div className="absolute top-4 right-4 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold">
-                      Out of Stock
-                    </div>
-                  )}
-                </div>
-                <div className="p-6">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-xl font-bold text-gray-900">{product.name}</h3>
-                    <span className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-semibold">
-                      {product.category}
-                    </span>
+                  ) : null}
+                  <div className={`w-full h-56 bg-gradient-to-br from-red-100 to-red-200 rounded-t-lg flex flex-col items-center justify-center text-red-600 ${product.image_url ? 'hidden' : ''}`}>
+                    <div className="text-6xl mb-2">🛍️</div>
+                    <div className="text-sm font-medium">{product.category || 'Product'}</div>
                   </div>
-                  <p className="text-gray-600 mb-4 line-clamp-2">{product.description}</p>
-                  <div className="mb-4">
-                    <div className="text-3xl font-bold text-red-600">
-                      ₹{product.price.toLocaleString()}
-                    </div>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <div className="mb-2">
+                    <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">{product.name}</h3>
+                    <p className="text-sm text-gray-500">{product.category}</p>
                   </div>
+
+                  <p className="text-sm text-gray-600 mb-4 line-clamp-3">
+                    {product.description}
+                  </p>
+
                   {product.features && product.features.length > 0 && (
-                    <ul className="space-y-1 mb-4">
-                      {product.features.slice(0, 3).map((feature, idx) => (
-                        <li key={idx} className="flex items-start text-sm text-gray-700">
-                          <span className="text-red-500 mr-2">✓</span>
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
+                    <div className="mb-4">
+                      <h4 className="text-xs font-medium text-gray-700 mb-1">Features:</h4>
+                      <ul className="text-xs text-gray-600 space-y-1">
+                        {product.features.slice(0, 3).map((feature: string, index: number) => (
+                          <li key={index} className="flex items-center">
+                            <span className="w-1 h-1 bg-gray-400 rounded-full mr-2"></span>
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   )}
-                  <button className="w-full bg-gradient-to-r from-red-600 to-orange-600 text-white py-3 rounded-lg font-bold hover:from-red-700 hover:to-orange-700 transition-all">
-                    View Details
-                  </button>
-                </div>
-              </div>
+
+                  <div className="flex items-center justify-between text-sm mb-4">
+                    <div className="text-gray-500">
+                      Stock: {product.stock_quantity || 0}
+                    </div>
+                    <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      product.stock_quantity > 0
+                        ? 'bg-green-100 text-green-600'
+                        : 'bg-red-100 text-red-600'
+                    }`}>
+                      {product.stock_quantity > 0 ? 'In Stock' : 'Out of Stock'}
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-2xl font-bold text-red-600">
+                        {formatCurrency(product.price)}
+                      </span>
+                    </div>
+                    <Button
+                      onClick={() => handleBuyProduct(product)}
+                      className="w-full bg-red-600 hover:bg-red-700 text-white"
+                      disabled={product.stock_quantity === 0}
+                    >
+                      {product.stock_quantity > 0 ? (session ? 'Buy Now' : 'Login to Buy') : 'Out of Stock'}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         )}
-
-        {/* Login CTA */}
-        <div className="mt-12 text-center bg-gradient-to-r from-red-600 to-orange-600 text-white rounded-2xl p-8">
-          <h3 className="text-2xl font-bold mb-4">Want to purchase products?</h3>
-          <p className="text-lg mb-6">Login or register to access our full product catalog</p>
-          <div className="flex justify-center gap-4">
-            <button
-              onClick={() => router.push('/login')}
-              className="bg-white text-red-600 px-8 py-3 rounded-full font-bold hover:bg-gray-100 transition-colors"
-            >
-              Login
-            </button>
-            <button
-              onClick={() => router.push('/register')}
-              className="bg-transparent border-2 border-white text-white px-8 py-3 rounded-full font-bold hover:bg-white hover:text-red-600 transition-colors"
-            >
-              Register
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );

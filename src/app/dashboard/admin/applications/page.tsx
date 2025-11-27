@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { UserRole } from '@/types';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 import { useRealTimeAdminApplications } from '@/hooks/useRealTimeData';
+import ShareApplicationButton from '@/components/ShareApplicationButton';
 import {
   FileText,
   Clock,
@@ -303,6 +304,20 @@ export default function AdminApplicationsPage() {
                             Reject
                           </Button>
                         </div>
+                      )}
+
+                      {/* Share Application Button - Only for approved applications */}
+                      {application.status === 'APPROVED' && (
+                        <ShareApplicationButton
+                          applicationId={application.id}
+                          applicationName={`${application.scheme?.name || 'Application'} - ${application.customer_name}`}
+                          isApproved={true}
+                          shareToken={application.share_token}
+                          shareEnabled={application.share_enabled}
+                          className="w-full text-xs py-1"
+                          size="sm"
+                          onShareStatusChange={refresh}
+                        />
                       )}
 
                       {((application.documents && application.documents.length > 0) ||

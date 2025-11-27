@@ -27,6 +27,33 @@ export default function WalletPage() {
   const [addMoneyAmount, setAddMoneyAmount] = useState('');
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [isAddingMoney, setIsAddingMoney] = useState(false);
+  const [gstBreakdown, setGstBreakdown] = useState<{
+    recharge_amount: number;
+    gst_percentage: number;
+    gst_amount: number;
+    total_payable: number;
+    wallet_credit: number;
+  } | null>(null);
+
+  // Calculate GST instantly on client side
+  const calculateGSTBreakdown = (amount: number) => {
+    if (!amount || amount < 10 || amount > 50000) {
+      return null;
+    }
+
+    const rechargeAmount = amount;
+    const gstPercentage = 4; // 4% GST
+    const gstAmount = (rechargeAmount * gstPercentage) / 100;
+    const totalPayable = rechargeAmount + gstAmount;
+
+    return {
+      recharge_amount: rechargeAmount,
+      gst_percentage: gstPercentage,
+      gst_amount: parseFloat(gstAmount.toFixed(2)),
+      total_payable: parseFloat(totalPayable.toFixed(2)),
+      wallet_credit: rechargeAmount
+    };
+  };
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [showAddMoney, setShowAddMoney] = useState(false);
   const [showWithdraw, setShowWithdraw] = useState(false);
@@ -150,6 +177,13 @@ export default function WalletPage() {
 
   const user = session.user;
 
+  // Calculate GST breakdown instantly when amount changes
+  useEffect(() => {
+    const amount = parseFloat(addMoneyAmount);
+    const breakdown = calculateGSTBreakdown(amount);
+    setGstBreakdown(breakdown);
+  }, [addMoneyAmount]);
+
   const handleAddMoney = async (e: React.FormEvent) => {
     e.preventDefault();
     const amount = parseFloat(addMoneyAmount);
@@ -175,19 +209,31 @@ export default function WalletPage() {
       return;
     }
 
+    // Calculate GST breakdown if not already calculated
+    const breakdown = gstBreakdown || calculateGSTBreakdown(amount);
+    
+    if (!breakdown) {
+      showToast.error('Invalid amount', {
+        description: 'Please enter a valid amount between ₹10 and ₹50,000'
+      });
+      return;
+    }
+
     setIsAddingMoney(true);
 
+    // Use total_payable (amount + GST) for payment, but only amount will be credited to wallet
     await initiatePayment(
-      amount,
+      breakdown.total_payable,
       (data) => {
         // Payment successful
         setAddMoneyAmount('');
+        setGstBreakdown(null);
         setShowAddMoney(false);
         setIsAddingMoney(false);
         setPaymentStatusMessage('');
 
         showToast.success('Payment Successful!', {
-          description: 'Your wallet has been recharged successfully.'
+          description: `₹${breakdown.wallet_credit} has been added to your wallet.`
         });
 
         // Refresh wallet and transactions
@@ -403,7 +449,7 @@ export default function WalletPage() {
                 <div className="space-y-2">
                   <label htmlFor="addAmount" className="text-sm font-semibold text-gray-800 flex items-center">
                     <span className="mr-2">💰</span>
-                    Amount (₹10 - ₹50,000)
+                    Recharge Amount (₹10 - ₹50,000)
                   </label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">₹</span>
@@ -424,6 +470,38 @@ export default function WalletPage() {
                     <span className="text-orange-600 font-medium">Maximum: ₹50,000</span>
                   </div>
                 </div>
+
+                {/* GST Breakdown */}
+                {gstBreakdown && (
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border-2 border-green-300">
+                    <h4 className="font-bold text-green-800 mb-3 flex items-center">
+                      <span className="mr-2">💳</span>
+                      Payment Summary
+                    </h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-green-700">Wallet Recharge Amount:</span>
+                        <span className="font-semibold text-green-900">₹{gstBreakdown.recharge_amount.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-green-700">GST ({gstBreakdown.gst_percentage}%):</span>
+                        <span className="font-semibold text-green-900">₹{gstBreakdown.gst_amount.toFixed(2)}</span>
+                      </div>
+                      <div className="border-t-2 border-green-300 pt-2 mt-2">
+                        <div className="flex justify-between text-base">
+                          <span className="font-bold text-green-800">Total Payable:</span>
+                          <span className="font-bold text-green-900 text-lg">₹{gstBreakdown.total_payable.toFixed(2)}</span>
+                        </div>
+                      </div>
+                      <div className="bg-white p-2 rounded border border-green-200 mt-2">
+                        <p className="text-xs text-green-700 flex items-center">
+                          <span className="mr-1">✓</span>
+                          <strong>Wallet Credit:</strong> ₹{gstBreakdown.wallet_credit.toFixed(2)} will be added to your wallet
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                   <p className="text-sm text-blue-800 flex items-center">

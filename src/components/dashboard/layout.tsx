@@ -29,6 +29,7 @@ const menuItems: MenuItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: '📊', roles: [UserRole.ADMIN, UserRole.EMPLOYEE, UserRole.RETAILER, UserRole.CUSTOMER] },
   { name: 'Wallet', href: '/dashboard/wallet', icon: '💰', roles: [UserRole.ADMIN, UserRole.RETAILER, UserRole.CUSTOMER] }, // Admin, Retailer, and Customer can access wallet
   { name: 'Apply Services', href: '/dashboard/services', icon: '📝', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'Draft Applications', href: '/dashboard/drafts', icon: '💾', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
   { name: 'My Applications', href: '/dashboard/applications', icon: '📋', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
   { name: 'Cashback Earnings', href: '/dashboard/customer/cashback', icon: '🎁', roles: [UserRole.CUSTOMER] },
   { name: 'Commission Earnings', href: '/dashboard/commission', icon: '💸', roles: [UserRole.RETAILER] },
@@ -81,6 +82,7 @@ const menuItems: MenuItem[] = [
   { name: 'Referral Configuration', href: '/dashboard/admin/employee-referral-config', icon: '⚙️', roles: [UserRole.ADMIN] },
   { name: 'Contact Configuration', href: '/dashboard/admin/contact-config', icon: '📞', roles: [UserRole.ADMIN] },
   { name: 'Penalty Management', href: '/dashboard/admin/penalties', icon: '⚠️', roles: [UserRole.ADMIN] },
+  { name: 'Leaderboard Emails', href: '/dashboard/admin/leaderboard-emails', icon: '🏆', roles: [UserRole.ADMIN] },
   { name: 'Shareable Service Forms', href: '/dashboard/admin/shareable-service-forms', icon: '🔗', roles: [UserRole.ADMIN, UserRole.EMPLOYEE] },
   { name: 'Organization Hierarchy', href: '/dashboard/organization-hierarchy', icon: '🏢', roles: [UserRole.ADMIN, UserRole.EMPLOYEE] },
   { name: 'Registration Fee', href: '/dashboard/admin/registration-fee', icon: '💵', roles: [UserRole.ADMIN] },

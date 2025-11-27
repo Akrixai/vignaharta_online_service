@@ -132,6 +132,12 @@ export default withAuth(
 
     // Allow blog routes (public access)
     const isBlogRoute = pathname.startsWith('/blog');
+    
+    // Allow products routes (public access)
+    const isProductsRoute = pathname.startsWith('/products');
+    
+    // Allow share routes (public access for shared applications)
+    const isShareRoute = pathname.startsWith('/share/');
 
     // Allow language-specific routes (Marathi and Hindi)
     const isLanguageRoute = pathname.startsWith('/mr/') || pathname.startsWith('/hi/') || pathname === '/mr' || pathname === '/hi';
@@ -145,7 +151,7 @@ export default withAuth(
     // Allow webhook routes (Cashfree, etc.)
     const isWebhookRoute = pathname.includes('/webhook');
 
-    if (publicRoutes.includes(pathname) || isLanguageRoute || isRegisterRoute || isPaymentRoute || isWebhookRoute || isBlogRoute) {
+    if (publicRoutes.includes(pathname) || isLanguageRoute || isRegisterRoute || isPaymentRoute || isWebhookRoute || isBlogRoute || isProductsRoute || isShareRoute) {
       return response;
     }
 
@@ -298,8 +304,14 @@ export default withAuth(
 
         // Allow blog routes (public access)
         const isBlogRoute = pathname.startsWith('/blog');
+        
+        // Allow products routes (public access)
+        const isProductsRoute = pathname.startsWith('/products');
+        
+        // Allow share routes (public access)
+        const isShareRoute = pathname.startsWith('/share/');
 
-        if (publicRoutes.includes(pathname) || isLanguageRoute || isRegisterRoute || isPaymentRoute || isBlogRoute) {
+        if (publicRoutes.includes(pathname) || isLanguageRoute || isRegisterRoute || isPaymentRoute || isBlogRoute || isProductsRoute || isShareRoute) {
           return true;
         }
 

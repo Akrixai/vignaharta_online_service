@@ -61,11 +61,9 @@ export async function GET(request: NextRequest) {
     if (session?.user?.role === 'CUSTOMER') {
       // Customers only see services marked as show_to_customer = true
       query = query.eq('show_to_customer', true);
-    } else if (session?.user?.role === 'RETAILER' || session?.user?.role === 'EMPLOYEE') {
-      // Retailers and Employees only see services marked as show_to_customer = false
-      query = query.eq('show_to_customer', false);
     }
-    // Admin sees all services (no filter)
+    // Retailers, Employees, and Admin see all services (no filter)
+    // This allows services enabled for customers to still show for retailers with their commission
 
     if (category && category !== 'ALL') {
       query = query.eq('category', category);
