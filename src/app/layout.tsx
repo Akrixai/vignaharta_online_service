@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Noto_Sans_Devanagari } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import NextAuthSessionProvider from "@/components/providers/session-provider";
 import { LanguageProvider } from "@/contexts/LanguageContext";

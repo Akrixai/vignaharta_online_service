@@ -9,6 +9,7 @@ import Header from "@/components/Header";
 import HowItWorks from "@/components/HowItWorks";
 import TrustBadges from "@/components/TrustBadges";
 import LatestBlogPosts from "@/components/LatestBlogPosts";
+import TawkToChat from "@/components/TawkToChat";
 import { useState, useEffect } from "react";
 
 // Define types for our data
@@ -447,6 +448,9 @@ export default function LandingPageClient() {
         <LatestBlogPosts />
 
         <Footer />
+        
+        {/* Tawk.to Chat Widget - Only on Landing Page */}
+        <TawkToChat />
       </div>
     </>
   );

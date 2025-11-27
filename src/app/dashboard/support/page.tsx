@@ -52,7 +52,7 @@ export default function SupportPage() {
   const { data: session } = useSession();
   const [contactConfig, setContactConfig] = useState<any>(null);
 
-  useState(() => {
+  useEffect(() => {
     fetch('/api/public/contact')
       .then(res => res.json())
       .then(data => {
@@ -61,7 +61,7 @@ export default function SupportPage() {
         }
       })
       .catch(console.error);
-  });
+  }, []);
 
   const contactMethods = [
     {
