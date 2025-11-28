@@ -181,7 +181,7 @@ export default function DashboardPage() {
         </Card>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
           <Card className="bg-gradient-to-br from-white to-red-50 shadow-xl hover-lift animate-scale-in border border-red-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-red-800">Wallet Balance</CardTitle>
@@ -318,13 +318,13 @@ export default function DashboardPage() {
         {/* Advertisement Section */}
         <Card className="bg-white shadow-lg">
           <CardHeader>
-            <CardTitle className="text-gray-900">Featured Services</CardTitle>
-            <CardDescription className="text-gray-600">Discover our popular government services</CardDescription>
+            <CardTitle className="text-gray-900 text-base sm:text-lg md:text-xl">Featured Services</CardTitle>
+            <CardDescription className="text-gray-600 text-xs sm:text-sm">Discover our popular government services</CardDescription>
           </CardHeader>
           <CardContent>
             <AdvertisementCarousel
               position="dashboard"
-              height="h-64"
+              height="h-40 sm:h-48 md:h-56 lg:h-64"
               className="rounded-lg"
               autoPlay={true}
               autoPlayInterval={4000}

@@ -212,21 +212,21 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       )}
 
       {/* Sidebar - Made sticky with lower z-index */}
-      <div className={`fixed inset-y-0 left-0 z-10 w-64 min-w-[16rem] bg-gradient-to-b from-red-800 to-red-900 shadow-xl transform overflow-hidden ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:top-0 lg:h-screen lg:flex lg:flex-col`}>
-        <div className="flex items-center justify-center h-16 px-4 bg-gradient-to-r from-red-700 to-red-800 border-b border-red-600">
+      <div className={`fixed inset-y-0 left-0 z-10 w-56 sm:w-64 bg-gradient-to-b from-red-800 to-red-900 shadow-xl transform overflow-hidden ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:top-0 lg:h-screen lg:flex lg:flex-col`}>
+        <div className="flex items-center justify-center h-14 sm:h-16 px-3 sm:px-4 bg-gradient-to-r from-red-700 to-red-800 border-b border-red-600">
           <Link href="/" className="text-white flex items-center space-x-2">
             <Logo size="md" showText={true} animated={false} />
           </Link>
         </div>
 
         {/* User Info */}
-        <div className="p-4 border-b border-red-600">
-          <div className="flex items-center space-x-3">
+        <div className="p-3 sm:p-4 border-b border-red-600">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             {(session.user as any).profile_photo_url && (session.user as any).profile_photo_url !== 'null' ? (
               <img
                 src={(session.user as any).profile_photo_url}
                 alt={userName}
-                className="w-10 h-10 rounded-full object-cover shadow-lg ring-2 ring-white"
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover shadow-lg ring-2 ring-white flex-shrink-0"
                 onError={(e) => {
                   // Fallback to initial if image fails to load
                   e.currentTarget.style.display = 'none';
@@ -236,14 +236,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               />
             ) : null}
             <div
-              className={`w-10 h-10 rounded-full ${getRoleColor(userRole)} flex items-center justify-center text-white font-bold shadow-lg`}
+              className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full ${getRoleColor(userRole)} flex items-center justify-center text-white font-bold shadow-lg flex-shrink-0`}
               style={{ display: (session.user as any).profile_photo_url && (session.user as any).profile_photo_url !== 'null' ? 'none' : 'flex' }}
             >
               {userName.charAt(0).toUpperCase()}
             </div>
-            <div>
-              <p className="text-sm font-medium text-white">{userName}</p>
-              <p className="text-xs text-red-200 capitalize">
+            <div className="min-w-0 flex-1">
+              <p className="text-xs sm:text-sm font-medium text-white truncate">{userName}</p>
+              <p className="text-[10px] sm:text-xs text-red-200 capitalize truncate">
                 {userDesignation ? userDesignation.replace('_', ' ') : userRole.toLowerCase()}
               </p>
             </div>
@@ -251,27 +251,28 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
 
         {/* Make the center area (menu + ad + logout + branding) a single scrollable column so the scrollbar covers all items */}
-        <div className="mt-4 px-2 flex-1 flex flex-col overflow-y-auto hide-scrollbar">
+        <div className="mt-3 sm:mt-4 px-2 flex-1 flex flex-col overflow-y-auto hide-scrollbar">
           <nav className="flex-1">
-            <div className="space-y-1">
+            <div className="space-y-0.5 sm:space-y-1">
               {filteredMenuItems.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="group flex items-center px-3 py-3 text-sm font-medium rounded-lg text-red-100 hover:bg-red-700 hover:text-white transition-all duration-200 hover:shadow-md"
+                  className="group flex items-center px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg text-red-100 hover:bg-red-700 hover:text-white transition-all duration-200 hover:shadow-md"
+                  onClick={() => setSidebarOpen(false)}
                 >
-                  <span className="mr-3 text-lg">{item.icon}</span>
-                  {item.name}
+                  <span className="mr-2 sm:mr-3 text-base sm:text-lg flex-shrink-0">{item.icon}</span>
+                  <span className="truncate">{item.name}</span>
                 </Link>
               ))}
             </div>
           </nav>
 
           {/* Sidebar Advertisement */}
-          <div className="p-4 border-t border-red-600">
+          <div className="p-3 sm:p-4 border-t border-red-600">
             <AdvertisementCarousel
               position="sidebar"
-              height="h-32"
+              height="h-24 sm:h-32"
               className="rounded-lg overflow-hidden"
               autoPlay={true}
               autoPlayInterval={6000}
@@ -281,27 +282,27 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
 
           {/* Logout */}
-          <div className="p-4 border-t border-red-600">
+          <div className="p-3 sm:p-4 border-t border-red-600">
             <button
               onClick={() => signOut({ callbackUrl: '/' })}
-              className="w-full flex items-center px-3 py-3 text-sm font-medium rounded-lg text-red-200 hover:bg-red-700 hover:text-white transition-all duration-200"
+              className="w-full flex items-center px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg text-red-200 hover:bg-red-700 hover:text-white transition-all duration-200"
             >
-              <span className="mr-3 text-lg">🚪</span>
-              Logout
+              <span className="mr-2 sm:mr-3 text-base sm:text-lg flex-shrink-0">🚪</span>
+              <span>Logout</span>
             </button>
           </div>
 
           {/* Akrix.ai Branding - compact single-line pill */}
-          <div className="p-4 border-t border-red-600">
+          <div className="p-3 sm:p-4 border-t border-red-600">
             <a
               href="https://akrixsolutions.in/"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-500 text-white font-semibold px-3 py-1.5 rounded-full shadow-sm hover:from-pink-500 hover:to-yellow-400 transition-all duration-200 inline-flex items-center justify-center space-x-2 w-full"
+              className="bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-500 text-white font-semibold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full shadow-sm hover:from-pink-500 hover:to-yellow-400 transition-all duration-200 inline-flex items-center justify-center space-x-1 sm:space-x-2 w-full"
               style={{ textShadow: '0 0 6px rgba(255,255,255,0.7)' }}
             >
-              <span className="text-sm">🚀</span>
-              <span className="text-sm">Developed by Akrix.ai</span>
+              <span className="text-xs sm:text-sm">🚀</span>
+              <span className="text-[10px] sm:text-sm">Developed by Akrix.ai</span>
             </a>
           </div>
         </div>
@@ -310,22 +311,22 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar - Made sticky with medium z-index */}
-        <div className="sticky top-0 z-20 bg-gradient-to-r from-red-600 to-red-700 shadow-lg border-b border-red-500 flex items-center justify-between h-12 px-4">
+        <div className="sticky top-0 z-20 bg-gradient-to-r from-red-600 to-red-700 shadow-lg border-b border-red-500 flex items-center justify-between h-11 sm:h-12 px-2 sm:px-3 md:px-4">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="lg:hidden p-2 rounded-md text-red-100 hover:text-white hover:bg-red-700 transition-colors"
+            className="lg:hidden p-1 sm:p-2 rounded-md text-red-100 hover:text-white hover:bg-red-700 transition-colors flex-shrink-0"
           >
             <span className="sr-only">Open sidebar</span>
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
 
           {/* Advertisement Space */}
-          <div className="hidden lg:block flex-1 max-w-lg mx-4">
+          <div className="hidden lg:block flex-1 max-w-lg mx-2 lg:mx-4">
             <AdvertisementCarousel
               position="header"
-              height="h-10"
+              height="h-8 lg:h-10"
               className="rounded-md"
               autoPlay={true}
               autoPlayInterval={8000}
@@ -334,49 +335,51 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             />
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-3 lg:space-x-4 min-w-0">
             {/* Wallet Balance for Retailers and Customers */}
             {(session?.user?.role === UserRole.RETAILER || session?.user?.role === UserRole.CUSTOMER) && (
-              <div className="flex items-center bg-white/20 rounded-lg px-3 py-2 text-white">
-                <Wallet className="w-4 h-4 mr-2" />
-                <span className="text-sm font-medium">
+              <div className="flex items-center bg-white/20 rounded-md sm:rounded-lg px-1.5 sm:px-2 md:px-3 py-1 sm:py-1.5 md:py-2 text-white flex-shrink-0">
+                <Wallet className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                <span className="text-[10px] sm:text-xs md:text-sm font-medium whitespace-nowrap">
                   {loadingWallet ? '...' : `₹${walletBalance.toLocaleString()}`}
                 </span>
               </div>
             )}
 
             {/* Notification Bell for Admin/Employee */}
-            <NotificationBell
-              userRole={session?.user?.role}
-              userId={session?.user?.id}
-            />
+            <div className="flex-shrink-0">
+              <NotificationBell
+                userRole={session?.user?.role}
+                userId={session?.user?.id}
+              />
+            </div>
 
-            <span className="text-xs sm:text-sm text-red-100 whitespace-nowrap mr-2">
+            <span className="text-[10px] sm:text-xs md:text-sm text-red-100 whitespace-nowrap hidden md:inline truncate max-w-[80px] lg:max-w-none">
               Welcome, {userName}
             </span>
 
             {/* Logout Button in Header */}
             <button
               onClick={() => signOut({ callbackUrl: '/' })}
-              className="bg-red-800 hover:bg-red-900 text-white text-xs sm:text-sm font-medium px-2 py-1.5 rounded-lg transition-colors duration-200 flex items-center"
+              className="bg-red-800 hover:bg-red-900 text-white text-[10px] sm:text-xs md:text-sm font-medium px-1.5 sm:px-2 py-1 sm:py-1.5 rounded-md sm:rounded-lg transition-colors duration-200 flex items-center flex-shrink-0"
             >
-              <span className="mr-1">🚪</span>
+              <span className="mr-0.5 sm:mr-1 text-xs sm:text-sm">🚪</span>
               <span className="hidden sm:inline">Logout</span>
             </button>
           </div>
         </div>
 
         {/* Page content - Made scrollable with proper z-index */}
-        <main className="flex-1 p-4 sm:p-6 overflow-y-auto w-full max-w-full relative z-0">
+        <main className="flex-1 p-2 sm:p-3 md:p-4 lg:p-6 overflow-y-auto w-full max-w-full relative z-0">
           {children}
         </main>
 
         {/* Footer Advertisement */}
-        <footer className="bg-white border-t border-gray-200 p-4">
+        <footer className="bg-white border-t border-gray-200 p-2 sm:p-3 md:p-4">
           <div className="max-w-7xl mx-auto">
             <AdvertisementCarousel
               position="footer"
-              height="h-24"
+              height="h-20 sm:h-24"
               className="rounded-lg overflow-hidden"
               autoPlay={true}
               autoPlayInterval={7000}

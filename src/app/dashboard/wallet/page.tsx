@@ -151,9 +151,6 @@ export default function WalletPage() {
           filter: `user_id=eq.${session.user.id}`
         },
         (payload) => {
-          if (process.env.NODE_ENV === 'development') {
-            // Transaction change detected
-          }
           fetchTransactions(); // Refresh transactions
         }
       )
@@ -171,18 +168,18 @@ export default function WalletPage() {
     return () => window.removeEventListener('walletOrTransactionChanged', handler);
   }, []);
 
-  if (!session) {
-    return null; // Middleware will redirect
-  }
-
-  const user = session.user;
-
   // Calculate GST breakdown instantly when amount changes
   useEffect(() => {
     const amount = parseFloat(addMoneyAmount);
     const breakdown = calculateGSTBreakdown(amount);
     setGstBreakdown(breakdown);
   }, [addMoneyAmount]);
+
+  if (!session) {
+    return null; // Middleware will redirect
+  }
+
+  const user = session.user;
 
   const handleAddMoney = async (e: React.FormEvent) => {
     e.preventDefault();

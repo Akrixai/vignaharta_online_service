@@ -16,6 +16,13 @@ export const env = {
   RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID || '',
   RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET || '',
   
+  // Cashfree Configuration
+  NEXT_PUBLIC_CASHFREE_APP_ID: process.env.NEXT_PUBLIC_CASHFREE_APP_ID || '',
+  CASHFREE_APP_ID: process.env.CASHFREE_APP_ID || '',
+  CASHFREE_SECRET_KEY: process.env.CASHFREE_SECRET_KEY || '',
+  NEXT_PUBLIC_CASHFREE_ENVIRONMENT: process.env.NEXT_PUBLIC_CASHFREE_ENVIRONMENT || 'TEST',
+  CASHFREE_ENVIRONMENT: process.env.CASHFREE_ENVIRONMENT || 'TEST',
+  
   // Chaport Live Chat Configuration
   NEXT_PUBLIC_CHAPORT_APP_ID: process.env.NEXT_PUBLIC_CHAPORT_APP_ID || '692894e919eb4879974cd369',
 };
@@ -46,6 +53,7 @@ export const serverEnv = {
   SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
   JWT_SECRET: process.env.JWT_SECRET || '',
   RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET || '',
+  CASHFREE_SECRET_KEY: process.env.CASHFREE_SECRET_KEY || '',
 };
 
 // Validate server environment

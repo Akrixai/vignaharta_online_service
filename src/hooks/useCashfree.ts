@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { showToast } from '@/lib/toast';
+import { env } from '@/lib/env';
 
 // Declare Cashfree global type
 declare global {
@@ -64,8 +65,13 @@ export function useCashfree() {
       const Cashfree = await loadCashfreeSDK();
 
       // Initialize Cashfree with seamless integration
+      // Determine mode based on environment variable, defaulting to sandbox for safety
+      const cashfreeMode = env.NEXT_PUBLIC_CASHFREE_ENVIRONMENT === 'PRODUCTION' 
+        ? 'production' 
+        : 'sandbox';
+      
       const cashfree = Cashfree({
-        mode: process.env.NEXT_PUBLIC_CASHFREE_ENVIRONMENT === 'PRODUCTION' ? 'production' : 'sandbox',
+        mode: cashfreeMode,
       });
 
       // Create checkout options for seamless modal (in-app payment - no redirect)
