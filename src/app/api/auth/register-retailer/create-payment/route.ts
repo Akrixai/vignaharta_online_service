@@ -15,6 +15,9 @@ export async function POST(request: NextRequest) {
       city,
       state,
       pincode,
+      base_amount,
+      gst_amount,
+      total_amount,
     } = body;
 
     // Validation
@@ -131,13 +134,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const amount = parseFloat(feeConfig.amount);
+    // Use total_amount from frontend (includes GST) or calculate from base fee
+    const amount = total_amount || parseFloat(feeConfig.amount);
+    const baseAmount = base_amount || parseFloat(feeConfig.amount);
+    const gstAmountValue = gst_amount || 0;
     
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
     
-    // Generate unique order ID
-    const orderId = `REG-${Date.now()}-${email.substring(0, 5)}`;
+    // Generate unique order ID (alphanumeric only, no special characters)
+    const timestamp = Date.now();
+    const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const orderId = `REG${timestamp}${randomStr}`;
 
     // Cashfree API endpoint
     const cashfreeUrl = process.env.CASHFREE_ENVIRONMENT === 'PRODUCTION'
@@ -219,6 +227,9 @@ export async function POST(request: NextRequest) {
           password_hash: hashedPassword,
           plain_password: password, // Store plain password for auto-login (only in TEST mode)
           role: 'RETAILER',
+          base_amount: baseAmount,
+          gst_amount: gstAmountValue,
+          total_amount: amount,
         },
       });
 
