@@ -76,7 +76,7 @@ export default function ServicesPage() {
     <DashboardLayout>
       <div className="services-page-container">
         {/* Header */}
-        <div className="bg-gradient-to-r from-red-600 to-red-700 rounded-xl p-8 text-white shadow-xl mb-6">
+        <div className="bg-gradient-to-r from-red-600 to-red-700 rounded-xl p-8 text-white shadow-xl mb-4">
           <h1 className="text-4xl font-bold mb-3">Government Services</h1>
           <p className="text-red-100 text-xl">
             Apply for government services and schemes through our platform
@@ -88,8 +88,18 @@ export default function ServicesPage() {
           </div>
         </div>
 
-        {/* Filters - Sticky with custom CSS class */}
-        <div className="services-sticky-filter mb-6">
+        {/* Filters - Sticky */}
+        <div
+          className="services-sticky-filter"
+          style={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 100,
+            backgroundColor: '#fef2f2',
+            paddingTop: '1rem',
+            paddingBottom: '1rem'
+          }}
+        >
           <div className="bg-white rounded-lg shadow-lg border-2 border-red-200 p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4" style={{ overflow: 'visible' }}>
               <div>
@@ -151,7 +161,7 @@ export default function ServicesPage() {
         </div>
 
         {/* Service Results */}
-        <div className="space-y-6">
+        <div className="space-y-6 mt-6">
           {loading ? (
             <Card>
               <CardContent className="text-center py-12">
@@ -263,7 +273,7 @@ export default function ServicesPage() {
                             {service.processing_time_days} days
                           </span>
                         </div>
-                        
+
                         {/* Show different info for customers vs retailers */}
                         {isCustomer ? (
                           <>
@@ -302,7 +312,7 @@ export default function ServicesPage() {
                             </div>
                           </>
                         )}
-                        
+
                         <div className="flex justify-between">
                           <span className="text-sm text-gray-500">
                             Documents:

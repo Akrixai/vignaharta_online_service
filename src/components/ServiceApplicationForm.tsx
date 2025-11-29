@@ -315,7 +315,7 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
 
       if (response.ok) {
         toast.success('Application submitted successfully!');
-        
+
         // If this was from a draft, delete the draft
         if (draftId) {
           try {
@@ -326,7 +326,7 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
             console.error('Failed to delete draft:', error);
           }
         }
-        
+
         onSuccess();
         onClose();
       } else {
@@ -609,8 +609,8 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
   if (!mounted) return null;
 
   const modalContent = (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" style={{ zIndex: 99999, position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
-      <div className="w-full max-w-6xl h-[95vh] bg-white rounded-lg shadow-2xl overflow-hidden flex flex-col" style={{ zIndex: 100000, position: 'relative' }}>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style={{ zIndex: 99999, position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
+      <div className="w-full h-full bg-white shadow-2xl overflow-hidden flex flex-col" style={{ zIndex: 100000, position: 'relative' }}>
         {/* Header Section */}
         <div className="bg-gradient-to-r from-red-600 via-red-500 to-yellow-500 text-white p-6 shadow-lg">
           <div className="flex items-center justify-between">
@@ -639,7 +639,7 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
         {/* Main Content Area */}
         <div className="flex-1 overflow-y-auto bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50">
           <div className="p-6">
-            
+
             {/* Application Form Title */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
               <div className="p-6 border-b border-gray-200">
@@ -652,9 +652,9 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
               </div>
             </div>
 
-            {/* Progress Bar */}
-            <div className="bg-white rounded-lg shadow-lg p-6 mb-6 border-2 border-purple-200">
-              <div className="mb-4">
+            {/* Progress Bar - Sticky */}
+            <div className="bg-white shadow-lg p-4 mb-6 border-b-2 border-purple-200 sticky top-0 z-50">
+              <div className="mb-3">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm font-medium text-gray-700">Application Progress</span>
                   <span className="text-sm font-bold text-purple-600">{calculateProgress().progress}%</span>
@@ -668,50 +668,24 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
               </div>
 
               {/* Step Indicators */}
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex justify-between items-center">
                 {[1, 2, 3, 4, 5].map((step) => (
                   <div key={step} className="flex flex-col items-center flex-1">
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                        step <= currentStep
+                      className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${step <= currentStep
                           ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
                           : 'bg-gray-200 text-gray-500'
-                      }`}
+                        }`}
                     >
                       {step}
                     </div>
                   </div>
                 ))}
               </div>
-
-              {/* Save Draft Button */}
-              <div className="flex justify-center">
-                <button
-                  type="button"
-                  onClick={handleSaveDraft}
-                  disabled={savingDraft}
-                  className="bg-purple-50 hover:bg-purple-100 text-purple-700 border-2 border-purple-300 px-6 py-2 rounded-lg font-medium transition-all disabled:opacity-50"
-                >
-                  {savingDraft ? (
-                    <>
-                      <span className="inline-block animate-spin mr-2">⏳</span>
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      💾 Save as Draft
-                    </>
-                  )}
-                </button>
-              </div>
-
-              <p className="text-xs text-center text-gray-500 mt-2">
-                Your progress is saved. Continue later from Draft Applications page.
-              </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              
+
               {/* Service Type Selection */}
               <div className="bg-white rounded-lg shadow-md border border-red-200 hover:shadow-lg transition-shadow duration-200">
                 <div className="p-6 border-l-4 border-red-500">
@@ -763,11 +737,10 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
                         placeholder="Enter 10-digit mobile number (without 0)"
                         required
                         maxLength={10}
-                        className={`w-full p-3 border rounded-md focus:ring-2 bg-yellow-50 text-red-800 placeholder-red-400 ${
-                          formData.customer_phone && formData.customer_phone.length !== 10
+                        className={`w-full p-3 border rounded-md focus:ring-2 bg-yellow-50 text-red-800 placeholder-red-400 ${formData.customer_phone && formData.customer_phone.length !== 10
                             ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
                             : 'border-red-300 focus:ring-yellow-500 focus:border-yellow-500'
-                        }`}
+                          }`}
                       />
                       {formData.customer_phone && formData.customer_phone.length !== 10 && (
                         <p className="text-red-600 text-xs mt-1">
@@ -990,24 +963,24 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
                       Security Verification
                     </h4>
                     <p className="text-xs text-blue-700">
-                      This form is protected by reCAPTCHA Enterprise to prevent spam and abuse. 
+                      This form is protected by reCAPTCHA Enterprise to prevent spam and abuse.
                       Your submission will be automatically verified when you click Submit.
                     </p>
                     <p className="text-xs text-gray-500 mt-2">
                       Protected by reCAPTCHA. Google{' '}
-                      <a 
-                        href="https://policies.google.com/privacy" 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
+                      <a
+                        href="https://policies.google.com/privacy"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="text-blue-600 hover:underline"
                       >
                         Privacy Policy
                       </a>
                       {' '}and{' '}
-                      <a 
-                        href="https://policies.google.com/terms" 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
+                      <a
+                        href="https://policies.google.com/terms"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="text-blue-600 hover:underline"
                       >
                         Terms of Service
@@ -1027,14 +1000,31 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
                   type="button"
                   onClick={onClose}
                   className="flex-1 px-6 py-3 border border-red-300 text-red-700 rounded-md hover:bg-red-50 font-medium transition-all duration-200 hover:shadow-md"
-                  disabled={loading}
+                  disabled={loading || savingDraft}
                 >
                   Cancel
                 </button>
                 <button
+                  type="button"
+                  onClick={handleSaveDraft}
+                  disabled={savingDraft || loading}
+                  className="flex-1 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-medium disabled:opacity-50 transition-all duration-200 hover:shadow-lg"
+                >
+                  {savingDraft ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Saving Draft...
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center gap-2">
+                      💾 Save Draft
+                    </span>
+                  )}
+                </button>
+                <button
                   type="submit"
                   className="flex-1 px-6 py-3 bg-gradient-to-r from-red-600 via-red-500 to-yellow-500 text-white rounded-md hover:from-red-700 hover:via-red-600 hover:to-yellow-600 font-medium disabled:opacity-50 transition-all duration-200 hover:shadow-lg hover:scale-105 transform"
-                  disabled={loading}
+                  disabled={loading || savingDraft}
                 >
                   {loading ? (
                     <span className="flex items-center justify-center gap-2">

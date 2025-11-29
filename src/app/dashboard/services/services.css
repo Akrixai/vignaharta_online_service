@@ -3,17 +3,16 @@
   position: -webkit-sticky !important;
   position: sticky !important;
   top: 0 !important;
-  z-index: 50 !important;
+  z-index: 100 !important;
   background-color: #fef2f2 !important;
-  margin-left: -1.5rem !important;
-  margin-right: -1.5rem !important;
-  margin-top: -1.5rem !important;
-  padding-left: 1.5rem !important;
-  padding-right: 1.5rem !important;
-  padding-top: 1.5rem !important;
+  padding-top: 1rem !important;
   padding-bottom: 1rem !important;
+  margin-bottom: 1.5rem !important;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
   transition: box-shadow 0.2s ease-in-out !important;
+  /* Ensure sticky works */
+  align-self: flex-start !important;
+  width: 100% !important;
 }
 
 .services-sticky-filter.scrolled {
@@ -22,8 +21,9 @@
 
 /* Ensure the services page container allows sticky positioning */
 .services-page-container {
-  position: relative;
-  overflow: visible;
+  position: relative !important;
+  display: block !important;
+  overflow: visible !important;
 }
 
 .services-container {
