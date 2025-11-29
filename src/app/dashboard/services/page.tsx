@@ -288,16 +288,6 @@ export default function ServicesPage() {
                                 </span>
                               </div>
                             )}
-                            {service.customer_cashback_percentage > 0 && (
-                              <div className="flex justify-between">
-                                <span className="text-sm text-gray-500">
-                                  🎁 Fixed Cashback:
-                                </span>
-                                <span className="font-medium text-green-600">
-                                  {service.customer_cashback_percentage}%
-                                </span>
-                              </div>
-                            )}
                           </>
                         ) : (
                           <>

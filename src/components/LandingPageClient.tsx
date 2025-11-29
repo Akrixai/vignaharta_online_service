@@ -10,6 +10,7 @@ import HowItWorks from "@/components/HowItWorks";
 import TrustBadges from "@/components/TrustBadges";
 import LatestBlogPosts from "@/components/LatestBlogPosts";
 import TawkToChat from "@/components/TawkToChat";
+import FeaturedProducts from "@/components/FeaturedProducts";
 import { useState, useEffect } from "react";
 
 // Define types for our data
@@ -440,6 +441,9 @@ export default function LandingPageClient() {
 
         {/* How It Works Section */}
         <HowItWorks />
+
+        {/* Featured Products Section */}
+        <FeaturedProducts />
 
         {/* Trust & Transparency Section */}
         <TrustBadges />

@@ -47,7 +47,6 @@ export async function GET(request: NextRequest) {
         created_at,
         show_to_customer,
         customer_price,
-        customer_cashback_percentage,
         cashback_enabled,
         cashback_min_percentage,
         cashback_max_percentage,

@@ -63,8 +63,7 @@ export async function POST(request: NextRequest) {
       required_documents,
       image_url,
       show_to_customer,
-      customer_price,
-      customer_cashback_percentage
+      customer_price
     } = body;
 
     // Add console logging for debugging dropdown options

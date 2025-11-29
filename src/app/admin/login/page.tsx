@@ -9,7 +9,7 @@ import { useRecaptchaEnterprise } from '@/hooks/useRecaptchaEnterprise';
 
 export default function AdminLoginPage() {
   const { executeRecaptcha, isReady } = useRecaptchaEnterprise();
-  
+
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -23,7 +23,7 @@ export default function AdminLoginPage() {
 
     try {
       let recaptchaToken = '';
-      
+
       if (isReady) {
         try {
           recaptchaToken = await executeRecaptcha('ADMIN_LOGIN');
@@ -133,11 +133,10 @@ export default function AdminLoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full flex justify-center items-center py-4 px-6 border-2 border-transparent text-lg font-bold rounded-xl text-white transition-all duration-200 ${
-                isLoading
+              className={`w-full flex justify-center items-center py-4 px-6 border-2 border-transparent text-lg font-bold rounded-xl text-white transition-all duration-200 ${isLoading
                   ? 'bg-gray-400 cursor-not-allowed'
                   : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 focus:outline-none focus:ring-4 focus:ring-red-300 shadow-lg hover:shadow-xl'
-              }`}
+                }`}
             >
               {isLoading ? (
                 <>

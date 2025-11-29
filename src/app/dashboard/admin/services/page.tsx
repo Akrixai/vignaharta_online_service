@@ -32,8 +32,7 @@ export default function AdminServicesPage() {
     cashback_max_percentage: '3',
     image_url: '',
     show_to_customer: false,
-    customer_price: '',
-    customer_cashback_percentage: '0'
+    customer_price: ''
   });
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -160,8 +159,7 @@ export default function AdminServicesPage() {
         required_documents: requiredDocuments,
         image_url: imageUrl,
         show_to_customer: formData.show_to_customer,
-        customer_price: formData.customer_price ? parseFloat(formData.customer_price) : null,
-        customer_cashback_percentage: parseFloat(formData.customer_cashback_percentage) || 0
+        customer_price: formData.customer_price ? parseFloat(formData.customer_price) : null
       };
 
       // Add console logging for debugging dropdown options
@@ -222,8 +220,7 @@ export default function AdminServicesPage() {
       cashback_max_percentage: service.cashback_max_percentage?.toString() || '3',
       image_url: service.image_url || '',
       show_to_customer: service.show_to_customer === true,
-      customer_price: service.customer_price?.toString() || '',
-      customer_cashback_percentage: service.customer_cashback_percentage?.toString() || '0'
+      customer_price: service.customer_price?.toString() || ''
     });
     setDynamicFields(service.dynamic_fields || []);
     setRequiredDocuments(service.required_documents || []);
@@ -325,8 +322,7 @@ export default function AdminServicesPage() {
       cashback_max_percentage: '3',
       image_url: '',
       show_to_customer: false,
-      customer_price: '',
-      customer_cashback_percentage: '0'
+      customer_price: ''
     });
     setDynamicFields([]);
     setRequiredDocuments([]);
@@ -632,7 +628,7 @@ export default function AdminServicesPage() {
                     </div>
 
                     {formData.show_to_customer && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                      <div className="grid grid-cols-1 gap-4 mt-4">
                         <div>
                           <label className="block text-sm font-medium text-green-700 mb-2">
                             Customer Price (₹)
@@ -652,32 +648,11 @@ export default function AdminServicesPage() {
                           </p>
                         </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-green-700 mb-2">
-                            Customer Cashback (%)
-                          </label>
-                          <input
-                            type="number"
-                            name="customer_cashback_percentage"
-                            value={formData.customer_cashback_percentage}
-                            onChange={handleInputChange}
-                            min="0"
-                            max="100"
-                            step="0.01"
-                            className="w-full px-4 py-2 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                            placeholder="0.00"
-                          />
-                          <p className="text-xs text-green-600 mt-1">
-                            Fixed cashback percentage for customers (0% = no cashback)
-                          </p>
-                        </div>
-
-                        <div className="md:col-span-2 bg-white p-3 rounded border border-green-200">
+                        <div className="bg-white p-3 rounded border border-green-200">
                           <p className="text-sm text-green-800">
                             <strong>ℹ️ Note:</strong> When enabled, this service will be visible to customers in their dashboard.
                             {formData.customer_price && ` Customers will see a price of ₹${formData.customer_price}.`}
-                            {formData.customer_cashback_percentage && parseFloat(formData.customer_cashback_percentage) > 0 && 
-                              ` They will earn ${formData.customer_cashback_percentage}% cashback on this service.`}
+                            {formData.cashback_enabled && ` Cashback is configured in the "💰 Cashback for Customers" section above.`}
                           </p>
                         </div>
                       </div>

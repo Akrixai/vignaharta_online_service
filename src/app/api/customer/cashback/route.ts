@@ -4,7 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
 // GET /api/customer/cashback - Get customer's cashback applications
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     
@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get all applications with cashback
+    // Get all applications (filter for cashback-enabled schemes)
     const { data: applications, error } = await supabaseAdmin
       .from('applications')
       .select(`
@@ -20,12 +20,19 @@ export async function GET(request: NextRequest) {
         schemes:scheme_id (
           name,
           cashback_enabled,
-          customer_cashback_percentage
+          cashback_min_percentage,
+          cashback_max_percentage
         )
       `)
       .eq('user_id', session.user.id)
-      .gt('cashback_amount', 0)
+      .eq('status', 'APPROVED')
       .order('created_at', { ascending: false });
+    
+    // Filter for cashback-enabled schemes only
+    const cashbackApplications = applications?.filter((app: any) => 
+      app.schemes?.cashback_enabled === true && 
+      app.cashback_amount > 0
+    ) || [];
 
     if (error) {
       console.error('Error fetching cashback applications:', error);
@@ -33,14 +40,14 @@ export async function GET(request: NextRequest) {
     }
 
     // Calculate stats
-    const totalCashback = applications?.reduce((sum, app) => sum + parseFloat(app.cashback_amount || 0), 0) || 0;
-    const claimedCashback = applications?.filter(app => app.cashback_claimed)
-      .reduce((sum, app) => sum + parseFloat(app.cashback_amount || 0), 0) || 0;
+    const totalCashback = cashbackApplications.reduce((sum: number, app: any) => sum + parseFloat(app.cashback_amount || 0), 0);
+    const claimedCashback = cashbackApplications.filter((app: any) => app.cashback_claimed)
+      .reduce((sum: number, app: any) => sum + parseFloat(app.cashback_amount || 0), 0);
     const pendingCashback = totalCashback - claimedCashback;
 
     return NextResponse.json({
       success: true,
-      applications: applications || [],
+      applications: cashbackApplications,
       stats: {
         totalCashback,
         claimedCashback,

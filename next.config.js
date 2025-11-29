@@ -14,7 +14,7 @@ const nextConfig = {
 
   // Netlify compatibility
   trailingSlash: false,
-  
+
   // Image optimization settings
   images: {
     // Use remotePatterns for more control

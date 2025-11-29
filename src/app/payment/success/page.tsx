@@ -28,6 +28,8 @@ function PaymentSuccessContent() {
       colors: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'],
     });
 
+    let redirectTimer: NodeJS.Timeout;
+
     // If registration, process it immediately
     if (isRegistration && orderId) {
       const processRegistration = async () => {
@@ -54,19 +56,19 @@ function PaymentSuccessContent() {
 
               if (loginResult?.ok) {
                 // Login successful, redirect to dashboard
-                setTimeout(() => {
+                redirectTimer = setTimeout(() => {
                   window.location.href = '/dashboard';
                 }, 2000);
               } else {
                 // Login failed, redirect to login page
-                setTimeout(() => {
-                  router.push('/login?registered=true&error=auto_login_failed');
+                redirectTimer = setTimeout(() => {
+                  window.location.href = '/login?registered=true&error=auto_login_failed';
                 }, 3000);
               }
             } else {
               // No credentials, redirect to login
-              setTimeout(() => {
-                router.push('/login?registered=true');
+              redirectTimer = setTimeout(() => {
+                window.location.href = '/login?registered=true';
               }, 3000);
             }
           } else {
@@ -87,11 +89,11 @@ function PaymentSuccessContent() {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          // Redirect based on payment type
+          // Use window.location.href instead of router.push to force full page reload
           if (isRegistration) {
-            router.push('/login?registered=true');
+            window.location.href = '/login?registered=true';
           } else {
-            router.push('/dashboard/wallet');
+            window.location.href = '/dashboard/wallet?from_payment=success';
           }
           return 0;
         }
@@ -99,8 +101,11 @@ function PaymentSuccessContent() {
       });
     }, 1000);
 
-    return () => clearInterval(timer);
-  }, [router, isRegistration, orderId]);
+    return () => {
+      clearInterval(timer);
+      if (redirectTimer) clearTimeout(redirectTimer);
+    };
+  }, [isRegistration, orderId]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-green-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -210,19 +215,19 @@ function PaymentSuccessContent() {
             {/* Action Buttons */}
             <div className="space-y-3">
               {!processing && (
-                <Link
-                  href={isRegistration ? '/login?registered=true' : '/dashboard/wallet'}
+                <button
+                  onClick={() => window.location.href = isRegistration ? '/login?registered=true' : '/dashboard/wallet?from_payment=success'}
                   className="block w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 px-6 rounded-xl font-semibold hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg"
                 >
                   {isRegistration ? 'Go to Login' : 'Go to Wallet'}
-                </Link>
+                </button>
               )}
-              <Link
-                href="/"
+              <button
+                onClick={() => window.location.href = '/'}
                 className="block w-full border-2 border-gray-300 text-gray-700 py-3 px-6 rounded-xl font-semibold hover:bg-gray-50 transition-all duration-200"
               >
                 Back to Home
-              </Link>
+              </button>
             </div>
           </div>
         </div>

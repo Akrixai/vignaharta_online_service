@@ -168,6 +168,23 @@ export default function WalletPage() {
     return () => window.removeEventListener('walletOrTransactionChanged', handler);
   }, []);
 
+  // Check if coming from payment success and force refresh
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const fromPayment = urlParams.get('from_payment');
+    
+    if (fromPayment === 'success') {
+      // Force refresh after a short delay to allow webhook to process
+      const timer = setTimeout(() => {
+        refreshWalletAndTransactions();
+        // Remove the query parameter
+        window.history.replaceState({}, '', '/dashboard/wallet');
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
   // Calculate GST breakdown instantly when amount changes
   useEffect(() => {
     const amount = parseFloat(addMoneyAmount);
