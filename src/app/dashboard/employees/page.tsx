@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { createPortal } from 'react-dom';
 import DashboardLayout from '@/components/dashboard/layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -59,6 +60,11 @@ export default function EmployeesPage() {
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [updating, setUpdating] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -147,7 +153,8 @@ export default function EmployeesPage() {
       gender: employee.gender || '',
       employee_id: employee.employee_id || '',
       department: employee.department || '',
-      branch: employee.branch || ''
+      branch: employee.branch || '',
+      referral_code: ''
     });
     setEditDocuments({});
     setShowEditForm(true);
@@ -230,7 +237,8 @@ export default function EmployeesPage() {
         gender: '',
         employee_id: '',
         department: '',
-        branch: ''
+        branch: '',
+        referral_code: ''
       });
       setEditDocuments({});
       fetchEmployees();
@@ -346,7 +354,8 @@ export default function EmployeesPage() {
         gender: '',
         employee_id: '',
         department: '',
-        branch: ''
+        branch: '',
+        referral_code: ''
       });
       setDocuments({});
       fetchEmployees();
@@ -859,8 +868,8 @@ export default function EmployeesPage() {
         </Card>
 
         {/* View Employee Modal */}
-        {showViewModal && selectedEmployee && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" style={{ zIndex: 99999 }}>
+        {mounted && showViewModal && selectedEmployee && createPortal(
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[9999]">
             <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
               <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6">
                 <div className="flex justify-between items-center">
@@ -1065,12 +1074,13 @@ export default function EmployeesPage() {
                 </div>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* Edit Employee Modal */}
-        {showEditForm && selectedEmployee && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" style={{ zIndex: 99999 }}>
+        {mounted && showEditForm && selectedEmployee && createPortal(
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[9999]">
             <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
               <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white p-6">
                 <div className="flex justify-between items-center">
@@ -1344,7 +1354,8 @@ export default function EmployeesPage() {
                 </form>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
     </DashboardLayout>
