@@ -25,6 +25,7 @@ interface MenuItem {
   href: string;
   icon: string;
   roles: UserRole[];
+  requiresEmail?: string; // Optional: Only show to specific email
 }
 
 const menuItems: MenuItem[] = [
@@ -44,11 +45,12 @@ const menuItems: MenuItem[] = [
   { name: 'Free Services', href: '/dashboard/employee/free-services', icon: '🆓', roles: [UserRole.EMPLOYEE] },
   { name: 'Training Videos', href: '/dashboard/training-videos', icon: '🎥', roles: [UserRole.RETAILER, UserRole.EMPLOYEE] },
 
-  // Recharge & Bill Payment Services
-  { name: 'Mobile Recharge', href: '/dashboard/recharge/mobile', icon: '📱', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
-  { name: 'DTH Recharge', href: '/dashboard/recharge/dth', icon: '📺', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
-  { name: 'Electricity Bill', href: '/dashboard/recharge/electricity', icon: '⚡', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
-  { name: 'Recharge History', href: '/dashboard/recharge/transactions', icon: '📊', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  // Recharge & Bill Payment Services (Only for specific retailer)
+  // These will be filtered in the component based on email
+  { name: 'Mobile Recharge', href: '/dashboard/recharge/mobile', icon: '📱', roles: [UserRole.RETAILER, UserRole.CUSTOMER], requiresEmail: 'AkrixRetailerTest@gmail.com' },
+  { name: 'DTH Recharge', href: '/dashboard/recharge/dth', icon: '📺', roles: [UserRole.RETAILER, UserRole.CUSTOMER], requiresEmail: 'AkrixRetailerTest@gmail.com' },
+  { name: 'Electricity Bill', href: '/dashboard/recharge/electricity', icon: '⚡', roles: [UserRole.RETAILER, UserRole.CUSTOMER], requiresEmail: 'AkrixRetailerTest@gmail.com' },
+  { name: 'Recharge History', href: '/dashboard/recharge/transactions', icon: '📊', roles: [UserRole.RETAILER, UserRole.CUSTOMER], requiresEmail: 'AkrixRetailerTest@gmail.com' },
   
   // Coming Soon Services
   { name: 'Gas Bill', href: '/dashboard/coming-soon', icon: '🔥', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
@@ -163,6 +165,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const filteredMenuItems = menuItems.filter(item => {
     // First check if user's role is allowed
     if (!item.roles.includes(userRole)) return false;
+
+    // Check if item requires specific email
+    if (item.requiresEmail && session.user.email !== item.requiresEmail) {
+      return false;
+    }
 
     // Special handling for Wallet - Admin, Retailer, and Customer
     if (item.name === 'Wallet') {
