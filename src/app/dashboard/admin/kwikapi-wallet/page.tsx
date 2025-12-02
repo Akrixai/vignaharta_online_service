@@ -63,14 +63,30 @@ export default function KWIKAPIWalletPage() {
         method: 'POST',
       });
 
-      const data = await res.json();
+      // Get the response text first to see what we're getting
+      const text = await res.text();
+      console.log('Raw response:', text);
+
+      // Try to parse as JSON
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        setMessage(`❌ Server returned invalid response: ${text.substring(0, 200)}`);
+        return;
+      }
 
       if (data.success) {
         setMessage(`✅ ${data.message}`);
       } else {
-        setMessage(`❌ ${data.message}`);
+        setMessage(`❌ ${data.message || 'Unknown error'}`);
+        if (data.details) {
+          console.error('Error details:', data.details);
+        }
       }
     } catch (error: any) {
+      console.error('Sync error:', error);
       setMessage(`❌ Error: ${error.message}`);
     } finally {
       setSyncing(false);
