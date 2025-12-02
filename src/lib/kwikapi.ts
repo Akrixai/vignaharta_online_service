@@ -441,6 +441,74 @@ class KwikAPIClient {
     });
   }
 
+  // ==================== PLANS APIs ====================
+  
+  /**
+   * Fetch Prepaid Plans
+   * Note: KWIKAPI v2 may not have a dedicated plans API
+   * This returns plans from local database or mock data
+   * Check your KWIKAPI documentation for actual plans endpoint
+   */
+  async fetchPrepaidPlans(params: {
+    operator_code: string;
+    circle_code: string;
+    min_amount?: number;
+    max_amount?: number;
+  }): Promise<KwikAPIResponse> {
+    try {
+      // KWIKAPI v2 doesn't have a standard plans API in the documentation
+      // You may need to check with KWIKAPI support for plans endpoint
+      // For now, return empty plans array
+      
+      return {
+        success: true,
+        data: {
+          plans: [],
+          message: 'Plans API not available in KWIKAPI v2. Please fetch plans from your database or contact KWIKAPI support.',
+        },
+      };
+    } catch (error: any) {
+      console.error('Fetch Prepaid Plans Error:', error);
+      return {
+        success: false,
+        data: { plans: [] },
+        message: 'Failed to fetch prepaid plans',
+      };
+    }
+  }
+
+  /**
+   * Fetch DTH Plans
+   * Note: KWIKAPI v2 may not have a dedicated plans API
+   * This returns plans from local database or mock data
+   */
+  async fetchDTHPlans(params: {
+    operator_code: string;
+    min_amount?: number;
+    max_amount?: number;
+  }): Promise<KwikAPIResponse> {
+    try {
+      // KWIKAPI v2 doesn't have a standard plans API in the documentation
+      // You may need to check with KWIKAPI support for plans endpoint
+      // For now, return empty plans array
+      
+      return {
+        success: true,
+        data: {
+          plans: [],
+          message: 'Plans API not available in KWIKAPI v2. Please fetch plans from your database or contact KWIKAPI support.',
+        },
+      };
+    } catch (error: any) {
+      console.error('Fetch DTH Plans Error:', error);
+      return {
+        success: false,
+        data: { plans: [] },
+        message: 'Failed to fetch DTH plans',
+      };
+    }
+  }
+
   // ==================== OPERATOR DETECTION ====================
   
   /**

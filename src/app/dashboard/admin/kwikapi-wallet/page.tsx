@@ -5,239 +5,252 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/dashboard/layout';
 
-interface WalletBalance {
-  wallet_balance: number;
-  blocked_amount: number;
+interface WalletData {
+  balance: number;
+  plan_credit: number;
   available_balance: number;
   currency: string;
-  updated_at: string;
+  last_updated: string;
 }
 
-export default function KwikAPIWalletPage() {
+export default function KWIKAPIWalletPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  
-  const [balance, setBalance] = useState<WalletBalance | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+
+  const [walletData, setWalletData] = useState<WalletData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/login');
-    } else if (status === 'authenticated') {
-      fetchBalance();
+    } else if (status === 'authenticated' && session?.user?.role !== 'ADMIN') {
+      router.push('/dashboard');
     }
-  }, [status, router]);
+  }, [status, session, router]);
 
-  const fetchBalance = async () => {
-    setRefreshing(true);
+  useEffect(() => {
+    fetchWalletBalance();
+  }, []);
+
+  const fetchWalletBalance = async () => {
+    setLoading(true);
     setMessage('');
-    
+
     try {
       const res = await fetch('/api/recharge/wallet-balance');
       const data = await res.json();
-      
+
       if (data.success) {
-        setBalance(data.data);
-        setMessage('✅ Balance updated successfully');
+        setWalletData(data.data);
       } else {
-        setMessage('❌ Failed to fetch balance');
+        setMessage(`❌ ${data.message}`);
       }
-    } catch (error) {
-      setMessage('❌ Error fetching balance');
-      console.error('Error:', error);
+    } catch (error: any) {
+      setMessage(`❌ Error: ${error.message}`);
     } finally {
       setLoading(false);
-      setRefreshing(false);
-      setTimeout(() => setMessage(''), 3000);
     }
   };
 
-  if (status === 'loading' || loading) {
-    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+  const syncOperators = async () => {
+    setSyncing(true);
+    setMessage('');
+
+    try {
+      const res = await fetch('/api/recharge/sync-all-operators', {
+        method: 'POST',
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setMessage(`✅ ${data.message}`);
+      } else {
+        setMessage(`❌ ${data.message}`);
+      }
+    } catch (error: any) {
+      setMessage(`❌ Error: ${error.message}`);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  if (status === 'loading' || !session) {
+    return (
+      <DashboardLayout>
+        <div className="flex justify-center items-center min-h-screen">
+          <div className="text-lg">Loading...</div>
+        </div>
+      </DashboardLayout>
+    );
   }
 
   return (
     <DashboardLayout>
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">KWIKAPI Wallet Management</h1>
-        <button
-          onClick={fetchBalance}
-          disabled={refreshing}
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all flex items-center gap-2"
-        >
-          <span>{refreshing ? '🔄' : '🔃'}</span>
-          {refreshing ? 'Refreshing...' : 'Refresh Balance'}
-        </button>
-      </div>
-
-      {message && (
-        <div className={`mb-6 p-4 rounded-lg ${message.includes('✅') ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
-          {message}
-        </div>
-      )}
-
-      {/* Balance Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-8 text-white">
-          <div className="flex items-center justify-between mb-4">
-            <div className="text-sm opacity-90">Total Wallet Balance</div>
-            <div className="text-3xl">💰</div>
-          </div>
-          <div className="text-4xl font-bold mb-2">
-            ₹{balance?.wallet_balance.toLocaleString('en-IN', { minimumFractionDigits: 2 }) || '0.00'}
-          </div>
-          <div className="text-xs opacity-75">
-            Last updated: {balance?.updated_at ? new Date(balance.updated_at).toLocaleString('en-IN') : 'N/A'}
-          </div>
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-800">💰 KWIKAPI Wallet Management</h1>
+          <button
+            onClick={fetchWalletBalance}
+            disabled={loading}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
+          >
+            {loading ? 'Refreshing...' : '🔄 Refresh'}
+          </button>
         </div>
 
-        <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl shadow-lg p-8 text-white">
-          <div className="flex items-center justify-between mb-4">
-            <div className="text-sm opacity-90">Blocked Amount</div>
-            <div className="text-3xl">🔒</div>
+        {/* Wallet Balance Card */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm opacity-90">Wallet Balance</span>
+              <span className="text-2xl">💳</span>
+            </div>
+            <div className="text-3xl font-bold">
+              {walletData ? `₹${walletData.balance.toFixed(2)}` : '---'}
+            </div>
+            <div className="text-xs opacity-75 mt-2">
+              {walletData?.currency || 'INR'}
+            </div>
           </div>
-          <div className="text-4xl font-bold mb-2">
-            ₹{balance?.blocked_amount.toLocaleString('en-IN', { minimumFractionDigits: 2 }) || '0.00'}
-          </div>
-          <div className="text-xs opacity-75">
-            Amount reserved for pending transactions
-          </div>
-        </div>
 
-        <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-8 text-white">
-          <div className="flex items-center justify-between mb-4">
-            <div className="text-sm opacity-90">Available Balance</div>
-            <div className="text-3xl">✅</div>
+          <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm opacity-90">Plan Credit</span>
+              <span className="text-2xl">🎁</span>
+            </div>
+            <div className="text-3xl font-bold">
+              {walletData ? `₹${walletData.plan_credit.toFixed(2)}` : '---'}
+            </div>
+            <div className="text-xs opacity-75 mt-2">
+              Bonus/Credit
+            </div>
           </div>
-          <div className="text-4xl font-bold mb-2">
-            ₹{balance?.available_balance.toLocaleString('en-IN', { minimumFractionDigits: 2 }) || '0.00'}
-          </div>
-          <div className="text-xs opacity-75">
-            Available for new transactions
-          </div>
-        </div>
-      </div>
 
-      {/* Alert for Low Balance */}
-      {balance && balance.available_balance < 10000 && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-6 mb-8 rounded-lg">
-          <div className="flex items-center">
-            <div className="text-3xl mr-4">⚠️</div>
-            <div>
-              <h3 className="text-lg font-semibold text-red-800 mb-1">Low Balance Alert</h3>
-              <p className="text-red-700">
-                Your KWIKAPI wallet balance is running low. Please add funds to continue processing recharges and bill payments.
-              </p>
+          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm opacity-90">Available Balance</span>
+              <span className="text-2xl">✅</span>
+            </div>
+            <div className="text-3xl font-bold">
+              {walletData ? `₹${walletData.available_balance.toFixed(2)}` : '---'}
+            </div>
+            <div className="text-xs opacity-75 mt-2">
+              Usable Amount
             </div>
           </div>
         </div>
-      )}
 
-      {/* Information Panel */}
-      <div className="bg-white rounded-xl shadow-lg p-8">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">Wallet Information</h2>
-        
-        <div className="space-y-6">
-          <div className="border-l-4 border-blue-500 pl-4">
-            <h3 className="font-semibold text-gray-800 mb-2">About KWIKAPI Wallet</h3>
-            <p className="text-gray-600 text-sm">
-              The KWIKAPI wallet is your prepaid balance used for processing mobile recharges, DTH recharges, 
-              and bill payments. All transactions are deducted from this wallet in real-time.
+        {/* Last Updated */}
+        {walletData && (
+          <div className="bg-gray-50 rounded-lg p-4 mb-8">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Last Updated:</span>
+              <span className="text-sm font-medium text-gray-800">
+                {new Date(walletData.last_updated).toLocaleString()}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Operator Sync Section */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">🔄 Operator Synchronization</h2>
+          <p className="text-gray-600 mb-4">
+            Sync all operators from KWIKAPI to your database. This will fetch the latest operator list
+            including prepaid, postpaid, DTH, and electricity providers.
+          </p>
+          <button
+            onClick={syncOperators}
+            disabled={syncing}
+            className="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+          >
+            {syncing ? 'Syncing Operators...' : '🔄 Sync All Operators'}
+          </button>
+        </div>
+
+        {/* Message */}
+        {message && (
+          <div
+            className={`p-4 rounded-lg ${
+              message.includes('✅')
+                ? 'bg-green-50 text-green-800 border border-green-200'
+                : 'bg-red-50 text-red-800 border border-red-200'
+            }`}
+          >
+            {message}
+          </div>
+        )}
+
+        {/* Info Panel */}
+        <div className="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-lg mt-8">
+          <h3 className="text-lg font-semibold text-blue-800 mb-2">ℹ️ KWIKAPI Wallet Information</h3>
+          <ul className="text-blue-700 text-sm space-y-2">
+            <li>• <strong>Wallet Balance:</strong> Your main KWIKAPI wallet balance</li>
+            <li>• <strong>Plan Credit:</strong> Bonus or promotional credits</li>
+            <li>• <strong>Available Balance:</strong> Total usable amount for transactions</li>
+            <li>• Ensure sufficient balance before processing recharges</li>
+            <li>• Contact KWIKAPI support to add funds to your wallet</li>
+            <li>• Balance is updated in real-time from KWIKAPI servers</li>
+          </ul>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h3 className="text-lg font-bold text-gray-800 mb-4">📊 Transaction History</h3>
+            <p className="text-gray-600 mb-4 text-sm">
+              View all recharge transactions processed through KWIKAPI
             </p>
+            <button
+              onClick={() => router.push('/dashboard/recharge/transactions')}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              View Transactions
+            </button>
           </div>
 
-          <div className="border-l-4 border-yellow-500 pl-4">
-            <h3 className="font-semibold text-gray-800 mb-2">Blocked Amount</h3>
-            <p className="text-gray-600 text-sm">
-              This represents the amount temporarily reserved for pending transactions. Once transactions are 
-              completed or failed, this amount will be released back to your available balance.
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h3 className="text-lg font-bold text-gray-800 mb-4">⚙️ Operator Management</h3>
+            <p className="text-gray-600 mb-4 text-sm">
+              Manage operators, commission rates, and settings
             </p>
+            <button
+              onClick={() => router.push('/dashboard/admin/recharge-config')}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+            >
+              Manage Operators
+            </button>
           </div>
+        </div>
 
-          <div className="border-l-4 border-green-500 pl-4">
-            <h3 className="font-semibold text-gray-800 mb-2">Available Balance</h3>
-            <p className="text-gray-600 text-sm">
-              This is the actual amount you can use for new transactions. Make sure to maintain sufficient 
-              balance to avoid transaction failures.
-            </p>
-          </div>
-
-          <div className="border-l-4 border-red-500 pl-4">
-            <h3 className="font-semibold text-gray-800 mb-2">Low Balance Recommendations</h3>
-            <ul className="text-gray-600 text-sm list-disc list-inside space-y-1">
-              <li>Maintain a minimum balance of ₹10,000 for smooth operations</li>
-              <li>Set up balance alerts to get notified when balance is low</li>
-              <li>Contact KWIKAPI support to add funds to your wallet</li>
-              <li>Monitor transaction patterns to predict balance requirements</li>
-            </ul>
+        {/* API Status */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mt-8">
+          <h3 className="text-lg font-bold text-gray-800 mb-4">🔌 API Configuration</h3>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <span className="text-sm font-medium text-gray-700">Base URL:</span>
+              <span className="text-sm text-gray-600">
+                {process.env.NEXT_PUBLIC_KWIKAPI_BASE_URL || 'https://www.kwikapi.com'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <span className="text-sm font-medium text-gray-700">API Key:</span>
+              <span className="text-sm text-gray-600 font-mono">
+                {process.env.KWIKAPI_API_KEY ? '••••••••••••' : 'Not Configured'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <span className="text-sm font-medium text-gray-700">Status:</span>
+              <span className={`text-sm font-semibold ${walletData ? 'text-green-600' : 'text-red-600'}`}>
+                {walletData ? '✅ Connected' : '❌ Not Connected'}
+              </span>
+            </div>
           </div>
         </div>
       </div>
-
-      {/* API Configuration */}
-      <div className="bg-white rounded-xl shadow-lg p-8 mt-8">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">API Configuration</h2>
-        
-        <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div>
-              <div className="font-semibold text-gray-800">API Base URL</div>
-              <div className="text-sm text-gray-600">https://api.kwikapi.com/v3</div>
-            </div>
-            <div className="text-green-600 font-semibold">✓ Connected</div>
-          </div>
-
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div>
-              <div className="font-semibold text-gray-800">API Key Status</div>
-              <div className="text-sm text-gray-600">Configured in environment variables</div>
-            </div>
-            <div className="text-green-600 font-semibold">✓ Active</div>
-          </div>
-
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div>
-              <div className="font-semibold text-gray-800">Callback URL</div>
-              <div className="text-sm text-gray-600">{process.env.NEXT_PUBLIC_APP_URL}/api/recharge/callback</div>
-            </div>
-            <div className="text-green-600 font-semibold">✓ Configured</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-        <button
-          onClick={() => router.push('/dashboard/recharge/transactions')}
-          className="p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition-all text-left"
-        >
-          <div className="text-3xl mb-3">📊</div>
-          <div className="font-semibold text-gray-800 mb-1">View Transactions</div>
-          <div className="text-sm text-gray-600">Check all recharge and bill payment transactions</div>
-        </button>
-
-        <button
-          onClick={() => router.push('/dashboard/recharge')}
-          className="p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition-all text-left"
-        >
-          <div className="text-3xl mb-3">💳</div>
-          <div className="font-semibold text-gray-800 mb-1">New Recharge</div>
-          <div className="text-sm text-gray-600">Process mobile, DTH, or bill payments</div>
-        </button>
-
-        <button
-          onClick={() => window.open('https://kwikapi.com/support', '_blank')}
-          className="p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition-all text-left"
-        >
-          <div className="text-3xl mb-3">💬</div>
-          <div className="font-semibold text-gray-800 mb-1">Contact Support</div>
-          <div className="text-sm text-gray-600">Get help with wallet or API issues</div>
-        </button>
-      </div>
-    </div>
     </DashboardLayout>
   );
 }

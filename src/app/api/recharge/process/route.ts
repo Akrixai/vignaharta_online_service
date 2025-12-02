@@ -43,6 +43,10 @@ export async function POST(request: NextRequest) {
       amount,
       plan_id,
       customer_name,
+      ref_id, // From bill fetch for postpaid/electricity
+      opt1,
+      opt2,
+      opt3,
     } = body;
 
     // Validate inputs

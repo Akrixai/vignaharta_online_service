@@ -21,80 +21,79 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Fetch from KWIKAPI based on service type
-    let plansResponse;
-    
-    if (serviceType === 'DTH') {
-      plansResponse = await kwikapi.fetchDTHPlans({
-        operator_code: operatorCode,
-      });
-    } else {
-      // Prepaid
-      if (!circleCode) {
-        return NextResponse.json(
-          { success: false, message: 'Circle code is required for prepaid plans' },
-          { status: 400 }
-        );
-      }
-      
-      plansResponse = await kwikapi.fetchPrepaidPlans({
-        operator_code: operatorCode,
-        circle_code: circleCode,
-      });
+    // Get operator
+    const { data: operator } = await supabase
+      .from('recharge_operators')
+      .select('id, operator_code, operator_name')
+      .eq('operator_code', operatorCode)
+      .single();
+
+    if (!operator) {
+      return NextResponse.json(
+        { success: false, message: 'Operator not found' },
+        { status: 404 }
+      );
     }
 
-    if (plansResponse.success) {
-      // Get operator and circle IDs
-      const { data: operator } = await supabase
-        .from('recharge_operators')
+    // Build query for plans from database
+    let query = supabase
+      .from('recharge_plans')
+      .select('*')
+      .eq('operator_id', operator.id)
+      .eq('is_active', true)
+      .order('display_order', { ascending: true })
+      .order('amount', { ascending: true });
+
+    // For prepaid, filter by circle
+    if (serviceType !== 'DTH' && circleCode) {
+      const { data: circle } = await supabase
+        .from('recharge_circles')
         .select('id')
-        .eq('operator_code', operatorCode)
+        .eq('circle_code', circleCode)
         .single();
 
-      let circleId = null;
-      if (circleCode) {
-        const { data: circle } = await supabase
-          .from('recharge_circles')
-          .select('id')
-          .eq('circle_code', circleCode)
-          .single();
-        circleId = circle?.id;
+      if (circle) {
+        query = query.eq('circle_id', circle.id);
       }
-
-      // Store/update plans in database
-      if (operator && plansResponse.data.plans) {
-        const plansToUpsert = plansResponse.data.plans.map((plan: any) => ({
-          operator_id: operator.id,
-          circle_id: circleId,
-          plan_id: plan.plan_id,
-          amount: plan.amount,
-          validity: plan.validity,
-          plan_type: plan.type || plan.category,
-          description: plan.description,
-          data_benefit: plan.data || null,
-          voice_benefit: plan.voice || null,
-          sms_benefit: plan.sms || null,
-          features: plan.features || [],
-          is_active: true,
-        }));
-
-        await supabase
-          .from('recharge_plans')
-          .upsert(plansToUpsert, {
-            onConflict: 'plan_id,operator_id,circle_id',
-          });
-      }
-
-      return NextResponse.json({
-        success: true,
-        data: plansResponse.data,
-      });
     }
 
-    return NextResponse.json(
-      { success: false, message: 'Failed to fetch plans' },
-      { status: 500 }
-    );
+    const { data: plans, error } = await query;
+
+    if (error) {
+      console.error('Database error fetching plans:', error);
+      return NextResponse.json(
+        { success: false, message: 'Failed to fetch plans from database' },
+        { status: 500 }
+      );
+    }
+
+    // Format plans for frontend
+    const formattedPlans = (plans || []).map((plan: any) => ({
+      plan_id: plan.plan_id,
+      amount: parseFloat(plan.amount),
+      validity: plan.validity || 'N/A',
+      type: plan.plan_type || 'GENERAL',
+      category: plan.plan_type || 'GENERAL',
+      description: plan.description || `₹${plan.amount} Plan`,
+      data: plan.data_benefit || '',
+      voice: plan.voice_benefit || '',
+      sms: plan.sms_benefit || '',
+      features: plan.features || [],
+      channels_count: plan.metadata?.channels_count || 0,
+      hd_channels: plan.metadata?.hd_channels || 0,
+    }));
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        plans: formattedPlans,
+        operator: operator.operator_name,
+        total: formattedPlans.length,
+        message: formattedPlans.length === 0 
+          ? 'No plans available. Plans need to be added to the database manually or via admin panel.'
+          : undefined,
+      },
+    });
   } catch (error: any) {
     console.error('Plans API Error:', error);
     return NextResponse.json(
