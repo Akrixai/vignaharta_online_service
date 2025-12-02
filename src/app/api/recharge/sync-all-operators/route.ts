@@ -36,17 +36,47 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch all operators from KWIKAPI
-    const response = await axios.get(
-      `${KWIKAPI_BASE_URL}/api/v2/operator_codes.php`,
-      {
-        params: { api_key: KWIKAPI_API_KEY },
-        timeout: 30000,
-      }
-    );
+    console.log('Fetching operators from KWIKAPI with key:', KWIKAPI_API_KEY?.substring(0, 10) + '...');
+    
+    let response;
+    try {
+      response = await axios.get(
+        `${KWIKAPI_BASE_URL}/api/v2/operator_codes.php`,
+        {
+          params: { api_key: KWIKAPI_API_KEY },
+          timeout: 30000,
+        }
+      );
+    } catch (axiosError: any) {
+      console.error('KWIKAPI API Error:', {
+        status: axiosError.response?.status,
+        statusText: axiosError.response?.statusText,
+        data: axiosError.response?.data,
+        message: axiosError.message,
+      });
+      
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: `KWIKAPI API Error: ${axiosError.response?.data || axiosError.message}`,
+          details: {
+            status: axiosError.response?.status,
+            data: axiosError.response?.data,
+          }
+        },
+        { status: 500 }
+      );
+    }
+
+    console.log('KWIKAPI Response:', response.data);
 
     if (!response.data || !response.data.response) {
       return NextResponse.json(
-        { success: false, message: 'Failed to fetch operators from KWIKAPI' },
+        { 
+          success: false, 
+          message: 'Invalid response from KWIKAPI',
+          response: response.data 
+        },
         { status: 500 }
       );
     }
