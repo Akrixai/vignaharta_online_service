@@ -157,59 +157,71 @@ export async function POST(request: NextRequest) {
       metadata: { recharge_transaction_id: transaction.id },
     });
 
+    // Get KWIKAPI operator ID (opid) from operator_code
+    // You need to map your operator_code to KWIKAPI's opid
+    // This should be stored in your recharge_operators table
+    const { data: operatorMapping } = await supabase
+      .from('recharge_operators')
+      .select('metadata')
+      .eq('operator_code', operator_code)
+      .single();
+
+    const opid = operatorMapping?.metadata?.kwikapi_opid || operator.id;
+
     // Process recharge with KWIKAPI
     let rechargeResponse;
-    const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/callback`;
 
     try {
       switch (service_type.toUpperCase()) {
         case 'PREPAID':
           rechargeResponse = await kwikapi.rechargePrepaid({
-            operator_code,
-            mobile_number: mobile_number!,
+            opid: parseInt(opid),
+            number: mobile_number!,
             amount,
-            circle_code: circle_code!,
-            plan_id,
-            transaction_ref: transactionRef,
-            customer_name: customer_name || user.name,
-            email: user.email,
-            callback_url: callbackUrl,
+            circle: circle_code,
+            order_id: transactionRef,
+            mobile: mobile_number!,
+            opt1: plan_id,
           });
           break;
 
         case 'POSTPAID':
           rechargeResponse = await kwikapi.rechargePostpaid({
-            operator_code,
-            mobile_number: mobile_number!,
+            opid: parseInt(opid),
+            number: mobile_number!,
             amount,
-            circle_code: circle_code!,
-            transaction_ref: transactionRef,
-            customer_name: customer_name || user.name,
-            email: user.email,
+            circle: circle_code,
+            order_id: transactionRef,
+            mobile: mobile_number!,
+            ref_id: body.ref_id, // From bill fetch if available
           });
           break;
 
         case 'DTH':
           rechargeResponse = await kwikapi.rechargeDTH({
-            operator_code,
-            dth_number: dth_number!,
+            opid: parseInt(opid),
+            number: dth_number!,
             amount,
-            plan_id: plan_id!,
-            transaction_ref: transactionRef,
-            customer_name: customer_name || user.name,
-            email: user.email,
+            order_id: transactionRef,
+            mobile: mobile_number || user.email,
+            opt1: plan_id,
           });
           break;
 
         case 'ELECTRICITY':
+        case 'GAS':
+        case 'WATER':
           rechargeResponse = await kwikapi.payElectricityBill({
-            operator_code,
+            opid: parseInt(opid),
             consumer_number: consumer_number!,
             amount,
-            circle_code: circle_code!,
-            transaction_ref: transactionRef,
-            customer_name: customer_name || user.name,
-            email: user.email,
+            order_id: transactionRef,
+            mobile: mobile_number || user.email,
+            circle: circle_code,
+            ref_id: body.ref_id, // From bill fetch
+            opt1: body.opt1,
+            opt2: body.opt2,
+            opt3: body.opt3,
           });
           break;
 

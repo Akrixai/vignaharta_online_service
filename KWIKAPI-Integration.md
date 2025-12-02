@@ -1,880 +1,397 @@
-# KWIKAPI v3.0.0 - Integration Guide
-## Prepaid, Postpaid, DTH, Electricity Bill & Plan Fetch APIs
 
----
+KWIKAPI Integration Guide (Portal)
+1. Authentication & Base
+Base URL: https://www.kwikapi.com
 
-## 1. BASE CONFIGURATION
+Auth: api_key (your secret key) is mandatory in all calls.​
 
-### API Base URL
-```
-https://api.kwikapi.com/v3/
-```
+Common header:
 
-### Authentication Headers
-```
-Content-Type: application/json
-Authorization: Bearer YOUR_API_KEY
-X-Request-ID: unique-request-id
-```
-
-### Response Format
-- **Default:** JSON
-- **Status Codes:** 200 (Success), 400 (Bad Request), 401 (Unauthorized), 500 (Server Error)
-
----
-
-## 2. PREPAID RECHARGE API
-
-### Endpoint
-```
-POST https://api.kwikapi.com/v3/recharge/prepaid
-```
-
-### Request Headers
-```json
-{
-  "Content-Type": "application/json",
-  "Authorization": "Bearer YOUR_API_KEY",
-  "X-Request-ID": "unique-timestamp-id"
-}
-```
-
-### Request Body
-```json
-{
-  "operator_code": "VI",
-  "mobile_number": "9999999999",
-  "amount": 499,
-  "circle_code": "AP",
-  "plan_id": "plan_12345",
-  "transaction_ref": "TXN_1234567890",
-  "customer_name": "John Doe",
-  "email": "john@example.com",
-  "callback_url": "https://yourportal.com/callback"
-}
-```
-
-### Request Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| operator_code | string | Yes | Operator code (VI, AIRTEL, IDEA, JIOAIRTEL) |
-| mobile_number | string | Yes | Customer mobile number (10 digits) |
-| amount | integer | Yes | Recharge amount in ₹ (minimum: ₹10) |
-| circle_code | string | Yes | Circle code (AP, TN, MP, etc.) |
-| plan_id | string | No | Specific plan ID if available |
-| transaction_ref | string | Yes | Unique transaction reference from your system |
-| customer_name | string | No | Customer name |
-| email | string | No | Customer email for confirmation |
-| callback_url | string | No | Callback URL for transaction status |
-
-### Sample Success Response
-```json
-{
-  "status": 200,
-  "success": true,
-  "message": "Prepaid recharge request accepted",
-  "data": {
-    "transaction_id": "KWK_1234567890",
-    "operator_txn_id": "OP_9876543210",
-    "mobile_number": "9999999999",
-    "amount": 499,
-    "operator": "VODAFONE IDEA",
-    "circle": "AP",
-    "status": "SUCCESS",
-    "timestamp": "2025-12-01T19:31:00Z",
-    "validity": "365 days"
-  }
-}
-```
-
-### Sample Error Response
-```json
-{
-  "status": 400,
-  "success": false,
-  "message": "Invalid mobile number format",
-  "error_code": "INVALID_MOBILE",
-  "data": null
-}
-```
-
-### cURL Example
-```bash
-curl -X POST https://api.kwikapi.com/v3/recharge/prepaid \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "operator_code": "VI",
-    "mobile_number": "9999999999",
-    "amount": 499,
-    "circle_code": "AP",
-    "transaction_ref": "TXN_1234567890"
-  }'
-```
-
-### JavaScript/Node.js Example
-```javascript
-const axios = require('axios');
-
-async function rechargePreaid() {
-  try {
-    const response = await axios.post(
-      'https://api.kwikapi.com/v3/recharge/prepaid',
-      {
-        operator_code: 'VI',
-        mobile_number: '9999999999',
-        amount: 499,
-        circle_code: 'AP',
-        transaction_ref: 'TXN_' + Date.now()
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer YOUR_API_KEY'
-        }
-      }
-    );
-    console.log('Recharge Success:', response.data);
-    return response.data;
-  } catch (error) {
-    console.error('Error:', error.response.data);
-  }
-}
-```
-
----
-
-## 3. POSTPAID RECHARGE API
-
-### Endpoint
-```
-POST https://api.kwikapi.com/v3/recharge/postpaid
-```
-
-### Request Headers
-```json
-{
-  "Content-Type": "application/json",
-  "Authorization": "Bearer YOUR_API_KEY",
-  "X-Request-ID": "unique-timestamp-id"
-}
-```
-
-### Request Body
-```json
-{
-  "operator_code": "AIRTEL",
-  "mobile_number": "9999999999",
-  "amount": 500,
-  "circle_code": "MH",
-  "customer_account_id": "ACC_12345",
-  "transaction_ref": "TXN_1234567890",
-  "customer_name": "Jane Doe",
-  "email": "jane@example.com",
-  "payment_mode": "WALLET"
-}
-```
-
-### Request Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| operator_code | string | Yes | Operator code (AIRTEL, VI, JIOAIRTEL) |
-| mobile_number | string | Yes | Postpaid connection number (10 digits) |
-| amount | integer | Yes | Bill payment amount in ₹ |
-| circle_code | string | Yes | Circle code |
-| customer_account_id | string | No | Customer account ID from operator |
-| transaction_ref | string | Yes | Unique transaction reference |
-| customer_name | string | No | Customer name |
-| email | string | No | Customer email |
-| payment_mode | string | No | Payment mode (WALLET, CARD, BANK) |
-
-### Sample Success Response
-```json
-{
-  "status": 200,
-  "success": true,
-  "message": "Postpaid bill payment accepted",
-  "data": {
-    "transaction_id": "KWK_1234567890",
-    "operator_txn_id": "OP_9876543210",
-    "mobile_number": "9999999999",
-    "amount": 500,
-    "operator": "AIRTEL",
-    "circle": "MH",
-    "status": "SUCCESS",
-    "bill_period": "November 2025",
-    "timestamp": "2025-12-01T19:31:00Z"
-  }
-}
-```
-
-### Sample Error Response
-```json
-{
-  "status": 400,
-  "success": false,
-  "message": "Insufficient balance in wallet",
-  "error_code": "INSUFFICIENT_BALANCE",
-  "data": null
-}
-```
-
----
-
-## 4. DTH RECHARGE API
-
-### Endpoint
-```
-POST https://api.kwikapi.com/v3/recharge/dth
-```
-
-### Request Headers
-```json
-{
-  "Content-Type": "application/json",
-  "Authorization": "Bearer YOUR_API_KEY",
-  "X-Request-ID": "unique-timestamp-id"
-}
-```
-
-### Request Body
-```json
-{
-  "operator_code": "TATASKY",
-  "dth_number": "9876543210",
-  "amount": 299,
-  "plan_id": "TATASKY_PLAN_12345",
-  "transaction_ref": "TXN_1234567890",
-  "customer_name": "Ram Kumar",
-  "email": "ram@example.com"
-}
-```
-
-### Request Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| operator_code | string | Yes | DTH Operator (TATASKY, DISHD2H, SUNTV, VIDEOCON) |
-| dth_number | string | Yes | DTH subscription number (10-12 digits) |
-| amount | integer | Yes | Recharge amount in ₹ |
-| plan_id | string | Yes | DTH Plan ID |
-| transaction_ref | string | Yes | Unique transaction reference |
-| customer_name | string | No | Customer name |
-| email | string | No | Customer email |
-
-### DTH Operators Supported
-- **TATASKY** - TataSky
-- **DISHD2H** - Dish TV
-- **SUNTV** - Sun Direct
-- **VIDEOCON** - Videocon D2H
-- **BIGTV** - Big TV
-
-### Sample Success Response
-```json
-{
-  "status": 200,
-  "success": true,
-  "message": "DTH recharge request accepted",
-  "data": {
-    "transaction_id": "KWK_1234567890",
-    "operator_txn_id": "OP_9876543210",
-    "dth_number": "9876543210",
-    "amount": 299,
-    "operator": "TATASKY",
-    "status": "SUCCESS",
-    "plan_validity": "28 days",
-    "plan_name": "Premium HD Pack",
-    "timestamp": "2025-12-01T19:31:00Z"
-  }
-}
-```
-
-### cURL Example
-```bash
-curl -X POST https://api.kwikapi.com/v3/recharge/dth \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "operator_code": "TATASKY",
-    "dth_number": "9876543210",
-    "amount": 299,
-    "plan_id": "TATASKY_PLAN_12345",
-    "transaction_ref": "TXN_1234567890"
-  }'
-```
-
----
-
-## 5. ELECTRICITY BILL PAYMENT API
-
-### Endpoint
-```
-POST https://api.kwikapi.com/v3/bill/electricity
-```
-
-### Request Headers
-```json
-{
-  "Content-Type": "application/json",
-  "Authorization": "Bearer YOUR_API_KEY",
-  "X-Request-ID": "unique-timestamp-id"
-}
-```
-
-### Request Body
-```json
-{
-  "operator_code": "MSEDCL",
-  "consumer_number": "123456789012",
-  "amount": 1500,
-  "circle_code": "MH",
-  "bill_month": "11",
-  "bill_year": "2025",
-  "transaction_ref": "TXN_1234567890",
-  "customer_name": "Priya Singh",
-  "email": "priya@example.com"
-}
-```
-
-### Request Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| operator_code | string | Yes | Electricity board code (MSEDCL, BESCOM, TNEB, etc.) |
-| consumer_number | string | Yes | Consumer/meter ID |
-| amount | integer | Yes | Bill amount in ₹ |
-| circle_code | string | Yes | Circle/region code |
-| bill_month | string | No | Bill month (01-12) |
-| bill_year | string | No | Bill year (YYYY) |
-| transaction_ref | string | Yes | Unique transaction reference |
-| customer_name | string | No | Customer name |
-| email | string | No | Customer email |
-
-### Electricity Operators Supported
-- **MSEDCL** - Maharashtra State
-- **BESCOM** - Bangalore Electric
-- **TNEB** - Tamil Nadu
-- **WESCO** - Western Electricity
-- **NESCO** - Northern Electricity
-- **KPTCL** - Karnataka
-- **APCPDCL** - Andhra Pradesh
-
-### Sample Success Response
-```json
-{
-  "status": 200,
-  "success": true,
-  "message": "Electricity bill payment accepted",
-  "data": {
-    "transaction_id": "KWK_1234567890",
-    "operator_txn_id": "EB_9876543210",
-    "consumer_number": "123456789012",
-    "amount": 1500,
-    "operator": "MSEDCL",
-    "bill_month": "November",
-    "bill_year": "2025",
-    "status": "SUCCESS",
-    "due_date": "2025-12-15",
-    "timestamp": "2025-12-01T19:31:00Z"
-  }
-}
-```
-
-### Bill Fetch API (Before Payment)
-```
-GET https://api.kwikapi.com/v3/bill/electricity/fetch?operator_code=MSEDCL&consumer_number=123456789012&circle_code=MH
-```
-
-### Bill Fetch Response
-```json
-{
-  "status": 200,
-  "success": true,
-  "message": "Bill fetched successfully",
-  "data": {
-    "consumer_number": "123456789012",
-    "consumer_name": "Priya Singh",
-    "amount": 1500,
-    "due_amount": 1500,
-    "bill_month": "November",
-    "bill_year": "2025",
-    "due_date": "2025-12-15",
-    "late_fee": 0,
-    "last_payment_date": "2025-10-15",
-    "operator": "MSEDCL"
-  }
-}
-```
-
----
-
-## 6. PLAN FETCH API - PREPAID
-
-### Endpoint
-```
-GET https://api.kwikapi.com/v3/plans/prepaid?operator_code=VI&circle_code=AP
-```
-
-### Request Headers
-```json
-{
-  "Content-Type": "application/json",
-  "Authorization": "Bearer YOUR_API_KEY"
-}
-```
-
-### Query Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| operator_code | string | Yes | Operator code (VI, AIRTEL, IDEA, JIOAIRTEL) |
-| circle_code | string | Yes | Circle code (AP, TN, MH, etc.) |
-| min_amount | integer | No | Minimum plan amount filter |
-| max_amount | integer | No | Maximum plan amount filter |
-| validity | string | No | Validity filter (daily, monthly, yearly) |
-
-### Sample Success Response
-```json
-{
-  "status": 200,
-  "success": true,
-  "message": "Plans fetched successfully",
-  "data": {
-    "operator": "VODAFONE IDEA",
-    "circle": "AP",
-    "total_plans": 45,
-    "plans": [
-      {
-        "plan_id": "VI_AP_99_1",
-        "amount": 99,
-        "validity": "7 days",
-        "type": "TOP_UP",
-        "description": "99 Top Up",
-        "data": "0 GB",
-        "voice": "Unlimited",
-        "sms": "Unlimited",
-        "features": []
-      },
-      {
-        "plan_id": "VI_AP_299_1",
-        "amount": 299,
-        "validity": "28 days",
-        "type": "FULL_TALKTIME",
-        "description": "Complete 4G Data Plan",
-        "data": "1.5 GB/day",
-        "voice": "Unlimited",
-        "sms": "Unlimited",
-        "features": ["4G DATA", "PRIME", "VAS"]
-      },
-      {
-        "plan_id": "VI_AP_499_1",
-        "amount": 499,
-        "validity": "28 days",
-        "type": "DATA_PLAN",
-        "description": "Premium Data Plan",
-        "data": "2 GB/day",
-        "voice": "Unlimited",
-        "sms": "100 SMS/day",
-        "features": ["4G DATA", "ROAMING", "PRIME"]
-      },
-      {
-        "plan_id": "VI_AP_1499_1",
-        "amount": 1499,
-        "validity": "84 days",
-        "type": "COMBO_PLAN",
-        "description": "Quarterly Combo",
-        "data": "3 GB/day",
-        "voice": "Unlimited",
-        "sms": "Unlimited",
-        "features": ["4G DATA", "STREAMING", "ROAMING"]
-      }
-    ]
-  }
-}
-```
-
----
-
-## 7. PLAN FETCH API - DTH
-
-### Endpoint
-```
-GET https://api.kwikapi.com/v3/plans/dth?operator_code=TATASKY
-```
-
-### Request Headers
-```json
-{
-  "Content-Type": "application/json",
-  "Authorization": "Bearer YOUR_API_KEY"
-}
-```
-
-### Query Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| operator_code | string | Yes | DTH operator code |
-| min_amount | integer | No | Minimum plan amount |
-| max_amount | integer | No | Maximum plan amount |
-| category | string | No | Category (ENTERTAINMENT, SPORTS, HD, etc.) |
-
-### Sample Success Response
-```json
-{
-  "status": 200,
-  "success": true,
-  "message": "DTH plans fetched successfully",
-  "data": {
-    "operator": "TATASKY",
-    "total_plans": 32,
-    "plans": [
-      {
-        "plan_id": "TATASKY_PLAN_99_1",
-        "amount": 99,
-        "validity": "1 month",
-        "category": "ENTERTAINMENT",
-        "channels_count": 50,
-        "description": "Entertainment Basic Pack",
-        "hd_channels": 5
-      },
-      {
-        "plan_id": "TATASKY_PLAN_199_1",
-        "amount": 199,
-        "validity": "1 month",
-        "category": "ENTERTAINMENT",
-        "channels_count": 100,
-        "description": "Entertainment Premium Pack",
-        "hd_channels": 15
-      },
-      {
-        "plan_id": "TATASKY_PLAN_299_1",
-        "amount": 299,
-        "validity": "1 month",
-        "category": "COMBO",
-        "channels_count": 150,
-        "description": "Full Pack with Sports",
-        "hd_channels": 25
-      },
-      {
-        "plan_id": "TATASKY_PLAN_399_1",
-        "amount": 399,
-        "validity": "1 month",
-        "category": "SPORTS",
-        "channels_count": 180,
-        "description": "Premium with All Sports",
-        "hd_channels": 40
-      }
-    ]
-  }
-}
-```
-
----
-
-## 8. OPERATOR & CIRCLE CHECK API
-
-### Endpoint
-```
-GET https://api.kwikapi.com/v3/operator/check?mobile_number=9999999999
-```
-
-### Request Headers
-```json
-{
-  "Authorization": "Bearer YOUR_API_KEY"
-}
-```
-
-### Query Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| mobile_number | string | Yes | Mobile number (10 digits) |
-
-### Sample Success Response
-```json
-{
-  "status": 200,
-  "success": true,
-  "message": "Operator detected successfully",
-  "data": {
-    "mobile_number": "9999999999",
-    "operator_code": "VI",
-    "operator_name": "VODAFONE IDEA",
-    "circle_code": "AP",
-    "circle_name": "Andhra Pradesh",
-    "operator_type": "PREPAID",
-    "sms_sent": true
-  }
-}
-```
-
----
-
-## 9. TRANSACTION STATUS API
-
-### Endpoint
-```
-GET https://api.kwikapi.com/v3/transaction/status?transaction_id=KWK_1234567890
-```
-
-### Request Headers
-```json
-{
-  "Authorization": "Bearer YOUR_API_KEY"
-}
-```
-
-### Query Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| transaction_id | string | Yes | KwikAPI transaction ID |
-
-### Sample Success Response
-```json
-{
-  "status": 200,
-  "success": true,
-  "message": "Transaction found",
-  "data": {
-    "transaction_id": "KWK_1234567890",
-    "operator_txn_id": "OP_9876543210",
-    "service": "PREPAID_RECHARGE",
-    "amount": 499,
-    "status": "SUCCESS",
-    "created_at": "2025-12-01T19:31:00Z",
-    "completed_at": "2025-12-01T19:31:45Z",
-    "operator": "VODAFONE IDEA",
-    "mobile_number": "9999999999"
-  }
-}
-```
-
----
-
-## 10. ERROR CODES REFERENCE
-
-| Error Code | HTTP Status | Description | Resolution |
-|-----------|-------------|-------------|-----------|
-| INVALID_MOBILE | 400 | Invalid mobile number format | Check mobile number (must be 10 digits) |
-| INVALID_OPERATOR | 400 | Invalid operator code | Verify operator code from supported list |
-| INVALID_AMOUNT | 400 | Amount is out of range | Check min/max amount for operator |
-| INSUFFICIENT_BALANCE | 402 | Insufficient wallet balance | Add funds to wallet |
-| UNAUTHORIZED | 401 | Invalid or missing API key | Check authorization header |
-| RATE_LIMIT_EXCEEDED | 429 | Too many requests | Wait before retrying |
-| OPERATOR_DOWN | 503 | Operator service unavailable | Retry after some time |
-| INVALID_CIRCLE | 400 | Invalid circle code | Verify circle code |
-| TRANSACTION_EXISTS | 409 | Duplicate transaction | Check transaction history |
-| INTERNAL_ERROR | 500 | Server error | Contact support |
-
----
-
-## 11. INTEGRATION FLOW DIAGRAM
-
-```
-User Portal
-    ↓
-1. Check Operator → Circle Detection API
-    ↓
-2. Fetch Plans → Plan Fetch API (Prepaid/DTH)
-    ↓
-3. User Selects Plan
-    ↓
-4. Submit Recharge → Recharge API (Prepaid/Postpaid/DTH)
-    ↓
-5. Check Status → Transaction Status API
-    ↓
-6. Show Success/Failure to User
-```
-
----
-
-## 12. IMPLEMENTATION BEST PRACTICES
-
-### 1. **Always Use Unique Transaction References**
-```javascript
-const transactionRef = 'TXN_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-```
-
-### 2. **Implement Retry Logic**
-```javascript
-async function rechargeWithRetry(params, maxRetries = 3) {
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      const response = await axios.post(API_URL, params);
-      return response.data;
-    } catch (error) {
-      if (i === maxRetries - 1) throw error;
-      await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-    }
-  }
-}
-```
-
-### 3. **Always Fetch Transaction Status**
-```javascript
-// After recharge submission, always fetch status to verify
-async function verifyTransaction(transactionId) {
-  const response = await axios.get(
-    `https://api.kwikapi.com/v3/transaction/status?transaction_id=${transactionId}`,
-    { headers: { 'Authorization': `Bearer ${API_KEY}` } }
-  );
-  return response.data.data;
-}
-```
-
-### 4. **Handle Callbacks**
-```javascript
-app.post('/kwikapi-callback', (req, res) => {
-  const { transaction_id, status, amount } = req.body;
-  
-  // Update your database
-  updateTransaction(transaction_id, status);
-  
-  // Send confirmation to user
-  notifyUser(transaction_id, status);
-  
-  res.json({ success: true });
-});
-```
-
----
-
-## 13. RATE LIMITS
-
-- **Prepaid Recharge:** 100 requests/minute
-- **Postpaid Recharge:** 100 requests/minute
-- **DTH Recharge:** 100 requests/minute
-- **Bill Payment:** 50 requests/minute
-- **Plan Fetch:** 1000 requests/minute (cached)
-- **Status Check:** 500 requests/minute
-
----
-
-## 14. COMMON ERRORS & SOLUTIONS
-
-### Error: `"INVALID_MESSAGE_FORMAT"`
-**Cause:** Missing or incorrect parameters
-**Solution:** Verify all required parameters are present
-
-### Error: `"OPERATOR_DOWN"`
-**Cause:** Operator service temporarily unavailable
-**Solution:** Implement retry logic with exponential backoff
-
-### Error: `"INSUFFICIENT_BALANCE"`
-**Cause:** Wallet balance is low
-**Solution:** Display message to user and ask to add funds
-
-### Error: `"RATE_LIMIT_EXCEEDED"`
-**Cause:** Too many requests sent
-**Solution:** Implement request queuing and rate limiting
-
----
-
-## 15. WEBHOOK/CALLBACK STRUCTURE
-
-When you provide a `callback_url` in requests, KwikAPI will POST this data:
-
-```json
-{
-  "transaction_id": "KWK_1234567890",
-  "operator_txn_id": "OP_9876543210",
-  "service": "PREPAID_RECHARGE",
-  "amount": 499,
-  "status": "SUCCESS",
-  "created_at": "2025-12-01T19:31:00Z",
-  "completed_at": "2025-12-01T19:31:45Z",
-  "operator": "VODAFONE IDEA",
-  "mobile_number": "9999999999",
-  "signature": "hash_for_verification"
-}
-```
-
----
-
-## 16. TESTING ENDPOINTS
-
-Use these test parameters in development:
-
-**Test Mobile Number:** `9876543210`
-**Test DTH Number:** `9988776655`
-**Test Consumer Number:** `123456789012`
-
-Always set `transaction_ref` to `TEST_` + timestamp in development.
-
----
-
-**For more details, visit:** https://documenter.getpostman.com/view/1775965/TzkzrzSr
-**Support Email:** support@kwikapi.com
-**Documentation:** https://kwikapi.com/developers
-
-
-The KwikAPI “wallet balance” API allows you to fetch your current available wallet balance—this is essential for managing your portal’s liquidity and ensuring you have sufficient funds before initiating transactions like recharges, bill payments, and DTH operations.
-
-Wallet Balance API Details
-Endpoint
 text
-GET https://api.kwikapi.com/v3/wallet/balance
-Headers
-json
-{
-  "Authorization": "Bearer YOUR_API_KEY",
-  "Content-Type": "application/json",
-  "X-Request-ID": "unique-request-id" // generate as per earlier instructions
-}
-Request Parameters
-None required in the query or body. Only the exact headers as above.
+Content-Type: application/json
+Accept: application/json
+2. Master Data APIs
+2.1 Biller Details API
+Get details of a single operator (supports deciding bill-fetch, limits, service type).​
 
-Sample Success Response
+Endpoint
+
+text
+POST /api/v2/operatorFetch.php
+Request (form-data)
+
+json
+api_key: YOUR_SECRET_KEY
+opid: 53          // Integer, operator id
+Success Response (example structure)
+
 json
 {
-  "status": 200,
   "success": true,
-  "message": "Balance fetched successfully",
-  "data": {
-    "wallet_balance": 12054.62,
-    "blocked_amount": 1000.00,
-    "available_balance": 11054.62,
-    "currency": "INR",
-    "updated_at": "2025-12-01T18:52:23Z"
+  "STATUS": "SUCCESS",
+  "operator_name": "Uttar Gujarat Vij Company Limited - UGVCL",
+  "operator_id": "53",
+  "service_type": "ELC",
+  "status": "1",
+  "bill_fetch": "NO",
+  "bbps_enabled": "YES",
+  "message": "pass Consumer Number in 'account'",
+  "description": "",
+  "amount_minimum": "1",
+  "amount_maximum": "49999"
+}
+2.2 Circle Codes API
+Use for mobile/DTH circle list in your UI.​
+
+Endpoint
+
+text
+GET /api/v2/circle_codes.php?api_key=YOUR_SECRET_KEY
+Response
+
+json
+{
+  "response": [
+    {
+      "circle_name": "DELHI",
+      "circle_code": "1"
+    },
+    {
+      "circle_name": "Maharashtra",
+      "circle_code": "4"
+    }
+    // ...
+  ]
+}
+3. Bill Fetch (Postpaid, DTH, Electricity, etc.)
+3.1 Bill Fetch v2
+Use only for billers where bill_fetch = "YES" in Biller Details.​
+
+Endpoint
+
+text
+GET /api/v2/bills/validation.php
+Query Parameters
+
+text
+api_key  = YOUR_SECRET_KEY
+number   = 12438555985          // Consumer / account / subscriber id
+amount   = 10                   // Any dummy amount (string)
+opid     = 65                   // Operator id
+order_id = 478245232            // Your unique Txn ID (1–14 digits)
+opt1     = opt1                 // Optional
+opt2     = opt2                 // Optional
+opt3     = opt3                 // Optional
+opt4     = opt4                 // Optional
+opt5     = opt5                 // Optional
+opt6     = opt6                 // Optional
+opt7     = opt7                 // Optional
+opt8     = Bills                // Required literal
+opt9     = opt9                 // Optional
+opt10    = opt10                // Optional
+mobile   = 9999999999           // Customer mobile (10 digits)
+Success Response (structure)
+
+json
+{
+  "status": "SUCCESS",
+  "message": "SUCCESS",
+  "due_amount": "1885.00",
+  "due_date": "13-07-2020",
+  "customer_name": "KUSUM DEVI",
+  "bill_number": "202006005985",
+  "bill_date": "28-06-2020",
+  "bill_period": "MONTHLY",
+  "ref_id": "61936"
+}
+Use ref_id, due_amount, etc. as input to your bill payment API.​
+
+4. Wallet & Reporting APIs
+4.1 Wallet Balance Fetch API
+Use to display current wallet balance in your portal.​
+
+Endpoint
+
+text
+GET /api/v2/balance.php?api_key=YOUR_SECRET_KEY
+Response
+
+json
+{
+  "response": {
+    "balance": "271.67",
+    "plan_credit": "9467"
   }
 }
-Sample Error Response
-json
-{
-  "status": 401,
-  "success": false,
-  "message": "Invalid/Expired token",
-  "error_code": "UNAUTHORIZED",
-  "data": null
-}
-Key Fields in the Response
-wallet_balance — Total (including any blocked for pending transactions)
+4.2 Transaction Status Fetch API
+Use this to check final status (SUCCESS/FAILED/PENDING) of any recharge or bill payment. It is listed in the Postman collection; follow the same style as other GET APIs and always pass api_key and order_id.​
 
-blocked_amount — Amount temporarily unavailable (for pendings)
+4.3 Last 100 Transactions Fetch API
+Use for admin/user transaction list. It is a POST API in the collection; body will at least include api_key, with optional filters if shown in your Postman view.​
 
-available_balance — Usable for new requests
+5. Recharge & Payment APIs (From Collection)
+These are present in your Postman collection menu (names exactly):​
 
-currency — e.g. "INR"
+Purpose	Collection name	Notes
+Prepaid / DTH Recharge	“Prepaid/DTH Recharge”	Use for mobile prepaid, DTH top-up.
+Utility payments	“Utility Payments”	For electricity / other billers.
+Postpaid/Fastag	“Postpaid/Fastag Recharge”	Marked Deprecated – avoid for new.
+​
 
-updated_at — Timestamp of last fetch
+Each of these uses the same patterns as above:
 
-Usage
-Use this endpoint periodically or before critical transactions.
+Always include api_key, opid, number, amount, order_id, mobile.
 
-Useful for automated checks to warn admin when funds are low.
+For bill-based utilities, also send ref_id from Bill Fetch v2.
 
-Ensure to always pass a unique X-Request-ID.
+Use opt1–opt10 fields when the operator’s description (from Biller Details) says extra inputs like “pass Consumer Number in 'account'” etc.​
 
-Sample cURL
-bash
-curl -X GET https://api.kwikapi.com/v3/wallet/balance \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -H "X-Request-ID: req_1234567890123"
-Best Practice
-Check the available_balance field before initiating user recharges or payments to avoid failures due to low funds.
+Refer to the exact request/response bodies under those three items in your Postman page and plug them into this structure for your Swagger/postman-to-code generation.​
+
+6. Headers Summary
+For all above APIs:
+
+text
+Content-Type: application/x-www-form-urlencoded   // for form-data style requests
+Accept: application/json
+Plus either:
+
+api_key in query string (GET) or
+
+api_key in body/form-data (POST), as shown in each example above.
+For your portal (prepaid/postpaid mobile, DTH, electricity, bill fetch, payments, wallet balance, and status), you will need a fixed set of KWIKAPI endpoints with common auth and headers. Below is a concise list of the required APIs with method, URL, basic request structure, and typical response fields so you can wire your frontend and backend.
+
+Common headers and auth
+All APIs use the same authentication via api_key (your secret key).​
+
+Send these headers with every request:​
+
+Content-Type: application/json for JSON body requests, or application/x-www-form-urlencoded for form-data.
+
+Optional: Accept: application/json.
+
+Most GET APIs pass api_key as a query parameter; most POST APIs pass it in body/form-data.​
+
+Reference / master data APIs
+You should call these periodically and cache in your DB.
+
+Circle codes (for mobile/DTH)
+Purpose: Get list of telecom circles for prepaid/postpaid/DTH.​
+
+Method & URL:
+GET https://www.kwikapi.com/api/v2/circle_codes.php?api_key=YOUR_SECRET_KEY​
+
+Request:
+
+Query: api_key=YOUR_SECRET_KEY
+
+Response (main fields):
+
+response[]: each has circle_name, circle_code.​
+
+Biller / operator details (find opid, bill_fetch support)
+Purpose: Get details for a particular operator (mobile/DTH/electricity, etc.), including whether bill fetch is allowed, amount limits, and service type (PRE, PST, DTH, ELC, etc.).​
+
+Method & URL:
+POST https://www.kwikapi.com/api/v2/operatorFetch.php​
+
+Body (form-data or JSON):
+
+api_key (string)
+
+opid (integer operator id returned from your master list UI or their operator list API)
+
+Response (main fields):
+
+success (bool), STATUS (“SUCCESS”/“FAILED”)
+
+operator_name, operator_id, service_type (e.g., PRE, PST, DTH, ELC)
+
+bill_fetch (“YES”/“NO”), bbps_enabled (“YES”/“NO`)
+
+amount_minimum, amount_maximum, message.​
+
+(If your documentation section has “Biller List API” and “Operator & Circle Fetch API”, use those similarly to get all operators filtered by service type for your dropdowns.)​
+
+Bill fetch (for postpaid, DTH, electricity, etc.)
+Use this when bill_fetch=YES for that operator.
+
+Bill Fetch v2 (non-deprecated)
+Purpose: Fetch bill details (amount, due date, customer name, bill number, etc.).​
+
+Method & URL:
+GET https://www.kwikapi.com/api/v2/bills/validation.php​
+
+Required query params:
+
+api_key = YOUR_SECRET_KEY
+
+number = Consumer/account number (or mobile/DTH subscriber id as per operator)
+
+amount = any dummy amount (string, e.g., 10)
+
+opid = operator id
+
+order_id = your unique transaction id (1–14 digits)
+
+opt8 = "Bills" (required)
+
+mobile = customer mobile (10-digit)
+
+Optional query params:
+
+opt1 … opt7, opt9, opt10 for extra inputs (cycle, subdivision, date of birth, etc. if required by operator).​
+
+Response (main fields):
+
+status, message
+
+due_amount, due_date
+
+customer_name
+
+bill_number, bill_date, bill_period
+
+ref_id (you will often need this ref_id in the actual bill-payment API).​
+
+Payment APIs you will wire into your portal
+Your KWIKAPI Postman collection has separate entries under “Payment APIs” for:​
+
+Use case	Likely endpoint path (v2)	Method	Notes
+Prepaid mobile/DTH	/api/v2/recharge.php or similar “Prepaid/DTH Recharge” entry	GET/POST	For mobile prepaid and DTH top-up. ​
+Postpaid mobile	Deprecated Fastag/Postpaid recharge entry; use standard utility/bbps-style payment if bill-fetch based. ​		
+Utility payments	/api/v2/bills/pay.php or equivalent “Utility Payments” entry	GET/POST	Used for electricity, water, gas, postpaid, etc. with ref_id. ​
+Because your Postman page only partially shows these, use the exact endpoint names from the “Prepaid/DTH Recharge” and “Utility Payments” sections; the request pattern is typically:​
+
+Typical request fields (Prepaid/DTH)
+api_key – your key
+
+number – mobile number or DTH card/customer id
+
+amount – recharge amount
+
+opid – operator id
+
+order_id – unique transaction id
+
+circle – circle code (for prepaid mobile where required)
+
+mobile – customer contact mobile (often same as number)
+
+Optional: opt1…opt10 depending on operator requirements.​
+
+Typical request fields (Utility / bill payment)
+api_key
+
+number – consumer/account id
+
+amount – bill amount (usually from bill fetch API)
+
+opid – operator id
+
+order_id – your transaction id
+
+ref_id – from Bill Fetch v2 response (critical for BBPS-style payments)
+
+mobile – customer mobile
+
+opt* – any operator-specific extra fields.​
+
+Typical payment response fields
+status (“SUCCESS” / “FAILED” / “PENDING”)
+
+message – human readable
+
+order_id – your id
+
+txid / rrn / operator_ref – gateway or operator reference
+
+amount – debited amount
+
+number – account/mobile number
+
+Sometimes balance or commission.​
+
+You will also need to implement:
+
+Transaction Status Fetch API – to poll the final status when you get PENDING.
+
+Last 100 Transactions Fetch API – for your admin/user transaction history screen.​
+
+Wallet balance and status-related APIs
+Wallet balance fetch
+Purpose: Show available wallet balance in your portal for deciding if a recharge/payment can proceed.​
+
+Method & URL:
+GET https://www.kwikapi.com/api/v2/balance.php?api_key=YOUR_SECRET_KEY (or with api_key as param/body as in docs).​
+
+Request:
+
+Query: api_key=YOUR_SECRET_KEY
+
+Response (main fields):
+
+response.balance – current wallet balance
+
+response.plan_credit – plan credit if applicable.​
+
+Transaction status fetch
+Purpose: Check the latest status of a recharge/bill payment.​
+
+Endpoint: “Transaction Status Fetch Api” in your collection, usually something like:
+GET /api/v2/status.php?api_key=...&order_id=...
+
+Key params:
+
+api_key
+
+order_id (your transaction id sent originally).
+
+Response:
+
+status, message, gateway references, and sometimes full transaction object.​
+
+Last 100 transactions
+Purpose: Show a transaction list in your admin dashboard or user “My Orders” screen.​
+
+Endpoint: “Last 100 Transactions Fetch Api” (POST).
+
+Body:
+
+api_key
+
+Optional filters like from_date, to_date, service_type depending on their spec.
+
+Response:
+
+Array of transactions with order_id, amount, number, service_type, status, date_time.​
+
+Minimal integration set for your use cases
+For your portal, integrate at least these APIs:
+
+Configuration / master data
+
+Circle Codes API
+
+Biller List / Operator & Circle Fetch API
+
+Biller Details (operatorFetch) API.​
+
+Bill-related
+
+Bill Fetch v2 (validation.php).​
+
+Payments
+
+Prepaid/DTH Recharge API
+
+Utility Payments API (for electricity, postpaid, other BBPS billers).​
+
+Wallet and status
+
+Wallet Balance Fetch API
+
+Transaction Status Fetch API
+
+Last 100 Transactions API.​
+

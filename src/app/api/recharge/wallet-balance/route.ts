@@ -13,21 +13,47 @@ export async function GET(request: NextRequest) {
     const balanceResponse = await kwikapi.getWalletBalance();
 
     if (balanceResponse.success) {
+      const balance = balanceResponse.data.balance || '0';
+      const planCredit = balanceResponse.data.plan_credit || '0';
+
       // Update local database
-      await supabase
+      const { data: existingWallet } = await supabase
         .from('kwikapi_wallet')
-        .upsert({
-          wallet_balance: balanceResponse.data.wallet_balance,
-          blocked_amount: balanceResponse.data.blocked_amount,
-          available_balance: balanceResponse.data.available_balance,
-          currency: balanceResponse.data.currency,
+        .select('id')
+        .limit(1)
+        .single();
+
+      if (existingWallet) {
+        await supabase
+          .from('kwikapi_wallet')
+          .update({
+            wallet_balance: parseFloat(balance),
+            available_balance: parseFloat(balance),
+            blocked_amount: 0,
+            currency: 'INR',
+            last_updated: new Date().toISOString(),
+            api_response: balanceResponse.data,
+          })
+          .eq('id', existingWallet.id);
+      } else {
+        await supabase.from('kwikapi_wallet').insert({
+          wallet_balance: parseFloat(balance),
+          available_balance: parseFloat(balance),
+          blocked_amount: 0,
+          currency: 'INR',
           last_updated: new Date().toISOString(),
           api_response: balanceResponse.data,
         });
+      }
 
       return NextResponse.json({
         success: true,
-        data: balanceResponse.data,
+        data: {
+          balance: parseFloat(balance),
+          plan_credit: parseFloat(planCredit),
+          available_balance: parseFloat(balance),
+          currency: 'INR',
+        },
       });
     }
 
