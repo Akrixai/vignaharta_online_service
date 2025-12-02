@@ -7,34 +7,62 @@ const supabase = createClient(
 );
 
 /**
- * Unified Callback Endpoint for KWIKAPI
+ * Unified Callback Endpoint for KWIKAPI v2
  * Handles callbacks for all recharge types: Prepaid, Postpaid, DTH, Electricity, etc.
+ * 
+ * KWIKAPI v2 Callback Format:
+ * {
+ *   "order_id": "TXN_123456",
+ *   "status": "SUCCESS" | "FAILED" | "PENDING",
+ *   "txid": "operator_transaction_id",
+ *   "operator_txn_id": "operator_ref",
+ *   "amount": "100.00",
+ *   "number": "9999999999",
+ *   "opid": "1",
+ *   "message": "Transaction successful"
+ * }
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const {
+      order_id,
       transaction_id,
+      txid,
       operator_txn_id,
       status,
       amount,
       service,
+      number,
       mobile_number,
       dth_number,
       consumer_number,
+      opid,
+      message,
     } = body;
 
-    console.log('KWIKAPI Callback received:', body);
+    console.log('KWIKAPI v2 Callback received:', body);
 
-    // Find transaction by KWIKAPI transaction ID or transaction reference
+    // KWIKAPI v2 uses order_id (our transaction_ref)
+    const transactionRef = order_id || transaction_id;
+
+    if (!transactionRef) {
+      console.error('No transaction reference in callback:', body);
+      return NextResponse.json(
+        { success: false, message: 'Missing order_id or transaction_id' },
+        { status: 400 }
+      );
+    }
+
+    // Find transaction by transaction reference (order_id)
     const { data: transaction } = await supabase
       .from('recharge_transactions')
       .select('*, user:users(id, email, name, role)')
-      .or(`kwikapi_transaction_id.eq.${transaction_id},transaction_ref.eq.${transaction_id}`)
+      .eq('transaction_ref', transactionRef)
       .single();
 
     if (!transaction) {
-      console.error('Transaction not found:', transaction_id);
+      console.error('Transaction not found:', transactionRef);
       return NextResponse.json(
         { success: false, message: 'Transaction not found' },
         { status: 404 }
@@ -56,18 +84,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const newStatus = status.toUpperCase();
+    // Map KWIKAPI status to our status
+    const statusMap: { [key: string]: string } = {
+      'SUCCESS': 'SUCCESS',
+      'FAILED': 'FAILED',
+      'PENDING': 'PENDING',
+      'REFUNDED': 'REFUNDED',
+    };
+
+    const newStatus = statusMap[status?.toUpperCase()] || 'PENDING';
     const previousStatus = transaction.status;
 
     // Update transaction status
+    const operatorTxnId = txid || operator_txn_id;
+    
     await supabase
       .from('recharge_transactions')
       .update({
         status: newStatus,
-        operator_transaction_id: operator_txn_id,
+        operator_transaction_id: operatorTxnId,
         callback_received: true,
         callback_data: body,
-        completed_at: new Date().toISOString(),
+        completed_at: newStatus !== 'PENDING' ? new Date().toISOString() : null,
+        updated_at: new Date().toISOString(),
       })
       .eq('id', transaction.id);
 
