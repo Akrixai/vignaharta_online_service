@@ -32,15 +32,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Fetch circles from KWIKAPI
-    const circlesResponse = await kwikapi.getCircleCodes();
+    // Fetch circles from KWIKAPI using axios directly
+    const axios = require('axios');
+    const KWIKAPI_BASE_URL = process.env.KWIKAPI_BASE_URL || 'https://www.kwikapi.com';
+    const KWIKAPI_API_KEY = process.env.KWIKAPI_API_KEY!;
+    
+    const response = await axios.get(
+      `${KWIKAPI_BASE_URL}/api/v2/circle_codes.php`,
+      {
+        params: { api_key: KWIKAPI_API_KEY },
+        timeout: 30000,
+      }
+    );
 
-    if (!circlesResponse.success || !circlesResponse.data) {
+    if (!response.data || !response.data.response) {
       return NextResponse.json(
         { success: false, message: 'Failed to fetch circles from KWIKAPI' },
         { status: 500 }
       );
     }
+
+    const circlesResponse = {
+      success: true,
+      data: response.data.response,
+    };
 
     const circles = circlesResponse.data;
     let syncedCount = 0;
