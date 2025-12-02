@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// GET - Fetch all operator configurations
+// GET - Fetch all operators with commission/cashback config
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json(
         { success: false, message: 'Unauthorized' },
@@ -24,50 +25,61 @@ export async function GET(request: NextRequest) {
       .eq('email', session.user.email)
       .single();
 
-    if (user?.role !== 'ADMIN') {
+    if (!user || user.role !== 'ADMIN') {
       return NextResponse.json(
         { success: false, message: 'Admin access required' },
         { status: 403 }
       );
     }
 
-    const { data: operators, error } = await supabase
+    const { searchParams } = new URL(request.url);
+    const serviceType = searchParams.get('service_type');
+
+    let query = supabase
       .from('recharge_operators')
       .select('*')
-      .order('service_type', { ascending: true })
-      .order('operator_name', { ascending: true });
+      .order('operator_name');
+
+    if (serviceType) {
+      query = query.eq('service_type', serviceType.toUpperCase());
+    }
+
+    const { data: operators, error } = await query;
 
     if (error) throw error;
 
-    // Get global config
-    const { data: globalConfig } = await supabase
-      .from('recharge_global_config')
-      .select('config_key, config_value')
-      .in('config_key', ['electricity_commission_rate']);
-
-    const globalConfigMap = globalConfig?.reduce((acc: any, item: any) => {
-      acc[item.config_key] = item.config_value;
-      return acc;
-    }, {});
+    // Filter operators based on service type
+    let filteredOperators = operators || [];
+    
+    // For PREPAID, only show mobile operators (based on KWIKAPI operator IDs)
+    if (serviceType && serviceType.toUpperCase() === 'PREPAID') {
+      // Valid mobile prepaid operator IDs from KWIKAPI documentation
+      // These are the ONLY mobile recharge operators
+      const validMobileOpids = [1, 3, 4, 5, 8, 9, 10, 12, 13, 14, 15, 18, 19, 21];
+      
+      filteredOperators = (operators || []).filter((op: any) => {
+        // STRICT filter: ONLY allow operators with valid mobile kwikapi_opid
+        return op.kwikapi_opid && validMobileOpids.includes(op.kwikapi_opid);
+      });
+    }
 
     return NextResponse.json({
       success: true,
-      data: operators || [],
-      globalConfig: globalConfigMap || {},
+      data: filteredOperators,
     });
   } catch (error: any) {
-    console.error('Recharge Config GET Error:', error);
+    console.error('Get Recharge Config Error:', error);
     return NextResponse.json(
-      { success: false, message: error.message || 'Internal server error' },
+      { success: false, message: error.message },
       { status: 500 }
     );
   }
 }
 
-// PUT - Update operator configuration
+// PUT - Update operator commission/cashback configuration
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json(
         { success: false, message: 'Unauthorized' },
@@ -81,7 +93,7 @@ export async function PUT(request: NextRequest) {
       .eq('email', session.user.email)
       .single();
 
-    if (user?.role !== 'ADMIN') {
+    if (!user || user.role !== 'ADMIN') {
       return NextResponse.json(
         { success: false, message: 'Admin access required' },
         { status: 403 }
@@ -89,7 +101,14 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { operator_id, commission_rate, min_amount, max_amount, is_active } = body;
+    const {
+      operator_id,
+      commission_rate,
+      cashback_enabled,
+      cashback_min_percentage,
+      cashback_max_percentage,
+      is_active,
+    } = body;
 
     if (!operator_id) {
       return NextResponse.json(
@@ -99,10 +118,14 @@ export async function PUT(request: NextRequest) {
     }
 
     const updateData: any = {};
+    
     if (commission_rate !== undefined) updateData.commission_rate = commission_rate;
-    if (min_amount !== undefined) updateData.min_amount = min_amount;
-    if (max_amount !== undefined) updateData.max_amount = max_amount;
+    if (cashback_enabled !== undefined) updateData.cashback_enabled = cashback_enabled;
+    if (cashback_min_percentage !== undefined) updateData.cashback_min_percentage = cashback_min_percentage;
+    if (cashback_max_percentage !== undefined) updateData.cashback_max_percentage = cashback_max_percentage;
     if (is_active !== undefined) updateData.is_active = is_active;
+    
+    updateData.updated_at = new Date().toISOString();
 
     const { data, error } = await supabase
       .from('recharge_operators')
@@ -119,9 +142,72 @@ export async function PUT(request: NextRequest) {
       message: 'Operator configuration updated successfully',
     });
   } catch (error: any) {
-    console.error('Recharge Config PUT Error:', error);
+    console.error('Update Recharge Config Error:', error);
     return NextResponse.json(
-      { success: false, message: error.message || 'Internal server error' },
+      { success: false, message: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+// POST - Bulk update operators
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { success: false, message: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const { data: user } = await supabase
+      .from('users')
+      .select('role')
+      .eq('email', session.user.email)
+      .single();
+
+    if (!user || user.role !== 'ADMIN') {
+      return NextResponse.json(
+        { success: false, message: 'Admin access required' },
+        { status: 403 }
+      );
+    }
+
+    const body = await request.json();
+    const { service_type, commission_rate, cashback_enabled, cashback_min_percentage, cashback_max_percentage } = body;
+
+    if (!service_type) {
+      return NextResponse.json(
+        { success: false, message: 'Service type is required' },
+        { status: 400 }
+      );
+    }
+
+    const updateData: any = { updated_at: new Date().toISOString() };
+    
+    if (commission_rate !== undefined) updateData.commission_rate = commission_rate;
+    if (cashback_enabled !== undefined) updateData.cashback_enabled = cashback_enabled;
+    if (cashback_min_percentage !== undefined) updateData.cashback_min_percentage = cashback_min_percentage;
+    if (cashback_max_percentage !== undefined) updateData.cashback_max_percentage = cashback_max_percentage;
+
+    const { data, error } = await supabase
+      .from('recharge_operators')
+      .update(updateData)
+      .eq('service_type', service_type.toUpperCase())
+      .select();
+
+    if (error) throw error;
+
+    return NextResponse.json({
+      success: true,
+      data,
+      message: `Updated ${data.length} operators for ${service_type}`,
+    });
+  } catch (error: any) {
+    console.error('Bulk Update Recharge Config Error:', error);
+    return NextResponse.json(
+      { success: false, message: error.message },
       { status: 500 }
     );
   }

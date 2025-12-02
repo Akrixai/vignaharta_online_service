@@ -25,9 +25,24 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error;
 
+    // Filter operators based on service type
+    let filteredOperators = data || [];
+    
+    // For PREPAID, only show mobile operators (based on KWIKAPI operator IDs)
+    if (serviceType && serviceType.toUpperCase() === 'PREPAID') {
+      // Valid mobile prepaid operator IDs from KWIKAPI documentation
+      // These are the ONLY mobile recharge operators
+      const validMobileOpids = [1, 3, 4, 5, 8, 9, 10, 12, 13, 14, 15, 18, 19, 21];
+      
+      filteredOperators = (data || []).filter((op: any) => {
+        // STRICT filter: ONLY allow operators with valid mobile kwikapi_opid
+        return op.kwikapi_opid && validMobileOpids.includes(op.kwikapi_opid);
+      });
+    }
+
     return NextResponse.json({
       success: true,
-      data: data || [],
+      data: filteredOperators,
     });
   } catch (error: any) {
     console.error('Operators API Error:', error);

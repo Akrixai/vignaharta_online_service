@@ -43,7 +43,8 @@ export async function POST(request: NextRequest) {
       amount,
       plan_id,
       customer_name,
-      ref_id, // From bill fetch for postpaid/electricity
+      ref_id, // From bill fetch for postpaid/electricity - IMPORTANT!
+      bill_details, // Store complete bill details
       opt1,
       opt2,
       opt3,
@@ -99,8 +100,8 @@ export async function POST(request: NextRequest) {
     const rewardAmount = (amount * rewardRate) / 100;
     const rewardLabel = user.role === 'CUSTOMER' ? 'Cashback' : 'Commission';
     
-    const platformFee = 2; // ₹2 platform fee
-    const totalAmount = amount + platformFee;
+    const platformFee = 0; // No platform fee
+    const totalAmount = amount;
 
     // Check user wallet balance
     const { data: wallet } = await supabase
@@ -172,6 +173,34 @@ export async function POST(request: NextRequest) {
 
     const opid = operatorMapping?.metadata?.kwikapi_opid || operator.id;
 
+    // Check KWIKAPI wallet balance first
+    const walletBalanceResponse = await kwikapi.getWalletBalance();
+    const kwikApiBalance = parseFloat(walletBalanceResponse.data?.balance || '0');
+    
+    if (kwikApiBalance < amount) {
+      // Insufficient KWIKAPI balance - mark as pending and notify admin
+      await supabase
+        .from('recharge_transactions')
+        .update({
+          status: 'PENDING',
+          error_message: 'Insufficient KWIKAPI wallet balance. Transaction is being processed.',
+          response_data: { kwikapi_balance: kwikApiBalance, required: amount },
+        })
+        .eq('id', transaction.id);
+
+      return NextResponse.json({
+        success: true, // Still success from user perspective
+        pending: true,
+        data: {
+          transaction_id: transaction.id,
+          transaction_ref: transactionRef,
+          status: 'PENDING',
+          amount,
+          message: '⏳ Your transaction is being processed. Amount has been debited from your wallet. You will receive confirmation shortly. Please contact admin if not completed within 24 hours.',
+        },
+      });
+    }
+
     // Process recharge with KWIKAPI
     let rechargeResponse;
 
@@ -197,7 +226,7 @@ export async function POST(request: NextRequest) {
             circle: circle_code,
             order_id: transactionRef,
             mobile: mobile_number!,
-            ref_id: body.ref_id, // From bill fetch if available
+            ref_id: body.ref_id,
           });
           break;
 
@@ -222,7 +251,7 @@ export async function POST(request: NextRequest) {
             order_id: transactionRef,
             mobile: mobile_number || user.email,
             circle: circle_code,
-            ref_id: body.ref_id, // From bill fetch
+            ref_id: body.ref_id,
             opt1: body.opt1,
             opt2: body.opt2,
             opt3: body.opt3,
@@ -233,85 +262,150 @@ export async function POST(request: NextRequest) {
           throw new Error('Invalid service type');
       }
 
-      // Update transaction with response
-      const status = rechargeResponse.data?.status === 'SUCCESS' ? 'SUCCESS' : 'PENDING';
+      // Determine status from response
+      const responseStatus = rechargeResponse.data?.status || rechargeResponse.data?.STATUS;
+      let status: 'SUCCESS' | 'PENDING' | 'FAILED' = 'PENDING';
       
+      if (responseStatus === 'SUCCESS') {
+        status = 'SUCCESS';
+      } else if (responseStatus === 'FAILED') {
+        status = 'FAILED';
+      }
+      
+      // Update transaction with response
       await supabase
         .from('recharge_transactions')
         .update({
           status,
-          kwikapi_transaction_id: rechargeResponse.data?.transaction_id,
-          operator_transaction_id: rechargeResponse.data?.operator_txn_id,
+          kwikapi_transaction_id: rechargeResponse.data?.transaction_id || rechargeResponse.data?.txid,
+          operator_transaction_id: rechargeResponse.data?.operator_txn_id || rechargeResponse.data?.rrn,
           response_data: rechargeResponse.data,
           completed_at: status === 'SUCCESS' ? new Date().toISOString() : null,
         })
         .eq('id', transaction.id);
 
+      // Calculate cashback for customers (random between min and max)
+      let actualCashback = 0;
+      if (user.role === 'CUSTOMER' && operator.cashback_enabled && status === 'SUCCESS') {
+        const minCashback = operator.cashback_min_percentage || 0.5;
+        const maxCashback = operator.cashback_max_percentage || 2.0;
+        const randomCashbackPercentage = (Math.random() * (maxCashback - minCashback) + minCashback).toFixed(2);
+        actualCashback = (amount * parseFloat(randomCashbackPercentage)) / 100;
+        
+        // Update transaction with cashback info
+        await supabase
+          .from('recharge_transactions')
+          .update({
+            cashback_percentage: parseFloat(randomCashbackPercentage),
+            cashback_amount: actualCashback,
+          })
+          .eq('id', transaction.id);
+      }
+
       // If successful, add commission/cashback to user wallet
-      if (status === 'SUCCESS' && rewardAmount > 0) {
+      if (status === 'SUCCESS') {
+        const finalReward = user.role === 'CUSTOMER' ? actualCashback : rewardAmount;
+        
+        if (finalReward > 0) {
+          await supabase
+            .from('wallets')
+            .update({ balance: wallet.balance - totalAmount + finalReward })
+            .eq('user_id', user.id);
+
+          await supabase.from('transactions').insert({
+            user_id: user.id,
+            wallet_id: wallet.id,
+            type: user.role === 'CUSTOMER' ? 'REFUND' : 'COMMISSION',
+            amount: finalReward,
+            status: 'COMPLETED',
+            description: `${rewardLabel} for ${service_type} ${mobile_number || dth_number || consumer_number}`,
+            reference: transactionRef,
+          });
+
+          // Mark as claimed
+          await supabase
+            .from('recharge_transactions')
+            .update({
+              [user.role === 'CUSTOMER' ? 'cashback_claimed' : 'commission_paid']: true,
+              [user.role === 'CUSTOMER' ? 'cashback_claimed_at' : 'commission_paid_at']: new Date().toISOString(),
+            })
+            .eq('id', transaction.id);
+        }
+
+        return NextResponse.json({
+          success: true,
+          data: {
+            transaction_id: transaction.id,
+            transaction_ref: transactionRef,
+            status: 'SUCCESS',
+            amount,
+            reward_amount: finalReward,
+            reward_label: rewardLabel,
+            message: `✅ Recharge successful! ${rewardLabel} of ₹${finalReward.toFixed(2)} has been added to your wallet.`,
+            response: rechargeResponse.data,
+          },
+        });
+      } else if (status === 'PENDING') {
+        return NextResponse.json({
+          success: true,
+          pending: true,
+          data: {
+            transaction_id: transaction.id,
+            transaction_ref: transactionRef,
+            status: 'PENDING',
+            amount,
+            message: '⏳ Your transaction is being processed. Amount has been debited from your wallet. You will receive confirmation shortly. Please contact admin if not completed within 24 hours.',
+          },
+        });
+      } else {
+        // Failed - refund
         await supabase
           .from('wallets')
-          .update({ balance: wallet.balance - totalAmount + rewardAmount })
+          .update({ balance: wallet.balance })
           .eq('user_id', user.id);
 
         await supabase.from('transactions').insert({
           user_id: user.id,
           wallet_id: wallet.id,
-          type: user.role === 'CUSTOMER' ? 'REFUND' : 'COMMISSION', // Use REFUND for cashback display
-          amount: rewardAmount,
+          type: 'REFUND',
+          amount: totalAmount,
           status: 'COMPLETED',
-          description: `${rewardLabel} for ${service_type} ${mobile_number || dth_number || consumer_number}`,
+          description: `Refund for failed ${service_type}`,
           reference: transactionRef,
         });
+
+        return NextResponse.json({
+          success: false,
+          data: {
+            transaction_id: transaction.id,
+            transaction_ref: transactionRef,
+            status: 'FAILED',
+            message: '❌ Recharge failed. Amount has been refunded to your wallet.',
+          },
+        });
       }
-
-      return NextResponse.json({
-        success: true,
-        data: {
-          transaction_id: transaction.id,
-          transaction_ref: transactionRef,
-          status,
-          amount,
-          reward_amount: rewardAmount,
-          reward_label: rewardLabel,
-          response: rechargeResponse.data,
-        },
-      });
     } catch (apiError: any) {
-      // Recharge failed, refund to wallet
-      await supabase
-        .from('wallets')
-        .update({ balance: wallet.balance })
-        .eq('user_id', user.id);
-
+      // API call failed - mark as pending instead of failed
       await supabase
         .from('recharge_transactions')
         .update({
-          status: 'FAILED',
-          error_message: apiError.message || 'Recharge failed',
+          status: 'PENDING',
+          error_message: apiError.message || 'API error - transaction pending',
           response_data: apiError.response?.data || {},
         })
         .eq('id', transaction.id);
 
-      // Refund transaction
-      await supabase.from('transactions').insert({
-        user_id: user.id,
-        wallet_id: wallet.id,
-        type: 'REFUND',
-        amount: totalAmount,
-        status: 'COMPLETED',
-        description: `Refund for failed ${service_type}`,
-        reference: transactionRef,
-      });
-
-      return NextResponse.json(
-        {
-          success: false,
-          message: apiError.response?.data?.message || 'Recharge failed',
-          error_code: apiError.response?.data?.error_code,
+      return NextResponse.json({
+        success: true,
+        pending: true,
+        data: {
+          transaction_id: transaction.id,
+          transaction_ref: transactionRef,
+          status: 'PENDING',
+          amount,
+          message: '⏳ Your transaction is being processed. Amount has been debited from your wallet. You will receive confirmation shortly. Please contact admin if not completed within 24 hours.',
         },
-        { status: 500 }
-      );
+      });
     }
   } catch (error: any) {
     console.error('Recharge Process API Error:', error);

@@ -101,33 +101,38 @@ class KwikAPIClient {
     opt5?: string;
     opt6?: string;
     opt7?: string;
-    opt8?: string;
     opt9?: string;
     opt10?: string;
   }): Promise<KwikAPIResponse> {
     try {
-      const queryParams = {
+      const queryParams: any = {
         api_key: KWIKAPI_API_KEY,
         number: params.number,
         amount: params.amount || '10',
         opid: params.opid.toString(),
         order_id: params.order_id || this.generateOrderId(),
-        opt8: 'Bills', // Required literal
+        opt8: 'Bills', // Required literal - CRITICAL!
         mobile: params.mobile,
-        ...(params.opt1 && { opt1: params.opt1 }),
-        ...(params.opt2 && { opt2: params.opt2 }),
-        ...(params.opt3 && { opt3: params.opt3 }),
-        ...(params.opt4 && { opt4: params.opt4 }),
-        ...(params.opt5 && { opt5: params.opt5 }),
-        ...(params.opt6 && { opt6: params.opt6 }),
-        ...(params.opt7 && { opt7: params.opt7 }),
-        ...(params.opt9 && { opt9: params.opt9 }),
-        ...(params.opt10 && { opt10: params.opt10 }),
       };
+
+      // Add optional parameters only if they have values
+      if (params.opt1) queryParams.opt1 = params.opt1;
+      if (params.opt2) queryParams.opt2 = params.opt2;
+      if (params.opt3) queryParams.opt3 = params.opt3;
+      if (params.opt4) queryParams.opt4 = params.opt4;
+      if (params.opt5) queryParams.opt5 = params.opt5;
+      if (params.opt6) queryParams.opt6 = params.opt6;
+      if (params.opt7) queryParams.opt7 = params.opt7;
+      if (params.opt9) queryParams.opt9 = params.opt9;
+      if (params.opt10) queryParams.opt10 = params.opt10;
+
+      console.log('KWIKAPI Bill Fetch Request:', queryParams);
 
       const response = await this.client.get('/api/v2/bills/validation.php', {
         params: queryParams,
       });
+
+      console.log('KWIKAPI Bill Fetch Response:', response.data);
 
       return {
         success: response.data.status === 'SUCCESS',
@@ -135,7 +140,11 @@ class KwikAPIClient {
       };
     } catch (error: any) {
       console.error('KWIKAPI Bill Fetch Error:', error.response?.data || error.message);
-      throw error;
+      return {
+        success: false,
+        data: error.response?.data || {},
+        message: error.response?.data?.message || error.message,
+      };
     }
   }
 

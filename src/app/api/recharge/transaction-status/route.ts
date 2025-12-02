@@ -42,10 +42,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get local transaction
+    // Get local transaction with operator and circle details
     let query = supabase
       .from('recharge_transactions')
-      .select('*')
+      .select(`
+        *,
+        operator:recharge_operators(operator_name, operator_code, logo_url),
+        circle:recharge_circles(circle_name, circle_code)
+      `)
       .eq('user_id', user.id);
 
     if (transaction_id) {
@@ -54,11 +58,12 @@ export async function GET(request: NextRequest) {
       query = query.eq('transaction_ref', order_id);
     }
 
-    const { data: transaction } = await query.single();
+    const { data: transaction, error: fetchError } = await query.single();
 
-    if (!transaction) {
+    if (fetchError || !transaction) {
+      console.error('Transaction fetch error:', fetchError);
       return NextResponse.json(
-        { success: false, message: 'Transaction not found' },
+        { success: false, message: 'Transaction not found or you do not have permission to view it' },
         { status: 404 }
       );
     }
@@ -67,16 +72,7 @@ export async function GET(request: NextRequest) {
     if (transaction.status === 'SUCCESS' || transaction.status === 'FAILED') {
       return NextResponse.json({
         success: true,
-        data: {
-          transaction_id: transaction.id,
-          order_id: transaction.transaction_ref,
-          status: transaction.status,
-          amount: transaction.amount,
-          service_type: transaction.service_type,
-          created_at: transaction.created_at,
-          completed_at: transaction.completed_at,
-          operator_transaction_id: transaction.operator_transaction_id,
-        },
+        data: transaction,
       });
     }
 
@@ -100,19 +96,20 @@ export async function GET(request: NextRequest) {
           })
           .eq('id', transaction.id);
 
+        // Fetch updated transaction with relations
+        const { data: updatedTransaction } = await supabase
+          .from('recharge_transactions')
+          .select(`
+            *,
+            operator:recharge_operators(operator_name, operator_code, logo_url),
+            circle:recharge_circles(circle_name, circle_code)
+          `)
+          .eq('id', transaction.id)
+          .single();
+
         return NextResponse.json({
           success: true,
-          data: {
-            transaction_id: transaction.id,
-            order_id: transaction.transaction_ref,
-            status: newStatus,
-            amount: transaction.amount,
-            service_type: transaction.service_type,
-            created_at: transaction.created_at,
-            completed_at: newStatus !== 'PENDING' ? new Date().toISOString() : transaction.completed_at,
-            operator_transaction_id: statusResponse.data.operator_txn_id || statusResponse.data.txid,
-            api_response: statusResponse.data,
-          },
+          data: updatedTransaction,
         });
       }
     } catch (apiError) {
@@ -123,15 +120,7 @@ export async function GET(request: NextRequest) {
     // Return local transaction data
     return NextResponse.json({
       success: true,
-      data: {
-        transaction_id: transaction.id,
-        order_id: transaction.transaction_ref,
-        status: transaction.status,
-        amount: transaction.amount,
-        service_type: transaction.service_type,
-        created_at: transaction.created_at,
-        completed_at: transaction.completed_at,
-      },
+      data: transaction,
     });
   } catch (error: any) {
     console.error('Transaction Status API Error:', error);
