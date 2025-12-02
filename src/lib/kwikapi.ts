@@ -444,69 +444,101 @@ class KwikAPIClient {
   // ==================== PLANS APIs ====================
   
   /**
-   * Fetch Prepaid Plans
-   * Note: KWIKAPI v2 may not have a dedicated plans API
-   * This returns plans from local database or mock data
-   * Check your KWIKAPI documentation for actual plans endpoint
+   * Fetch Prepaid/DTH Plans
+   * POST /api/v2/recharge_plans.php
    */
-  async fetchPrepaidPlans(params: {
-    operator_code: string;
-    circle_code: string;
-    min_amount?: number;
-    max_amount?: number;
+  async fetchRechargePlans(params: {
+    opid: number;
+    state_code?: string; // Circle code for prepaid
   }): Promise<KwikAPIResponse> {
     try {
-      // KWIKAPI v2 doesn't have a standard plans API in the documentation
-      // You may need to check with KWIKAPI support for plans endpoint
-      // For now, return empty plans array
+      const formData = new URLSearchParams();
+      formData.append('api_key', KWIKAPI_API_KEY);
+      formData.append('opid', params.opid.toString());
       
-      return {
-        success: true,
-        data: {
-          plans: [],
-          message: 'Plans API not available in KWIKAPI v2. Please fetch plans from your database or contact KWIKAPI support.',
+      if (params.state_code) {
+        formData.append('state_code', params.state_code);
+      }
+
+      const response = await this.client.post('/api/v2/recharge_plans.php', formData, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
-      };
-    } catch (error: any) {
-      console.error('Fetch Prepaid Plans Error:', error);
+      });
+
+      if (response.data.success) {
+        // Parse plans from response
+        const allPlans: any[] = [];
+        const plansData = response.data.plans || {};
+        
+        // Iterate through all plan categories
+        Object.keys(plansData).forEach((category) => {
+          const categoryPlans = plansData[category];
+          if (Array.isArray(categoryPlans)) {
+            categoryPlans.forEach((plan: any) => {
+              allPlans.push({
+                plan_id: `${category}_${plan.rs}`,
+                amount: parseFloat(plan.rs),
+                validity: plan.validity || 'N/A',
+                description: plan.desc || '',
+                plan_type: plan.Type || category,
+                category: category,
+                data: plan.desc?.match(/(\d+\.?\d*\s*(GB|MB))/i)?.[0] || '',
+                voice: plan.desc?.match(/(\d+\s*minutes)/i)?.[0] || '',
+                sms: plan.desc?.match(/(\d+\s*SMS)/i)?.[0] || '',
+              });
+            });
+          }
+        });
+
+        return {
+          success: true,
+          data: {
+            operator: response.data.operator,
+            circle: response.data.circle,
+            message: response.data.message,
+            plans: allPlans,
+          },
+        };
+      }
+
       return {
         success: false,
         data: { plans: [] },
-        message: 'Failed to fetch prepaid plans',
+        message: 'Failed to fetch plans',
+      };
+    } catch (error: any) {
+      console.error('Fetch Recharge Plans Error:', error.response?.data || error.message);
+      return {
+        success: false,
+        data: { plans: [] },
+        message: error.message || 'Failed to fetch recharge plans',
       };
     }
   }
 
   /**
-   * Fetch DTH Plans
-   * Note: KWIKAPI v2 may not have a dedicated plans API
-   * This returns plans from local database or mock data
+   * Fetch Prepaid Plans (wrapper)
+   */
+  async fetchPrepaidPlans(params: {
+    opid: number;
+    circle_code: string;
+  }): Promise<KwikAPIResponse> {
+    return this.fetchRechargePlans({
+      opid: params.opid,
+      state_code: params.circle_code,
+    });
+  }
+
+  /**
+   * Fetch DTH Plans (wrapper)
    */
   async fetchDTHPlans(params: {
-    operator_code: string;
-    min_amount?: number;
-    max_amount?: number;
+    opid: number;
   }): Promise<KwikAPIResponse> {
-    try {
-      // KWIKAPI v2 doesn't have a standard plans API in the documentation
-      // You may need to check with KWIKAPI support for plans endpoint
-      // For now, return empty plans array
-      
-      return {
-        success: true,
-        data: {
-          plans: [],
-          message: 'Plans API not available in KWIKAPI v2. Please fetch plans from your database or contact KWIKAPI support.',
-        },
-      };
-    } catch (error: any) {
-      console.error('Fetch DTH Plans Error:', error);
-      return {
-        success: false,
-        data: { plans: [] },
-        message: 'Failed to fetch DTH plans',
-      };
-    }
+    return this.fetchRechargePlans({
+      opid: params.opid,
+    });
   }
 
   // ==================== OPERATOR DETECTION ====================

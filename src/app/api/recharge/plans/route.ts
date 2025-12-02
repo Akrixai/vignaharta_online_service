@@ -21,10 +21,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get operator
+    // Get operator with kwikapi_opid
     const { data: operator } = await supabase
       .from('recharge_operators')
-      .select('id, operator_code, operator_name')
+      .select('id, operator_code, operator_name, kwikapi_opid, service_type')
       .eq('operator_code', operatorCode)
       .single();
 
@@ -35,63 +35,66 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Build query for plans from database
-    let query = supabase
-      .from('recharge_plans')
-      .select('*')
-      .eq('operator_id', operator.id)
-      .eq('is_active', true)
-      .order('display_order', { ascending: true })
-      .order('amount', { ascending: true });
-
-    // For prepaid, filter by circle
-    if (serviceType !== 'DTH' && circleCode) {
-      const { data: circle } = await supabase
-        .from('recharge_circles')
-        .select('id')
-        .eq('circle_code', circleCode)
-        .single();
-
-      if (circle) {
-        query = query.eq('circle_id', circle.id);
-      }
+    if (!operator.kwikapi_opid) {
+      return NextResponse.json(
+        { success: false, message: 'Operator not configured with KWIKAPI opid' },
+        { status: 400 }
+      );
     }
 
-    const { data: plans, error } = await query;
+    // Fetch plans from KWIKAPI
+    let plansResponse;
+    
+    if (serviceType === 'DTH' || operator.service_type === 'DTH') {
+      // DTH plans don't need circle
+      plansResponse = await kwikapi.fetchDTHPlans({
+        opid: operator.kwikapi_opid,
+      });
+    } else {
+      // Prepaid/Postpaid need circle code
+      if (!circleCode) {
+        return NextResponse.json(
+          { success: false, message: 'Circle code is required for prepaid/postpaid plans' },
+          { status: 400 }
+        );
+      }
 
-    if (error) {
-      console.error('Database error fetching plans:', error);
+      plansResponse = await kwikapi.fetchPrepaidPlans({
+        opid: operator.kwikapi_opid,
+        circle_code: circleCode,
+      });
+    }
+
+    if (!plansResponse.success) {
       return NextResponse.json(
-        { success: false, message: 'Failed to fetch plans from database' },
+        { success: false, message: plansResponse.message || 'Failed to fetch plans from KWIKAPI' },
         { status: 500 }
       );
     }
 
     // Format plans for frontend
-    const formattedPlans = (plans || []).map((plan: any) => ({
+    const plans = plansResponse.data.plans || [];
+    const formattedPlans = plans.map((plan: any) => ({
       plan_id: plan.plan_id,
       amount: parseFloat(plan.amount),
       validity: plan.validity || 'N/A',
-      type: plan.plan_type || 'GENERAL',
-      category: plan.plan_type || 'GENERAL',
+      type: plan.plan_type || plan.category || 'GENERAL',
+      category: plan.category || 'GENERAL',
       description: plan.description || `₹${plan.amount} Plan`,
-      data: plan.data_benefit || '',
-      voice: plan.voice_benefit || '',
-      sms: plan.sms_benefit || '',
-      features: plan.features || [],
-      channels_count: plan.metadata?.channels_count || 0,
-      hd_channels: plan.metadata?.hd_channels || 0,
+      data: plan.data || '',
+      voice: plan.voice || '',
+      sms: plan.sms || '',
+      features: [],
     }));
 
     return NextResponse.json({
       success: true,
       data: {
         plans: formattedPlans,
-        operator: operator.operator_name,
+        operator: plansResponse.data.operator || operator.operator_name,
+        circle: plansResponse.data.circle,
         total: formattedPlans.length,
-        message: formattedPlans.length === 0 
-          ? 'No plans available. Plans need to be added to the database manually or via admin panel.'
-          : undefined,
+        message: plansResponse.data.message,
       },
     });
   } catch (error: any) {
