@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
-// POST /api/wallet/add-money - Calculate GST for wallet recharge
+// POST /api/wallet/add-money - No GST for wallet recharge
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -22,18 +22,15 @@ export async function POST(request: NextRequest) {
     }
 
     const rechargeAmount = parseFloat(amount);
-    const gstPercentage = 4; // 4% GST
-    const gstAmount = (rechargeAmount * gstPercentage) / 100;
-    const totalPayable = rechargeAmount + gstAmount;
 
     return NextResponse.json({
       success: true,
       data: {
         recharge_amount: rechargeAmount,
-        gst_percentage: gstPercentage,
-        gst_amount: parseFloat(gstAmount.toFixed(2)),
-        total_payable: parseFloat(totalPayable.toFixed(2)),
-        wallet_credit: rechargeAmount // Only recharge amount will be added to wallet
+        gst_percentage: 0, // No GST
+        gst_amount: 0,
+        total_payable: rechargeAmount,
+        wallet_credit: rechargeAmount
       }
     });
 

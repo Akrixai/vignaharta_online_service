@@ -126,7 +126,8 @@ export async function POST(request: NextRequest) {
       customer_address,
       amount,
       is_reapply = false,
-      original_application_id
+      original_application_id,
+      fee_breakdown
     } = body;
 
     // Validate required fields
@@ -149,18 +150,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Scheme not found' }, { status: 404 });
     }
 
-    // Check if user has sufficient balance (for both new and reapplications)
-    let walletId = null;
-    let paymentTransaction = null;
-    let updatedWallet = null;
-    if (!scheme.is_free && scheme.price > 0) {
+    // Calculate fee breakdown if not provided
+    let calculatedFeeBreakdown = fee_breakdown;
+    if (!calculatedFeeBreakdown && !scheme.is_free && scheme.price > 0) {
+      const baseAmount = scheme.price;
+      const gstPercentage = 2; // 2% GST
+      const gstAmount = (baseAmount * gstPercentage) / 100;
+      const platformFee = 5; // ₹5 platform fee
+      const totalAmount = baseAmount + gstAmount + platformFee;
+
+      calculatedFeeBreakdown = {
+        base_amount: parseFloat(baseAmount.toFixed(2)),
+        gst_percentage: gstPercentage,
+        gst_amount: parseFloat(gstAmount.toFixed(2)),
+        platform_fee: platformFee,
+        total_amount: parseFloat(totalAmount.toFixed(2))
+      };
+    }
+
+    // Check if user has sufficient balance (but don't debit yet - will debit after approval)
+    if (!scheme.is_free && calculatedFeeBreakdown && calculatedFeeBreakdown.total_amount > 0) {
       const { data: wallet, error: walletError } = await supabaseAdmin
         .from('wallets')
         .select('id, balance')
         .eq('user_id', session.user.id)
         .single();
 
-      let currentWallet = wallet;
       let currentBalance = 0;
       if (walletError || !wallet) {
         // Create wallet if it doesn't exist
@@ -177,54 +192,17 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: 'Failed to create wallet' }, { status: 500 });
         }
 
-        currentWallet = newWallet;
         currentBalance = 0;
       } else {
         currentBalance = parseFloat(wallet.balance.toString());
       }
-      walletId = currentWallet?.id;
-      if (currentBalance < scheme.price) {
+
+      // Check if user has sufficient balance (but don't debit yet)
+      if (currentBalance < calculatedFeeBreakdown.total_amount) {
         return NextResponse.json(
-          { error: 'Insufficient wallet balance' },
+          { error: `Insufficient wallet balance. Required: ₹${calculatedFeeBreakdown.total_amount}, Available: ₹${currentBalance}` },
           { status: 400 }
         );
-      }
-      const newBalance = currentBalance - scheme.price;
-      const { data: walletData, error: walletUpdateError } = await supabaseAdmin
-        .from('wallets')
-        .update({
-          balance: newBalance,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', walletId)
-        .select()
-        .single();
-      updatedWallet = walletData;
-      if (walletUpdateError) {
-        return NextResponse.json(
-          { error: 'Failed to deduct amount from wallet' },
-          { status: 500 }
-        );
-      }
-      const { data: paymentTx, error: transactionError } = await supabaseAdmin
-        .from('transactions')
-        .insert({
-          user_id: session.user.id,
-          wallet_id: walletId,
-          type: 'SCHEME_PAYMENT',
-          amount: scheme.price,
-          status: 'COMPLETED',
-          description: `Payment for ${scheme.name}`,
-          reference: `scheme_${scheme_id}`,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .select()
-        .single();
-      paymentTransaction = paymentTx;
-      if (transactionError) {
-      } else {
-
       }
     }
 
@@ -246,7 +224,7 @@ export async function POST(request: NextRequest) {
       cashbackAmount = Math.round(cashbackAmount * 100) / 100; // Round to 2 decimals
     }
 
-    // Create application
+    // Create application with fee breakdown
     const { data: application, error: applicationError } = await supabaseAdmin
       .from('applications')
       .insert({
@@ -260,6 +238,12 @@ export async function POST(request: NextRequest) {
         customer_email,
         customer_address,
         amount: amount || (scheme.is_free ? 0 : scheme.price),
+        base_amount: calculatedFeeBreakdown?.base_amount || 0,
+        gst_percentage: calculatedFeeBreakdown?.gst_percentage || 0,
+        gst_amount: calculatedFeeBreakdown?.gst_amount || 0,
+        platform_fee: calculatedFeeBreakdown?.platform_fee || 0,
+        total_amount: calculatedFeeBreakdown?.total_amount || 0,
+        payment_status: 'PENDING', // Will be PAID after approval
         status: 'PENDING',
         notes: is_reapply ? `REAPPLICATION - Original Application ID: ${original_application_id}` : null,
         commission_rate: session.user.role === UserRole.RETAILER ? (scheme.commission_rate || 0) : 0,
@@ -335,10 +319,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Application submitted successfully',
+      message: 'Application submitted successfully. Payment will be debited after approval.',
       data: application,
-      wallet: updatedWallet,
-      payment_transaction: paymentTransaction
+      fee_breakdown: calculatedFeeBreakdown
     });
 
   } catch (error) {

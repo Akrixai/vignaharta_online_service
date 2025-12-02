@@ -35,22 +35,19 @@ export default function WalletPage() {
     wallet_credit: number;
   } | null>(null);
 
-  // Calculate GST instantly on client side
+  // No GST calculation needed - direct wallet recharge
   const calculateGSTBreakdown = (amount: number) => {
     if (!amount || amount < 10 || amount > 50000) {
       return null;
     }
 
     const rechargeAmount = amount;
-    const gstPercentage = 4; // 4% GST
-    const gstAmount = (rechargeAmount * gstPercentage) / 100;
-    const totalPayable = rechargeAmount + gstAmount;
 
     return {
       recharge_amount: rechargeAmount,
-      gst_percentage: gstPercentage,
-      gst_amount: parseFloat(gstAmount.toFixed(2)),
-      total_payable: parseFloat(totalPayable.toFixed(2)),
+      gst_percentage: 0, // No GST
+      gst_amount: 0,
+      total_payable: rechargeAmount,
       wallet_credit: rechargeAmount
     };
   };
@@ -235,7 +232,7 @@ export default function WalletPage() {
 
     setIsAddingMoney(true);
 
-    // Use total_payable (amount + GST) for payment, but only amount will be credited to wallet
+    // Direct payment without GST
     await initiatePayment(
       breakdown.total_payable,
       (data) => {
@@ -485,7 +482,7 @@ export default function WalletPage() {
                   </div>
                 </div>
 
-                {/* GST Breakdown */}
+                {/* Payment Summary */}
                 {gstBreakdown && (
                   <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border-2 border-green-300">
                     <h4 className="font-bold text-green-800 mb-3 flex items-center">
@@ -493,19 +490,9 @@ export default function WalletPage() {
                       Payment Summary
                     </h4>
                     <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-green-700">Wallet Recharge Amount:</span>
-                        <span className="font-semibold text-green-900">₹{gstBreakdown.recharge_amount.toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-green-700">GST ({gstBreakdown.gst_percentage}%):</span>
-                        <span className="font-semibold text-green-900">₹{gstBreakdown.gst_amount.toFixed(2)}</span>
-                      </div>
-                      <div className="border-t-2 border-green-300 pt-2 mt-2">
-                        <div className="flex justify-between text-base">
-                          <span className="font-bold text-green-800">Total Payable:</span>
-                          <span className="font-bold text-green-900 text-lg">₹{gstBreakdown.total_payable.toFixed(2)}</span>
-                        </div>
+                      <div className="flex justify-between text-base">
+                        <span className="font-bold text-green-800">Amount to Pay:</span>
+                        <span className="font-bold text-green-900 text-lg">₹{gstBreakdown.total_payable.toFixed(2)}</span>
                       </div>
                       <div className="bg-white p-2 rounded border border-green-200 mt-2">
                         <p className="text-xs text-green-700 flex items-center">
