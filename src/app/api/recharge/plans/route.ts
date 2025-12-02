@@ -36,11 +36,23 @@ export async function GET(request: NextRequest) {
     }
 
     if (!operator.kwikapi_opid) {
+      console.log('Operator missing kwikapi_opid:', operator.operator_code);
       return NextResponse.json(
-        { success: false, message: 'Operator not configured with KWIKAPI opid' },
-        { status: 400 }
+        { 
+          success: false, 
+          message: 'Operator not synced with KWIKAPI. Please sync operators from admin panel first.',
+          data: { plans: [] }
+        },
+        { status: 200 } // Return 200 with empty plans instead of error
       );
     }
+
+    console.log('Fetching plans for operator:', {
+      operator_code: operatorCode,
+      kwikapi_opid: operator.kwikapi_opid,
+      circle_code: circleCode,
+      service_type: serviceType
+    });
 
     // Fetch plans from KWIKAPI
     let plansResponse;
@@ -66,9 +78,14 @@ export async function GET(request: NextRequest) {
     }
 
     if (!plansResponse.success) {
+      console.error('KWIKAPI plans fetch failed:', plansResponse);
       return NextResponse.json(
-        { success: false, message: plansResponse.message || 'Failed to fetch plans from KWIKAPI' },
-        { status: 500 }
+        { 
+          success: false, 
+          message: plansResponse.message || 'Failed to fetch plans from KWIKAPI',
+          data: { plans: [] }
+        },
+        { status: 200 } // Return 200 with empty plans
       );
     }
 
