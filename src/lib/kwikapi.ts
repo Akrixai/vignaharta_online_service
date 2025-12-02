@@ -466,6 +466,8 @@ class KwikAPIClient {
         },
       });
 
+      console.log('KWIKAPI Plans Response:', JSON.stringify(response.data, null, 2));
+
       if (response.data.success) {
         // Parse plans from response
         const allPlans: any[] = [];
@@ -502,17 +504,22 @@ class KwikAPIClient {
         };
       }
 
+      console.error('KWIKAPI Plans API returned success:false', response.data);
       return {
         success: false,
         data: { plans: [] },
-        message: 'Failed to fetch plans',
+        message: response.data.message || 'Failed to fetch plans',
       };
     } catch (error: any) {
-      console.error('Fetch Recharge Plans Error:', error.response?.data || error.message);
+      console.error('Fetch Recharge Plans Error:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
       return {
         success: false,
         data: { plans: [] },
-        message: error.message || 'Failed to fetch recharge plans',
+        message: error.response?.data?.message || error.message || 'Failed to fetch recharge plans',
       };
     }
   }
