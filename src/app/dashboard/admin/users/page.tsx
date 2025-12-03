@@ -28,6 +28,8 @@ export default function AdminUsersPage() {
     city?: string;
     state?: string;
     pincode?: string;
+    business_name?: string;
+    shop_photo_url?: string;
   } | null>(null);
   const [filter, setFilter] = useState('ALL');
   const [formData, setFormData] = useState({
@@ -42,8 +44,14 @@ export default function AdminUsersPage() {
     address: '',
     city: '',
     state: '',
-    pincode: ''
+    pincode: '',
+    business_name: '',
+    shop_photo_url: ''
   });
+
+  const [shopPhotoFile, setShopPhotoFile] = useState<File | null>(null);
+  const [shopPhotoPreview, setShopPhotoPreview] = useState<string>('');
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   // Define functions before useEffect to avoid hoisting issues
   const fetchUsers = async () => {
@@ -104,10 +112,32 @@ export default function AdminUsersPage() {
     e.preventDefault();
     
     try {
+      // Upload shop photo if selected
+      let shopPhotoUrl = formData.shop_photo_url;
+      if (shopPhotoFile) {
+        setUploadingPhoto(true);
+        const photoFormData = new FormData();
+        photoFormData.append('file', shopPhotoFile);
+
+        const uploadResponse = await fetch('/api/upload/shop-photo', {
+          method: 'POST',
+          body: photoFormData,
+        });
+
+        const uploadData = await uploadResponse.json();
+        setUploadingPhoto(false);
+
+        if (!uploadResponse.ok || !uploadData.success) {
+          throw new Error(uploadData.error || 'Failed to upload shop photo');
+        }
+
+        shopPhotoUrl = uploadData.url;
+      }
+
       const url = editingUser ? `/api/admin/users/${editingUser.id}` : '/api/admin/users';
       const method = editingUser ? 'PUT' : 'POST';
       
-      const userData = { ...formData };
+      const userData = { ...formData, shop_photo_url: shopPhotoUrl };
       if (editingUser && !userData.password) {
         delete userData.password; // Don't update password if not provided
       }
@@ -127,7 +157,8 @@ export default function AdminUsersPage() {
         showToast.error(errorData.error || 'Failed to save user');
       }
     } catch (error) {
-      showToast.error('Error saving user');
+      setUploadingPhoto(false);
+      showToast.error(error instanceof Error ? error.message : 'Error saving user');
     }
   };
 
@@ -145,8 +176,11 @@ export default function AdminUsersPage() {
       address: user.address || '',
       city: user.city || '',
       state: user.state || '',
-      pincode: user.pincode || ''
+      pincode: user.pincode || '',
+      business_name: user.business_name || '',
+      shop_photo_url: user.shop_photo_url || ''
     });
+    setShopPhotoPreview(user.shop_photo_url || '');
     setShowAddForm(true);
   };
 
@@ -166,6 +200,34 @@ export default function AdminUsersPage() {
     }
   };
 
+  const handleShopPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      showToast.error('Invalid file type. Please upload a JPEG, PNG, or WebP image');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      showToast.error('File too large. Please upload an image smaller than 5MB');
+      return;
+    }
+
+    setShopPhotoFile(file);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setShopPhotoPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const resetForm = () => {
     setFormData({
       name: '',
@@ -179,10 +241,14 @@ export default function AdminUsersPage() {
       address: '',
       city: '',
       state: '',
-      pincode: ''
+      pincode: '',
+      business_name: '',
+      shop_photo_url: ''
     });
     setEditingUser(null);
     setShowAddForm(false);
+    setShopPhotoFile(null);
+    setShopPhotoPreview('');
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -370,6 +436,44 @@ export default function AdminUsersPage() {
                 {formData.role === 'RETAILER' && (
                   <>
                     <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-red-700 mb-2">Business Name</label>
+                      <input
+                        type="text"
+                        name="business_name"
+                        value={formData.business_name}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
+                        placeholder="Enter business/shop name"
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-red-700 mb-2">Shop Photo</label>
+                      <div className="flex items-start gap-4">
+                        <div className="flex-1">
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/jpg,image/png,image/webp"
+                            onChange={handleShopPhotoChange}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
+                          />
+                          <p className="mt-1 text-xs text-gray-500">
+                            Upload a clear photo of the shop (JPEG, PNG, or WebP, max 5MB)
+                          </p>
+                        </div>
+                        {shopPhotoPreview && (
+                          <div className="w-24 h-24 border-2 border-red-200 rounded-lg overflow-hidden">
+                            <img 
+                              src={shopPhotoPreview} 
+                              alt="Shop preview" 
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-red-700 mb-2">Address</label>
                       <input
                         type="text"
@@ -433,10 +537,10 @@ export default function AdminUsersPage() {
                 )}
 
                 <div className="md:col-span-2 flex gap-4">
-                  <Button type="submit" className="bg-red-600 hover:bg-red-700 text-white">
-                    {editingUser ? '💾 Update User' : '➕ Add User'}
+                  <Button type="submit" disabled={uploadingPhoto} className="bg-red-600 hover:bg-red-700 text-white">
+                    {uploadingPhoto ? '⏳ Uploading...' : editingUser ? '💾 Update User' : '➕ Add User'}
                   </Button>
-                  <Button type="button" onClick={resetForm} variant="outline">
+                  <Button type="button" onClick={resetForm} variant="outline" disabled={uploadingPhoto}>
                     ❌ Cancel
                   </Button>
                 </div>
@@ -515,8 +619,24 @@ export default function AdminUsersPage() {
                         </div>
                       )}
 
-                      {user.role === 'RETAILER' && (user.address || user.branch) && (
-                        <div className="text-sm space-y-1">
+                      {user.role === 'RETAILER' && (
+                        <div className="text-sm space-y-2">
+                          {user.business_name && (
+                            <div>
+                              <span className="text-gray-500">Business Name:</span>
+                              <span className="ml-2 font-medium">{user.business_name}</span>
+                            </div>
+                          )}
+                          {user.shop_photo_url && (
+                            <div>
+                              <span className="text-gray-500 block mb-1">Shop Photo:</span>
+                              <img 
+                                src={user.shop_photo_url} 
+                                alt="Shop" 
+                                className="w-32 h-32 object-cover rounded-lg border-2 border-gray-200"
+                              />
+                            </div>
+                          )}
                           {user.address && (
                             <div>
                               <span className="text-gray-500">Address:</span>

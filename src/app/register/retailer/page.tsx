@@ -29,9 +29,15 @@ export default function RetailerRegisterPage() {
     city: '',
     state: '',
     pincode: '',
+    business_name: '',
+    shop_photo_url: '',
     password: '',
     confirmPassword: ''
   });
+
+  const [shopPhotoFile, setShopPhotoFile] = useState<File | null>(null);
+  const [shopPhotoPreview, setShopPhotoPreview] = useState<string>('');
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -82,6 +88,14 @@ export default function RetailerRegisterPage() {
       newErrors.pincode = 'Please enter a valid 6-digit PIN code';
     }
 
+    if (!formData.business_name.trim()) {
+      newErrors.business_name = 'Business name is required';
+    }
+
+    if (!formData.shop_photo_url && !shopPhotoFile) {
+      newErrors.shop_photo = 'Shop photo is required';
+    }
+
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 8) {
@@ -96,11 +110,77 @@ export default function RetailerRegisterPage() {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleShopPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      showToast.error('Invalid file type', {
+        description: 'Please upload a JPEG, PNG, or WebP image'
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      showToast.error('File too large', {
+        description: 'Please upload an image smaller than 5MB'
+      });
+      return;
+    }
+
+    setShopPhotoFile(file);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setShopPhotoPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    // Clear error
+    if (errors.shop_photo) {
+      setErrors({ ...errors, shop_photo: '' });
+    }
+  };
+
   const handleStep1Submit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) {
       return;
+    }
+
+    // Upload shop photo if selected
+    if (shopPhotoFile && !formData.shop_photo_url) {
+      setUploadingPhoto(true);
+      try {
+        const photoFormData = new FormData();
+        photoFormData.append('file', shopPhotoFile);
+
+        const uploadResponse = await fetch('/api/upload/shop-photo', {
+          method: 'POST',
+          body: photoFormData,
+        });
+
+        const uploadData = await uploadResponse.json();
+
+        if (!uploadResponse.ok || !uploadData.success) {
+          throw new Error(uploadData.error || 'Failed to upload shop photo');
+        }
+
+        setFormData({ ...formData, shop_photo_url: uploadData.url });
+        setUploadingPhoto(false);
+      } catch (error) {
+        setUploadingPhoto(false);
+        showToast.error('Upload Failed', {
+          description: error instanceof Error ? error.message : 'Failed to upload shop photo'
+        });
+        return;
+      }
     }
 
     // Just move to step 2, don't save to database yet
@@ -138,6 +218,8 @@ export default function RetailerRegisterPage() {
           city: formData.city,
           state: formData.state,
           pincode: formData.pincode,
+          business_name: formData.business_name,
+          shop_photo_url: formData.shop_photo_url,
           password: formData.password,
           recaptchaToken,
           base_amount: registrationFee,
@@ -403,6 +485,60 @@ export default function RetailerRegisterPage() {
                 {errors.pincode && <p className="mt-1 text-sm text-red-600">{errors.pincode}</p>}
               </div>
 
+              {/* Business Name */}
+              <div className="md:col-span-2">
+                <label htmlFor="business_name" className="block text-sm font-medium text-red-700 mb-2">
+                  Business Name *
+                </label>
+                <input
+                  id="business_name"
+                  name="business_name"
+                  type="text"
+                  required
+                  value={formData.business_name}
+                  onChange={handleInputChange}
+                  className={`w-full px-4 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors ${
+                    errors.business_name ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="Enter your business/shop name"
+                />
+                {errors.business_name && <p className="mt-1 text-sm text-red-600">{errors.business_name}</p>}
+              </div>
+
+              {/* Shop Photo */}
+              <div className="md:col-span-2">
+                <label htmlFor="shop_photo" className="block text-sm font-medium text-red-700 mb-2">
+                  Shop Photo *
+                </label>
+                <div className="flex items-start gap-4">
+                  <div className="flex-1">
+                    <input
+                      id="shop_photo"
+                      name="shop_photo"
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/webp"
+                      onChange={handleShopPhotoChange}
+                      className={`w-full px-4 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors ${
+                        errors.shop_photo ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      Upload a clear photo of your shop (JPEG, PNG, or WebP, max 5MB)
+                    </p>
+                    {errors.shop_photo && <p className="mt-1 text-sm text-red-600">{errors.shop_photo}</p>}
+                  </div>
+                  {shopPhotoPreview && (
+                    <div className="w-24 h-24 border-2 border-red-200 rounded-lg overflow-hidden">
+                      <img 
+                        src={shopPhotoPreview} 
+                        alt="Shop preview" 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* Password */}
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-red-700 mb-2">
@@ -447,20 +583,20 @@ export default function RetailerRegisterPage() {
             <div className="mt-8">
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || uploadingPhoto}
                 className={`w-full flex justify-center items-center py-4 px-6 border border-transparent text-lg font-bold rounded-xl text-white transition-all duration-200 ${
-                  isLoading
+                  isLoading || uploadingPhoto
                     ? 'bg-gray-400 cursor-not-allowed'
                     : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 focus:outline-none focus:ring-4 focus:ring-red-300 shadow-lg hover:shadow-xl'
                 }`}
               >
-                {isLoading ? (
+                {isLoading || uploadingPhoto ? (
                   <>
                     <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Saving Details...
+                    {uploadingPhoto ? 'Uploading Photo...' : 'Saving Details...'}
                   </>
                 ) : (
                   'Next: Proceed to Payment →'

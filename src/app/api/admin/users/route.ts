@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const role = searchParams.get('role');
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const limit = parseInt(searchParams.get('limit') || '10000'); // Increased to show all users
     const offset = (page - 1) * limit;
 
     // First get users
@@ -48,6 +48,8 @@ export async function GET(request: NextRequest) {
         employee_id,
         department,
         branch,
+        business_name,
+        shop_photo_url,
         created_at
       `)
       .order('created_at', { ascending: false })
@@ -188,6 +190,8 @@ export async function POST(request: NextRequest) {
       if (state) userData.state = state;
       if (pincode) userData.pincode = pincode;
       if (branch) userData.branch = branch;
+      if (body.business_name) userData.business_name = body.business_name;
+      if (body.shop_photo_url) userData.shop_photo_url = body.shop_photo_url;
     }
 
     const { data: user, error: userError } = await supabaseAdmin

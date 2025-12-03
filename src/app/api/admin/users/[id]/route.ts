@@ -124,6 +124,8 @@ export async function PUT(
         employee_id,
         department,
         branch,
+        business_name,
+        shop_photo_url,
         created_at,
         updated_at
       `)

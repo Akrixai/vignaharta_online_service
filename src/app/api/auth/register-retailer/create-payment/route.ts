@@ -15,6 +15,8 @@ export async function POST(request: NextRequest) {
       city,
       state,
       pincode,
+      business_name,
+      shop_photo_url,
       base_amount,
       gst_amount,
       total_amount,
@@ -49,9 +51,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!phone || !address || !city || !state || !pincode) {
+    if (!phone || !address || !city || !state || !pincode || !business_name || !shop_photo_url) {
       return NextResponse.json(
-        { error: 'All fields are required for retailer registration' },
+        { error: 'All fields including business name and shop photo are required for retailer registration' },
         { status: 400 }
       );
     }
@@ -224,6 +226,8 @@ export async function POST(request: NextRequest) {
           city,
           state,
           pincode,
+          business_name,
+          shop_photo_url,
           password_hash: hashedPassword,
           plain_password: password, // Store plain password for auto-login (only in TEST mode)
           role: 'RETAILER',

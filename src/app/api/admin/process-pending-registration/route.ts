@@ -76,6 +76,8 @@ export async function POST(request: NextRequest) {
         city: registrationData.city,
         state: registrationData.state,
         pincode: registrationData.pincode,
+        business_name: registrationData.business_name,
+        shop_photo_url: registrationData.shop_photo_url,
         is_active: true,
       })
       .select()
