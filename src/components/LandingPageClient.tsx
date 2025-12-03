@@ -11,6 +11,7 @@ import TrustBadges from "@/components/TrustBadges";
 import LatestBlogPosts from "@/components/LatestBlogPosts";
 import TawkToChat from "@/components/TawkToChat";
 import FeaturedProducts from "@/components/FeaturedProducts";
+import HiringBanner from "@/components/HiringBanner";
 import { useState, useEffect } from "react";
 
 // Define types for our data
@@ -120,6 +121,9 @@ export default function LandingPageClient() {
 
         {/* Header - Import from component */}
         <Header />
+
+        {/* Hiring Banner */}
+        <HiringBanner />
 
         {/* Full-width Advertisement Carousel Section */}
         <section className="w-full relative z-0">

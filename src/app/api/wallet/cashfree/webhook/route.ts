@@ -2,337 +2,147 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import crypto from 'crypto';
 
-// GET handler for webhook verification/testing
-export async function GET(request: NextRequest) {
-  return NextResponse.json({
-    status: 'ok',
-    message: 'Cashfree webhook endpoint is active',
-    timestamp: new Date().toISOString()
-  });
-}
-
+// POST /api/wallet/cashfree/webhook - Handle Cashfree payment webhooks
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.text();
+    const body = await request.json();
+    
+    // Verify webhook signature
     const signature = request.headers.get('x-webhook-signature');
     const timestamp = request.headers.get('x-webhook-timestamp');
-
-    console.log('Webhook received:', {
-      hasSignature: !!signature,
-      hasTimestamp: !!timestamp,
-      bodyLength: body.length,
-      timestamp: timestamp,
-      environment: process.env.CASHFREE_ENVIRONMENT || 'TEST'
-    });
-
-    // Optional signature verification (not required for Cashfree webhooks to work)
-    // Cashfree doesn't always send signatures in test mode, and production works without it
-    if (process.env.CASHFREE_WEBHOOK_SECRET && signature && timestamp) {
-      try {
-        // Cashfree signature format: base64(hmac_sha256(timestamp + raw_body))
-        const signatureString = timestamp + body;
-        const expectedSignature = crypto
-          .createHmac('sha256', process.env.CASHFREE_WEBHOOK_SECRET)
-          .update(signatureString)
-          .digest('base64');
-
-        console.log('Signature verification:', {
-          received: signature.substring(0, 20) + '...',
-          expected: expectedSignature.substring(0, 20) + '...',
-          match: signature === expectedSignature
-        });
-
-        if (signature === expectedSignature) {
-          console.log('✅ Webhook signature verified successfully');
-        } else {
-          console.log('⚠️ Webhook signature mismatch - continuing anyway (Cashfree webhooks work without verification)');
-        }
-      } catch (error) {
-        console.error('Signature verification error (non-fatal):', error);
-      }
-    } else {
-      console.log('⚠️ Webhook signature verification skipped (missing secret or headers) - continuing anyway');
-    }
-
-    const webhookData = JSON.parse(body);
-    const { type, data } = webhookData;
-
-    console.log('Webhook data parsed:', {
-      type,
-      hasData: !!data,
-      dataKeys: data ? Object.keys(data) : []
-    });
-
-    // Handle payment webhooks
-    if (type === 'PAYMENT_SUCCESS_WEBHOOK' || type === 'PAYMENT_FAILED_WEBHOOK' || type === 'PAYMENT_USER_DROPPED_WEBHOOK') {
-      const { order, payment } = data;
-      const orderId = order.order_id;
-      const cfOrderId = order.cf_order_id;
-      const orderAmount = parseFloat(order.order_amount);
-      const paymentStatus = payment?.payment_status || order.order_status; // 'SUCCESS', 'FAILED', etc.
-
-      console.log('Processing payment:', {
-        orderId,
-        cfOrderId,
-        orderAmount,
-        paymentStatus,
-        webhookType: type,
-        isRegistration: orderId.startsWith('REG-')
-      });
-
-      // Check if this is a registration payment or wallet payment
-      if (orderId.startsWith('REG-')) {
-        // Handle registration payment
-        console.log('Handling registration payment...');
-        await handleRegistrationPayment(orderId, cfOrderId, orderAmount, paymentStatus, webhookData);
-      } else {
-        // Handle wallet payment
-        console.log('Handling wallet payment...');
-        await handleWalletPayment(orderId, cfOrderId, orderAmount, paymentStatus, webhookData);
-      }
-      
-      console.log('Payment processing completed successfully');
-    } else {
-      console.log('Webhook type not handled:', type);
-    }
-
-    return NextResponse.json({ success: true, message: 'Webhook processed' });
-  } catch (error) {
-    console.error('Webhook processing error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Webhook processing failed', message: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
-    );
-  }
-}
-
-async function handleWalletPayment(
-  orderId: string,
-  cfOrderId: string,
-  amount: number,
-  status: string,
-  webhookData: any
-) {
-  try {
-    console.log('handleWalletPayment called:', { orderId, amount, status });
     
-    // Get payment record
-    const { data: payment, error: paymentError } = await supabaseAdmin
-      .from('cashfree_payments')
-      .select('*')
-      .eq('order_id', orderId)
-      .single();
-
-    if (paymentError || !payment) {
-      console.error('Payment record not found:', orderId, paymentError);
-      return;
+    if (!signature || !timestamp) {
+      return NextResponse.json({ error: 'Invalid webhook' }, { status: 400 });
     }
-    
-    console.log('Payment record found:', { userId: payment.user_id, currentStatus: payment.status });
 
-    // Update payment status
-    await supabaseAdmin
-      .from('cashfree_payments')
-      .update({
-        status: status,
-        payment_time: new Date().toISOString(),
-        webhook_data: webhookData,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('order_id', orderId);
+    // Verify signature (implement based on Cashfree docs)
+    const webhookSecret = process.env.CASHFREE_WEBHOOK_SECRET;
+    if (webhookSecret) {
+      const payload = timestamp + JSON.stringify(body);
+      const expectedSignature = crypto
+        .createHmac('sha256', webhookSecret)
+        .update(payload)
+        .digest('base64');
 
-    // If payment is successful, credit wallet (Cashfree uses 'SUCCESS' for payment_status)
-    if (status === 'PAID' || status === 'SUCCESS') {
-      console.log('Payment status is PAID/SUCCESS, crediting wallet...');
+      if (signature !== expectedSignature) {
+        console.error('Invalid webhook signature');
+        return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+      }
+    }
+
+    const { type, data } = body;
+
+    if (type === 'PAYMENT_SUCCESS_WEBHOOK') {
+      const { order } = data;
       
+      // Get payment record
+      const { data: payment, error: paymentError } = await supabaseAdmin
+        .from('cashfree_payments')
+        .select('*')
+        .eq('order_id', order.order_id)
+        .single();
+
+      if (paymentError || !payment) {
+        console.error('Payment record not found:', order.order_id);
+        return NextResponse.json({ error: 'Payment not found' }, { status: 404 });
+      }
+
+      // Update payment status
+      await supabaseAdmin
+        .from('cashfree_payments')
+        .update({
+          status: 'PAID',
+          payment_method: order.payment_method,
+          payment_time: new Date().toISOString(),
+          webhook_data: data,
+        })
+        .eq('order_id', order.order_id);
+
       // Get user's wallet
       const { data: wallet, error: walletError } = await supabaseAdmin
         .from('wallets')
-        .select('*')
+        .select('id, balance')
         .eq('user_id', payment.user_id)
         .single();
 
       if (walletError || !wallet) {
-        console.error('Wallet not found for user:', payment.user_id, walletError);
-        return;
+        console.error('Wallet not found for user:', payment.user_id);
+        return NextResponse.json({ error: 'Wallet not found' }, { status: 404 });
       }
-      
-      console.log('Wallet found:', { walletId: wallet.id, currentBalance: wallet.balance });
+
+      // Credit only base amount to wallet (without GST)
+      const walletCreditAmount = payment.wallet_credit_amount || payment.base_amount;
+      const newBalance = parseFloat(wallet.balance.toString()) + walletCreditAmount;
+
+      await supabaseAdmin
+        .from('wallets')
+        .update({ balance: newBalance })
+        .eq('user_id', payment.user_id);
 
       // Create transaction record
-      const { data: transaction, error: transactionError } = await supabaseAdmin
+      const { data: transaction } = await supabaseAdmin
         .from('transactions')
         .insert({
           user_id: payment.user_id,
           wallet_id: wallet.id,
           type: 'DEPOSIT',
-          amount: amount,
+          amount: walletCreditAmount,
           status: 'COMPLETED',
-          description: 'Wallet recharge via Cashfree',
-          reference: orderId,
+          description: `Wallet recharge via Cashfree (Base: ₹${payment.base_amount}, GST: ₹${payment.gst_amount}, Total Paid: ₹${payment.amount})`,
+          reference: order.order_id,
           metadata: {
-            cf_order_id: cfOrderId,
-            payment_method: webhookData.data?.payment?.payment_group || 'UNKNOWN',
+            payment_method: order.payment_method,
+            cf_order_id: order.cf_order_id,
+            base_amount: payment.base_amount,
+            gst_amount: payment.gst_amount,
+            total_paid: payment.amount,
+            wallet_credited: walletCreditAmount,
           },
         })
         .select()
         .single();
 
-      if (transactionError) {
-        console.error('Failed to create transaction:', transactionError);
-        return;
+      // Update cashfree_payments with transaction_id
+      if (transaction) {
+        await supabaseAdmin
+          .from('cashfree_payments')
+          .update({ transaction_id: transaction.id })
+          .eq('order_id', order.order_id);
       }
 
-      // Update payment record with transaction ID
+      // Create notification for user
+      await supabaseAdmin.from('notifications').insert({
+        title: 'Wallet Recharged Successfully',
+        message: `₹${walletCreditAmount} has been added to your wallet via Cashfree payment gateway.`,
+        type: 'WALLET_CREDIT',
+        target_users: [payment.user_id],
+        data: {
+          amount: walletCreditAmount,
+          transaction_id: transaction?.id,
+          payment_method: order.payment_method,
+        },
+      });
+
+      return NextResponse.json({ success: true, message: 'Payment processed' });
+    }
+
+    if (type === 'PAYMENT_FAILED_WEBHOOK') {
+      const { order } = data;
+      
       await supabaseAdmin
         .from('cashfree_payments')
-        .update({ transaction_id: transaction.id })
-        .eq('order_id', orderId);
-
-      // Update wallet balance
-      const currentBalance = parseFloat(wallet.balance.toString());
-      const newBalance = currentBalance + amount;
-
-      console.log('Updating wallet balance:', { currentBalance, amount, newBalance });
-
-      const { error: updateError } = await supabaseAdmin
-        .from('wallets')
         .update({
-          balance: newBalance,
-          updated_at: new Date().toISOString(),
+          status: 'FAILED',
+          webhook_data: data,
         })
-        .eq('id', wallet.id);
+        .eq('order_id', order.order_id);
 
-      if (updateError) {
-        console.error('Failed to update wallet balance:', updateError);
-        throw updateError;
-      }
-
-      console.log(`✅ Wallet credited successfully: User ${payment.user_id}, Amount: ₹${amount}, New Balance: ₹${newBalance}`);
-    } else if (status === 'FAILED' || status === 'CANCELLED' || status === 'USER_DROPPED') {
-      console.log(`❌ Payment ${status} - wallet not credited`);
-    } else {
-      console.log(`Payment status is ${status}, not PAID/SUCCESS - skipping wallet credit`);
+      return NextResponse.json({ success: true, message: 'Payment failure recorded' });
     }
+
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('❌ Error handling wallet payment:', error);
-    throw error;
-  }
-}
-
-async function handleRegistrationPayment(
-  orderId: string,
-  cfOrderId: string,
-  amount: number,
-  status: string,
-  webhookData: any
-) {
-  try {
-    // Get registration payment record
-    const { data: payment, error: paymentError } = await supabaseAdmin
-      .from('cashfree_registration_payments')
-      .select('*')
-      .eq('order_id', orderId)
-      .single();
-
-    if (paymentError || !payment) {
-      console.error('Registration payment record not found:', orderId);
-      return;
-    }
-
-    // Update payment status
-    await supabaseAdmin
-      .from('cashfree_registration_payments')
-      .update({
-        status: status,
-        payment_method: webhookData.data?.payment?.payment_group || 'UNKNOWN',
-        payment_time: new Date().toISOString(),
-        webhook_data: webhookData,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('order_id', orderId);
-
-    // If payment is successful, CREATE user account directly (auto-approved)
-    if ((status === 'PAID' || status === 'SUCCESS') && payment.metadata) {
-      const registrationData = payment.metadata as any;
-
-      // Check if user already exists
-      const { data: existingUser } = await supabaseAdmin
-        .from('users')
-        .select('id')
-        .eq('email', registrationData.email)
-        .single();
-
-      if (existingUser) {
-        console.log(`User already exists: ${registrationData.email}`);
-        return;
-      }
-
-      // Create user account directly (auto-approved after payment)
-      const { data: newUser, error: userError} = await supabaseAdmin
-        .from('users')
-        .insert({
-          name: registrationData.name,
-          email: registrationData.email,
-          phone: registrationData.phone,
-          password_hash: registrationData.password_hash,
-          role: registrationData.role || 'RETAILER',
-          address: registrationData.address,
-          city: registrationData.city,
-          state: registrationData.state,
-          pincode: registrationData.pincode,
-          is_active: true,
-        })
-        .select()
-        .single();
-
-      if (userError || !newUser) {
-        console.error('Failed to create user account:', userError);
-        return;
-      }
-
-      // Create wallet for the new user
-      const { error: walletError } = await supabaseAdmin
-        .from('wallets')
-        .insert({
-          user_id: newUser.id,
-          balance: 0,
-        });
-
-      if (walletError) {
-        console.error('Failed to create wallet:', walletError);
-      }
-
-      // Update payment record with user_id
-      await supabaseAdmin
-        .from('cashfree_registration_payments')
-        .update({
-          user_id: newUser.id,
-        })
-        .eq('order_id', orderId);
-
-      // Create notification for admin
-      await supabaseAdmin
-        .from('notifications')
-        .insert({
-          title: 'New Retailer Registration',
-          message: `${newUser.name} has successfully registered and paid ₹${amount}. Account auto-approved.`,
-          type: 'REGISTRATION_PAYMENT_SUCCESS',
-          data: {
-            user_id: newUser.id,
-            order_id: orderId,
-            amount: amount,
-            name: newUser.name,
-            email: newUser.email,
-          },
-          target_roles: ['ADMIN'],
-        });
-
-      console.log(`✅ User account created and auto-approved: ${newUser.email}, Amount: ₹${amount}`);
-    } else if (status === 'FAILED' || status === 'CANCELLED' || status === 'USER_DROPPED') {
-      console.log(`❌ Registration payment ${status} - user account not created`);
-    }
-  } catch (error) {
-    console.error('Error handling registration payment:', error);
+    console.error('Webhook error:', error);
+    return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
   }
 }

@@ -76,6 +76,7 @@ const menuItems: MenuItem[] = [
   { name: 'Blog Management', href: '/dashboard/admin/blog', icon: '📝', roles: [UserRole.ADMIN, UserRole.EMPLOYEE] },
   { name: 'Manage Products', href: '/dashboard/admin/products', icon: '📦', roles: [UserRole.ADMIN] },
   { name: 'Manage Training', href: '/dashboard/admin/training', icon: '🎬', roles: [UserRole.ADMIN] },
+  { name: 'Manage Recruitments', href: '/dashboard/admin/recruitments', icon: '💼', roles: [UserRole.ADMIN, UserRole.EMPLOYEE] },
   { name: 'Manage Applications', href: '/dashboard/admin/applications', icon: '📋', roles: [UserRole.ADMIN, UserRole.EMPLOYEE] },
   { name: 'Order Management', href: '/dashboard/orders', icon: '📋', roles: [UserRole.ADMIN, UserRole.EMPLOYEE] },
   { name: 'Manage Services', href: '/dashboard/admin/services', icon: '⚙️', roles: [UserRole.ADMIN] },
@@ -379,15 +380,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               )}
 
               {/* Admin Management Section */}
-              {userRole === UserRole.ADMIN && filteredMenuItems.some(item => 
-                ['Blog Management', 'Manage Products', 'Manage Training', 'Manage Applications', 'Order Management', 'Manage Services', 'User Management', 'All Certificates', 'Transactions', 'Wallet Approvals', 'Refund Management'].includes(item.name)
+              {(userRole === UserRole.ADMIN || userRole === UserRole.EMPLOYEE) && filteredMenuItems.some(item => 
+                ['Blog Management', 'Manage Products', 'Manage Training', 'Manage Recruitments', 'Manage Applications', 'Order Management', 'Manage Services', 'User Management', 'All Certificates', 'Transactions', 'Wallet Approvals', 'Refund Management'].includes(item.name)
               ) && (
                 <>
                   <div className="pt-3 pb-1 px-2">
                     <h3 className="text-xs font-semibold text-yellow-300 uppercase tracking-wider">Admin - Management</h3>
                   </div>
                   {filteredMenuItems.filter(item => 
-                    ['Blog Management', 'Manage Products', 'Manage Training', 'Manage Applications', 'Order Management', 'Manage Services', 'Manage Free Services', 'User Management', 'All Certificates', 'Transactions', 'Wallet Approvals', 'Refund Management'].includes(item.name)
+                    ['Blog Management', 'Manage Products', 'Manage Training', 'Manage Recruitments', 'Manage Applications', 'Order Management', 'Manage Services', 'Manage Free Services', 'User Management', 'All Certificates', 'Transactions', 'Wallet Approvals', 'Refund Management'].includes(item.name)
                   ).map((item) => (
                     <Link
                       key={item.name}

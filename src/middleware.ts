@@ -127,7 +127,8 @@ export default withAuth(
       '/trust',
       '/how-it-works',
       '/service-centers',
-      '/whats-new'
+      '/whats-new',
+      '/careers'
     ];
 
     // Allow blog routes (public access)
@@ -290,7 +291,8 @@ export default withAuth(
           '/testimonials',
           '/trust',
           '/how-it-works',
-          '/service-centers'
+          '/service-centers',
+          '/careers'
         ];
 
         // Allow language-specific routes (Marathi and Hindi)

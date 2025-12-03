@@ -3,117 +3,139 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 
+// Cashfree configuration
+const CASHFREE_APP_ID = process.env.CASHFREE_APP_ID || '';
+const CASHFREE_SECRET_KEY = process.env.CASHFREE_SECRET_KEY || '';
+const CASHFREE_ENV = process.env.CASHFREE_ENV === 'production' ? 'production' : 'sandbox';
+const CASHFREE_API_URL = CASHFREE_ENV === 'production' 
+  ? 'https://api.cashfree.com/pg' 
+  : 'https://sandbox.cashfree.com/pg';
+
+// POST /api/wallet/cashfree/create-order - Create Cashfree order for wallet recharge with 2% GST
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { amount } = await request.json();
+    const body = await request.json();
+    const { amount } = body;
 
-    // Validate amount
-    if (!amount || amount < 10 || amount > 50000) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid amount. Must be between ₹10 and ₹50,000' },
-        { status: 400 }
-      );
+    if (!amount || amount <= 0) {
+      return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
+    }
+
+    const baseAmount = parseFloat(amount);
+    
+    // Validate amount range
+    if (baseAmount < 10) {
+      return NextResponse.json({ error: 'Minimum amount is ₹10' }, { status: 400 });
+    }
+    
+    if (baseAmount > 50000) {
+      return NextResponse.json({ error: 'Maximum amount is ₹50,000' }, { status: 400 });
+    }
+
+    const gstPercentage = 2.00; // 2% GST
+    const gstAmount = (baseAmount * gstPercentage) / 100;
+    const totalAmount = baseAmount + gstAmount;
+    
+    // Cashfree sandbox has a limit of ₹1000, production supports higher amounts
+    if (CASHFREE_ENV === 'sandbox' && totalAmount > 1000) {
+      return NextResponse.json({ 
+        error: 'Sandbox environment has a limit of ₹1000. For higher amounts, please use manual QR payment or contact admin to enable production mode.',
+        sandbox_limit: true
+      }, { status: 400 });
     }
 
     // Generate unique order ID
-    const orderId = `ORDER_${session.user.id.substring(0, 8)}_${Date.now()}`;
+    const orderId = `WALLET_${session.user.id.substring(0, 8)}_${Date.now()}`;
 
-    // Cashfree API endpoint
-    const cashfreeUrl = process.env.CASHFREE_ENVIRONMENT === 'PRODUCTION'
-      ? 'https://api.cashfree.com/pg/orders'
-      : 'https://sandbox.cashfree.com/pg/orders';
-
-    // Generate customer ID (use user ID which is already alphanumeric)
-    const customerId = `USER_${session.user.id.replace(/-/g, '_')}`;
-
-    // Create Cashfree order using REST API
+    // Create Cashfree order
     const orderRequest = {
       order_id: orderId,
-      order_amount: amount,
+      order_amount: totalAmount,
       order_currency: 'INR',
       customer_details: {
-        customer_id: customerId,
+        customer_id: session.user.id,
         customer_name: session.user.name || 'User',
         customer_email: session.user.email,
         customer_phone: session.user.phone || '9999999999',
       },
       order_meta: {
-        return_url: `${process.env.NEXTAUTH_URL}/payment/success?order_id=${orderId}&amount=${amount}`,
+        return_url: `${process.env.NEXTAUTH_URL}/dashboard/wallet?payment=success`,
         notify_url: `${process.env.NEXTAUTH_URL}/api/wallet/cashfree/webhook`,
-        payment_methods: 'cc,dc,nb,upi,app,paylater,cardlessemi,emi',
       },
-      order_note: 'Wallet Recharge',
+      order_note: `Wallet recharge - Base: ₹${baseAmount.toFixed(2)}, GST (2%): ₹${gstAmount.toFixed(2)}`,
     };
 
-    const cashfreeResponse = await fetch(cashfreeUrl, {
+    const cashfreeResponse = await fetch(`${CASHFREE_API_URL}/orders`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-client-id': process.env.CASHFREE_APP_ID!,
-        'x-client-secret': process.env.CASHFREE_SECRET_KEY!,
         'x-api-version': '2023-08-01',
+        'x-client-id': CASHFREE_APP_ID,
+        'x-client-secret': CASHFREE_SECRET_KEY,
       },
       body: JSON.stringify(orderRequest),
     });
 
-    if (!cashfreeResponse.ok) {
-      const errorData = await cashfreeResponse.json();
-      console.error('Cashfree API error:', errorData);
-      throw new Error(errorData.message || 'Failed to create Cashfree order');
+    const response = await cashfreeResponse.json();
+
+    if (!cashfreeResponse.ok || !response) {
+      console.error('Cashfree API error:', response);
+      return NextResponse.json({ 
+        error: response.message || 'Failed to create Cashfree order' 
+      }, { status: 500 });
     }
 
-    const cashfreeData = await cashfreeResponse.json();
-
-    if (!cashfreeData.payment_session_id) {
-      throw new Error('Invalid response from Cashfree');
-    }
-
-    // Store order in database using admin client to bypass RLS
+    // Store payment record in database
     const { error: dbError } = await supabaseAdmin
       .from('cashfree_payments')
       .insert({
         user_id: session.user.id,
         order_id: orderId,
-        cf_order_id: cashfreeData.cf_order_id,
-        amount: amount,
+        cf_order_id: response.cf_order_id,
+        amount: totalAmount,
+        base_amount: baseAmount,
+        gst_percentage: gstPercentage,
+        gst_amount: gstAmount,
+        wallet_credit_amount: baseAmount, // Only base amount will be credited to wallet
         currency: 'INR',
         status: 'CREATED',
-        payment_session_id: cashfreeData.payment_session_id,
+        payment_session_id: response.payment_session_id,
         metadata: {
-          customer_details: orderRequest.customer_details,
+          base_amount: baseAmount,
+          gst_percentage: gstPercentage,
+          gst_amount: gstAmount,
+          total_amount: totalAmount,
+          wallet_credit_amount: baseAmount,
         },
       });
 
     if (dbError) {
       console.error('Database error:', dbError);
-      throw new Error('Failed to store payment record');
+      return NextResponse.json({ error: 'Failed to save payment record' }, { status: 500 });
     }
 
     return NextResponse.json({
       success: true,
       data: {
         order_id: orderId,
-        payment_session_id: cashfreeData.payment_session_id,
-        cf_order_id: cashfreeData.cf_order_id,
-      },
+        cf_order_id: response.cf_order_id,
+        payment_session_id: response.payment_session_id,
+        base_amount: baseAmount,
+        gst_amount: gstAmount,
+        total_amount: totalAmount,
+        wallet_credit_amount: baseAmount,
+      }
     });
-  } catch (error) {
-    console.error('Cashfree order creation error:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to create payment order',
-      },
-      { status: 500 }
-    );
+  } catch (error: any) {
+    console.error('Error creating Cashfree order:', error);
+    return NextResponse.json({
+      error: error.message || 'Internal server error',
+    }, { status: 500 });
   }
 }

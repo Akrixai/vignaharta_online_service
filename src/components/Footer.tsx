@@ -91,6 +91,9 @@ export default function Footer() {
                 <Link href="/register" className="block text-white hover:text-yellow-300 transition-colors duration-300 font-medium hover:scale-105 transform text-sm sm:text-base">
                   {t.becomeRetailer}
                 </Link>
+                <Link href="/careers" className="block text-white hover:text-yellow-300 transition-colors duration-300 font-medium hover:scale-105 transform text-sm sm:text-base">
+                  Careers
+                </Link>
               </div>
             </div>
           </div>
