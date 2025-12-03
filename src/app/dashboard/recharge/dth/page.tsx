@@ -175,8 +175,8 @@ export default function DTHRechargePage() {
 
   return (
     <DashboardLayout>
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <h1 className="text-3xl font-bold mb-8 text-gray-800">📺 DTH Recharge</h1>
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <h1 className="text-3xl font-bold mb-8 text-gray-800">📺 DTH Recharge</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left: Form */}
@@ -351,7 +351,7 @@ export default function DTHRechargePage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
     </DashboardLayout>
   );
 }
