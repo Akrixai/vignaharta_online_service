@@ -14,6 +14,7 @@ interface Operator {
   min_amount: number;
   max_amount: number;
   commission_rate: number;
+  kwikapi_opid: string;
 }
 
 interface Plan {
@@ -87,7 +88,7 @@ export default function DTHRechargePage() {
 
     try {
       const params = new URLSearchParams({
-        operator_code: operator.kwikapi_opid.toString(),
+        operator_code: operator.kwikapi_opid || operator.operator_code,
         service_type: 'DTH',
       });
 
@@ -343,10 +344,6 @@ export default function DTHRechargePage() {
                     ))}
                 </div>
               </>
-            )}
-                  </div>
-                ))}
-              </div>
             )}
           </div>
         </div>
