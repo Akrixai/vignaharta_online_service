@@ -38,7 +38,11 @@ export default function WalletPage() {
 
   // Calculate GST breakdown for Cashfree payment (2% GST)
   const calculateGSTBreakdown = (amount: number) => {
-    if (!amount || amount < 10 || amount > 50000) {
+    // Dynamic max based on environment
+    const isProduction = process.env.NEXT_PUBLIC_CASHFREE_ENVIRONMENT === 'PRODUCTION';
+    const maxAmount = isProduction ? 50000 : 980;
+    
+    if (!amount || amount < 10 || amount > maxAmount) {
       return null;
     }
 
@@ -215,6 +219,8 @@ export default function WalletPage() {
   const handleAddMoney = async (e: React.FormEvent) => {
     e.preventDefault();
     const amount = parseFloat(addMoneyAmount);
+    const isProduction = process.env.NEXT_PUBLIC_CASHFREE_ENVIRONMENT === 'PRODUCTION';
+    const maxAmount = isProduction ? 50000 : 980;
 
     if (!amount || amount <= 0) {
       showToast.error('Invalid amount', {
@@ -230,9 +236,11 @@ export default function WalletPage() {
       return;
     }
 
-    if (amount > 50000) {
+    if (amount > maxAmount) {
       showToast.error('Amount too high', {
-        description: 'Maximum amount is ₹50,000 per transaction'
+        description: isProduction 
+          ? 'Maximum amount is ₹50,000 per transaction'
+          : 'TEST mode: Maximum ₹980 (₹999.60 with GST). Use QR Payment for higher amounts.'
       });
       return;
     }
@@ -242,7 +250,7 @@ export default function WalletPage() {
     
     if (!breakdown) {
       showToast.error('Invalid amount', {
-        description: 'Please enter a valid amount between ₹10 and ₹50,000'
+        description: `Please enter a valid amount between ₹10 and ₹${maxAmount.toLocaleString()}`
       });
       return;
     }
@@ -715,7 +723,7 @@ export default function WalletPage() {
                 <div className="space-y-2">
                   <label htmlFor="addAmount" className="text-sm font-semibold text-gray-800 flex items-center">
                     <span className="mr-2">💰</span>
-                    Recharge Amount (₹10 - ₹50,000)
+                    Recharge Amount (₹10 - ₹{process.env.NEXT_PUBLIC_CASHFREE_ENVIRONMENT === 'PRODUCTION' ? '50,000' : '980'})
                   </label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">₹</span>
@@ -723,7 +731,7 @@ export default function WalletPage() {
                       id="addAmount"
                       type="number"
                       min="10"
-                      max="50000"
+                      max={process.env.NEXT_PUBLIC_CASHFREE_ENVIRONMENT === 'PRODUCTION' ? 50000 : 980}
                       value={addMoneyAmount}
                       onChange={(e) => setAddMoneyAmount(e.target.value)}
                       placeholder="Enter amount"
@@ -733,8 +741,18 @@ export default function WalletPage() {
                   </div>
                   <div className="flex justify-between text-xs">
                     <span className="text-green-600 font-medium">Minimum: ₹10</span>
-                    <span className="text-orange-600 font-medium">Maximum: ₹50,000</span>
+                    <span className="text-orange-600 font-medium">
+                      Maximum: ₹{process.env.NEXT_PUBLIC_CASHFREE_ENVIRONMENT === 'PRODUCTION' ? '50,000' : '980'}
+                      {process.env.NEXT_PUBLIC_CASHFREE_ENVIRONMENT !== 'PRODUCTION' && ' (TEST mode)'}
+                    </span>
                   </div>
+                  {process.env.NEXT_PUBLIC_CASHFREE_ENVIRONMENT !== 'PRODUCTION' && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded p-2 mt-2">
+                      <p className="text-xs text-yellow-800">
+                        ⚠️ <strong>TEST Mode:</strong> Max ₹980 + GST = ₹999.60. For higher amounts, use QR Payment (no GST).
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Payment Summary with GST Breakdown */}

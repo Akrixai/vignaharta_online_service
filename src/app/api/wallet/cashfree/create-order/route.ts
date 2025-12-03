@@ -41,21 +41,27 @@ export async function POST(request: NextRequest) {
     if (baseAmount < 10) {
       return NextResponse.json({ error: 'Minimum amount is ₹10' }, { status: 400 });
     }
-    
-    if (baseAmount > 50000) {
-      return NextResponse.json({ error: 'Maximum amount is ₹50,000' }, { status: 400 });
-    }
 
     const gstPercentage = 2.00; // 2% GST
     const gstAmount = (baseAmount * gstPercentage) / 100;
     const totalAmount = baseAmount + gstAmount;
     
-    // Cashfree sandbox has a limit of ₹1000, production supports higher amounts
-    if (CASHFREE_ENVIRONMENT !== 'PRODUCTION' && totalAmount > 1000) {
-      return NextResponse.json({ 
-        error: 'Sandbox environment has a limit of ₹1000. For higher amounts, please use manual QR payment or contact admin to enable production mode.',
-        sandbox_limit: true
-      }, { status: 400 });
+    // Environment-specific limits
+    if (CASHFREE_ENVIRONMENT === 'PRODUCTION') {
+      // Production: up to ₹50,000
+      if (baseAmount > 50000) {
+        return NextResponse.json({ error: 'Maximum amount is ₹50,000' }, { status: 400 });
+      }
+    } else {
+      // TEST/Sandbox: max ₹980 base (₹999.60 with GST to stay under ₹1000 limit)
+      const maxTestAmount = 980;
+      if (baseAmount > maxTestAmount) {
+        return NextResponse.json({ 
+          error: `TEST mode limit: Maximum ₹${maxTestAmount} (₹${(maxTestAmount * 1.02).toFixed(2)} with GST). Use manual QR payment for higher amounts.`,
+          sandbox_limit: true,
+          max_amount: maxTestAmount
+        }, { status: 400 });
+      }
     }
 
     // Generate unique order ID
