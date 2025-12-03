@@ -17,13 +17,18 @@ interface Operator {
 }
 
 interface Plan {
-  plan_id: string;
   amount: number;
   validity: string;
-  category: string;
-  channels_count: number;
   description: string;
-  hd_channels: number;
+  type: string;
+}
+
+interface PlanCategory {
+  code: string;
+  name: string;
+  icon: string;
+  order: number;
+  plans: Plan[];
 }
 
 export default function DTHRechargePage() {
@@ -34,7 +39,8 @@ export default function DTHRechargePage() {
   const rewardLabel = userRole === 'CUSTOMER' ? 'Cashback' : 'Commission';
   
   const [operators, setOperators] = useState<Operator[]>([]);
-  const [plans, setPlans] = useState<Plan[]>([]);
+  const [planCategories, setPlanCategories] = useState<PlanCategory[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
   
   const [selectedOperator, setSelectedOperator] = useState('');
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
@@ -76,19 +82,24 @@ export default function DTHRechargePage() {
     if (!operator) return;
 
     setLoadingPlans(true);
-    setPlans([]);
+    setPlanCategories([]);
+    setSelectedCategory('');
 
     try {
       const params = new URLSearchParams({
-        operator_code: operator.operator_code,
+        operator_code: operator.kwikapi_opid.toString(),
         service_type: 'DTH',
       });
 
       const res = await fetch(`/api/recharge/plans?${params}`);
       const data = await res.json();
       
-      if (data.success && data.data.plans) {
-        setPlans(data.data.plans);
+      if (data.success && data.data.categories) {
+        setPlanCategories(data.data.categories);
+        // Auto-select first category
+        if (data.data.categories.length > 0) {
+          setSelectedCategory(data.data.categories[0].code);
+        }
       }
     } catch (error) {
       console.error('Error fetching plans:', error);
@@ -124,7 +135,14 @@ export default function DTHRechargePage() {
         customer_name: customerName,
       };
 
-      if (selectedPlan) payload.plan_id = selectedPlan.plan_id;
+      // Include plan details if selected (for reference only)
+      if (selectedPlan) {
+        payload.plan_details = {
+          amount: selectedPlan.amount,
+          validity: selectedPlan.validity,
+          description: selectedPlan.description,
+        };
+      }
 
       const res = await fetch('/api/recharge/process', {
         method: 'POST',
@@ -272,32 +290,60 @@ export default function DTHRechargePage() {
             
             {loadingPlans ? (
               <div className="text-center py-8 text-gray-500">Loading plans...</div>
-            ) : plans.length === 0 ? (
+            ) : planCategories.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 {selectedOperator ? 'No plans available' : 'Select operator to view plans'}
               </div>
             ) : (
-              <div className="space-y-3 max-h-[600px] overflow-y-auto">
-                {plans.map((plan) => (
-                  <div
-                    key={plan.plan_id}
-                    onClick={() => handlePlanSelect(plan)}
-                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all hover:shadow-md ${
-                      selectedPlan?.plan_id === plan.plan_id
-                        ? 'border-blue-600 bg-blue-50'
-                        : 'border-gray-200 hover:border-blue-300'
-                    }`}
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="font-bold text-lg text-blue-600">₹{plan.amount}</span>
-                      <span className="text-xs bg-gray-200 px-2 py-1 rounded">{plan.validity}</span>
-                    </div>
-                    <p className="text-sm text-gray-700 mb-2">{plan.description}</p>
-                    <p className="text-xs text-gray-600">📺 Channels: {plan.channels_count}</p>
-                    <p className="text-xs text-gray-600">🎬 HD Channels: {plan.hd_channels}</p>
-                    <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded mt-2 inline-block">
-                      {plan.category}
-                    </span>
+              <>
+                {/* Category Filter */}
+                <div className="mb-4 flex flex-wrap gap-2">
+                  {planCategories.map((category) => (
+                    <button
+                      key={category.code}
+                      onClick={() => setSelectedCategory(category.code)}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                        selectedCategory === category.code
+                          ? 'bg-blue-600 text-white shadow-md'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      <span className="mr-1">{category.icon}</span>
+                      {category.name}
+                      <span className="ml-1 text-xs opacity-75">({category.plans.length})</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Plans List */}
+                <div className="space-y-3 max-h-[500px] overflow-y-auto">
+                  {planCategories
+                    .find((cat) => cat.code === selectedCategory)
+                    ?.plans.map((plan, index) => (
+                      <div
+                        key={`${plan.amount}-${index}`}
+                        onClick={() => handlePlanSelect(plan)}
+                        className={`p-4 border-2 rounded-lg cursor-pointer transition-all hover:shadow-md ${
+                          selectedPlan?.amount === plan.amount && selectedPlan?.validity === plan.validity
+                            ? 'border-blue-600 bg-blue-50'
+                            : 'border-gray-200 hover:border-blue-300'
+                        }`}
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="font-bold text-lg text-blue-600">₹{plan.amount}</span>
+                          <span className="text-xs bg-gray-200 px-2 py-1 rounded">{plan.validity}</span>
+                        </div>
+                        <p className="text-sm text-gray-700 line-clamp-3">{plan.description}</p>
+                        {plan.type && (
+                          <span className="inline-block mt-2 text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">
+                            {plan.type}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                </div>
+              </>
+            )}
                   </div>
                 ))}
               </div>

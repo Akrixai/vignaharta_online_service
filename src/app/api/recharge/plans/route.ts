@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import kwikapi from '@/lib/kwikapi';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+const KWIKAPI_BASE_URL = 'https://www.kwikapi.com/api/v2';
+const KWIKAPI_KEY = process.env.KWIKAPI_KEY!;
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,97 +17,96 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get operator with kwikapi_opid
-    const { data: operator } = await supabase
-      .from('recharge_operators')
-      .select('id, operator_code, operator_name, kwikapi_opid, service_type')
-      .eq('operator_code', operatorCode)
-      .single();
-
-    if (!operator) {
+    // For DTH, circle is not required
+    if (serviceType !== 'DTH' && !circleCode) {
       return NextResponse.json(
-        { success: false, message: 'Operator not found' },
-        { status: 404 }
+        { success: false, message: 'Circle code is required for mobile recharge' },
+        { status: 400 }
       );
     }
-
-    if (!operator.kwikapi_opid) {
-      console.log('Operator missing kwikapi_opid:', operator.operator_code);
-      return NextResponse.json(
-        { 
-          success: false, 
-          message: 'Operator not synced with KWIKAPI. Please sync operators from admin panel first.',
-          data: { plans: [] }
-        },
-        { status: 200 } // Return 200 with empty plans instead of error
-      );
-    }
-
-    console.log('Fetching plans for operator:', {
-      operator_code: operatorCode,
-      kwikapi_opid: operator.kwikapi_opid,
-      circle_code: circleCode,
-      service_type: serviceType
-    });
 
     // Fetch plans from KWIKAPI
-    let plansResponse;
-    
-    if (serviceType === 'DTH' || operator.service_type === 'DTH') {
-      // DTH plans don't need circle
-      plansResponse = await kwikapi.fetchDTHPlans({
-        opid: operator.kwikapi_opid,
-      });
-    } else {
-      // Prepaid/Postpaid need circle code
-      if (!circleCode) {
-        return NextResponse.json(
-          { success: false, message: 'Circle code is required for prepaid/postpaid plans' },
-          { status: 400 }
-        );
-      }
-
-      plansResponse = await kwikapi.fetchPrepaidPlans({
-        opid: operator.kwikapi_opid,
-        circle_code: circleCode,
-      });
+    const formData = new FormData();
+    formData.append('api_key', KWIKAPI_KEY);
+    formData.append('opid', operatorCode);
+    if (circleCode) {
+      formData.append('state_code', circleCode);
     }
 
-    if (!plansResponse.success) {
-      console.error('KWIKAPI plans fetch failed:', plansResponse);
+    const response = await fetch(`${KWIKAPI_BASE_URL}/recharge_plans.php`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (!data.success) {
       return NextResponse.json(
-        { 
-          success: false, 
-          message: plansResponse.message || 'Failed to fetch plans from KWIKAPI',
-          data: { plans: [] }
-        },
-        { status: 200 } // Return 200 with empty plans
+        { success: false, message: 'Failed to fetch plans from KWIKAPI' },
+        { status: 500 }
       );
     }
 
-    // Format plans for frontend
-    const plans = plansResponse.data.plans || [];
-    const formattedPlans = plans.map((plan: any) => ({
-      plan_id: plan.plan_id,
-      amount: parseFloat(plan.amount),
-      validity: plan.validity || 'N/A',
-      type: plan.plan_type || plan.category || 'GENERAL',
-      category: plan.category || 'GENERAL',
-      description: plan.description || `₹${plan.amount} Plan`,
-      data: plan.data || '',
-      voice: plan.voice || '',
-      sms: plan.sms || '',
-      features: [],
-    }));
+    // Transform the plans data to include categories
+    const plans = data.plans || {};
+    const categories: any[] = [];
+
+    // Define category display order and names
+    const categoryConfig: Record<string, { name: string; icon: string; order: number }> = {
+      FULLTT: { name: 'All-in-One', icon: '🎯', order: 1 },
+      TOPUP: { name: 'Top-up', icon: '💰', order: 2 },
+      DATA: { name: 'Data', icon: '📊', order: 3 },
+      SMS: { name: 'SMS', icon: '💬', order: 4 },
+      'RATE_CUTTER': { name: 'Rate Cutter', icon: '✂️', order: 5 },
+      '2G': { name: '2G', icon: '📱', order: 6 },
+      TwoG: { name: '2G', icon: '📱', order: 6 },
+      Romaing: { name: 'Roaming', icon: '✈️', order: 7 },
+      COMBO: { name: 'Combo', icon: '🎁', order: 8 },
+      FRC: { name: 'First Recharge', icon: '🆕', order: 9 },
+      JioPhone: { name: 'JioPhone', icon: '📞', order: 10 },
+      STV: { name: 'Special', icon: '⭐', order: 11 },
+    };
+
+    // Process each category
+    Object.keys(plans).forEach((categoryKey) => {
+      const categoryPlans = plans[categoryKey];
+      
+      // Skip if no plans or null
+      if (!categoryPlans || categoryPlans.length === 0) {
+        return;
+      }
+
+      const config = categoryConfig[categoryKey] || {
+        name: categoryKey,
+        icon: '📋',
+        order: 99,
+      };
+
+      categories.push({
+        code: categoryKey,
+        name: config.name,
+        icon: config.icon,
+        order: config.order,
+        plans: categoryPlans.map((plan: any) => ({
+          amount: plan.rs,
+          validity: plan.validity,
+          description: plan.desc,
+          type: plan.Type || categoryKey,
+        })),
+      });
+    });
+
+    // Sort categories by order
+    categories.sort((a, b) => a.order - b.order);
 
     return NextResponse.json({
       success: true,
       data: {
-        plans: formattedPlans,
-        operator: plansResponse.data.operator || operator.operator_name,
-        circle: plansResponse.data.circle,
-        total: formattedPlans.length,
-        message: plansResponse.data.message,
+        operator: data.operator,
+        circle: data.circle,
+        message: data.message,
+        categories,
+        totalPlans: categories.reduce((sum, cat) => sum + cat.plans.length, 0),
       },
     });
   } catch (error: any) {

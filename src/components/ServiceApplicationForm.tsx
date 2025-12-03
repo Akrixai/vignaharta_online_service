@@ -247,15 +247,13 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
       return;
     }
 
-    // Calculate fee breakdown and show modal for paid services
+    // Calculate fee breakdown for paid services
     const breakdown = calculateFeeBreakdown();
     if (breakdown && breakdown.total_amount > 0) {
       setFeeBreakdown(breakdown);
-      setShowPaymentModal(true);
-      return;
     }
 
-    // If free service, submit directly
+    // Submit directly without showing modal
     await submitApplication();
   };
 
@@ -355,7 +353,10 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
       });
 
       if (response.ok) {
-        toast.success('Application submitted successfully! Payment will be debited after approval.');
+        const successMessage = service.is_free 
+          ? 'Application submitted successfully!' 
+          : 'Application submitted successfully! Payment will be debited after approval.';
+        toast.success(successMessage);
         setShowPaymentModal(false);
 
         // If this was from a draft, delete the draft
@@ -1170,153 +1171,7 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
           </div>
         </div>
 
-        {/* Payment Breakdown Modal */}
-        {showPaymentModal && feeBreakdown && (
-          <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm" style={{ zIndex: 100001 }}>
-            <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden animate-fade-in">
-              {/* Header */}
-              <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 p-6 text-white">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                      <span className="text-2xl">💳</span>
-                    </div>
-                    <div>
-                      <h3 className="text-2xl font-bold">Payment Details</h3>
-                      <p className="text-blue-100 text-sm">Review charges before submission</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
 
-              {/* Service Info */}
-              <div className="p-6 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-xl">📋</span>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Service</p>
-                    <p className="font-bold text-gray-900">{service?.name}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Fee Breakdown */}
-              <div className="p-6">
-                <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                  <span className="mr-2">📊</span>
-                  Fee Breakdown
-                </h4>
-                
-                <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-5 rounded-2xl border-2 border-blue-200 shadow-inner">
-                  <div className="space-y-4">
-                    {/* Base Amount */}
-                    <div className="flex justify-between items-center pb-3 border-b border-blue-200">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-blue-600">💰</span>
-                        <span className="text-gray-700 font-medium">Service Fee</span>
-                      </div>
-                      <span className="text-lg font-bold text-gray-900">₹{feeBreakdown.base_amount.toFixed(2)}</span>
-                    </div>
-                    
-                    {/* GST */}
-                    <div className="flex justify-between items-center pb-3 border-b border-blue-200">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-green-600">📈</span>
-                        <span className="text-gray-700 font-medium">GST ({feeBreakdown.gst_percentage}%)</span>
-                      </div>
-                      <span className="text-lg font-bold text-gray-900">₹{feeBreakdown.gst_amount.toFixed(2)}</span>
-                    </div>
-                    
-                    {/* Platform Fee */}
-                    <div className="flex justify-between items-center pb-3 border-b border-blue-200">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-purple-600">⚡</span>
-                        <span className="text-gray-700 font-medium">Platform Fee</span>
-                      </div>
-                      <span className="text-lg font-bold text-gray-900">₹{feeBreakdown.platform_fee.toFixed(2)}</span>
-                    </div>
-                    
-                    {/* Total */}
-                    <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 rounded-xl shadow-lg">
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-white text-xl">💎</span>
-                          <span className="text-xl font-bold text-white">Total Amount</span>
-                        </div>
-                        <span className="text-3xl font-extrabold text-white">₹{feeBreakdown.total_amount.toFixed(2)}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Calculation Details */}
-                <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <p className="text-xs text-blue-800 font-medium mb-2 flex items-center">
-                    <span className="mr-1">ℹ️</span>
-                    Calculation Details:
-                  </p>
-                  <div className="text-xs text-blue-700 space-y-1">
-                    <p>• Service Fee: ₹{feeBreakdown.base_amount.toFixed(2)}</p>
-                    <p>• GST ({feeBreakdown.gst_percentage}%): ₹{feeBreakdown.base_amount.toFixed(2)} × {feeBreakdown.gst_percentage}% = ₹{feeBreakdown.gst_amount.toFixed(2)}</p>
-                    <p>• Platform Fee: ₹{feeBreakdown.platform_fee.toFixed(2)} (Fixed)</p>
-                    <p className="font-bold pt-1 border-t border-blue-300">• Total: ₹{feeBreakdown.base_amount.toFixed(2)} + ₹{feeBreakdown.gst_amount.toFixed(2)} + ₹{feeBreakdown.platform_fee.toFixed(2)} = ₹{feeBreakdown.total_amount.toFixed(2)}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Important Notice */}
-              <div className="px-6 pb-6">
-                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-400 p-4 rounded-r-lg shadow-sm">
-                  <div className="flex items-start space-x-3">
-                    <div className="flex-shrink-0">
-                      <span className="text-yellow-600 text-2xl">⚠️</span>
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm text-yellow-900 font-bold mb-1">
-                        Payment After Approval
-                      </p>
-                      <p className="text-xs text-yellow-800 leading-relaxed">
-                        No immediate payment required. The total amount of <strong>₹{feeBreakdown.total_amount.toFixed(2)}</strong> will be automatically debited from your wallet only when the admin approves your application. Make sure you have sufficient balance in your wallet.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="px-6 pb-6 flex space-x-3">
-                <button
-                  type="button"
-                  onClick={() => setShowPaymentModal(false)}
-                  className="flex-1 h-12 border-2 border-gray-300 hover:border-gray-400 font-semibold rounded-lg transition-all"
-                  disabled={loading}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={submitApplication}
-                  disabled={loading}
-                  className="flex-1 h-12 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-200 rounded-lg"
-                >
-                  {loading ? (
-                    <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                      Submitting...
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center">
-                      <span className="mr-2">✓</span>
-                      Confirm & Submit
-                    </div>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
