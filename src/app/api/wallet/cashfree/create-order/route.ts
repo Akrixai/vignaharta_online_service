@@ -43,25 +43,16 @@ export async function POST(request: NextRequest) {
     }
 
     const gstPercentage = 2.00; // 2% GST
-    const gstAmount = (baseAmount * gstPercentage) / 100;
-    const totalAmount = baseAmount + gstAmount;
+    const gstAmount = Math.round((baseAmount * gstPercentage)) / 100; // Round to 2 decimals
+    const totalAmount = parseFloat((baseAmount + gstAmount).toFixed(2)); // Ensure exactly 2 decimal places
     
-    // Environment-specific limits
-    if (CASHFREE_ENVIRONMENT === 'PRODUCTION') {
-      // Production: up to ₹50,000
-      if (baseAmount > 50000) {
-        return NextResponse.json({ error: 'Maximum amount is ₹50,000' }, { status: 400 });
-      }
-    } else {
-      // TEST/Sandbox: max ₹980 base (₹999.60 with GST to stay under ₹1000 limit)
-      const maxTestAmount = 980;
-      if (baseAmount > maxTestAmount) {
-        return NextResponse.json({ 
-          error: `TEST mode limit: Maximum ₹${maxTestAmount} (₹${(maxTestAmount * 1.02).toFixed(2)} with GST). Use manual QR payment for higher amounts.`,
-          sandbox_limit: true,
-          max_amount: maxTestAmount
-        }, { status: 400 });
-      }
+    // No artificial limits - let Cashfree handle its own account limits
+    // Maximum is set to ₹50,000 for safety
+    if (baseAmount > 50000) {
+      return NextResponse.json({ 
+        error: 'Maximum amount is ₹50,000 per transaction',
+        max_amount: 50000
+      }, { status: 400 });
     }
 
     // Generate unique order ID
@@ -70,7 +61,7 @@ export async function POST(request: NextRequest) {
     // Create Cashfree order
     const orderRequest = {
       order_id: orderId,
-      order_amount: totalAmount,
+      order_amount: totalAmount, // Now guaranteed to have max 2 decimal places
       order_currency: 'INR',
       customer_details: {
         customer_id: session.user.id,
@@ -103,14 +94,25 @@ export async function POST(request: NextRequest) {
         status: cashfreeResponse.status,
         statusText: cashfreeResponse.statusText,
         response,
+        environment: CASHFREE_ENVIRONMENT,
+        amount: totalAmount,
         headers: {
           hasAppId: !!CASHFREE_APP_ID,
           hasSecretKey: !!CASHFREE_SECRET_KEY
         }
       });
+      
+      // Provide helpful error messages
+      let errorMessage = response?.message || `Cashfree API error: ${cashfreeResponse.statusText}`;
+      
+      if (response?.code === 'order_amount_invalid') {
+        errorMessage = `${response.message}. This is a Cashfree account limit. Please contact Cashfree support to increase your transaction limits, or use QR Payment for higher amounts (no limits, no GST).`;
+      }
+      
       return NextResponse.json({ 
-        error: response?.message || `Cashfree API error: ${cashfreeResponse.statusText}`,
-        details: response
+        error: errorMessage,
+        details: response,
+        suggestion: 'Use QR Payment (no GST, no limits) for higher amounts'
       }, { status: 500 });
     }
 
