@@ -49,23 +49,8 @@ export default function RechargeConfigPage() {
       const res = await fetch(`/api/admin/recharge-config?service_type=${serviceType}`);
       const data = await res.json();
       if (data.success) {
-        // Filter operators based on service type
-        let filteredOperators = data.data;
-        
-        // For PREPAID, only show mobile operators (exclude DATACARD)
-        if (serviceType === 'PREPAID') {
-          filteredOperators = data.data.filter((op: Operator) => {
-            // Exclude operators with DATACARD-related names
-            const name = op.operator_name.toUpperCase();
-            return !name.includes('DATACARD') && 
-                   !name.includes('MBLAZE') && 
-                   !name.includes('MBROWSE') && 
-                   !name.includes('NETCONNECT') && 
-                   !name.includes('PHOTON');
-          });
-        }
-        
-        setOperators(filteredOperators);
+        // Backend already filters operators properly
+        setOperators(data.data);
       }
     } catch (error) {
       console.error('Error fetching operators:', error);

@@ -29,10 +29,27 @@ export async function GET(request: NextRequest) {
     let filteredOperators = data || [];
     
     // For PREPAID, only show mobile operators (based on KWIKAPI operator IDs)
+    // This ensures only actual mobile recharge operators are shown (Airtel, Jio, VI, BSNL, MTNL)
+    // and excludes broadband, insurance, gas, water, cable, fastag, etc.
     if (serviceType && serviceType.toUpperCase() === 'PREPAID') {
-      // Valid mobile prepaid operator IDs from KWIKAPI documentation
-      // These are the ONLY mobile recharge operators
-      const validMobileOpids = [1, 3, 4, 5, 8, 9, 10, 12, 13, 14, 15, 18, 19, 21];
+      // Valid mobile prepaid operator IDs from KWIKAPI
+      const validMobileOpids = [
+        1,   // Airtel
+        3,   // Idea / VI
+        4,   // BSNL Topup
+        5,   // BSNL Special
+        8,   // Jio
+        14,  // MTNL
+        15,  // MTNL Special
+        21,  // Vodafone / VI
+        177, // Airtel Official
+        178, // VI Official
+        179, // BSNL Topup Official
+        180, // BSNL Special Official
+        181, // Jio Official
+        182, // MTNL Official
+        183  // MTNL Spl Official
+      ];
       
       filteredOperators = (data || []).filter((op: any) => {
         // STRICT filter: ONLY allow operators with valid mobile kwikapi_opid
