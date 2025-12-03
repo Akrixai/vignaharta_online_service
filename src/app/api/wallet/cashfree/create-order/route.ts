@@ -6,10 +6,18 @@ import { supabaseAdmin } from '@/lib/supabase';
 // Cashfree configuration
 const CASHFREE_APP_ID = process.env.CASHFREE_APP_ID || '';
 const CASHFREE_SECRET_KEY = process.env.CASHFREE_SECRET_KEY || '';
-const CASHFREE_ENV = process.env.CASHFREE_ENV === 'production' ? 'production' : 'sandbox';
-const CASHFREE_API_URL = CASHFREE_ENV === 'production' 
+const CASHFREE_ENVIRONMENT = process.env.CASHFREE_ENVIRONMENT || 'TEST';
+const CASHFREE_API_URL = CASHFREE_ENVIRONMENT === 'PRODUCTION' 
   ? 'https://api.cashfree.com/pg' 
   : 'https://sandbox.cashfree.com/pg';
+
+// Log configuration for debugging (remove in production)
+console.log('Cashfree Config:', {
+  hasAppId: !!CASHFREE_APP_ID,
+  hasSecretKey: !!CASHFREE_SECRET_KEY,
+  environment: CASHFREE_ENVIRONMENT,
+  apiUrl: CASHFREE_API_URL
+});
 
 // POST /api/wallet/cashfree/create-order - Create Cashfree order for wallet recharge with 2% GST
 export async function POST(request: NextRequest) {
@@ -43,7 +51,7 @@ export async function POST(request: NextRequest) {
     const totalAmount = baseAmount + gstAmount;
     
     // Cashfree sandbox has a limit of ₹1000, production supports higher amounts
-    if (CASHFREE_ENV === 'sandbox' && totalAmount > 1000) {
+    if (CASHFREE_ENVIRONMENT !== 'PRODUCTION' && totalAmount > 1000) {
       return NextResponse.json({ 
         error: 'Sandbox environment has a limit of ₹1000. For higher amounts, please use manual QR payment or contact admin to enable production mode.',
         sandbox_limit: true
@@ -85,9 +93,18 @@ export async function POST(request: NextRequest) {
     const response = await cashfreeResponse.json();
 
     if (!cashfreeResponse.ok || !response) {
-      console.error('Cashfree API error:', response);
+      console.error('Cashfree API error:', {
+        status: cashfreeResponse.status,
+        statusText: cashfreeResponse.statusText,
+        response,
+        headers: {
+          hasAppId: !!CASHFREE_APP_ID,
+          hasSecretKey: !!CASHFREE_SECRET_KEY
+        }
+      });
       return NextResponse.json({ 
-        error: response.message || 'Failed to create Cashfree order' 
+        error: response?.message || `Cashfree API error: ${cashfreeResponse.statusText}`,
+        details: response
       }, { status: 500 });
     }
 
