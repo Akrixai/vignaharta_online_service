@@ -83,22 +83,27 @@ export default function ApplicationsPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'PENDING': return 'bg-yellow-100 text-yellow-600';
-      case 'APPROVED': return 'bg-green-100 text-green-600';
-      case 'REJECTED': return 'bg-red-100 text-red-600';
-      case 'PROCESSING': return 'bg-blue-100 text-blue-600';
-      default: return 'bg-gray-100 text-gray-600';
+      case 'PENDING': return 'bg-blue-100 text-blue-600 border-blue-200'; // Changed from yellow to blue for "Processing"
+      case 'APPROVED': return 'bg-green-100 text-green-600 border-green-200';
+      case 'REJECTED': return 'bg-red-100 text-red-600 border-red-200';
+      case 'PROCESSING': return 'bg-blue-100 text-blue-600 border-blue-200';
+      default: return 'bg-gray-100 text-gray-600 border-gray-200';
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'PENDING': return '⏳';
+      case 'PENDING': return '🔄'; // Changed from ⏳ to 🔄 for "Processing"
       case 'APPROVED': return '✅';
       case 'REJECTED': return '❌';
       case 'PROCESSING': return '🔄';
       default: return '📄';
     }
+  };
+
+  // Display "PROCESSING" instead of "PENDING" for better UX
+  const getDisplayStatus = (status: string) => {
+    return status === 'PENDING' ? 'PROCESSING' : status;
   };
 
   const statusOptions = ['ALL', 'PENDING', 'PROCESSING', 'APPROVED', 'REJECTED'];
@@ -211,8 +216,8 @@ export default function ApplicationsPage() {
                           </p>
                         </div>
                         <div className="flex gap-2">
-                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(application.status)}`}>
-                            {getStatusIcon(application.status)} {application.status}
+                          <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(application.status)}`}>
+                            {getStatusIcon(application.status)} {getDisplayStatus(application.status)}
                           </span>
                         </div>
                       </div>
@@ -270,39 +275,39 @@ export default function ApplicationsPage() {
                     <div>
                       <h4 className="text-sm font-medium text-gray-700 mb-2">Status Information</h4>
                       <div className="space-y-2">
-                        <div className={`px-3 py-2 rounded-lg text-sm ${getStatusColor(application.status)}`}>
+                        <div className={`px-3 py-2 rounded-lg text-sm border ${getStatusColor(application.status)}`}>
                           <div className="font-medium">
-                            {getStatusIcon(application.status)} {application.status}
+                            {getStatusIcon(application.status)} {getDisplayStatus(application.status)}
                             {application.notes && application.notes.includes('REAPPLICATION') && (
-                              <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                              <span className="ml-2 px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
                                 REAPPLICATION
                               </span>
                             )}
                           </div>
                           {application.status === 'PENDING' && (
-                            <div className="text-xs mt-1">
+                            <div className="text-xs mt-1 font-medium">
                               {application.notes && application.notes.includes('REAPPLICATION')
-                                ? 'Reapplication waiting for admin review'
-                                : 'Waiting for admin review'
+                                ? '🔍 Reapplication is being reviewed by our team'
+                                : '🔍 Your application is being processed by our team'
                               }
                             </div>
                           )}
                           {application.status === 'PROCESSING' && (
-                            <div className="text-xs mt-1">Being processed by admin</div>
+                            <div className="text-xs mt-1 font-medium">🔍 Being processed by admin</div>
                           )}
                           {application.status === 'APPROVED' && (
-                            <div className="text-xs mt-1">
+                            <div className="text-xs mt-1 font-medium">
                               {application.notes && application.notes.includes('REAPPLICATION')
-                                ? 'Reapplication approved'
-                                : 'Application approved'
+                                ? '🎉 Reapplication approved successfully'
+                                : '🎉 Application approved successfully'
                               }
                             </div>
                           )}
                           {application.status === 'REJECTED' && (
-                            <div className="text-xs mt-1">
+                            <div className="text-xs mt-1 font-medium">
                               {application.notes && application.notes.includes('REAPPLICATION')
-                                ? 'Reapplication rejected'
-                                : 'Application rejected'
+                                ? '⚠️ Reapplication rejected - Please check notes'
+                                : '⚠️ Application rejected - Please check notes'
                               }
                             </div>
                           )}
@@ -357,14 +362,8 @@ export default function ApplicationsPage() {
                 <div className="text-sm text-gray-600">Total</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-yellow-600">
-                  {applications.filter(app => app.status === 'PENDING').length}
-                </div>
-                <div className="text-sm text-gray-600">Pending</div>
-              </div>
-              <div>
                 <div className="text-2xl font-bold text-blue-600">
-                  {applications.filter(app => app.status === 'PROCESSING').length}
+                  {applications.filter(app => app.status === 'PENDING' || app.status === 'PROCESSING').length}
                 </div>
                 <div className="text-sm text-gray-600">Processing</div>
               </div>

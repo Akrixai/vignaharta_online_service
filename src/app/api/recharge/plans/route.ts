@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const KWIKAPI_BASE_URL = 'https://www.kwikapi.com/api/v2';
-const KWIKAPI_KEY = process.env.KWIKAPI_KEY!;
+const KWIKAPI_API_KEY = process.env.KWIKAPI_API_KEY!;
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,6 +9,15 @@ export async function GET(request: NextRequest) {
     const operatorCode = searchParams.get('operator_code');
     const circleCode = searchParams.get('circle_code');
     const serviceType = searchParams.get('service_type');
+
+    console.log('📋 Plans API Request:', {
+      operatorCode,
+      circleCode,
+      serviceType,
+      hasApiKey: !!KWIKAPI_API_KEY,
+      apiKeyLength: KWIKAPI_API_KEY?.length,
+      apiKeyPreview: KWIKAPI_API_KEY ? `${KWIKAPI_API_KEY.substring(0, 6)}...` : 'undefined'
+    });
 
     if (!operatorCode) {
       return NextResponse.json(
@@ -25,24 +34,70 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Fetch plans from KWIKAPI
-    const formData = new FormData();
-    formData.append('api_key', KWIKAPI_KEY);
+    // Fetch plans from KWIKAPI using URLSearchParams (form-urlencoded)
+    const formData = new URLSearchParams();
+    formData.append('api_key', KWIKAPI_API_KEY);
     formData.append('opid', operatorCode);
-    if (circleCode) {
+
+    // Only add state_code for non-DTH services (mobile recharge needs circle)
+    if (circleCode && serviceType !== 'DTH') {
       formData.append('state_code', circleCode);
     }
 
+    console.log('🌐 Calling KWIKAPI:', {
+      url: `${KWIKAPI_BASE_URL}/recharge_plans.php`,
+      opid: operatorCode,
+      state_code: (serviceType === 'DTH') ? 'Not required for DTH' : (circleCode || 'N/A'),
+      serviceType,
+      method: 'POST (form-urlencoded)'
+    });
+
     const response = await fetch(`${KWIKAPI_BASE_URL}/recharge_plans.php`, {
       method: 'POST',
-      body: formData,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: formData.toString(),
     });
+
+    console.log('📡 KWIKAPI Response Status:', response.status, response.statusText);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ KWIKAPI HTTP Error:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText
+      });
+      return NextResponse.json(
+        {
+          success: false,
+          message: `KWIKAPI returned ${response.status}: ${response.statusText}`,
+          details: errorText
+        },
+        { status: 500 }
+      );
+    }
 
     const data = await response.json();
 
+    console.log('📦 KWIKAPI Response Data:', {
+      success: data.success,
+      hasPlans: !!data.plans,
+      planKeys: data.plans ? Object.keys(data.plans) : [],
+      operator: data.operator,
+      circle: data.circle,
+      message: data.message
+    });
+
     if (!data.success) {
+      console.error('❌ KWIKAPI returned success:false', data);
       return NextResponse.json(
-        { success: false, message: 'Failed to fetch plans from KWIKAPI' },
+        {
+          success: false,
+          message: data.message || 'Failed to fetch plans from KWIKAPI',
+          kwikapi_response: data
+        },
         { status: 500 }
       );
     }
@@ -70,7 +125,7 @@ export async function GET(request: NextRequest) {
     // Process each category
     Object.keys(plans).forEach((categoryKey) => {
       const categoryPlans = plans[categoryKey];
-      
+
       // Skip if no plans or null
       if (!categoryPlans || categoryPlans.length === 0) {
         return;

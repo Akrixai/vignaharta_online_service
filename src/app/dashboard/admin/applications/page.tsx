@@ -306,12 +306,13 @@ export default function AdminApplicationsPage() {
                         </div>
                       )}
 
-                      {/* Share Application Button - Only for approved applications */}
-                      {application.status === 'APPROVED' && (
+                      {/* Share Application Button - For approved, pending, and processing applications */}
+                      {(application.status === 'APPROVED' || application.status === 'PENDING' || application.status === 'PROCESSING') && (
                         <ShareApplicationButton
                           applicationId={application.id}
                           applicationName={`${application.scheme?.name || 'Application'} - ${application.customer_name}`}
-                          isApproved={true}
+                          isApproved={application.status === 'APPROVED'}
+                          applicationStatus={application.status}
                           shareToken={application.share_token}
                           shareEnabled={application.share_enabled}
                           className="w-full text-xs py-1"

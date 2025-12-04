@@ -21,7 +21,7 @@ export async function POST(
     const body = await request.json();
     const { expiresInDays } = body; // Optional: number of days until expiration
 
-    // Check if application exists and is approved
+    // Check if application exists
     const { data: application, error: fetchError } = await supabaseAdmin
       .from('applications')
       .select('id, status, share_token')
@@ -32,10 +32,11 @@ export async function POST(
       return NextResponse.json({ error: 'Application not found' }, { status: 404 });
     }
 
-    // Only allow sharing of approved applications
-    if (application.status !== 'APPROVED') {
+    // Allow sharing of approved, pending, and processing applications
+    const allowedStatuses = ['APPROVED', 'PENDING', 'PROCESSING'];
+    if (!allowedStatuses.includes(application.status)) {
       return NextResponse.json(
-        { error: 'Only approved applications can be shared' },
+        { error: 'Only approved or processing applications can be shared' },
         { status: 400 }
       );
     }

@@ -9,6 +9,7 @@ interface ShareApplicationButtonProps {
   applicationId: string;
   applicationName: string;
   isApproved: boolean;
+  applicationStatus?: string; // Added to check for PENDING/PROCESSING status
   shareToken?: string;
   shareEnabled?: boolean;
   className?: string;
@@ -21,6 +22,7 @@ export default function ShareApplicationButton({
   applicationId,
   applicationName,
   isApproved,
+  applicationStatus,
   shareToken: initialToken,
   shareEnabled: initialEnabled,
   className = '',
@@ -35,8 +37,11 @@ export default function ShareApplicationButton({
   const [showModal, setShowModal] = useState(false);
 
   const generateShareLink = async () => {
-    if (!isApproved) {
-      showToast.error('Only approved applications can be shared');
+    // Allow sharing for APPROVED, PENDING, and PROCESSING status
+    const canShare = isApproved || applicationStatus === 'PENDING' || applicationStatus === 'PROCESSING';
+    
+    if (!canShare) {
+      showToast.error('Only approved or processing applications can be shared');
       return null;
     }
 
@@ -132,14 +137,17 @@ export default function ShareApplicationButton({
     }
   };
 
-  if (!isApproved) {
+  // Allow sharing for APPROVED, PENDING, and PROCESSING status
+  const canShare = isApproved || applicationStatus === 'PENDING' || applicationStatus === 'PROCESSING';
+  
+  if (!canShare) {
     return (
       <Button
         disabled
         variant={variant}
         size={size}
         className={className}
-        title="Only approved applications can be shared"
+        title="Only approved or processing applications can be shared"
       >
         <Share2 className="w-4 h-4 mr-2" />
         Share
@@ -201,9 +209,24 @@ export default function ShareApplicationButton({
             {/* Content */}
             <div className="p-6 space-y-6">
               {/* Application Info */}
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <h4 className="font-semibold text-green-800 mb-2">Application Details</h4>
-                <p className="text-green-700">{applicationName}</p>
+              <div className={`border rounded-lg p-4 ${
+                isApproved 
+                  ? 'bg-green-50 border-green-200' 
+                  : 'bg-blue-50 border-blue-200'
+              }`}>
+                <h4 className={`font-semibold mb-2 ${
+                  isApproved ? 'text-green-800' : 'text-blue-800'
+                }`}>
+                  Application Details
+                </h4>
+                <p className={isApproved ? 'text-green-700' : 'text-blue-700'}>
+                  {applicationName}
+                </p>
+                {!isApproved && (
+                  <p className="text-sm text-blue-600 mt-2 font-medium">
+                    ⚠️ This application is currently being processed
+                  </p>
+                )}
               </div>
 
               {/* Share Link */}
@@ -239,25 +262,31 @@ export default function ShareApplicationButton({
               </div>
 
               {/* Features */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="font-semibold text-blue-800 mb-3">Features</h4>
-                <ul className="space-y-2 text-sm text-blue-700">
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <h4 className="font-semibold text-purple-800 mb-3">Share Features</h4>
+                <ul className="space-y-2 text-sm text-purple-700">
                   <li className="flex items-center">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                    <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
                     Anyone with the link can view the application
                   </li>
                   <li className="flex items-center">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                    <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
                     Viewers can download the application as PDF
                   </li>
                   <li className="flex items-center">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                    <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
                     View count is tracked automatically
                   </li>
                   <li className="flex items-center">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                    <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
                     Link remains active until you disable it
                   </li>
+                  {!isApproved && (
+                    <li className="flex items-center text-blue-700 font-medium">
+                      <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                      Status updates will be reflected in shared view
+                    </li>
+                  )}
                 </ul>
               </div>
 

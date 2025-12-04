@@ -36,7 +36,7 @@ class KwikAPIClient {
   }
 
   // ==================== MASTER DATA APIs ====================
-  
+
   /**
    * Get Circle Codes (for mobile/DTH)
    * GET /api/v2/circle_codes.php
@@ -82,7 +82,7 @@ class KwikAPIClient {
   }
 
   // ==================== BILL FETCH APIs ====================
-  
+
   /**
    * Bill Fetch v2 (for postpaid, DTH, electricity, etc.)
    * GET /api/v2/bills/validation.php
@@ -149,7 +149,7 @@ class KwikAPIClient {
   }
 
   // ==================== WALLET APIs ====================
-  
+
   /**
    * Wallet Balance Fetch
    * GET /api/v2/balance.php
@@ -203,7 +203,7 @@ class KwikAPIClient {
     try {
       const formData = new URLSearchParams();
       formData.append('api_key', KWIKAPI_API_KEY);
-      
+
       if (filters?.from_date) formData.append('from_date', filters.from_date);
       if (filters?.to_date) formData.append('to_date', filters.to_date);
       if (filters?.service_type) formData.append('service_type', filters.service_type);
@@ -224,7 +224,7 @@ class KwikAPIClient {
   }
 
   // ==================== PAYMENT APIs ====================
-  
+
   /**
    * Prepaid/DTH Recharge
    * From "Prepaid/DTH Recharge" collection entry
@@ -318,7 +318,7 @@ class KwikAPIClient {
         ...(params.opt3 && { opt3: params.opt3 }),
         ...(params.opt4 && { opt4: params.opt4 }),
         ...(params.opt5 && { opt5: params.opt5 }),
-        ...(params.opt6 && { opt6: params.opt6 }),
+        ...(params.opt6 && { opt6: params.opt7 }),
         ...(params.opt7 && { opt7: params.opt7 }),
         ...(params.opt8 && { opt8: params.opt8 }),
         ...(params.opt9 && { opt9: params.opt9 }),
@@ -451,7 +451,7 @@ class KwikAPIClient {
   }
 
   // ==================== PLANS APIs ====================
-  
+
   /**
    * Fetch Prepaid/DTH Plans
    * POST /api/v2/recharge_plans.php
@@ -464,7 +464,7 @@ class KwikAPIClient {
       const formData = new URLSearchParams();
       formData.append('api_key', KWIKAPI_API_KEY);
       formData.append('opid', params.opid.toString());
-      
+
       if (params.state_code) {
         formData.append('state_code', params.state_code);
       }
@@ -481,7 +481,7 @@ class KwikAPIClient {
         // Parse plans from response
         const allPlans: any[] = [];
         const plansData = response.data.plans || {};
-        
+
         // Iterate through all plan categories
         Object.keys(plansData).forEach((category) => {
           const categoryPlans = plansData[category];
@@ -557,80 +557,226 @@ class KwikAPIClient {
     });
   }
 
-  // ==================== OPERATOR DETECTION ====================
-  
   /**
-   * Detect Operator from Mobile Number
-   * Note: KWIKAPI v2 doesn't have a built-in operator detection API
-   * This is a fallback implementation using number series detection
-   * For production, consider using a third-party operator detection service
+   * Detect Operator from Mobile Number using KWIKAPI's Real-Time API
+   * Uses operator_fetch_v2.php which supports MNP and circle changes
    */
   async detectOperator(mobile_number: string): Promise<KwikAPIResponse> {
     try {
-      // Basic operator detection based on number series
-      // This is a simplified version - you may want to use a more comprehensive database
-      const firstDigits = mobile_number.substring(0, 4);
-      
-      // Jio number series
-      const jioSeries = ['7000', '7001', '7002', '7003', '7004', '7005', '7006', '7007', '7008', '7009',
-                         '8000', '8001', '8002', '8003', '8004', '8005', '8006', '8007', '8008', '8009',
-                         '9000', '9001', '9002', '9003', '9004', '9005', '9006', '9007', '9008', '9009'];
-      
-      // Airtel number series
-      const airtelSeries = ['7300', '7301', '7302', '7303', '7304', '7305', '7306', '7307', '7308', '7309',
-                            '8100', '8101', '8102', '8103', '8104', '8105', '8106', '8107', '8108', '8109',
-                            '9100', '9101', '9102', '9103', '9104', '9105', '9106', '9107', '9108', '9109'];
-      
-      // VI (Vodafone Idea) number series
-      const viSeries = ['7400', '7401', '7402', '7403', '7404', '7405', '7406', '7407', '7408', '7409',
-                        '8200', '8201', '8202', '8203', '8204', '8205', '8206', '8207', '8208', '8209',
-                        '9200', '9201', '9202', '9203', '9204', '9205', '9206', '9207', '9208', '9209'];
-      
-      // BSNL number series
-      const bsnlSeries = ['7500', '7501', '7502', '7503', '7504', '7505', '7506', '7507', '7508', '7509',
-                          '8300', '8301', '8302', '8303', '8304', '8305', '8306', '8307', '8308', '8309',
-                          '9300', '9301', '9302', '9303', '9304', '9305', '9306', '9307', '9308', '9309'];
-      
-      let operatorCode = 'AIRTEL'; // Default
-      let operatorName = 'Airtel';
-      
-      if (jioSeries.some(series => firstDigits.startsWith(series.substring(0, 3)))) {
-        operatorCode = 'JIO';
-        operatorName = 'Jio';
-      } else if (airtelSeries.some(series => firstDigits.startsWith(series.substring(0, 3)))) {
-        operatorCode = 'AIRTEL';
-        operatorName = 'Airtel';
-      } else if (viSeries.some(series => firstDigits.startsWith(series.substring(0, 3)))) {
-        operatorCode = 'VI';
-        operatorName = 'Vodafone Idea';
-      } else if (bsnlSeries.some(series => firstDigits.startsWith(series.substring(0, 3)))) {
-        operatorCode = 'BSNL';
-        operatorName = 'BSNL';
+      console.log('🔍 [KWIKAPI] Detecting operator for:', mobile_number);
+      console.log('🔑 [KWIKAPI] API Key configured:', KWIKAPI_API_KEY ? `${KWIKAPI_API_KEY.substring(0, 6)}...` : 'NOT SET');
+
+      if (!KWIKAPI_API_KEY) {
+        console.error('❌ [KWIKAPI] API Key is not configured!');
+        return {
+          success: false,
+          data: null,
+          message: 'KWIKAPI API Key is not configured. Please check your .env file.',
+        };
       }
-      
-      // Default circle based on state code (simplified)
-      // In production, you should use a proper location-based detection
-      const circleCode = 'MH'; // Default to Maharashtra
-      const circleName = 'Maharashtra';
-      
+
+      // Call KWIKAPI's operator_fetch_v2.php API
+      const formData = new URLSearchParams();
+      formData.append('api_key', KWIKAPI_API_KEY);
+      formData.append('number', mobile_number);
+
+      console.log('📡 [KWIKAPI] Calling operator_fetch_v2.php with number:', mobile_number);
+
+      const response = await this.client.post('/api/v2/operator_fetch_v2.php', formData, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      });
+
+      console.log('📦 [KWIKAPI] Full API Response:', JSON.stringify(response.data, null, 2));
+
+      // Check if API returned success
+      if (!response.data.success) {
+        console.error('❌ [KWIKAPI] API returned success: false', response.data);
+        return {
+          success: false,
+          data: null,
+          message: response.data.message || 'KWIKAPI API returned an error',
+        };
+      }
+
+      // Check if details exist
+      if (!response.data.details) {
+        console.error('❌ [KWIKAPI] No details in response:', response.data);
+        return {
+          success: false,
+          data: null,
+          message: 'No operator details found in KWIKAPI response',
+        };
+      }
+
+      const details = response.data.details;
+      console.log('🔍 [KWIKAPI] Details object:', JSON.stringify(details, null, 2));
+
+      // Extract operator and circle (handle both old and new formats)
+      // New format: provider, opid, circle_code, circle_name
+      // Old format: operator, Operator, Circle, circle
+      const operatorName = details.provider || details.operator || details.Operator || '';
+      const circleName = details.circle_name || details.Circle || details.circle || '';
+      const kwikapi_opid = details.opid ? parseInt(details.opid) : null;
+      const circleCodeFromAPI = details.circle_code || '';
+
+      console.log('🏷️ [KWIKAPI] Extracted values:', {
+        operatorName,
+        circleName,
+        kwikapi_opid,
+        circleCodeFromAPI,
+        allDetailsKeys: Object.keys(details)
+      });
+
+      if (!operatorName || !circleName) {
+        console.error('❌ [KWIKAPI] Missing operator or circle in details:', details);
+        return {
+          success: false,
+          data: null,
+          message: `Missing data - Operator: ${operatorName || 'N/A'}, Circle: ${circleName || 'N/A'}`,
+        };
+      }
+
+      // Map KWIKAPI operator names to our operator codes
+      const operatorMapping: Record<string, { code: string; name: string; opid: number }> = {
+        'JIO': { code: 'JIO', name: 'Reliance Jio', opid: 8 },
+        'RELIANCE JIO': { code: 'JIO', name: 'Reliance Jio', opid: 8 },
+        'AIRTEL': { code: 'AIRTEL', name: 'Airtel', opid: 1 },
+        'IDEA': { code: 'VI', name: 'Vodafone Idea', opid: 3 },
+        'VODAFONE': { code: 'VI', name: 'Vodafone Idea', opid: 3 },
+        'VI': { code: 'VI', name: 'Vodafone Idea', opid: 3 },
+        'BSNL': { code: 'BSNL', name: 'BSNL', opid: 4 },
+        'MTNL': { code: 'MTNL', name: 'MTNL', opid: 14 },
+      };
+
+      // Map circle names to circle codes (handle both formats)
+      const circleMapping: Record<string, string> = {
+        'Maharashtra': '4',
+        'Maharashtra and Goa': '4',
+        'Maharashtra (MH)': '4',
+        'Delhi': '1',
+        'Delhi NCR': '1',
+        'Delhi (DL)': '1',
+        'Mumbai': '2',
+        'Mumbai (MUM)': '2',
+        'Kolkata': '3',
+        'Kolkata (KOL)': '3',
+        'Tamil Nadu': '5',
+        'Tamil Nadu (TN)': '5',
+        'Karnataka': '6',
+        'Karnataka (KA)': '6',
+        'Andhra Pradesh': '7',
+        'Andhra Pradesh (AP)': '7',
+        'Kerala': '8',
+        'Kerala (KL)': '8',
+        'Punjab': '9',
+        'Punjab (PB)': '9',
+        'Haryana': '10',
+        'Haryana (HR)': '10',
+        'Uttar Pradesh (East)': '11',
+        'Uttar Pradesh East (UP-E)': '11',
+        'Uttar Pradesh (West)': '12',
+        'Uttar Pradesh West (UP-W)': '12',
+        'Rajasthan': '13',
+        'Rajasthan (RJ)': '13',
+        'Gujarat': '14',
+        'Gujarat (GJ)': '14',
+        'Madhya Pradesh': '15',
+        'Madhya Pradesh (MP)': '15',
+        'West Bengal': '16',
+        'West Bengal (WB)': '16',
+        'Bihar': '17',
+        'Bihar (BR)': '17',
+        'Bihar and Jharkhand': '17',
+        'Orissa': '18',
+        'Orissa (OR)': '18',
+        'Assam': '19',
+        'Assam (AS)': '19',
+        'North East': '20',
+        'North East (NE)': '20',
+        'Himachal Pradesh': '21',
+        'Himachal Pradesh (HP)': '21',
+        'Jammu and Kashmir': '22',
+        'Jammu and Kashmir (JK)': '22',
+        'Chennai': '23',
+        'Chennai (CHE)': '23',
+      };
+
+      const operatorUpper = operatorName.toUpperCase().trim();
+
+      // Try to find operator by name first, then use opid from API if available
+      let operatorInfo = operatorMapping[operatorUpper];
+
+      if (!operatorInfo && kwikapi_opid) {
+        // If not found by name, create from API opid
+        operatorInfo = {
+          code: operatorUpper,
+          name: operatorName,
+          opid: kwikapi_opid
+        };
+      } else if (!operatorInfo) {
+        // Fallback
+        operatorInfo = {
+          code: operatorUpper,
+          name: operatorName,
+          opid: 1 // Default to Airtel opid
+        };
+      }
+
+      // Find circle code - use API circle_code if available, otherwise map from name
+      let circleCode = circleCodeFromAPI || '4'; // Default to Maharashtra
+      const circleNameTrimmed = circleName.trim();
+
+      // If no circle_code from API, try to map from circle name
+      if (!circleCodeFromAPI) {
+        for (const [circleName_key, code] of Object.entries(circleMapping)) {
+          if (circleNameTrimmed.toLowerCase().includes(circleName_key.toLowerCase())) {
+            circleCode = code;
+            break;
+          }
+        }
+      }
+
+      console.log('✅ [KWIKAPI] Real-time operator detected successfully:', {
+        mobile_number,
+        operator: operatorInfo.name,
+        operatorCode: operatorInfo.code,
+        kwikapi_opid: operatorInfo.opid,
+        circle: circleNameTrimmed,
+        circleCode,
+        credit_balance: response.data.credit_balance,
+        source: 'KWIKAPI Real-Time API'
+      });
+
       return {
         success: true,
         data: {
           mobile_number,
-          operator_code: operatorCode,
-          operator_name: operatorName,
+          operator_code: operatorInfo.code,
+          operator_name: operatorInfo.name,
+          kwikapi_opid: operatorInfo.opid,
           circle_code: circleCode,
-          circle_name: circleName,
+          circle_name: circleNameTrimmed,
           operator_type: 'PREPAID',
-          confidence: 'medium', // Indicate this is a basic detection
+          confidence: 'high', // Real-time API = high confidence
+          detection_method: 'kwikapi_realtime',
+          api_response: response.data,
         },
       };
+
     } catch (error: any) {
-      console.error('Operator Detection Error:', error);
+      console.error('❌ [KWIKAPI] Operator Detection Error:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        statusText: error.response?.statusText
+      });
+
       return {
         success: false,
         data: null,
-        message: 'Operator detection failed',
+        message: error.response?.data?.message || error.message || 'Operator detection failed',
       };
     }
   }
@@ -646,12 +792,12 @@ class KwikAPIClient {
         return await operation();
       } catch (error: any) {
         if (i === maxRetries - 1) throw error;
-        
+
         // Don't retry on client errors (4xx)
         if (error.response?.status >= 400 && error.response?.status < 500) {
           throw error;
         }
-        
+
         await new Promise(resolve => setTimeout(resolve, delayMs * (i + 1)));
       }
     }
