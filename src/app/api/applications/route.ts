@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 import { UserRole } from '@/types';
 
 // GET /api/applications - Get applications
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session) {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -57,9 +56,9 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false });
 
     // Filter based on user role
-    if (session.user.role === 'RETAILER' || session.user.role === 'CUSTOMER') {
+    if (user.role === 'RETAILER' || user.role === 'CUSTOMER') {
       // Retailers and Customers only see their own applications
-      query = query.eq('user_id', session.user.id);
+      query = query.eq('user_id', user.id);
     }
     // Admin and Employee can see all applications
 
@@ -79,8 +78,8 @@ export async function GET(request: NextRequest) {
       .select('*', { count: 'exact', head: true });
 
     // Filter based on user role for count
-    if (session.user.role === 'RETAILER' || session.user.role === 'CUSTOMER') {
-      countQuery = countQuery.eq('user_id', session.user.id);
+    if (user.role === 'RETAILER' || user.role === 'CUSTOMER') {
+      countQuery = countQuery.eq('user_id', user.id);
     }
 
     if (status) {
@@ -108,9 +107,9 @@ export async function GET(request: NextRequest) {
 // POST /api/applications - Create new application
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getAuthenticatedUser(request);
 
-    if (!session || (session.user.role !== UserRole.RETAILER && session.user.role !== UserRole.CUSTOMER)) {
+    if (!user || (user.role !== UserRole.RETAILER && user.role !== UserRole.CUSTOMER)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -173,7 +172,7 @@ export async function POST(request: NextRequest) {
       const { data: wallet, error: walletError } = await supabaseAdmin
         .from('wallets')
         .select('id, balance')
-        .eq('user_id', session.user.id)
+        .eq('user_id', user.id)
         .single();
 
       let currentBalance = 0;
@@ -182,7 +181,7 @@ export async function POST(request: NextRequest) {
         const { data: newWallet, error: createWalletError } = await supabaseAdmin
           .from('wallets')
           .insert({
-            user_id: session.user.id,
+            user_id: user.id,
             balance: 0
           })
           .select('id, balance')
@@ -209,15 +208,15 @@ export async function POST(request: NextRequest) {
     // Calculate cashback for customers
     let cashbackPercentage = 0;
     let cashbackAmount = 0;
-    
-    if (session.user.role === UserRole.CUSTOMER && scheme.cashback_enabled) {
+
+    if (user.role === UserRole.CUSTOMER && scheme.cashback_enabled) {
       const minCashback = parseFloat(scheme.cashback_min_percentage || 1);
       const maxCashback = parseFloat(scheme.cashback_max_percentage || 3);
-      
+
       // Generate random cashback percentage between min and max
       cashbackPercentage = Math.random() * (maxCashback - minCashback) + minCashback;
       cashbackPercentage = Math.round(cashbackPercentage * 100) / 100; // Round to 2 decimals
-      
+
       // Calculate cashback amount
       const servicePrice = parseFloat(amount || scheme.price || 0);
       cashbackAmount = (servicePrice * cashbackPercentage) / 100;
@@ -228,7 +227,7 @@ export async function POST(request: NextRequest) {
     const { data: application, error: applicationError } = await supabaseAdmin
       .from('applications')
       .insert({
-        user_id: session.user.id,
+        user_id: user.id,
         scheme_id,
         form_data: form_data || {},
         documents: documents || [],
@@ -246,7 +245,7 @@ export async function POST(request: NextRequest) {
         payment_status: 'PENDING', // Will be PAID after approval
         status: 'PENDING',
         notes: is_reapply ? `REAPPLICATION - Original Application ID: ${original_application_id}` : null,
-        commission_rate: session.user.role === UserRole.RETAILER ? (scheme.commission_rate || 0) : 0,
+        commission_rate: user.role === UserRole.RETAILER ? (scheme.commission_rate || 0) : 0,
         commission_paid: false,
         cashback_percentage: cashbackPercentage,
         cashback_amount: cashbackAmount,
@@ -286,8 +285,8 @@ export async function POST(request: NextRequest) {
     try {
       const notificationTitle = is_reapply ? 'New Reapplication Submitted' : 'New Application Submitted';
       const notificationMessage = is_reapply
-        ? `${session.user.name} submitted a reapplication for ${scheme.name}`
-        : `${session.user.name} submitted an application for ${scheme.name}`;
+        ? `${user.name} submitted a reapplication for ${scheme.name}`
+        : `${user.name} submitted an application for ${scheme.name}`;
 
       const { data: notif, error: notifError } = await supabaseAdmin
         .from('notifications')
@@ -299,13 +298,13 @@ export async function POST(request: NextRequest) {
             application_id: application.id,
             scheme_name: scheme.name,
             customer_name,
-            retailer_name: session.user.name,
+            retailer_name: user.name,
             amount: amount || (scheme.is_free ? 0 : scheme.price),
             is_reapply: is_reapply,
             original_application_id: original_application_id
           },
           target_roles: ['ADMIN', 'EMPLOYEE'],
-          created_by: session.user.id
+          created_by: user.id
         })
         .select()
         .single();

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -8,6 +9,11 @@ const supabase = createClient(
 
 export async function GET(request: NextRequest) {
   try {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     const { searchParams } = new URL(request.url);
     const serviceType = searchParams.get('service_type');
 
@@ -27,7 +33,7 @@ export async function GET(request: NextRequest) {
 
     // Filter operators based on service type
     let filteredOperators = data || [];
-    
+
     // For PREPAID, only show mobile operators (based on KWIKAPI operator IDs)
     // This ensures only actual mobile recharge operators are shown (Airtel, Jio, VI, BSNL, MTNL)
     // and excludes broadband, insurance, gas, water, cable, fastag, etc.
@@ -50,7 +56,7 @@ export async function GET(request: NextRequest) {
         182, // MTNL Official
         183  // MTNL Spl Official
       ];
-      
+
       filteredOperators = (data || []).filter((op: any) => {
         // STRICT filter: ONLY allow operators with valid mobile kwikapi_opid
         return op.kwikapi_opid && validMobileOpids.includes(op.kwikapi_opid);

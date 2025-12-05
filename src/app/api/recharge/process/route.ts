@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import kwikapi from '@/lib/kwikapi';
-import { getServerSession } from 'next-auth';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,8 +10,8 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession();
-    if (!session?.user?.email) {
+    const user = await getAuthenticatedUser(request);
+    if (!user?.email) {
       return NextResponse.json(
         { success: false, message: 'Unauthorized' },
         { status: 401 }
@@ -19,13 +19,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user with wallet
-    const { data: user } = await supabase
+    const { data: dbUser } = await supabase
       .from('users')
       .select('id, role, name, email')
-      .eq('email', session.user.email)
+      .eq('email', user.email)
       .single();
 
-    if (!user) {
+    if (!dbUser) {
       return NextResponse.json(
         { success: false, message: 'User not found' },
         { status: 404 }
@@ -99,8 +99,8 @@ export async function POST(request: NextRequest) {
     // Note: Actual rates are NOT shown to users in UI
     const rewardRate = operator.commission_rate;
     const rewardAmount = (amount * rewardRate) / 100;
-    const rewardLabel = user.role === 'CUSTOMER' ? 'Cashback' : 'Commission';
-    
+    const rewardLabel = dbUser.role === 'CUSTOMER' ? 'Cashback' : 'Commission';
+
     const platformFee = 0; // No platform fee
     const totalAmount = amount;
 
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
     const { data: wallet } = await supabase
       .from('wallets')
       .select('id, balance')
-      .eq('user_id', user.id)
+      .eq('user_id', dbUser.id)
       .single();
 
     if (!wallet || wallet.balance < totalAmount) {
@@ -125,14 +125,14 @@ export async function POST(request: NextRequest) {
     const { data: transaction, error: txnError } = await supabase
       .from('recharge_transactions')
       .insert({
-        user_id: user.id,
+        user_id: dbUser.id,
         operator_id: operator.id,
         circle_id: circleId,
         service_type: service_type.toUpperCase(),
         mobile_number,
         dth_number,
         consumer_number,
-        account_holder_name: customer_name || user.name,
+        account_holder_name: customer_name || dbUser.name,
         amount,
         commission_amount: rewardAmount,
         platform_fee: platformFee,
@@ -149,11 +149,11 @@ export async function POST(request: NextRequest) {
     await supabase
       .from('wallets')
       .update({ balance: wallet.balance - totalAmount })
-      .eq('user_id', user.id);
+      .eq('user_id', dbUser.id);
 
     // Record wallet transaction (deduction)
     await supabase.from('transactions').insert({
-      user_id: user.id,
+      user_id: dbUser.id,
       wallet_id: wallet.id,
       type: 'WITHDRAWAL',
       amount: totalAmount,
@@ -177,7 +177,7 @@ export async function POST(request: NextRequest) {
     // Check KWIKAPI wallet balance first
     const walletBalanceResponse = await kwikapi.getWalletBalance();
     const kwikApiBalance = parseFloat(walletBalanceResponse.data?.balance || '0');
-    
+
     if (kwikApiBalance < amount) {
       // Insufficient KWIKAPI balance - mark as pending and notify admin
       await supabase
@@ -237,7 +237,7 @@ export async function POST(request: NextRequest) {
             number: dth_number!,
             amount,
             order_id: transactionRef,
-            mobile: mobile_number || user.email,
+            mobile: mobile_number || dbUser.email,
             opt1: plan_id,
           });
           break;
@@ -250,7 +250,7 @@ export async function POST(request: NextRequest) {
             consumer_number: consumer_number!,
             amount,
             order_id: transactionRef,
-            mobile: mobile_number || user.email,
+            mobile: mobile_number || dbUser.email,
             circle: circle_code,
             ref_id: body.ref_id,
             opt1: body.opt1,
@@ -266,13 +266,13 @@ export async function POST(request: NextRequest) {
       // Determine status from response
       const responseStatus = rechargeResponse.data?.status || rechargeResponse.data?.STATUS;
       let status: 'SUCCESS' | 'PENDING' | 'FAILED' = 'PENDING';
-      
+
       if (responseStatus === 'SUCCESS') {
         status = 'SUCCESS';
       } else if (responseStatus === 'FAILED') {
         status = 'FAILED';
       }
-      
+
       // Update transaction with response
       await supabase
         .from('recharge_transactions')
@@ -287,12 +287,12 @@ export async function POST(request: NextRequest) {
 
       // Calculate cashback for customers (random between min and max)
       let actualCashback = 0;
-      if (user.role === 'CUSTOMER' && operator.cashback_enabled && status === 'SUCCESS') {
+      if (dbUser.role === 'CUSTOMER' && operator.cashback_enabled && status === 'SUCCESS') {
         const minCashback = operator.cashback_min_percentage || 0.5;
         const maxCashback = operator.cashback_max_percentage || 2.0;
         const randomCashbackPercentage = (Math.random() * (maxCashback - minCashback) + minCashback).toFixed(2);
         actualCashback = (amount * parseFloat(randomCashbackPercentage)) / 100;
-        
+
         // Update transaction with cashback info
         await supabase
           .from('recharge_transactions')
@@ -305,18 +305,18 @@ export async function POST(request: NextRequest) {
 
       // If successful, add commission/cashback to user wallet
       if (status === 'SUCCESS') {
-        const finalReward = user.role === 'CUSTOMER' ? actualCashback : rewardAmount;
-        
+        const finalReward = dbUser.role === 'CUSTOMER' ? actualCashback : rewardAmount;
+
         if (finalReward > 0) {
           await supabase
             .from('wallets')
             .update({ balance: wallet.balance - totalAmount + finalReward })
-            .eq('user_id', user.id);
+            .eq('user_id', dbUser.id);
 
           await supabase.from('transactions').insert({
-            user_id: user.id,
+            user_id: dbUser.id,
             wallet_id: wallet.id,
-            type: user.role === 'CUSTOMER' ? 'REFUND' : 'COMMISSION',
+            type: dbUser.role === 'CUSTOMER' ? 'REFUND' : 'COMMISSION',
             amount: finalReward,
             status: 'COMPLETED',
             description: `${rewardLabel} for ${service_type} ${mobile_number || dth_number || consumer_number}`,
@@ -327,8 +327,8 @@ export async function POST(request: NextRequest) {
           await supabase
             .from('recharge_transactions')
             .update({
-              [user.role === 'CUSTOMER' ? 'cashback_claimed' : 'commission_paid']: true,
-              [user.role === 'CUSTOMER' ? 'cashback_claimed_at' : 'commission_paid_at']: new Date().toISOString(),
+              [dbUser.role === 'CUSTOMER' ? 'cashback_claimed' : 'commission_paid']: true,
+              [dbUser.role === 'CUSTOMER' ? 'cashback_claimed_at' : 'commission_paid_at']: new Date().toISOString(),
             })
             .eq('id', transaction.id);
         }
@@ -363,10 +363,10 @@ export async function POST(request: NextRequest) {
         await supabase
           .from('wallets')
           .update({ balance: wallet.balance })
-          .eq('user_id', user.id);
+          .eq('user_id', dbUser.id);
 
         await supabase.from('transactions').insert({
-          user_id: user.id,
+          user_id: dbUser.id,
           wallet_id: wallet.id,
           type: 'REFUND',
           amount: totalAmount,

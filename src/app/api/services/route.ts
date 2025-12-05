@@ -1,22 +1,21 @@
 // app/api/services/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 import { supabaseAdmin } from '@/lib/supabase';
 import { UserRole } from '@/types';
 
 // GET - Fetch active services for retailers and employees
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getAuthenticatedUser(request);
 
     // Allow access to retailers, employees, customers, and admin
     if (
-      !session ||
-      (session.user.role !== UserRole.RETAILER &&
-        session.user.role !== UserRole.EMPLOYEE &&
-        session.user.role !== UserRole.ADMIN &&
-        session.user.role !== UserRole.CUSTOMER)
+      !user ||
+      (user.role !== UserRole.RETAILER &&
+        user.role !== UserRole.EMPLOYEE &&
+        user.role !== UserRole.ADMIN &&
+        user.role !== UserRole.CUSTOMER)
     ) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -57,7 +56,7 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false });
 
     // Filter services based on user role
-    if (session?.user?.role === 'CUSTOMER') {
+    if (user.role === 'CUSTOMER') {
       // Customers only see services marked as show_to_customer = true
       query = query.eq('show_to_customer', true);
     }

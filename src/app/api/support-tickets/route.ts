@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -11,16 +10,16 @@ const supabase = createClient(
 // GET - List support tickets
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session) {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { data, error } = await supabase
       .from('support_tickets')
       .select('*')
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -35,9 +34,9 @@ export async function GET(request: NextRequest) {
 // POST - Create support ticket
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session) {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -51,7 +50,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase
       .from('support_tickets')
       .insert({
-        user_id: session.user.id,
+        user_id: user.id,
         subject,
         category,
         priority: priority || 'medium',

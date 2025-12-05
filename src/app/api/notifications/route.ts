@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 import { supabaseAdmin } from '@/lib/supabase';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { UserRole } from '@/types';
 
-// GET /api/notifications - Get notifications for current user
+// GET /api/notifications - Get user notifications
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session) {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -44,12 +43,12 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/notifications - Create new notification
+// POST /api/notifications - Create notification (Admin/System)
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session) {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user || user.role !== UserRole.ADMIN) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -78,7 +77,7 @@ export async function POST(request: NextRequest) {
         data: data || {},
         target_roles: target_roles || [],
         target_users: target_users || [],
-        created_by: session.user.id
+        created_by: user.id
       })
       .select()
       .single();
@@ -101,7 +100,7 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

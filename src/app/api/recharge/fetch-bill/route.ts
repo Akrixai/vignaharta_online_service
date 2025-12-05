@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import kwikapi from '@/lib/kwikapi';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -11,21 +10,21 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
+    const user = await getAuthenticatedUser(request);
+    if (!user?.email) {
       return NextResponse.json(
         { success: false, message: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    const { data: user } = await supabase
+    const { data: dbUser } = await supabase
       .from('users')
       .select('id, email, phone')
-      .eq('email', session.user.email)
+      .eq('email', user.email)
       .single();
 
-    if (!user) {
+    if (!dbUser) {
       return NextResponse.json(
         { success: false, message: 'User not found' },
         { status: 404 }
@@ -63,7 +62,7 @@ export async function POST(request: NextRequest) {
 
     // Check if operator supports bill fetch
     const billFetchSupported = operator.metadata?.bill_fetch === 'YES';
-    
+
     if (!billFetchSupported) {
       return NextResponse.json(
         { success: false, message: 'Bill fetch not supported for this operator. You can proceed with manual amount entry.' },
@@ -85,12 +84,12 @@ export async function POST(request: NextRequest) {
     // - opt8: "Bills" (required literal)
     // - mobile: Customer mobile
     // - opt1-opt10: Additional fields as per operator requirements
-    
+
     const billResponse = await kwikapi.fetchBill({
       opid: operator.kwikapi_opid,
       number: consumer_number,
       amount: '10', // Dummy amount for bill fetch
-      mobile: mobile_number || user.phone || user.email || '9999999999',
+      mobile: mobile_number || dbUser.phone || dbUser.email || '9999999999',
       // opt8 is set to "Bills" in the kwikapi library
     });
 
@@ -106,11 +105,11 @@ export async function POST(request: NextRequest) {
 
     // Extract bill data
     const billData = billResponse.data;
-    
+
     // Save bill fetch history
     try {
       await supabase.from('bill_fetch_history').insert({
-        user_id: user.id,
+        user_id: dbUser.id,
         operator_id: operator.id,
         consumer_number,
         consumer_name: billData.customer_name || billData.customername || 'N/A',

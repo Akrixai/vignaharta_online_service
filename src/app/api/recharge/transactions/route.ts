@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { getServerSession } from 'next-auth';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -9,21 +9,21 @@ const supabase = createClient(
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession();
-    if (!session?.user?.email) {
+    const user = await getAuthenticatedUser(request);
+    if (!user?.email) {
       return NextResponse.json(
         { success: false, message: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    const { data: user } = await supabase
+    const { data: dbUser } = await supabase
       .from('users')
       .select('id, role')
-      .eq('email', session.user.email)
+      .eq('email', user.email)
       .single();
 
-    if (!user) {
+    if (!dbUser) {
       return NextResponse.json(
         { success: false, message: 'User not found' },
         { status: 404 }
@@ -48,8 +48,8 @@ export async function GET(request: NextRequest) {
       .range(offset, offset + limit - 1);
 
     // Non-admin users can only see their own transactions
-    if (user.role !== 'ADMIN') {
-      query = query.eq('user_id', user.id);
+    if (dbUser.role !== 'ADMIN') {
+      query = query.eq('user_id', dbUser.id);
     }
 
     if (status) {

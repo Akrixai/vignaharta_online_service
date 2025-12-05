@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 
 const KWIKAPI_BASE_URL = 'https://www.kwikapi.com/api/v2';
 const KWIKAPI_API_KEY = process.env.KWIKAPI_API_KEY!;
 
 export async function GET(request: NextRequest) {
   try {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     const { searchParams } = new URL(request.url);
     const operatorCode = searchParams.get('operator_code');
     const circleCode = searchParams.get('circle_code');
@@ -148,7 +154,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         success: false,
         isDTH,
-        message: isDTH 
+        message: isDTH
           ? 'DTH plan browsing is not enabled for your KWIKAPI account. Please enter a custom recharge amount.'
           : 'Plan browsing is not enabled for your KWIKAPI account.',
         reason: 'kwikapi_not_authorized',
@@ -162,7 +168,7 @@ export async function GET(request: NextRequest) {
     // Mobile: { DATA: [{ rs, validity, desc }], STV: [...] }
     if (isDTH && data.plans?.Combo && Array.isArray(data.plans.Combo)) {
       console.log('📺 Processing DTH plans with language-based structure');
-      
+
       // Process DTH plans grouped by language
       const dthLanguagePacks = data.plans.Combo;
       let totalDTHPlans = 0;
@@ -262,7 +268,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         success: false,
         isDTH,
-        message: isDTH 
+        message: isDTH
           ? 'No DTH plans available. Please enter a custom recharge amount.'
           : 'No plans available for this operator.',
         reason: 'no_plans_available',
