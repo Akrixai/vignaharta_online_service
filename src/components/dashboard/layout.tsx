@@ -31,6 +31,7 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: '📊', roles: [UserRole.ADMIN, UserRole.EMPLOYEE, UserRole.RETAILER, UserRole.CUSTOMER] },
   { name: 'Wallet', href: '/dashboard/wallet', icon: '💰', roles: [UserRole.ADMIN, UserRole.RETAILER, UserRole.CUSTOMER] }, // Admin, Retailer, and Customer can access wallet
+  { name: 'Wallet Transactions', href: '/dashboard/wallet-transactions', icon: '💳', roles: [UserRole.RETAILER, UserRole.CUSTOMER] }, // Detailed transaction history
   { name: 'Apply Services', href: '/dashboard/services', icon: '📝', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
   { name: 'Draft Applications', href: '/dashboard/drafts', icon: '💾', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
   { name: 'My Applications', href: '/dashboard/applications', icon: '📋', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
@@ -270,7 +271,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <div className="space-y-0.5 sm:space-y-1">
               {/* Main Menu Items */}
               {filteredMenuItems.filter(item => 
-                ['Dashboard', 'Wallet', 'My Profile', 'Change Password'].includes(item.name)
+                ['Dashboard', 'Wallet', 'Wallet Transactions', 'My Profile', 'Change Password'].includes(item.name)
               ).map((item) => (
                 <Link
                   key={item.name}

@@ -200,6 +200,57 @@ label {
   }
 }
 
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(220, 38, 38, 0);
+  }
+}
+
+@keyframes bounce-gentle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
 /* Animation Classes */
 .animate-fade-in {
   animation: fade-in 0.6s ease-out;
@@ -207,6 +258,115 @@ label {
 
 .animate-float {
   animation: float 3s ease-in-out infinite;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.6s ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.6s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.6s ease-out;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-pulse-glow-enhanced {
+  animation: pulse-glow-enhanced 3s ease-in-out infinite;
+}
+
+.animate-gradient-shift {
+  animation: gradient-shift 8s ease infinite;
+}
+
+.animate-floating {
+  animation: floating 6s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 2s linear infinite;
+}
+
+.animate-rotate-3d {
+  animation: rotate-3d 10s linear infinite;
+}
+
+.animate-delay-3500 {
+  animation-delay: 3.5s;
+}
+
+.animate-delay-4000 {
+  animation-delay: 4s;
+}
+
+.animate-bounce-gentle {
+  animation: bounce-gentle 2s ease-in-out infinite;
+}
+
+.animate-heartbeat {
+  animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.8s cubic-bezier(0.215, 0.610, 0.355, 1.000) both;
+}
+
+.animate-slide-up-fade-in {
+  animation: slide-up-fade-in 0.6s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
+}
+
+.animate-delay-4500 {
+  animation-delay: 4.5s;
+}
+
+.animate-delay-5000 {
+  animation-delay: 5s;
+}
+
+/* Animation delay classes */
+.animate-delay-100 {
+  animation-delay: 0.1s;
+}
+
+.animate-delay-200 {
+  animation-delay: 0.2s;
+}
+
+.animate-delay-300 {
+  animation-delay: 0.3s;
+}
+
+.animate-delay-400 {
+  animation-delay: 0.4s;
+}
+
+.animate-delay-500 {
+  animation-delay: 0.5s;
+}
+
+.animate-delay-1000 {
+  animation-delay: 1s;
+}
+
+.animate-delay-1500 {
+  animation-delay: 1.5s;
+}
+
+.animate-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animate-delay-2500 {
+  animation-delay: 2.5s;
+}
+
+.animate-delay-3000 {
+  animation-delay: 3s;
 }
 
 /* Hover Effects */
@@ -234,6 +394,103 @@ label {
   }
   60%, 100% {
     content: '...';
+  }
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes floating {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(5deg);
+  }
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+}
+
+@keyframes pulse-glow-enhanced {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px 10px rgba(220, 38, 38, 0.2);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes rotate-3d {
+  0% {
+    transform: perspective(1000px) rotateY(0deg);
+  }
+  100% {
+    transform: perspective(1000px) rotateY(360deg);
+  }
+}
+
+@keyframes heartbeat {
+  0% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.3);
+  }
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.3);
+  }
+  70% {
+    transform: scale(1);
+  }
+}
+
+@keyframes bounce-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) translateY(-50px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.2) translateY(10px);
+  }
+  80% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-up-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -278,9 +535,37 @@ label {
   .grid-cols-3 {
     grid-template-columns: 1fr !important;
   }
-  
+
   .flex-row {
     flex-direction: column !important;
+  }
+
+  /* Mobile-specific grid adjustments */
+  .grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Ensure service categories stack on mobile */
+  .service-categories {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Mobile-specific improvements */
+  .mobile-padding {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  /* Larger touch targets for mobile */
+  .mobile-touch-target {
+    min-height: 48px !important;
+    min-width: 48px !important;
+  }
+
+  /* Adjust font sizes for mobile */
+  .mobile-text-adjust {
+    font-size: 1rem !important;
+    line-height: 1.5 !important;
   }
 }
 
@@ -291,17 +576,33 @@ label {
     word-wrap: break-word;
     overflow-wrap: break-word;
   }
-  
+
   /* Improve touch targets for mobile */
   button, a {
     min-height: 44px;
     min-width: 44px;
   }
-  
+
   /* Reduce padding on mobile */
   .container {
     padding-left: 0.75rem;
     padding-right: 0.75rem;
+  }
+
+  /* Stack login cards on very small screens */
+  .login-cards {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Make service categories single column on very small screens */
+  @media (max-width: 480px) {
+    .grid-cols-2 {
+      grid-template-columns: 1fr !important;
+    }
+
+    .service-categories {
+      grid-template-columns: 1fr !important;
+    }
   }
 }
 
@@ -311,10 +612,111 @@ label {
   .grid-cols-4 {
     grid-template-columns: repeat(2, 1fr) !important;
   }
+
+  /* Service categories layout for tablets */
+  .service-categories {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Tablet-specific font adjustments */
+  .tablet-text-adjust {
+    font-size: 1.1rem !important;
+  }
+
+  /* Optimize card sizes for tablets */
+  .tablet-card-size {
+    max-width: 400px !important;
+    margin: 0 auto !important;
+  }
 }
 
 /* Non-critical animations and styles - deferred loading */
 /* These will be loaded asynchronously in production */
+
+/* Enhanced hover effects */
+.hover-scale-up {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-scale-up:hover {
+  transform: scale(1.05);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.hover-lift-up {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift-up:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Gradient button styles */
+.btn-gradient {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: white;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-gradient:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(220, 38, 38, 0.3);
+}
+
+.btn-gradient::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.btn-gradient:hover::before {
+  opacity: 0.1;
+}
+
+/* Card hover effects */
+.card-hover-enhance {
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-hover-enhance::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.card-hover-enhance:hover::before {
+  left: 100%;
+}
+
+/* Text gradient effects */
+.text-gradient-enhance {
+  background: linear-gradient(135deg, #dc2626, #f59e0b, #ef4444);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  transition: all 0.3s ease;
+}
+
+.text-gradient-enhance:hover {
+  background: linear-gradient(135deg, #ef4444, #f59e0b, #dc2626);
+  background-size: 200% auto;
+}
 
 /* Animation delay classes */
 .animate-delay-100 {

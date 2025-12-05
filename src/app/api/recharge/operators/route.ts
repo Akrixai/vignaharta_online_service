@@ -57,9 +57,24 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // Remove sensitive commission/cashback data from response for non-admin users
+    const sanitizedOperators = filteredOperators.map(op => ({
+      id: op.id,
+      operator_code: op.operator_code,
+      operator_name: op.operator_name,
+      service_type: op.service_type,
+      logo_url: op.logo_url,
+      min_amount: op.min_amount,
+      max_amount: op.max_amount,
+      metadata: op.metadata,
+      kwikapi_opid: op.kwikapi_opid,
+      // Commission and cashback rates are hidden from users
+      // They are only used internally by the backend
+    }));
+
     return NextResponse.json({
       success: true,
-      data: filteredOperators,
+      data: sanitizedOperators,
     });
   } catch (error: any) {
     console.error('Operators API Error:', error);

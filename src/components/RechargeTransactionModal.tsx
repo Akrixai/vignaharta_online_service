@@ -183,14 +183,28 @@ export default function RechargeTransactionModal({ transactionId, isOpen, onClos
                   </div>
                   {transaction.commission_amount > 0 && (
                     <div className="flex justify-between text-green-600 border-t pt-2">
-                      <span className="font-medium">Commission Earned</span>
-                      <span className="font-semibold">+₹{transaction.commission_amount.toFixed(2)}</span>
+                      <span className="font-medium">
+                        Commission {transaction.status === 'SUCCESS' ? 'Earned' : 'Pending'}
+                      </span>
+                      <span className="font-semibold">
+                        +₹{transaction.commission_amount.toFixed(2)}
+                        {transaction.status === 'PENDING' && (
+                          <span className="text-xs text-yellow-600 ml-2">(After Success)</span>
+                        )}
+                      </span>
                     </div>
                   )}
                   {transaction.cashback_amount > 0 && (
                     <div className="flex justify-between text-green-600 border-t pt-2">
-                      <span className="font-medium">Cashback Earned</span>
-                      <span className="font-semibold">+₹{transaction.cashback_amount.toFixed(2)}</span>
+                      <span className="font-medium">
+                        Cashback {transaction.status === 'SUCCESS' ? 'Earned' : 'Pending'}
+                      </span>
+                      <span className="font-semibold">
+                        +₹{transaction.cashback_amount.toFixed(2)}
+                        {transaction.status === 'PENDING' && (
+                          <span className="text-xs text-yellow-600 ml-2">(After Success)</span>
+                        )}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -203,6 +217,13 @@ export default function RechargeTransactionModal({ transactionId, isOpen, onClos
                     ⏳ <strong>Transaction is being processed.</strong> Your amount has been debited from your wallet. 
                     You will receive confirmation shortly. If not completed within 24 hours, please contact admin.
                   </p>
+                  {(transaction.commission_amount > 0 || transaction.cashback_amount > 0) && (
+                    <p className="text-sm text-yellow-700 mt-2">
+                      💰 Your {transaction.commission_amount > 0 ? 'commission' : 'cashback'} of ₹
+                      {(transaction.commission_amount || transaction.cashback_amount).toFixed(2)} will be credited 
+                      instantly to your wallet once the transaction is successful.
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -230,17 +251,7 @@ export default function RechargeTransactionModal({ transactionId, isOpen, onClos
                 </div>
               )}
 
-              {/* Response Data (for debugging) */}
-              {transaction.response_data && Object.keys(transaction.response_data).length > 0 && (
-                <details className="bg-gray-50 rounded-lg p-4">
-                  <summary className="cursor-pointer font-medium text-gray-700">
-                    Technical Details
-                  </summary>
-                  <pre className="mt-3 text-xs bg-white p-3 rounded border overflow-x-auto">
-                    {JSON.stringify(transaction.response_data, null, 2)}
-                  </pre>
-                </details>
-              )}
+              {/* Technical Details section removed for better user experience */}
             </div>
           )}
         </div>

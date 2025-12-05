@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/dashboard/layout';
+import SearchableSelect from '@/components/SearchableSelect';
 
 interface Operator {
     id: string;
@@ -13,8 +14,8 @@ interface Operator {
     logo_url: string;
     min_amount: number;
     max_amount: number;
-    commission_rate: number;
     kwikapi_opid: string;
+    metadata?: any;
 }
 
 interface Plan {
@@ -22,6 +23,11 @@ interface Plan {
     validity: string;
     description: string;
     type: string;
+    planName?: string;
+    channels?: string;
+    paidChannels?: string;
+    hdChannels?: string;
+    lastUpdate?: string;
 }
 
 interface PlanCategory {
@@ -53,6 +59,10 @@ export default function DTHRechargePageEnhanced() {
     const [loading, setLoading] = useState(false);
     const [loadingPlans, setLoadingPlans] = useState(false);
     const [message, setMessage] = useState('');
+    
+    // Wallet balance state
+    const [walletBalance, setWalletBalance] = useState<number>(0);
+    const [loadingBalance, setLoadingBalance] = useState(false);
 
     useEffect(() => {
         if (status === 'unauthenticated') {
@@ -62,7 +72,23 @@ export default function DTHRechargePageEnhanced() {
 
     useEffect(() => {
         fetchOperators();
+        fetchWalletBalance();
     }, []);
+
+    const fetchWalletBalance = async () => {
+        setLoadingBalance(true);
+        try {
+            const res = await fetch('/api/wallet/balance');
+            const data = await res.json();
+            if (data.success) {
+                setWalletBalance(data.balance);
+            }
+        } catch (error) {
+            console.error('Error fetching wallet balance:', error);
+        } finally {
+            setLoadingBalance(false);
+        }
+    };
 
     const fetchOperators = async () => {
         try {
@@ -87,24 +113,51 @@ export default function DTHRechargePageEnhanced() {
         setSelectedCategory('ALL');
 
         try {
+            // For DTH, we use the dedicated DTH_plans.php API endpoint
+            // Only opid (operator ID) is required - DTH plans are nationwide
             const params = new URLSearchParams({
                 operator_code: operator.kwikapi_opid || operator.operator_code,
                 service_type: 'DTH',
             });
 
+            console.log('📱 Fetching DTH plans with params:', {
+                operator_code: operator.kwikapi_opid || operator.operator_code,
+                operator_name: operator.operator_name,
+                service_type: 'DTH',
+                api_endpoint: 'DTH_plans.php'
+            });
+
             const res = await fetch(`/api/recharge/plans?${params}`);
             const data = await res.json();
 
-            if (data.success && data.data.categories) {
+            console.log('📦 DTH Plans API Response:', data);
+
+            // Handle different response scenarios
+            if (data.success && data.data?.categories) {
+                console.log(`✅ DTH Plans loaded: ${data.data.categories.length} categories`);
                 setPlanCategories(data.data.categories);
                 setSelectedCategory('ALL');
+                setMessage('');
+            } else if (data.isDTH && (data.reason === 'dth_plans_not_supported' || data.reason === 'no_dth_plans_available')) {
+                // DTH plans not supported by API - this is expected
+                console.warn('⚠️ DTH Plans not available from KWIKAPI:', data.message);
+                setPlanCategories([]);
+                setMessage(`ℹ️ ${data.message || 'DTH plans are not available. Please enter a custom amount.'}\n${data.suggestion || ''}`);
+            } else {
+                // Other errors
+                console.error('❌ Failed to load DTH plans:', data.message);
+                setPlanCategories([]);
+                setMessage(`ℹ️ ${data.message || 'Plans not available. Please enter your recharge amount.'}`);
             }
         } catch (error) {
-            console.error('Error fetching plans:', error);
+            console.error('❌ Error fetching DTH plans:', error);
+            setPlanCategories([]);
+            setMessage('ℹ️ Plans not available. Please enter your recharge amount.');
         } finally {
             setLoadingPlans(false);
         }
     };
+
 
     useEffect(() => {
         if (selectedOperator) {
@@ -123,6 +176,18 @@ export default function DTHRechargePageEnhanced() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        // Calculate total amount
+        const totalAmount = parseFloat(amount);
+        
+        // CRITICAL: Check wallet balance BEFORE processing
+        if (walletBalance < totalAmount) {
+            setMessage(
+                `❌ Insufficient wallet balance. You have ₹${walletBalance.toFixed(2)}, but need ₹${totalAmount.toFixed(2)}. Please add money to your wallet.`
+            );
+            return;
+        }
+        
         setLoading(true);
         setMessage('');
 
@@ -156,6 +221,10 @@ export default function DTHRechargePageEnhanced() {
             if (data.success) {
                 const reward = data.data.reward_amount || 0;
                 setMessage(`✅ DTH Recharge successful! ${data.data.reward_label}: ₹${reward.toFixed(2)} | Transaction ID: ${data.data.transaction_ref}`);
+                
+                // Refresh wallet balance
+                fetchWalletBalance();
+                
                 setDthNumber('');
                 setAmount('');
                 setCustomerName('');
@@ -190,7 +259,41 @@ export default function DTHRechargePageEnhanced() {
     return (
         <DashboardLayout>
             <div className="container mx-auto px-4 py-8 max-w-7xl">
-                <h1 className="text-3xl font-bold mb-8 text-gray-800">📺 DTH Recharge</h1>
+                <h1 className="text-3xl font-bold mb-6 text-gray-800">📺 DTH Recharge</h1>
+
+                {/* Wallet Balance Display */}
+                <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl shadow-lg p-6 mb-8">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm opacity-90 mb-1">💰 Available Wallet Balance</p>
+                            <p className="text-4xl font-bold">
+                                {loadingBalance ? (
+                                    <span className="animate-pulse">...</span>
+                                ) : (
+                                    `₹${walletBalance.toFixed(2)}`
+                                )}
+                            </p>
+                            <p className="text-xs opacity-75 mt-2">
+                                {session?.user?.name && `${session.user.name}'s Wallet`}
+                            </p>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                            <button
+                                onClick={fetchWalletBalance}
+                                disabled={loadingBalance}
+                                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-all disabled:opacity-50 text-sm font-medium"
+                            >
+                                🔄 Refresh
+                            </button>
+                            <button
+                                onClick={() => router.push('/dashboard/wallet')}
+                                className="px-4 py-2 bg-white text-green-600 hover:bg-green-50 rounded-lg transition-all text-sm font-medium"
+                            >
+                                💳 Add Money
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
                 {/* Form Section */}
                 <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
@@ -211,24 +314,22 @@ export default function DTHRechargePageEnhanced() {
                                 />
                             </div>
 
-                            {/* Operator Selection */}
+                            {/* Operator Selection - Searchable */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Select DTH Operator
                                 </label>
-                                <select
+                                <SearchableSelect
+                                    options={operators.map(op => ({
+                                        value: op.id,
+                                        label: op.operator_name,
+                                        data: op
+                                    }))}
                                     value={selectedOperator}
-                                    onChange={(e) => setSelectedOperator(e.target.value)}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    onChange={setSelectedOperator}
+                                    placeholder="Search and select DTH operator..."
                                     required
-                                >
-                                    <option value="">Choose DTH operator...</option>
-                                    {operators.map((op) => (
-                                        <option key={op.id} value={op.id}>
-                                            {op.operator_name} ({rewardLabel}: {op.commission_rate}%)
-                                        </option>
-                                    ))}
-                                </select>
+                                />
                             </div>
 
                             {/* Amount */}
@@ -263,15 +364,19 @@ export default function DTHRechargePageEnhanced() {
                             </div>
                         </div>
 
-                        {/* Reward Preview */}
+                        {/* Reward Preview - Generic Message */}
                         {selectedOperator && amount && parseFloat(amount) > 0 && (
                             <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded">
                                 <div className="flex items-center">
                                     <div className="text-2xl mr-3">💰</div>
                                     <div>
-                                        <p className="text-sm font-medium text-green-800">{rewardLabel} Earnings</p>
-                                        <p className="text-lg font-bold text-green-900">
-                                            ₹{((parseFloat(amount) * (operators.find(op => op.id === selectedOperator)?.commission_rate || 0)) / 100).toFixed(2)}
+                                        <p className="text-sm font-medium text-green-800">
+                                            {userRole === 'CUSTOMER' 
+                                                ? '🎉 You will earn cashback on this recharge!' 
+                                                : '💼 You will earn commission on this recharge!'}
+                                        </p>
+                                        <p className="text-xs text-green-700 mt-1">
+                                            {rewardLabel} will be credited to your wallet after successful transaction
                                         </p>
                                     </div>
                                 </div>
@@ -312,20 +417,53 @@ export default function DTHRechargePageEnhanced() {
                         <div className="py-12">
                             <div className="flex flex-col items-center justify-center">
                                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-                                <p className="text-gray-600">Loading plans...</p>
+                                <p className="text-gray-600">Finding best plans for you...</p>
                             </div>
                         </div>
                     ) : planCategories.length === 0 ? (
-                        <div className="text-center py-12 text-gray-500">
+                        <div className="text-center py-12">
                             <div className="text-6xl mb-4">📺</div>
-                            <p className="text-lg font-semibold mb-2">
-                                {selectedOperator
-                                    ? 'No plans available for this DTH operator'
-                                    : 'Select a DTH operator to view available plans'}
-                            </p>
-                            <p className="text-sm">
-                                Choose your DTH operator from the form above to see recharge plans
-                            </p>
+                            {selectedOperator ? (
+                                <>
+                                    <p className="text-lg font-semibold mb-2 text-gray-700">
+                                        No plans available for this DTH operator
+                                    </p>
+                                    <p className="text-sm text-gray-600 mb-6">
+                                        DTH plans may not be available through the API. <br />
+                                        Please enter a custom recharge amount above.
+                                    </p>
+
+                                    {/* Suggested Amounts */}
+                                    <div className="max-w-2xl mx-auto mt-8">
+                                        <h3 className="text-md font-semibold text-gray-700 mb-4">💡 Common DTH Recharge Amounts</h3>
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                                            {[100, 200, 300, 500, 1000].map((suggestedAmount) => (
+                                                <button
+                                                    key={suggestedAmount}
+                                                    type="button"
+                                                    onClick={() => setAmount(suggestedAmount.toString())}
+                                                    className="px-4 py-3 bg-purple-50 border-2 border-purple-200 rounded-lg hover:bg-purple-100 hover:border-purple-400 transition-all"
+                                                >
+                                                    <div className="text-sm text-gray-600">Amount</div>
+                                                    <div className="text-xl font-bold text-purple-600">₹{suggestedAmount}</div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                        <p className="text-xs text-gray-500 mt-4">
+                                            Click on an amount above to quickly fill the recharge amount field
+                                        </p>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <p className="text-lg font-semibold mb-2 text-gray-700">
+                                        Select a DTH operator to view available plans
+                                    </p>
+                                    <p className="text-sm text-gray-600">
+                                        Choose your DTH operator from the form above to see recharge plans
+                                    </p>
+                                </>
+                            )}
                         </div>
                     ) : (
                         <>
@@ -344,8 +482,8 @@ export default function DTHRechargePageEnhanced() {
                                             <button
                                                 onClick={() => setSelectedCategory('ALL')}
                                                 className={`px-5 py-4 rounded-2xl font-semibold transition-all whitespace-nowrap ${selectedCategory === 'ALL'
-                                                        ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-xl transform scale-105'
-                                                        : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-purple-300 hover:shadow-md'
+                                                    ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-xl transform scale-105'
+                                                    : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-purple-300 hover:shadow-md'
                                                     }`}
                                             >
                                                 <div className="flex items-center gap-3">
@@ -365,8 +503,8 @@ export default function DTHRechargePageEnhanced() {
                                                     key={category.code}
                                                     onClick={() => setSelectedCategory(category.code)}
                                                     className={`px-5 py-4 rounded-2xl font-semibold transition-all whitespace-nowrap ${selectedCategory === category.code
-                                                            ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-xl transform scale-105'
-                                                            : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-purple-300 hover:shadow-md'
+                                                        ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-xl transform scale-105'
+                                                        : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-purple-300 hover:shadow-md'
                                                         }`}
                                                 >
                                                     <div className="flex items-center gap-3">
@@ -389,18 +527,27 @@ export default function DTHRechargePageEnhanced() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                 {getFilteredPlans().map((plan, index) => (
                                     <div
-                                        key={`${plan.amount}-${index}`}
+                                        key={`${plan.amount}-${plan.validity}-${index}`}
                                         onClick={() => handlePlanSelect(plan)}
                                         className={`relative p-5 border-2 rounded-xl cursor-pointer transition-all hover:shadow-lg group ${selectedPlan?.amount === plan.amount &&
-                                                selectedPlan?.validity === plan.validity
-                                                ? 'border-purple-600 bg-purple-50 shadow-md ring-2 ring-purple-200'
-                                                : 'border-gray-200 hover:border-purple-300'
+                                            selectedPlan?.validity === plan.validity
+                                            ? 'border-purple-600 bg-purple-50 shadow-md ring-2 ring-purple-200'
+                                            : 'border-gray-200 hover:border-purple-300'
                                             }`}
                                     >
                                         {/* Popular badge for common amounts */}
                                         {(plan.amount === 299 || plan.amount === 399 || plan.amount === 499 || plan.amount === 599) && (
                                             <div className="absolute top-0 right-0 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-xs px-3 py-1 rounded-bl-lg rounded-tr-lg font-bold shadow-md">
                                                 POPULAR
+                                            </div>
+                                        )}
+
+                                        {/* Plan Name (if available) */}
+                                        {plan.planName && (
+                                            <div className="mb-3 pb-3 border-b border-gray-200">
+                                                <h4 className="text-sm font-bold text-gray-800 line-clamp-1">
+                                                    {plan.planName}
+                                                </h4>
                                             </div>
                                         )}
 
@@ -419,14 +566,47 @@ export default function DTHRechargePageEnhanced() {
                                             </div>
                                         </div>
 
-                                        <p className="text-sm text-gray-700 mb-3 line-clamp-2 min-h-[40px]">
-                                            {plan.description}
-                                        </p>
+                                        {/* Channel Information (DTH specific) */}
+                                        {plan.channels && (
+                                            <div className="mb-3 space-y-1">
+                                                <div className="flex items-center text-xs text-gray-600">
+                                                    <span className="mr-1">📺</span>
+                                                    <span>{plan.channels}</span>
+                                                </div>
+                                                {plan.paidChannels && (
+                                                    <div className="flex items-center text-xs text-gray-600">
+                                                        <span className="mr-1">💳</span>
+                                                        <span>{plan.paidChannels}</span>
+                                                    </div>
+                                                )}
+                                                {plan.hdChannels && plan.hdChannels !== 'No HD Channels' && (
+                                                    <div className="flex items-center text-xs text-blue-600 font-medium">
+                                                        <span className="mr-1">🎬</span>
+                                                        <span>{plan.hdChannels}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
 
+                                        {/* Description (fallback if no channel info) */}
+                                        {!plan.channels && plan.description && (
+                                            <p className="text-sm text-gray-700 mb-3 line-clamp-2 min-h-[40px]">
+                                                {plan.description}
+                                            </p>
+                                        )}
+
+                                        {/* Language/Type Badge */}
                                         {plan.type && (
-                                            <span className="inline-block text-xs bg-purple-100 text-purple-800 px-3 py-1 rounded-full font-medium">
-                                                {plan.type}
-                                            </span>
+                                            <div className="flex items-center justify-between">
+                                                <span className="inline-block text-xs bg-purple-100 text-purple-800 px-3 py-1 rounded-full font-medium">
+                                                    {plan.type}
+                                                </span>
+                                                {plan.lastUpdate && (
+                                                    <span className="text-xs text-gray-400">
+                                                        {plan.lastUpdate}
+                                                    </span>
+                                                )}
+                                            </div>
                                         )}
 
                                         {selectedPlan?.amount === plan.amount &&

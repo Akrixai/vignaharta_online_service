@@ -180,6 +180,228 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
+        {/* Recharge & Bill Payment Services - For Retailers and Customers */}
+        {(user.role === UserRole.RETAILER || user.role === UserRole.CUSTOMER) && (
+          <div className="my-8">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">💳 Recharge & Bill Payments</h2>
+              <p className="text-gray-600">Quick access to all recharge and bill payment services</p>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+              {/* Mobile Prepaid */}
+              <Link href="/dashboard/coming-soon">
+                <div className="group bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-blue-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">📱</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Mobile</h3>
+                  <p className="text-blue-100 text-xs">Prepaid & Postpaid</p>
+                </div>
+              </Link>
+
+              {/* DTH Recharge */}
+              <Link href="/dashboard/coming-soon">
+                <div className="group bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-purple-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">📺</div>
+                  <h3 className="text-white font-bold text-sm mb-1">DTH</h3>
+                  <p className="text-purple-100 text-xs">TV Recharge</p>
+                </div>
+              </Link>
+
+              {/* Electricity Bill */}
+              <Link href="/dashboard/coming-soon">
+                <div className="group bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-yellow-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">⚡</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Electricity</h3>
+                  <p className="text-yellow-100 text-xs">Pay Bill</p>
+                </div>
+              </Link>
+
+              {/* Gas Bill - Coming Soon */}
+              <Link href="/dashboard/coming-soon">
+                <div className="group bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-orange-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🔥</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Gas</h3>
+                  <p className="text-orange-100 text-xs">Pay Bill</p>
+                </div>
+              </Link>
+
+              {/* Water Bill - Coming Soon */}
+              <Link href="/dashboard/coming-soon">
+                <div className="group bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-cyan-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">💧</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Water</h3>
+                  <p className="text-cyan-100 text-xs">Pay Bill</p>
+                </div>
+              </Link>
+
+              {/* Broadband - Coming Soon */}
+              <Link href="/dashboard/coming-soon">
+                <div className="group bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-indigo-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🌐</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Broadband</h3>
+                  <p className="text-indigo-100 text-xs">Pay Bill</p>
+                </div>
+              </Link>
+
+              {/* Landline - Coming Soon */}
+              <Link href="/dashboard/coming-soon">
+                <div className="group bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-green-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">☎️</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Landline</h3>
+                  <p className="text-green-100 text-xs">Pay Bill</p>
+                </div>
+              </Link>
+
+              {/* Fastag - Coming Soon */}
+              <Link href="/dashboard/coming-soon">
+                <div className="group bg-gradient-to-br from-red-500 to-red-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-red-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🚗</div>
+                  <h3 className="text-white font-bold text-sm mb-1">FASTag</h3>
+                  <p className="text-red-100 text-xs">Recharge</p>
+                </div>
+              </Link>
+
+              {/* Insurance - Coming Soon */}
+              <Link href="/dashboard/coming-soon">
+                <div className="group bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-pink-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🛡️</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Insurance</h3>
+                  <p className="text-pink-100 text-xs">Pay Premium</p>
+                </div>
+              </Link>
+
+              {/* LPG Gas - Coming Soon */}
+              <Link href="/dashboard/coming-soon">
+                <div className="group bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-amber-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🔴</div>
+                  <h3 className="text-white font-bold text-sm mb-1">LPG Gas</h3>
+                  <p className="text-amber-100 text-xs">Book Cylinder</p>
+                </div>
+              </Link>
+
+              {/* Cable TV - Coming Soon */}
+              <Link href="/dashboard/coming-soon">
+                <div className="group bg-gradient-to-br from-violet-500 to-violet-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-violet-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">📡</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Cable TV</h3>
+                  <p className="text-violet-100 text-xs">Pay Bill</p>
+                </div>
+              </Link>
+
+              {/* Credit Card - Coming Soon */}
+              <Link href="/dashboard/coming-soon">
+                <div className="group bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-teal-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">💳</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Credit Card</h3>
+                  <p className="text-teal-100 text-xs">Pay Bill</p>
+                </div>
+              </Link>
+
+              {/* Money Transfer - Coming Soon */}
+              <Link href="/dashboard/coming-soon">
+                <div className="group bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-emerald-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">💸</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Money Transfer</h3>
+                  <p className="text-emerald-100 text-xs">DMT Service</p>
+                </div>
+              </Link>
+
+              {/* AEPS Cash Withdrawal - Coming Soon */}
+              <Link href="/dashboard/coming-soon">
+                <div className="group bg-gradient-to-br from-slate-500 to-slate-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-slate-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🏧</div>
+                  <h3 className="text-white font-bold text-sm mb-1">AEPS</h3>
+                  <p className="text-slate-100 text-xs">Cash Withdrawal</p>
+                </div>
+              </Link>
+
+              {/* Axis Bank Account Opening - Coming Soon */}
+              <Link href="/dashboard/coming-soon">
+                <div className="group bg-gradient-to-br from-rose-500 to-rose-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-rose-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🏦</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Axis Bank</h3>
+                  <p className="text-rose-100 text-xs">Account Opening</p>
+                </div>
+              </Link>
+
+              {/* Cash Deposit - Coming Soon */}
+              <Link href="/dashboard/coming-soon">
+                <div className="group bg-gradient-to-br from-lime-500 to-lime-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-lime-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">💰</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Cash Deposit</h3>
+                  <p className="text-lime-100 text-xs">Bank Deposit</p>
+                </div>
+              </Link>
+
+              {/* Insurance All Types - Coming Soon */}
+              <Link href="/dashboard/coming-soon">
+                <div className="group bg-gradient-to-br from-sky-500 to-sky-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-sky-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🛡️</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Insurance</h3>
+                  <p className="text-sky-100 text-xs">All Types</p>
+                </div>
+              </Link>
+
+              {/* Bank Mini Statement - Coming Soon */}
+              <Link href="/dashboard/coming-soon">
+                <div className="group bg-gradient-to-br from-fuchsia-500 to-fuchsia-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-fuchsia-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">📊</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Mini Statement</h3>
+                  <p className="text-fuchsia-100 text-xs">Bank Statement</p>
+                </div>
+              </Link>
+
+              {/* PAN Card Creation - Coming Soon */}
+              <Link href="/dashboard/coming-soon">
+                <div className="group bg-gradient-to-br from-stone-500 to-stone-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-stone-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🆔</div>
+                  <h3 className="text-white font-bold text-sm mb-1">PAN Creation</h3>
+                  <p className="text-stone-100 text-xs">New PAN Card</p>
+                </div>
+              </Link>
+
+              {/* PAN Card Update - Coming Soon */}
+              <Link href="/dashboard/coming-soon">
+                <div className="group bg-gradient-to-br from-zinc-500 to-zinc-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-zinc-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🔄</div>
+                  <h3 className="text-white font-bold text-sm mb-1">PAN Update</h3>
+                  <p className="text-zinc-100 text-xs">Update Details</p>
+                </div>
+              </Link>
+
+              {/* Find PAN - Coming Soon */}
+              <Link href="/dashboard/coming-soon">
+                <div className="group bg-gradient-to-br from-neutral-500 to-neutral-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-neutral-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🔍</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Find PAN</h3>
+                  <p className="text-neutral-100 text-xs">Search PAN</p>
+                </div>
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
           <Card className="bg-gradient-to-br from-white to-red-50 shadow-xl hover-lift animate-scale-in border border-red-200">

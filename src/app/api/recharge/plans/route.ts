@@ -34,25 +34,38 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Check if this is a DTH service
+    const isDTH = serviceType === 'DTH';
+
+    console.log(`🔍 Service Type: ${isDTH ? 'DTH' : 'Mobile Prepaid'}`);
+
     // Fetch plans from KWIKAPI using URLSearchParams (form-urlencoded)
     const formData = new URLSearchParams();
     formData.append('api_key', KWIKAPI_API_KEY);
     formData.append('opid', operatorCode);
 
-    // Only add state_code for non-DTH services (mobile recharge needs circle)
-    if (circleCode && serviceType !== 'DTH') {
+    // Determine which API endpoint to use based on service type
+    // DTH has a dedicated endpoint: DTH_plans.php
+    // Mobile Prepaid/Postpaid use: recharge_plans.php
+    const apiEndpoint = isDTH ? 'DTH_plans.php' : 'recharge_plans.php';
+
+    // For Mobile Prepaid: state_code (circle) is required
+    // For DTH: opid is sufficient (DTH plans are nationwide)
+    if (!isDTH && circleCode) {
       formData.append('state_code', circleCode);
     }
 
-    console.log('🌐 Calling KWIKAPI:', {
-      url: `${KWIKAPI_BASE_URL}/recharge_plans.php`,
+    console.log(`🌐 Calling KWIKAPI ${apiEndpoint}:`, {
+      url: `${KWIKAPI_BASE_URL}/${apiEndpoint}`,
       opid: operatorCode,
-      state_code: (serviceType === 'DTH') ? 'Not required for DTH' : (circleCode || 'N/A'),
+      state_code: circleCode || '(Not required for DTH)',
       serviceType,
-      method: 'POST (form-urlencoded)'
+      isDTH,
+      method: 'POST',
+      bodyParams: formData.toString()
     });
 
-    const response = await fetch(`${KWIKAPI_BASE_URL}/recharge_plans.php`, {
+    const response = await fetch(`${KWIKAPI_BASE_URL}/${apiEndpoint}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -73,7 +86,8 @@ export async function GET(request: NextRequest) {
         {
           success: false,
           message: `KWIKAPI returned ${response.status}: ${response.statusText}`,
-          details: errorText
+          details: errorText,
+          is_dth: isDTH
         },
         { status: 500 }
       );
@@ -81,22 +95,44 @@ export async function GET(request: NextRequest) {
 
     const data = await response.json();
 
-    console.log('📦 KWIKAPI Response Data:', {
+    console.log('📦 KWIKAPI Full Response:', JSON.stringify(data, null, 2));
+    console.log('📦 KWIKAPI Response Summary:', {
       success: data.success,
       hasPlans: !!data.plans,
       planKeys: data.plans ? Object.keys(data.plans) : [],
+      planKeysCount: data.plans ? Object.keys(data.plans).length : 0,
       operator: data.operator,
       circle: data.circle,
-      message: data.message
+      message: data.message,
+      isDTH
     });
 
     if (!data.success) {
-      console.error('❌ KWIKAPI returned success:false', data);
+      console.error('❌ KWIKAPI returned success:false', {
+        message: data.message,
+        fullResponse: data,
+        isDTH
+      });
+
+      // Special handling for DTH - KWIKAPI may not support DTH plans
+      if (isDTH) {
+        console.warn('⚠️ DTH Plans Not Supported by KWIKAPI - This is expected behavior');
+        return NextResponse.json({
+          success: false,
+          isDTH: true,
+          message: 'DTH recharge plans are not available through the API. Please enter a custom amount.',
+          reason: 'dth_plans_not_supported',
+          kwikapi_message: data.message,
+          suggestion: 'Common DTH amounts: ₹100, ₹200, ₹300, ₹500, ₹1000'
+        });
+      }
+
       return NextResponse.json(
         {
           success: false,
           message: data.message || 'Failed to fetch plans from KWIKAPI',
-          kwikapi_response: data
+          kwikapi_response: data,
+          isDTH
         },
         { status: 500 }
       );
@@ -106,7 +142,135 @@ export async function GET(request: NextRequest) {
     const plans = data.plans || {};
     const categories: any[] = [];
 
-    // Define category display order and names
+    // Check for authorization error in plans object
+    if (plans.msg && typeof plans.msg === 'string' && plans.msg.toLowerCase().includes('not authorize')) {
+      console.error('❌ KWIKAPI Authorization Error:', plans.msg);
+      return NextResponse.json({
+        success: false,
+        isDTH,
+        message: isDTH 
+          ? 'DTH plan browsing is not enabled for your KWIKAPI account. Please enter a custom recharge amount.'
+          : 'Plan browsing is not enabled for your KWIKAPI account.',
+        reason: 'kwikapi_not_authorized',
+        kwikapi_message: plans.msg,
+        suggestion: isDTH ? 'Common DTH amounts: ₹100, ₹200, ₹300, ₹500, ₹1000' : undefined
+      });
+    }
+
+    // DTH plans have a different structure than mobile prepaid plans
+    // DTH: { Combo: [{ Language, PackCount, Details: [{ PlanName, Channels, PricingList: [{ Amount, Month }] }] }] }
+    // Mobile: { DATA: [{ rs, validity, desc }], STV: [...] }
+    if (isDTH && data.plans?.Combo && Array.isArray(data.plans.Combo)) {
+      console.log('📺 Processing DTH plans with language-based structure');
+      
+      // Process DTH plans grouped by language
+      const dthLanguagePacks = data.plans.Combo;
+      let totalDTHPlans = 0;
+
+      dthLanguagePacks.forEach((languagePack: any) => {
+        const language = languagePack.Language || 'General';
+        const packCount = parseInt(languagePack.PackCount || '0');
+        const details = languagePack.Details || [];
+
+        console.log(`📺 Processing ${language} packs: ${packCount} packs with ${details.length} plans`);
+
+        if (details.length === 0) return;
+
+        // Create a category for each language
+        const languagePlans: any[] = [];
+
+        details.forEach((plan: any) => {
+          const planName = plan.PlanName || 'Unnamed Plan';
+          const channels = plan.Channels || 'N/A';
+          const paidChannels = plan.PaidChannels || 'N/A';
+          const hdChannels = plan.HdChannels || 'No HD';
+          const pricingList = plan.PricingList || [];
+
+          // Each plan can have multiple pricing options (1 month, 3 months, etc.)
+          pricingList.forEach((pricing: any) => {
+            const amount = pricing.Amount?.replace('₹', '').trim() || '0';
+            const validity = pricing.Month || 'N/A';
+
+            languagePlans.push({
+              amount: parseFloat(amount),
+              validity: validity,
+              description: `${planName} - ${channels} (${paidChannels}, ${hdChannels})`,
+              type: language,
+              planName: planName,
+              channels: channels,
+              paidChannels: paidChannels,
+              hdChannels: hdChannels,
+              lastUpdate: plan.last_update || 'N/A'
+            });
+            totalDTHPlans++;
+          });
+        });
+
+        if (languagePlans.length > 0) {
+          // Language icons
+          const languageIcons: Record<string, string> = {
+            'Hindi': '🇮🇳',
+            'English': '🇬🇧',
+            'Tamil': '🎭',
+            'Telugu': '🎬',
+            'Kannada': '🎪',
+            'Malayalam': '🎨',
+            'Marathi': '🎯',
+            'Bengali': '📚',
+            'Bangla': '📚',
+            'Gujarati': '🎵',
+            'Punjabi': '🎸',
+            'Odia': '🎺',
+            'Assamese': '🎻'
+          };
+
+          categories.push({
+            code: language.toUpperCase().replace(/\s+/g, '_'),
+            name: `${language} Packs`,
+            icon: languageIcons[language] || '📺',
+            order: categories.length + 1,
+            plans: languagePlans.sort((a, b) => a.amount - b.amount) // Sort by amount
+          });
+        }
+      });
+
+      console.log(`✅ Successfully processed ${categories.length} language categories with ${totalDTHPlans} total DTH plans`);
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          operator: data.operator,
+          circle: data.circle,
+          message: data.message,
+          categories,
+          totalPlans: totalDTHPlans,
+          isDTH: true
+        },
+      });
+    }
+
+    // Mobile prepaid/postpaid plans processing (existing logic)
+    const totalPlanCount = Object.keys(plans).reduce((count, key) => {
+      const planArray = plans[key];
+      return count + (Array.isArray(planArray) ? planArray.length : 0);
+    }, 0);
+
+    console.log(`📊 Total plans found: ${totalPlanCount}`);
+
+    if (totalPlanCount === 0) {
+      console.warn('⚠️ No plans returned by KWIKAPI');
+      return NextResponse.json({
+        success: false,
+        isDTH,
+        message: isDTH 
+          ? 'No DTH plans available. Please enter a custom recharge amount.'
+          : 'No plans available for this operator.',
+        reason: 'no_plans_available',
+        suggestion: isDTH ? 'Common DTH amounts: ₹100, ₹200, ₹300, ₹500, ₹1000' : undefined
+      });
+    }
+
+    // Define category display order and names for mobile prepaid
     const categoryConfig: Record<string, { name: string; icon: string; order: number }> = {
       FULLTT: { name: 'All-in-One', icon: '🎯', order: 1 },
       TOPUP: { name: 'Top-up', icon: '💰', order: 2 },
@@ -117,12 +281,13 @@ export async function GET(request: NextRequest) {
       TwoG: { name: '2G', icon: '📱', order: 6 },
       Romaing: { name: 'Roaming', icon: '✈️', order: 7 },
       COMBO: { name: 'Combo', icon: '🎁', order: 8 },
+      Combo: { name: 'Combo', icon: '🎁', order: 8 },
       FRC: { name: 'First Recharge', icon: '🆕', order: 9 },
       JioPhone: { name: 'JioPhone', icon: '📞', order: 10 },
       STV: { name: 'Special', icon: '⭐', order: 11 },
     };
 
-    // Process each category
+    // Process each category for mobile prepaid
     Object.keys(plans).forEach((categoryKey) => {
       const categoryPlans = plans[categoryKey];
 
@@ -154,6 +319,8 @@ export async function GET(request: NextRequest) {
     // Sort categories by order
     categories.sort((a, b) => a.order - b.order);
 
+    console.log(`✅ Successfully processed ${categories.length} plan categories with ${categories.reduce((sum, cat) => sum + cat.plans.length, 0)} total plans`);
+
     return NextResponse.json({
       success: true,
       data: {
@@ -162,12 +329,13 @@ export async function GET(request: NextRequest) {
         message: data.message,
         categories,
         totalPlans: categories.reduce((sum, cat) => sum + cat.plans.length, 0),
+        isDTH
       },
     });
   } catch (error: any) {
-    console.error('Plans API Error:', error);
+    console.error('❌ Plans API Error:', error);
     return NextResponse.json(
-      { success: false, message: error.message || 'Internal server error' },
+      { success: false, message: error.message || 'Internal server error', error: error.toString() },
       { status: 500 }
     );
   }

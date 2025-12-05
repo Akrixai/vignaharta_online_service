@@ -547,14 +547,39 @@ class KwikAPIClient {
   }
 
   /**
-   * Fetch DTH Plans (wrapper)
+   * Fetch DTH Plans using dedicated DTH_plans.php endpoint
+   * POST /api/v2/DTH_plans.php
+   * Required: api_key, opid
    */
   async fetchDTHPlans(params: {
     opid: number;
   }): Promise<KwikAPIResponse> {
-    return this.fetchRechargePlans({
-      opid: params.opid,
-    });
+    try {
+      console.log('📺 [KWIKAPI] Fetching DTH plans for opid:', params.opid);
+
+      const formData = new URLSearchParams();
+      formData.append('api_key', KWIKAPI_API_KEY);
+      formData.append('opid', params.opid.toString());
+
+      const response = await fetch(`${KWIKAPI_BASE_URL}/DTH_plans.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData.toString(),
+      });
+
+      const data = await response.json();
+      console.log('📺 [KWIKAPI] DTH Plans Response:', data);
+
+      return data;
+    } catch (error: any) {
+      console.error('❌ [KWIKAPI] DTH Plans Error:', error);
+      return {
+        success: false,
+        message: error.message || 'Failed to fetch DTH plans',
+      };
+    }
   }
 
   /**

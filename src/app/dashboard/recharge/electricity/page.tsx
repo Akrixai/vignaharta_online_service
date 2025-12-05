@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/dashboard/layout';
+import SearchableSelect from '@/components/SearchableSelect';
 
 interface Operator {
   id: string;
@@ -13,28 +14,16 @@ interface Operator {
   logo_url: string;
   min_amount: number;
   max_amount: number;
-  commission_rate: number;
+  metadata?: {
+    bill_fetch?: string;
+    message?: string;
+  };
 }
 
 interface Circle {
   id: string;
   circle_code: string;
   circle_name: string;
-}
-
-interface Operator {
-  id: string;
-  operator_code: string;
-  operator_name: string;
-  service_type: string;
-  logo_url: string;
-  min_amount: number;
-  max_amount: number;
-  commission_rate: number;
-  metadata?: {
-    bill_fetch?: string;
-    message?: string;
-  };
 }
 
 interface BillDetails {
@@ -70,6 +59,10 @@ export default function ElectricityBillPage() {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error' | 'info'>('info');
   const [billDetails, setBillDetails] = useState<BillDetails | null>(null);
+  
+  // Wallet balance state
+  const [walletBalance, setWalletBalance] = useState<number>(0);
+  const [loadingBalance, setLoadingBalance] = useState(false);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -80,7 +73,23 @@ export default function ElectricityBillPage() {
   useEffect(() => {
     fetchOperators();
     fetchCircles();
+    fetchWalletBalance();
   }, []);
+
+  const fetchWalletBalance = async () => {
+    setLoadingBalance(true);
+    try {
+      const res = await fetch('/api/wallet/balance');
+      const data = await res.json();
+      if (data.success) {
+        setWalletBalance(data.balance);
+      }
+    } catch (error) {
+      console.error('Error fetching wallet balance:', error);
+    } finally {
+      setLoadingBalance(false);
+    }
+  };
 
   const fetchOperators = async () => {
     try {
@@ -136,7 +145,7 @@ export default function ElectricityBillPage() {
         setBillDetails(data.data);
         setAmount(data.data.due_amount);
         setCustomerName(data.data.consumer_name);
-        setMessage(`✅ Bill fetched successfully for ${data.data.consumer_name}`);
+        setMessage(`✅ Bill found for ${data.data.consumer_name}`);
         setMessageType('success');
       } else {
         setMessage(`ℹ️ ${data.message}`);
@@ -153,10 +162,22 @@ export default function ElectricityBillPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Calculate total amount
+    const totalAmount = parseFloat(amount);
+    
+    // CRITICAL: Check wallet balance BEFORE processing
+    if (walletBalance < totalAmount) {
+      setMessage(
+        `❌ Insufficient wallet balance. You have ₹${walletBalance.toFixed(2)}, but need ₹${totalAmount.toFixed(2)}. Please add money to your wallet.`
+      );
+      setMessageType('error');
+      return;
+    }
+    
     // Validation for bill fetch operators
     const operator = operators.find(op => op.id === selectedOperator);
     if (operator?.metadata?.bill_fetch === 'YES' && !billDetails) {
-      setMessage('⚠️ Please fetch bill details first before proceeding with payment.');
+      setMessage('⚠️ Please get your bill details first before making payment.');
       setMessageType('error');
       return;
     }
@@ -193,6 +214,10 @@ export default function ElectricityBillPage() {
       if (data.success) {
         const reward = data.data.reward_amount || 0;
         setMessage(`✅ Electricity bill payment successful! ${data.data.reward_label}: ₹${reward.toFixed(2)} | Transaction ID: ${data.data.transaction_ref}`);
+        
+        // Refresh wallet balance
+        fetchWalletBalance();
+        
         setConsumerNumber('');
         setAmount('');
         setCustomerName('');
@@ -214,7 +239,41 @@ export default function ElectricityBillPage() {
   return (
     <DashboardLayout>
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-8 text-gray-800">⚡ Electricity Bill Payment</h1>
+      <h1 className="text-3xl font-bold mb-6 text-gray-800">⚡ Electricity Bill Payment</h1>
+
+      {/* Wallet Balance Display */}
+      <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl shadow-lg p-6 mb-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm opacity-90 mb-1">💰 Available Wallet Balance</p>
+            <p className="text-4xl font-bold">
+              {loadingBalance ? (
+                <span className="animate-pulse">...</span>
+              ) : (
+                `₹${walletBalance.toFixed(2)}`
+              )}
+            </p>
+            <p className="text-xs opacity-75 mt-2">
+              {session?.user?.name && `${session.user.name}'s Wallet`}
+            </p>
+          </div>
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={fetchWalletBalance}
+              disabled={loadingBalance}
+              className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-all disabled:opacity-50 text-sm font-medium"
+            >
+              🔄 Refresh
+            </button>
+            <button
+              onClick={() => router.push('/dashboard/wallet')}
+              className="px-4 py-2 bg-white text-green-600 hover:bg-green-50 rounded-lg transition-all text-sm font-medium"
+            >
+              💳 Add Money
+            </button>
+          </div>
+        </div>
+      </div>
 
       <div className="bg-white rounded-xl shadow-lg p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -236,44 +295,40 @@ export default function ElectricityBillPage() {
             />
           </div>
 
-          {/* Operator Selection */}
+          {/* Operator Selection - Searchable */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Select Electricity Board
             </label>
-            <select
+            <SearchableSelect
+              options={operators.map(op => ({
+                value: op.id,
+                label: op.operator_name,
+                data: op
+              }))}
               value={selectedOperator}
-              onChange={(e) => setSelectedOperator(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              onChange={setSelectedOperator}
+              placeholder="Search and select electricity board..."
               required
-            >
-              <option value="">Choose electricity board...</option>
-              {operators.map((op) => (
-                <option key={op.id} value={op.id}>
-                  {op.operator_name} ({rewardLabel}: {op.commission_rate}%)
-                </option>
-              ))}
-            </select>
+            />
           </div>
 
-          {/* Circle Selection */}
+          {/* Circle Selection - Searchable */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Select State/Circle
             </label>
-            <select
+            <SearchableSelect
+              options={circles.map(c => ({
+                value: c.id,
+                label: c.circle_name,
+                data: c
+              }))}
               value={selectedCircle}
-              onChange={(e) => setSelectedCircle(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              onChange={setSelectedCircle}
+              placeholder="Search and select state/circle..."
               required
-            >
-              <option value="">Choose state/circle...</option>
-              {circles.map((circle) => (
-                <option key={circle.id} value={circle.id}>
-                  {circle.circle_name}
-                </option>
-              ))}
-            </select>
+            />
           </div>
 
           {/* Bill Fetch Section */}
@@ -285,7 +340,7 @@ export default function ElectricityBillPage() {
                   <h3 className="font-bold text-purple-900 mb-1">Bill Fetch</h3>
                   <p className="text-sm text-purple-700">
                     {operators.find(op => op.id === selectedOperator)?.metadata?.bill_fetch === 'YES'
-                      ? 'Click "Fetch Bill" to retrieve your bill details automatically.'
+                      ? 'Click "Get Bill Details" to view your bill information.'
                       : 'Bill fetch not available for this operator. Enter amount manually.'}
                   </p>
                 </div>
@@ -304,7 +359,7 @@ export default function ElectricityBillPage() {
                   disabled={fetchingBill}
                   className="w-full py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
                 >
-                  {fetchingBill ? '⏳ Fetching Bill...' : '🔍 Fetch Bill Details'}
+                  {fetchingBill ? '⏳ Getting Your Bill...' : '🔍 Get Bill Details'}
                 </button>
               )}
             </div>
@@ -314,7 +369,7 @@ export default function ElectricityBillPage() {
           {billDetails && (
             <div className="bg-gradient-to-r from-blue-50 to-green-50 border-2 border-blue-300 rounded-lg p-5 shadow-md">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-blue-900 text-lg">📄 Bill Details Fetched</h3>
+                <h3 className="font-bold text-blue-900 text-lg">📄 Your Bill Details</h3>
                 <span className="px-3 py-1 bg-green-500 text-white text-xs font-semibold rounded-full">
                   ✓ Verified
                 </span>
@@ -384,15 +439,19 @@ export default function ElectricityBillPage() {
             />
           </div>
 
-          {/* Reward Info */}
-          {selectedOperator && amount && (
+          {/* Reward Info - Generic Message */}
+          {selectedOperator && amount && parseFloat(amount) > 0 && (
             <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded">
               <div className="flex items-center">
                 <div className="text-2xl mr-3">💰</div>
                 <div>
-                  <p className="text-sm font-medium text-green-800">{rewardLabel} Earnings</p>
-                  <p className="text-lg font-bold text-green-900">
-                    ₹{((parseFloat(amount) * (operators.find(op => op.id === selectedOperator)?.commission_rate || 0)) / 100).toFixed(2)}
+                  <p className="text-sm font-medium text-green-800">
+                    {userRole === 'CUSTOMER' 
+                      ? '🎉 You will earn cashback on this bill payment!' 
+                      : '💼 You will earn commission on this bill payment!'}
+                  </p>
+                  <p className="text-xs text-green-700 mt-1">
+                    {rewardLabel} will be credited to your wallet after successful transaction
                   </p>
                 </div>
               </div>
@@ -412,7 +471,7 @@ export default function ElectricityBillPage() {
             ) : (
               <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 text-center">
                 <p className="text-yellow-800 font-medium">
-                  ⚠️ Please fetch bill details first before proceeding with payment
+                  ⚠️ Please get your bill details first before making payment
                 </p>
               </div>
             )

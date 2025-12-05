@@ -15,6 +15,15 @@ const securityHeaders = {
   'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
 };
 
+// CORS headers - Allow all origins
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-CSRF-Token',
+  'Access-Control-Allow-Credentials': 'true',
+  'Access-Control-Max-Age': '86400',
+};
+
 // Rate limiting configuration
 const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes
 const RATE_LIMIT_MAX_REQUESTS = 100; // Max requests per window
@@ -87,6 +96,20 @@ export default withAuth(
 
     // Rate limiting for API routes
     if (pathname.startsWith('/api/')) {
+      // Handle OPTIONS preflight requests for CORS
+      if (req.method === 'OPTIONS') {
+        const preflightResponse = new NextResponse(null, { status: 200 });
+        Object.entries(corsHeaders).forEach(([key, value]) => {
+          preflightResponse.headers.set(key, value);
+        });
+        return preflightResponse;
+      }
+
+      // Add CORS headers to all API responses
+      Object.entries(corsHeaders).forEach(([key, value]) => {
+        response.headers.set(key, value);
+      });
+
       const clientIP = getClientIP(req);
 
       if (isRateLimited(clientIP)) {
@@ -133,10 +156,10 @@ export default withAuth(
 
     // Allow blog routes (public access)
     const isBlogRoute = pathname.startsWith('/blog');
-    
+
     // Allow products routes (public access)
     const isProductsRoute = pathname.startsWith('/products');
-    
+
     // Allow share routes (public access for shared applications)
     const isShareRoute = pathname.startsWith('/share/');
 
@@ -306,10 +329,10 @@ export default withAuth(
 
         // Allow blog routes (public access)
         const isBlogRoute = pathname.startsWith('/blog');
-        
+
         // Allow products routes (public access)
         const isProductsRoute = pathname.startsWith('/products');
-        
+
         // Allow share routes (public access)
         const isShareRoute = pathname.startsWith('/share/');
 

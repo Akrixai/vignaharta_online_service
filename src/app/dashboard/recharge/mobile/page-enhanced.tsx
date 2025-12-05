@@ -126,9 +126,9 @@ export default function MobileRechargePageEnhanced() {
                 if (operator) setSelectedOperator(operator.id);
                 if (circle) setSelectedCircle(circle.id);
 
-                setMessage(`✅ Detected: ${data.data.operator_name} - ${data.data.circle_name}`);
+                setMessage(`✅ Found: ${data.data.operator_name} - ${data.data.circle_name}`);
             } else {
-                setMessage('⚠️ Could not detect operator. Please select manually.');
+                setMessage('⚠️ Unable to find operator automatically. Please select from the list.');
             }
         } catch (error) {
             setMessage('❌ Error detecting operator');
@@ -309,7 +309,7 @@ export default function MobileRechargePageEnhanced() {
                                         disabled={detecting || mobileNumber.length !== 10}
                                         className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed whitespace-nowrap"
                                     >
-                                        {detecting ? 'Detecting...' : 'Auto Detect'}
+                                        {detecting ? '🔍 Finding...' : 'Auto Detect'}
                                     </button>
                                 </div>
                             </div>
@@ -436,7 +436,7 @@ export default function MobileRechargePageEnhanced() {
                             <div className="py-12">
                                 <div className="flex flex-col items-center justify-center">
                                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-                                    <p className="text-gray-600">Loading plans...</p>
+                                    <p className="text-gray-600">Finding best plans for you...</p>
                                 </div>
                             </div>
                         ) : planCategories.length === 0 ? (

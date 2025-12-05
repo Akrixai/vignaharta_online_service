@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/dashboard/layout';
+import SearchableSelect from '@/components/SearchableSelect';
 
 type ServiceType = 'PREPAID' | 'POSTPAID';
 
@@ -15,8 +16,8 @@ interface Operator {
   logo_url: string;
   min_amount: number;
   max_amount: number;
-  commission_rate: number;
   kwikapi_opid: string;
+  metadata?: any;
 }
 
 interface Circle {
@@ -64,7 +65,16 @@ export default function MobileRechargePageEnhanced() {
   const [loading, setLoading] = useState(false);
   const [detecting, setDetecting] = useState(false);
   const [loadingPlans, setLoadingPlans] = useState(false);
+  const [fetchingBill, setFetchingBill] = useState(false);
   const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState<'success' | 'error' | 'info'>('info');
+  
+  // Wallet balance state
+  const [walletBalance, setWalletBalance] = useState<number>(0);
+  const [loadingBalance, setLoadingBalance] = useState(false);
+  
+  // Bill details for POSTPAID
+  const [billDetails, setBillDetails] = useState<any>(null);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -76,6 +86,25 @@ export default function MobileRechargePageEnhanced() {
     fetchOperators();
     fetchCircles();
   }, [serviceType]);
+
+  useEffect(() => {
+    fetchWalletBalance();
+  }, []);
+
+  const fetchWalletBalance = async () => {
+    setLoadingBalance(true);
+    try {
+      const res = await fetch('/api/wallet/balance');
+      const data = await res.json();
+      if (data.success) {
+        setWalletBalance(data.balance);
+      }
+    } catch (error) {
+      console.error('Error fetching wallet balance:', error);
+    } finally {
+      setLoadingBalance(false);
+    }
+  };
 
   const fetchOperators = async () => {
     try {
@@ -108,7 +137,7 @@ export default function MobileRechargePageEnhanced() {
     }
 
     setDetecting(true);
-    setMessage('🔍 Detecting operator and circle from KWIKAPI...');
+    setMessage('🔍 Finding your operator and circle...');
 
     try {
       console.log('🔍 [Frontend] Calling detect-operator API for:', mobileNumber);
@@ -162,13 +191,7 @@ export default function MobileRechargePageEnhanced() {
         }
 
         // Build success message
-        let successMessage = `✅ Detected: ${data.data.operator_name} - ${data.data.circle_name} (Real-time from KWIKAPI)`;
-
-        // Add credit info if available (check both fields for backwards compatibility)
-        const credits = data.data.credit_balance || data.data.hit_credit;
-        if (credits) {
-          successMessage += `\n💳 Remaining Credits: ${credits}`;
-        }
+        let successMessage = `✅ Found: ${data.data.operator_name} - ${data.data.circle_name}`;
 
         setMessage(successMessage);
 
@@ -177,11 +200,11 @@ export default function MobileRechargePageEnhanced() {
         }
       } else {
         console.error('❌ [Frontend] Detection failed:', data.message);
-        setMessage(`⚠️ ${data.message || 'Could not detect operator. Please select manually.'}`);
+        setMessage(`⚠️ ${data.message || 'Unable to find operator automatically. Please select from the list.'}`);
       }
     } catch (error: any) {
       console.error('❌ [Frontend] Detection error:', error);
-      setMessage(`❌ Error: ${error.message || 'Failed to detect operator. Please try again.'}`);
+      setMessage(`❌ Error: ${error.message || 'Unable to find operator. Please try again or select manually.'}`);
     } finally {
       setDetecting(false);
     }
@@ -231,6 +254,50 @@ export default function MobileRechargePageEnhanced() {
     }
   }, [selectedOperator, selectedCircle, serviceType]);
 
+  const fetchBill = async () => {
+    if (!mobileNumber || !selectedOperator) {
+      setMessage('Please enter mobile number and select operator');
+      setMessageType('error');
+      return;
+    }
+
+    setFetchingBill(true);
+    setMessage('');
+    setBillDetails(null);
+
+    try {
+      const operator = operators.find(op => op.id === selectedOperator);
+      
+      const res = await fetch('/api/recharge/fetch-bill', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          operator_code: operator?.operator_code,
+          mobile_number: mobileNumber,
+          service_type: 'POSTPAID',
+        }),
+      });
+
+      const data = await res.json();
+      
+      if (data.success) {
+        setBillDetails(data.data);
+        setAmount(data.data.due_amount);
+        setCustomerName(data.data.consumer_name);
+        setMessage(`✅ Bill found for ${data.data.consumer_name}`);
+        setMessageType('success');
+      } else {
+        setMessage(`ℹ️ ${data.message}`);
+        setMessageType('info');
+      }
+    } catch (error: any) {
+      setMessage(`❌ Error fetching bill: ${error.message}`);
+      setMessageType('error');
+    } finally {
+      setFetchingBill(false);
+    }
+  };
+
   const handlePlanSelect = (plan: Plan) => {
     setSelectedPlan(plan);
     setAmount(plan.amount.toString());
@@ -242,6 +309,27 @@ export default function MobileRechargePageEnhanced() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Calculate total amount
+    const totalAmount = parseFloat(amount);
+    
+    // CRITICAL: Check wallet balance BEFORE processing
+    if (walletBalance < totalAmount) {
+      setMessage(
+        `❌ Insufficient wallet balance. You have ₹${walletBalance.toFixed(2)}, but need ₹${totalAmount.toFixed(2)}. Please add money to your wallet.`
+      );
+      setMessageType('error');
+      return;
+    }
+    
+    // For POSTPAID with bill fetch support, ensure bill is fetched first
+    const operator = operators.find(op => op.id === selectedOperator);
+    if (serviceType === 'POSTPAID' && operator?.metadata?.bill_fetch === 'YES' && !billDetails) {
+      setMessage('⚠️ Please get your bill details first before making payment.');
+      setMessageType('error');
+      return;
+    }
+    
     setLoading(true);
     setMessage('');
 
@@ -255,7 +343,7 @@ export default function MobileRechargePageEnhanced() {
         mobile_number: mobileNumber,
         circle_code: circle?.circle_code,
         amount: parseFloat(amount),
-        customer_name: customerName,
+        customer_name: customerName || billDetails?.consumer_name,
       };
 
       if (selectedPlan) {
@@ -264,6 +352,12 @@ export default function MobileRechargePageEnhanced() {
           validity: selectedPlan.validity,
           description: selectedPlan.description,
         };
+      }
+
+      // Include ref_id from bill fetch for POSTPAID if available
+      if (serviceType === 'POSTPAID' && billDetails?.ref_id) {
+        payload.ref_id = billDetails.ref_id;
+        payload.bill_details = billDetails;
       }
 
       const res = await fetch('/api/recharge/process', {
@@ -276,13 +370,20 @@ export default function MobileRechargePageEnhanced() {
 
       if (data.success) {
         const reward = data.data.reward_amount || 0;
-        setMessage(`✅ Recharge successful! ${data.data.reward_label}: ₹${reward.toFixed(2)} | Transaction ID: ${data.data.transaction_ref}`);
+        setMessage(`✅ ${serviceType} successful! ${data.data.reward_label}: ₹${reward.toFixed(2)} | Transaction ID: ${data.data.transaction_ref}`);
+        setMessageType('success');
+        
+        // Refresh wallet balance
+        fetchWalletBalance();
+        
         setMobileNumber('');
         setAmount('');
         setCustomerName('');
         setSelectedPlan(null);
+        setBillDetails(null);
       } else {
         setMessage(`❌ ${data.message}`);
+        setMessageType('error');
       }
     } catch (error: any) {
       setMessage(`❌ Error: ${error.message}`);
@@ -311,10 +412,10 @@ export default function MobileRechargePageEnhanced() {
   return (
     <DashboardLayout>
       <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <h1 className="text-3xl font-bold mb-8 text-gray-800">📱 Mobile Recharge</h1>
+        <h1 className="text-3xl font-bold mb-6 text-gray-800">📱 Mobile Recharge</h1>
 
         {/* Service Type Tabs */}
-        <div className="flex gap-2 mb-8">
+        <div className="flex gap-2 mb-6">
           {(['PREPAID', 'POSTPAID'] as ServiceType[]).map((type) => (
             <button
               key={type}
@@ -333,6 +434,40 @@ export default function MobileRechargePageEnhanced() {
               {type}
             </button>
           ))}
+        </div>
+
+        {/* Wallet Balance Display */}
+        <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl shadow-lg p-6 mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm opacity-90 mb-1">💰 Available Wallet Balance</p>
+              <p className="text-4xl font-bold">
+                {loadingBalance ? (
+                  <span className="animate-pulse">...</span>
+                ) : (
+                  `₹${walletBalance.toFixed(2)}`
+                )}
+              </p>
+              <p className="text-xs opacity-75 mt-2">
+                {session?.user?.name && `${session.user.name}'s Wallet`}
+              </p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={fetchWalletBalance}
+                disabled={loadingBalance}
+                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-all disabled:opacity-50 text-sm font-medium"
+              >
+                🔄 Refresh
+              </button>
+              <button
+                onClick={() => router.push('/dashboard/wallet')}
+                className="px-4 py-2 bg-white text-green-600 hover:bg-green-50 rounded-lg transition-all text-sm font-medium"
+              >
+                💳 Add Money
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Form Section */}
@@ -359,49 +494,45 @@ export default function MobileRechargePageEnhanced() {
                     disabled={detecting || mobileNumber.length !== 10}
                     className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed whitespace-nowrap"
                   >
-                    {detecting ? 'Detecting...' : 'Auto Detect'}
+                    {detecting ? '🔍 Finding...' : 'Auto Detect'}
                   </button>
                 </div>
               </div>
 
-              {/* Operator Selection */}
+              {/* Operator Selection - Searchable */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Select Operator
                 </label>
-                <select
+                <SearchableSelect
+                  options={operators.map(op => ({
+                    value: op.id,
+                    label: op.operator_name,
+                    data: op
+                  }))}
                   value={selectedOperator}
-                  onChange={(e) => setSelectedOperator(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  onChange={setSelectedOperator}
+                  placeholder="Search and select operator..."
                   required
-                >
-                  <option value="">Choose operator...</option>
-                  {operators.map((op) => (
-                    <option key={op.id} value={op.id}>
-                      {op.operator_name} ({rewardLabel}: {op.commission_rate}%)
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
 
-              {/* Circle Selection */}
+              {/* Circle Selection - Searchable */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Select Circle
                 </label>
-                <select
+                <SearchableSelect
+                  options={circles.map(c => ({
+                    value: c.id,
+                    label: c.circle_name,
+                    data: c
+                  }))}
                   value={selectedCircle}
-                  onChange={(e) => setSelectedCircle(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  onChange={setSelectedCircle}
+                  placeholder="Search and select circle..."
                   required
-                >
-                  <option value="">Choose circle...</option>
-                  {circles.map((circle) => (
-                    <option key={circle.id} value={circle.id}>
-                      {circle.circle_name}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
 
               {/* Amount */}
@@ -436,33 +567,125 @@ export default function MobileRechargePageEnhanced() {
               </div>
             </div>
 
-            {/* Reward Preview */}
+            {/* Bill Fetch Section for POSTPAID */}
+            {serviceType === 'POSTPAID' && selectedOperator && mobileNumber.length === 10 && (
+              <div className="bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-purple-200 rounded-lg p-4">
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="text-3xl">📋</div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-purple-900 mb-1">Bill Fetch</h3>
+                    <p className="text-sm text-purple-700">
+                      {operators.find(op => op.id === selectedOperator)?.metadata?.bill_fetch === 'YES'
+                        ? 'Click "Get Bill Details" to view your bill information.'
+                        : 'Bill fetch not available for this operator. Enter amount manually.'}
+                    </p>
+                  </div>
+                </div>
+                {operators.find(op => op.id === selectedOperator)?.metadata?.bill_fetch === 'YES' && !billDetails && (
+                  <button
+                    type="button"
+                    onClick={fetchBill}
+                    disabled={fetchingBill}
+                    className="w-full py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
+                  >
+                    {fetchingBill ? '⏳ Getting Your Bill...' : '🔍 Get Bill Details'}
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Bill Details Display for POSTPAID */}
+            {billDetails && serviceType === 'POSTPAID' && (
+              <div className="bg-gradient-to-r from-blue-50 to-green-50 border-2 border-blue-300 rounded-lg p-5 shadow-md">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold text-blue-900 text-lg">📄 Your Bill Details</h3>
+                  <span className="px-3 py-1 bg-green-500 text-white text-xs font-semibold rounded-full">
+                    ✓ Verified
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div className="bg-white rounded-lg p-3">
+                    <span className="text-gray-600 text-xs">Customer Name</span>
+                    <p className="font-semibold text-gray-900">{billDetails.consumer_name || billDetails.customer_name}</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-3">
+                    <span className="text-gray-600 text-xs">Bill Number</span>
+                    <p className="font-semibold text-gray-900">{billDetails.bill_number}</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-3">
+                    <span className="text-gray-600 text-xs">Bill Date</span>
+                    <p className="font-semibold text-gray-900">{billDetails.bill_date}</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-3">
+                    <span className="text-gray-600 text-xs">Due Date</span>
+                    <p className="font-semibold text-red-600">{billDetails.due_date}</p>
+                  </div>
+                  <div className="bg-gradient-to-r from-green-100 to-green-200 rounded-lg p-3 border-2 border-green-400 md:col-span-2">
+                    <span className="text-gray-700 text-xs font-medium">Amount Due</span>
+                    <p className="font-bold text-2xl text-green-700">₹{billDetails.due_amount}</p>
+                  </div>
+                </div>
+                <div className="mt-4 bg-yellow-50 border border-yellow-300 rounded-lg p-3">
+                  <p className="text-xs text-yellow-800">
+                    ⚠️ <strong>Note:</strong> The amount has been auto-filled. Please verify before proceeding with payment.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Reward Preview - Generic Message */}
             {selectedOperator && amount && parseFloat(amount) > 0 && (
               <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded">
                 <div className="flex items-center">
                   <div className="text-2xl mr-3">💰</div>
                   <div>
-                    <p className="text-sm font-medium text-green-800">{rewardLabel} Earnings</p>
-                    <p className="text-lg font-bold text-green-900">
-                      ₹{((parseFloat(amount) * (operators.find(op => op.id === selectedOperator)?.commission_rate || 0)) / 100).toFixed(2)}
+                    <p className="text-sm font-medium text-green-800">
+                      {userRole === 'CUSTOMER' 
+                        ? '🎉 You will earn cashback on this recharge!' 
+                        : '💼 You will earn commission on this recharge!'}
+                    </p>
+                    <p className="text-xs text-green-700 mt-1">
+                      {rewardLabel} will be credited to your wallet after successful transaction
                     </p>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all shadow-lg"
-            >
-              {loading ? 'Processing...' : `Proceed to ${serviceType} Recharge`}
-            </button>
+            {/* Submit Button - Different for POSTPAID with bill fetch */}
+            {serviceType === 'POSTPAID' && operators.find(op => op.id === selectedOperator)?.metadata?.bill_fetch === 'YES' ? (
+              billDetails ? (
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-4 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all shadow-lg"
+                >
+                  {loading ? '⏳ Processing Payment...' : `💳 Pay Bill - ₹${amount}`}
+                </button>
+              ) : (
+                <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded">
+                  <p className="text-sm text-yellow-800">
+                    ⚠️ Please get your bill details first before making payment.
+                  </p>
+                </div>
+              )
+            ) : (
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all shadow-lg"
+              >
+                {loading ? 'Processing...' : `Proceed to ${serviceType} ${serviceType === 'POSTPAID' ? 'Bill Payment' : 'Recharge'}`}
+              </button>
+            )}
 
             {/* Message */}
             {message && (
-              <div className={`p-4 rounded-lg ${message.includes('✅') ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+              <div className={`p-4 rounded-lg ${
+                messageType === 'success' ? 'bg-green-50 text-green-800 border border-green-200' :
+                messageType === 'error' ? 'bg-red-50 text-red-800 border border-red-200' :
+                'bg-blue-50 text-blue-800 border border-blue-200'
+              }`}>
                 {message}
               </div>
             )}
@@ -486,7 +709,7 @@ export default function MobileRechargePageEnhanced() {
               <div className="py-12">
                 <div className="flex flex-col items-center justify-center">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-                  <p className="text-gray-600">Loading plans...</p>
+                  <p className="text-gray-600">Finding best plans for you...</p>
                 </div>
               </div>
             ) : planCategories.length === 0 ? (

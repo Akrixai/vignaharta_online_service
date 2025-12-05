@@ -13,7 +13,8 @@
       },
       "disabled": false,
       "autoApprove": [
-        "execute_sql"
+        "execute_sql",
+        "apply_migration"
       ]
     }
   }

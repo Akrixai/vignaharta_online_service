@@ -96,6 +96,7 @@ export async function POST(request: NextRequest) {
 
     // Calculate commission/cashback based on user role
     // RETAILER gets commission, CUSTOMER gets cashback
+    // Note: Actual rates are NOT shown to users in UI
     const rewardRate = operator.commission_rate;
     const rewardAmount = (amount * rewardRate) / 100;
     const rewardLabel = user.role === 'CUSTOMER' ? 'Cashback' : 'Commission';

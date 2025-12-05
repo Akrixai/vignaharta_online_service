@@ -312,7 +312,7 @@ export default function DTHRechargePageEnhanced() {
                         <div className="py-12">
                             <div className="flex flex-col items-center justify-center">
                                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-                                <p className="text-gray-600">Loading plans...</p>
+                                <p className="text-gray-600">Finding best plans for you...</p>
                             </div>
                         </div>
                     ) : planCategories.length === 0 ? (
