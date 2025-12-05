@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -11,22 +10,25 @@ const supabase = createClient(
 // GET /api/wallet/transactions - Get user's wallet transactions with pagination and filters
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
+    const user = await getAuthenticatedUser(request);
+    if (!user?.email) {
       return NextResponse.json(
         { success: false, message: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    // Get user
-    const { data: user } = await supabase
+    // User is already authenticated via getAuthenticatedUser
+    // We can use the user object directly
+
+    // Verify user exists in database (optional double check, but good for getting latest role)
+    const { data: dbUser } = await supabase
       .from('users')
       .select('id, role')
-      .eq('email', session.user.email)
+      .eq('email', user.email)
       .single();
 
-    if (!user) {
+    if (!dbUser) {
       return NextResponse.json(
         { success: false, message: 'User not found' },
         { status: 404 }

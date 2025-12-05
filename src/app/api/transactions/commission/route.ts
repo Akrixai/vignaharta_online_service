@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { UserRole } from '@/types';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 
 // GET - Get commission transactions for the current user
 export async function GET(request: NextRequest) {
 
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session || session.user.role !== UserRole.RETAILER) {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user || user.role !== UserRole.RETAILER) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -34,7 +33,7 @@ export async function GET(request: NextRequest) {
         updated_at,
         processed_by
       `)
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .eq('type', 'COMMISSION')
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
@@ -47,7 +46,7 @@ export async function GET(request: NextRequest) {
     const { count, error: countError } = await supabaseAdmin
       .from('transactions')
       .select('*', { count: 'exact', head: true })
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .eq('type', 'COMMISSION');
 
     if (countError) {
@@ -57,7 +56,7 @@ export async function GET(request: NextRequest) {
     const { data: totalData, error: totalError } = await supabaseAdmin
       .from('transactions')
       .select('amount')
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .eq('type', 'COMMISSION')
       .eq('status', 'COMPLETED');
 

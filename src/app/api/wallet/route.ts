@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 
 // GET /api/wallet - Get user's wallet
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session) {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -16,7 +15,7 @@ export async function GET(request: NextRequest) {
     const { data: existingWallets, error: fetchError } = await supabaseAdmin
       .from('wallets')
       .select('*')
-      .eq('user_id', session.user.id);
+      .eq('user_id', user.id);
 
     if (fetchError) {
       console.error('Wallet fetch error:', fetchError);
@@ -31,7 +30,7 @@ export async function GET(request: NextRequest) {
       const { data: newWallet, error: createError } = await supabaseAdmin
         .from('wallets')
         .insert({
-          user_id: session.user.id,
+          user_id: user.id,
           balance: 0
         })
         .select()
@@ -58,7 +57,7 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Wallet API error:', error);
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
@@ -68,9 +67,9 @@ export async function GET(request: NextRequest) {
 // POST /api/wallet - Create wallet request for approval
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getAuthenticatedUser(request);
 
-    if (!session) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -95,7 +94,7 @@ export async function POST(request: NextRequest) {
       const { data: wallet, error: walletError } = await supabaseAdmin
         .from('wallets')
         .select('balance')
-        .eq('user_id', session.user.id)
+        .eq('user_id', user.id)
         .single();
 
       if (walletError || !wallet) {
@@ -113,7 +112,7 @@ export async function POST(request: NextRequest) {
     const { data: walletRequest, error: requestError } = await supabaseAdmin
       .from('wallet_requests')
       .insert({
-        user_id: session.user.id,
+        user_id: user.id,
         type: requestType,
         amount: parseFloat(amount),
         payment_method: requestType === 'WITHDRAWAL' ? 'BANK_TRANSFER' : 'MANUAL',
