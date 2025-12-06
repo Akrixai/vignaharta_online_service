@@ -12,7 +12,33 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { scheme_id, draft_data, progress_percentage, current_step, total_steps } = body;
+
+    // Support both formats:
+    // 1. Website format: { scheme_id, draft_data, progress_percentage, current_step, total_steps }
+    // 2. App format: { scheme_id, customer_name, customer_phone, ..., form_data, status }
+
+    let scheme_id = body.scheme_id;
+    let draft_data;
+    let progress_percentage = body.progress_percentage || 0;
+    let current_step = body.current_step || 1;
+    let total_steps = body.total_steps || 5;
+
+    // Check if this is the app format (has customer_name, form_data, etc.)
+    if (body.customer_name || body.form_data) {
+      // App format - wrap the entire body as draft_data
+      draft_data = {
+        customer_name: body.customer_name,
+        customer_phone: body.customer_phone,
+        customer_email: body.customer_email,
+        customer_address: body.customer_address,
+        amount: body.amount,
+        form_data: body.form_data,
+        status: body.status || 'DRAFT'
+      };
+    } else {
+      // Website format - draft_data is already provided
+      draft_data = body.draft_data;
+    }
 
     if (!scheme_id || !draft_data) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -32,9 +58,9 @@ export async function POST(request: NextRequest) {
         .from('application_drafts')
         .update({
           draft_data,
-          progress_percentage: progress_percentage || 0,
-          current_step: current_step || 1,
-          total_steps: total_steps || 5,
+          progress_percentage,
+          current_step,
+          total_steps,
           updated_at: new Date().toISOString(),
         })
         .eq('id', existingDraft.id)
@@ -55,9 +81,9 @@ export async function POST(request: NextRequest) {
           user_id: user.id,
           scheme_id,
           draft_data,
-          progress_percentage: progress_percentage || 0,
-          current_step: current_step || 1,
-          total_steps: total_steps || 5,
+          progress_percentage,
+          current_step,
+          total_steps,
         })
         .select()
         .single();

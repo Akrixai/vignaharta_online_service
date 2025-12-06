@@ -29,7 +29,8 @@ export async function GET(
           description,
           category,
           price,
-          is_free
+          is_free,
+          dynamic_fields
         )
       `)
       .eq('id', applicationId)
