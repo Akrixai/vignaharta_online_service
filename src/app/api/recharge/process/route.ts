@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
       circle_code,
       mobile_number,
       dth_number,
+      subscriber_id, // DTH subscriber ID
       consumer_number,
       amount,
       plan_id,
@@ -130,7 +131,7 @@ export async function POST(request: NextRequest) {
         circle_id: circleId,
         service_type: service_type.toUpperCase(),
         mobile_number,
-        dth_number,
+        dth_number: subscriber_id || dth_number,
         consumer_number,
         account_holder_name: customer_name || dbUser.name,
         amount,
@@ -158,7 +159,7 @@ export async function POST(request: NextRequest) {
       type: 'WITHDRAWAL',
       amount: totalAmount,
       status: 'COMPLETED',
-      description: `${service_type} ${mobile_number || dth_number || consumer_number}`,
+      description: `${service_type} ${mobile_number || subscriber_id || dth_number || consumer_number}`,
       reference: transactionRef,
       metadata: { recharge_transaction_id: transaction.id },
     });
@@ -231,10 +232,11 @@ export async function POST(request: NextRequest) {
           });
           break;
 
+
         case 'DTH':
           rechargeResponse = await kwikapi.rechargeDTH({
             opid: parseInt(opid),
-            number: dth_number!,
+            number: subscriber_id || dth_number!,
             amount,
             order_id: transactionRef,
             mobile: mobile_number || dbUser.email,
@@ -319,7 +321,7 @@ export async function POST(request: NextRequest) {
             type: dbUser.role === 'CUSTOMER' ? 'REFUND' : 'COMMISSION',
             amount: finalReward,
             status: 'COMPLETED',
-            description: `${rewardLabel} for ${service_type} ${mobile_number || dth_number || consumer_number}`,
+            description: `${rewardLabel} for ${service_type} ${mobile_number || subscriber_id || dth_number || consumer_number}`,
             reference: transactionRef,
           });
 
