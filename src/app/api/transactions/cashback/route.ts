@@ -60,8 +60,8 @@ export async function GET(request: NextRequest) {
             .eq('type', 'CASHBACK')
             .eq('status', 'COMPLETED');
 
-        const totalCashback = totalData?.reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0) || 0;
-        const scratchedCashback = totalData?.filter(t => t.metadata?.scratched === true).reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0) || 0;
+        const totalCashback = totalData?.reduce((sum: number, t: any) => sum + parseFloat(t.amount.toString()), 0) || 0;
+        const scratchedCashback = totalData?.filter((t: any) => t.metadata?.scratched === true).reduce((sum: number, t: any) => sum + parseFloat(t.amount.toString()), 0) || 0;
         const unscratchedCashback = totalCashback - scratchedCashback;
 
         return NextResponse.json({

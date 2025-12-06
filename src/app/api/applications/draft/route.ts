@@ -1,62 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '@/lib/supabase';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-export async function GET(request: NextRequest) {
-  try {
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
-
-    const searchParams = request.nextUrl.searchParams;
-    const scheme_id = searchParams.get('scheme_id');
-
-    let query = supabase
-      .from('application_drafts')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('is_submitted', false)
-      .gt('expires_at', new Date().toISOString());
-
-    if (scheme_id) {
-      query = query.eq('scheme_id', scheme_id);
-    }
-
-    const { data, error } = await query.order('updated_at', { ascending: false });
-
-    if (error) throw error;
-
-    return NextResponse.json({ drafts: data || [] });
-  } catch (error: any) {
-    console.error('Get drafts error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-}
-
+// POST - Save draft application
 export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const user = await getAuthenticatedUser(request);
 
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
@@ -66,37 +18,38 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Check if draft exists
-    const { data: existing } = await supabase
+    // Check if draft already exists for this user and scheme
+    const { data: existingDraft } = await supabaseAdmin
       .from('application_drafts')
-      .select('*')
+      .select('id')
       .eq('user_id', user.id)
       .eq('scheme_id', scheme_id)
-      .eq('is_submitted', false)
       .single();
 
-    let result;
-    if (existing) {
+    if (existingDraft) {
       // Update existing draft
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from('application_drafts')
         .update({
           draft_data,
-          progress_percentage: progress_percentage || existing.progress_percentage,
-          current_step: current_step || existing.current_step,
-          total_steps: total_steps || existing.total_steps,
-          last_saved_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          progress_percentage: progress_percentage || 0,
+          current_step: current_step || 1,
+          total_steps: total_steps || 5,
+          updated_at: new Date().toISOString(),
         })
-        .eq('id', existing.id)
+        .eq('id', existingDraft.id)
         .select()
         .single();
 
-      if (error) throw error;
-      result = data;
+      if (error) {
+        console.error('Error updating draft:', error);
+        return NextResponse.json({ error: 'Failed to update draft' }, { status: 500 });
+      }
+
+      return NextResponse.json({ success: true, data });
     } else {
       // Create new draft
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from('application_drafts')
         .insert({
           user_id: user.id,
@@ -104,18 +57,55 @@ export async function POST(request: NextRequest) {
           draft_data,
           progress_percentage: progress_percentage || 0,
           current_step: current_step || 1,
-          total_steps: total_steps || 5
+          total_steps: total_steps || 5,
         })
         .select()
         .single();
 
-      if (error) throw error;
-      result = data;
+      if (error) {
+        console.error('Error creating draft:', error);
+        return NextResponse.json({ error: 'Failed to create draft' }, { status: 500 });
+      }
+
+      return NextResponse.json({ success: true, data });
+    }
+  } catch (error) {
+    console.error('Draft API error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+// GET - Get all drafts for current user
+export async function GET(request: NextRequest) {
+  try {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    return NextResponse.json({ draft: result });
-  } catch (error: any) {
-    console.error('Save draft error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const { data: drafts, error } = await supabaseAdmin
+      .from('application_drafts')
+      .select(`
+        *,
+        schemes (
+          id,
+          name,
+          category,
+          price
+        )
+      `)
+      .eq('user_id', user.id)
+      .order('updated_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching drafts:', error);
+      return NextResponse.json({ error: 'Failed to fetch drafts' }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, data: drafts });
+  } catch (error) {
+    console.error('Draft API error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
