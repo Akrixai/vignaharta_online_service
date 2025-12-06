@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase';
 import { verifyAuth } from '@/lib/auth';
 
 // POST - Track share
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
 
     const ip_address = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip');
 
-    const supabase = createClient();
+    const supabase = supabaseAdmin;
     const { data, error } = await supabase
       .from('blog_shares')
       .insert({

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase';
 import { verifyAuth } from '@/lib/auth';
 
 // POST - Like a post
@@ -24,8 +24,8 @@ export async function POST(request: NextRequest) {
     // Get IP address
     ip_address = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip');
 
-    const supabase = createClient();
-    
+    const supabase = supabaseAdmin;
+
     // Check if already liked
     const { data: existing } = await supabase
       .from('blog_likes')
@@ -89,7 +89,7 @@ export async function DELETE(request: NextRequest) {
 
     ip_address = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip');
 
-    const supabase = createClient();
+    const supabase = supabaseAdmin;
     const { error } = await supabase
       .from('blog_likes')
       .delete()

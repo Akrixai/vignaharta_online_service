@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase';
 import { verifyAuth } from '@/lib/auth';
 
 // GET - Get recurring charges
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const status = searchParams.get('status');
 
-    const supabase = createClient();
+    const supabase = supabaseAdmin;
     let query = supabase
       .from('recurring_charges')
       .select('*')
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { user_id, charge_type, amount } = body;
 
-    const supabase = createClient();
+    const supabase = supabaseAdmin;
 
     // Check wallet balance
     const { data: wallet } = await supabase
