@@ -8,7 +8,7 @@ import { UserRole } from '@/types';
 export async function verifyAuth(authHeader: string) {
   try {
     const token = authHeader.replace('Bearer ', '');
-    
+
     if (!token) {
       return null;
     }
@@ -21,15 +21,15 @@ export async function verifyAuth(authHeader: string) {
     }
 
     const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
-    
+
     if (!payload || !payload.sub) {
       return null;
     }
 
-    // Fetch user from database
+    // Fetch user from database with phone
     const { data: user, error } = await supabaseAdmin
       .from('users')
-      .select('id, email, name, role, is_active')
+      .select('id, email, name, phone, role, is_active')
       .eq('id', payload.sub)
       .single();
 
@@ -41,6 +41,7 @@ export async function verifyAuth(authHeader: string) {
       id: user.id,
       email: user.email,
       name: user.name,
+      phone: user.phone,
       role: user.role as UserRole
     };
   } catch (error) {
@@ -66,7 +67,7 @@ export const authOptions: NextAuthOptions = {
         try {
           // Check if input is email or phone number
           const isPhone = /^\d{10}$/.test(credentials.email);
-          
+
           // Query by email or phone with role filter
           let query = supabaseAdmin
             .from('users')
@@ -100,16 +101,16 @@ export const authOptions: NextAuthOptions = {
                 balance
               )
             `);
-          
+
           if (isPhone) {
             query = query.eq('phone', credentials.email);
           } else {
             query = query.eq('email', credentials.email);
           }
-          
+
           // Add role filter
           query = query.eq('role', credentials.role.toUpperCase());
-          
+
           const { data: users, error } = await query;
 
           if (error) {
@@ -216,14 +217,14 @@ export const authOptions: NextAuthOptions = {
         token.isActive = userData.isActive;
         token.profile_photo_url = userData.profile_photo_url;
       }
-      
+
       // Handle token updates (e.g., profile photo changes)
       if (trigger === 'update' && session) {
         if (session.profile_photo_url !== undefined) {
           token.profile_photo_url = session.profile_photo_url;
         }
       }
-      
+
       return token;
     },
     async session({ session, token, trigger, newSession }) {
@@ -251,14 +252,14 @@ export const authOptions: NextAuthOptions = {
         session.user.isActive = token.isActive as boolean;
         (session.user as any).profile_photo_url = token.profile_photo_url as string;
       }
-      
+
       // Handle session updates (e.g., profile photo changes)
       if (trigger === 'update' && newSession) {
         if (newSession.profile_photo_url !== undefined) {
           (session.user as any).profile_photo_url = newSession.profile_photo_url;
         }
       }
-      
+
       return session;
     }
   },

@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 import { supabaseAdmin } from '@/lib/supabase';
 
 // Cashfree configuration
 const CASHFREE_APP_ID = process.env.CASHFREE_APP_ID || '';
 const CASHFREE_SECRET_KEY = process.env.CASHFREE_SECRET_KEY || '';
 const CASHFREE_ENVIRONMENT = process.env.CASHFREE_ENVIRONMENT || 'TEST';
-const CASHFREE_API_URL = CASHFREE_ENVIRONMENT === 'PRODUCTION' 
-  ? 'https://api.cashfree.com/pg' 
+const CASHFREE_API_URL = CASHFREE_ENVIRONMENT === 'PRODUCTION'
+  ? 'https://api.cashfree.com/pg'
   : 'https://sandbox.cashfree.com/pg';
 
 // Log configuration for debugging (remove in production)
@@ -22,9 +21,10 @@ console.log('Cashfree Config:', {
 // POST /api/wallet/cashfree/create-order - Create Cashfree order for wallet recharge with 2% GST
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    // Support both website (cookie) and app (Bearer token) authentication
+    const user = await getAuthenticatedUser(request);
 
-    if (!session) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     }
 
     const baseAmount = parseFloat(amount);
-    
+
     // Validate amount range
     if (baseAmount < 10) {
       return NextResponse.json({ error: 'Minimum amount is ₹10' }, { status: 400 });
@@ -45,18 +45,18 @@ export async function POST(request: NextRequest) {
     const gstPercentage = 2.00; // 2% GST
     const gstAmount = Math.round((baseAmount * gstPercentage)) / 100; // Round to 2 decimals
     const totalAmount = parseFloat((baseAmount + gstAmount).toFixed(2)); // Ensure exactly 2 decimal places
-    
+
     // No artificial limits - let Cashfree handle its own account limits
     // Maximum is set to ₹50,000 for safety
     if (baseAmount > 50000) {
-      return NextResponse.json({ 
+      return NextResponse.json({
         error: 'Maximum amount is ₹50,000 per transaction',
         max_amount: 50000
       }, { status: 400 });
     }
 
     // Generate unique order ID
-    const orderId = `WALLET_${session.user.id.substring(0, 8)}_${Date.now()}`;
+    const orderId = `WALLET_${user.id.substring(0, 8)}_${Date.now()}`;
 
     // Create Cashfree order
     const orderRequest = {
@@ -64,10 +64,10 @@ export async function POST(request: NextRequest) {
       order_amount: totalAmount, // Now guaranteed to have max 2 decimal places
       order_currency: 'INR',
       customer_details: {
-        customer_id: session.user.id,
-        customer_name: session.user.name || 'User',
-        customer_email: session.user.email,
-        customer_phone: session.user.phone || '9999999999',
+        customer_id: user.id,
+        customer_name: user.name || 'User',
+        customer_email: user.email,
+        customer_phone: user.phone || '9999999999',
       },
       order_meta: {
         return_url: `${process.env.NEXTAUTH_URL}/dashboard/wallet?payment=success`,
@@ -101,15 +101,15 @@ export async function POST(request: NextRequest) {
           hasSecretKey: !!CASHFREE_SECRET_KEY
         }
       });
-      
+
       // Provide helpful error messages
       let errorMessage = response?.message || `Cashfree API error: ${cashfreeResponse.statusText}`;
-      
+
       if (response?.code === 'order_amount_invalid') {
         errorMessage = `${response.message}. This is a Cashfree account limit. Please contact Cashfree support to increase your transaction limits, or use QR Payment for higher amounts (no limits, no GST).`;
       }
-      
-      return NextResponse.json({ 
+
+      return NextResponse.json({
         error: errorMessage,
         details: response,
         suggestion: 'Use QR Payment (no GST, no limits) for higher amounts'
@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
     const { error: dbError } = await supabaseAdmin
       .from('cashfree_payments')
       .insert({
-        user_id: session.user.id,
+        user_id: user.id,
         order_id: orderId,
         cf_order_id: response.cf_order_id,
         amount: totalAmount,

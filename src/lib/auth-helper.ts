@@ -15,6 +15,7 @@ export async function getAuthenticatedUser(request: NextRequest) {
             id: session.user.id,
             email: session.user.email,
             name: session.user.name,
+            phone: session.user.phone,
             role: session.user.role,
         };
     }
