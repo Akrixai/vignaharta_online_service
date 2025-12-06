@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 import { supabaseAdmin } from '@/lib/supabase';
 import { UserRole } from '@/types';
 
 // GET - Fetch active training videos for retailers and employees
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
+    const user = await getAuthenticatedUser(request);
+
     // Allow access to retailers and employees
-    if (!session || (session.user.role !== UserRole.RETAILER && session.user.role !== UserRole.EMPLOYEE && session.user.role !== UserRole.ADMIN)) {
+    if (!user || (user.role !== UserRole.RETAILER && user.role !== UserRole.EMPLOYEE && user.role !== UserRole.ADMIN)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -80,8 +79,8 @@ export async function GET(request: NextRequest) {
 
     const { count: totalCount } = await countQuery;
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       videos: videos || [],
       pagination: {
         page,
@@ -99,9 +98,9 @@ export async function GET(request: NextRequest) {
 // POST - Track video view (for analytics)
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session || (session.user.role !== UserRole.RETAILER && session.user.role !== UserRole.EMPLOYEE)) {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user || (user.role !== UserRole.RETAILER && user.role !== UserRole.EMPLOYEE)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -115,8 +114,8 @@ export async function POST(request: NextRequest) {
     // Increment view count
     const { error } = await supabaseAdmin
       .from('training_videos')
-      .update({ 
-        view_count: supabaseAdmin.sql`view_count + 1` 
+      .update({
+        view_count: supabaseAdmin.sql`view_count + 1`
       })
       .eq('id', video_id)
       .eq('is_active', true);
@@ -125,9 +124,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to update view count' }, { status: 500 });
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      message: 'View count updated' 
+    return NextResponse.json({
+      success: true,
+      message: 'View count updated'
     });
 
   } catch (error) {

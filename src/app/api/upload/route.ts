@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 import { supabaseAdmin } from '@/lib/supabase';
-import { UserRole } from '@/types';
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session) {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -35,8 +33,8 @@ export async function POST(request: NextRequest) {
     // Validate file size (5MB limit)
     const maxSize = 5 * 1024 * 1024; // 5MB
     if (file.size > maxSize) {
-      return NextResponse.json({ 
-        error: 'File size too large. Maximum size is 5MB.' 
+      return NextResponse.json({
+        error: 'File size too large. Maximum size is 5MB.'
       }, { status: 400 });
     }
 
@@ -77,11 +75,6 @@ export async function POST(request: NextRequest) {
         success: false,
         error: 'Failed to get public URL'
       }, { status: 500 });
-    }
-
-    // Security: Never log URLs in production
-    if (process.env.NODE_ENV === 'development') {
-
     }
 
     return NextResponse.json({

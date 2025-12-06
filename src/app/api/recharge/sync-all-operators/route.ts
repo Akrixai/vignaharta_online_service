@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { getServerSession } from 'next-auth';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 import axios from 'axios';
 
 const supabase = createClient(
@@ -13,8 +13,8 @@ const KWIKAPI_API_KEY = process.env.KWIKAPI_API_KEY!;
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession();
-    if (!session?.user?.email) {
+    const authUser = await getAuthenticatedUser(request);
+    if (!authUser?.email) {
       return NextResponse.json(
         { success: false, message: 'Unauthorized' },
         { status: 401 }
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     const { data: user } = await supabase
       .from('users')
       .select('role')
-      .eq('email', session.user.email)
+      .eq('email', authUser.email)
       .single();
 
     if (!user || user.role !== 'ADMIN') {
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
 
     // Fetch all operators from KWIKAPI
     console.log('Fetching operators from KWIKAPI with key:', KWIKAPI_API_KEY?.substring(0, 10) + '...');
-    
+
     let response;
     try {
       response = await axios.get(
@@ -54,10 +54,10 @@ export async function POST(request: NextRequest) {
         data: axiosError.response?.data,
         message: axiosError.message,
       });
-      
+
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           message: `KWIKAPI API Error: ${axiosError.response?.data || axiosError.message}`,
           details: {
             status: axiosError.response?.status,
@@ -72,10 +72,10 @@ export async function POST(request: NextRequest) {
 
     if (!response.data || !response.data.response) {
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           message: 'Invalid response from KWIKAPI',
-          response: response.data 
+          response: response.data
         },
         { status: 500 }
       );
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
     for (const op of operators) {
       try {
         const serviceType = serviceTypeMap[op.service_type] || 'PREPAID';
-        
+
         // Skip if service type not supported
         if (!['PREPAID', 'POSTPAID', 'DTH', 'ELECTRICITY'].includes(serviceType)) {
           skippedCount++;

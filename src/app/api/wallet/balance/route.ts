@@ -1,40 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { getAuthenticatedUser } from '@/lib/auth-helper';
+import { supabaseAdmin } from '@/lib/supabase';
 
 // GET /api/wallet/balance - Get current user's wallet balance
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user) {
       return NextResponse.json(
         { success: false, message: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    // Get user
-    const { data: user } = await supabase
-      .from('users')
-      .select('id, name, email, role')
-      .eq('email', session.user.email)
-      .single();
-
-    if (!user) {
-      return NextResponse.json(
-        { success: false, message: 'User not found' },
-        { status: 404 }
-      );
-    }
-
     // Get wallet balance
-    const { data: wallet } = await supabase
+    const { data: wallet } = await supabaseAdmin
       .from('wallets')
       .select('id, balance')
       .eq('user_id', user.id)

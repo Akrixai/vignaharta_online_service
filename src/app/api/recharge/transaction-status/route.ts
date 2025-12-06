@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import kwikapi from '@/lib/kwikapi';
-import { getServerSession } from 'next-auth';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,8 +10,8 @@ const supabase = createClient(
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession();
-    if (!session?.user?.email) {
+    const authUser = await getAuthenticatedUser(request);
+    if (!authUser?.email) {
       return NextResponse.json(
         { success: false, message: 'Unauthorized' },
         { status: 401 }
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     const { data: user } = await supabase
       .from('users')
       .select('id')
-      .eq('email', session.user.email)
+      .eq('email', authUser.email)
       .single();
 
     if (!user) {
@@ -82,8 +82,8 @@ export async function GET(request: NextRequest) {
 
       if (statusResponse.success) {
         const apiStatus = statusResponse.data.status || statusResponse.data.STATUS;
-        const newStatus = apiStatus === 'SUCCESS' ? 'SUCCESS' : 
-                         apiStatus === 'FAILED' ? 'FAILED' : 'PENDING';
+        const newStatus = apiStatus === 'SUCCESS' ? 'SUCCESS' :
+          apiStatus === 'FAILED' ? 'FAILED' : 'PENDING';
 
         // Update local transaction
         await supabase

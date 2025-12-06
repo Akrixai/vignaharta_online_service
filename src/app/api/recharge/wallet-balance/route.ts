@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import kwikapi from '@/lib/kwikapi';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -9,6 +10,16 @@ const supabase = createClient(
 
 export async function GET(request: NextRequest) {
   try {
+    const authUser = await getAuthenticatedUser(request);
+
+    // Check if user is authenticated and is ADMIN
+    if (!authUser || authUser.role !== 'ADMIN') {
+      return NextResponse.json(
+        { success: false, message: 'Unauthorized: Admin access required' },
+        { status: 403 }
+      );
+    }
+
     // Fetch wallet balance from KWIKAPI
     const balanceResponse = await kwikapi.getWalletBalance();
 

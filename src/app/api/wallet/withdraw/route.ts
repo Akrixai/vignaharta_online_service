@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 import { supabaseAdmin } from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getAuthenticatedUser(request);
 
-    if (!session) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -47,7 +46,7 @@ export async function POST(request: NextRequest) {
     const { data: wallet, error: walletError } = await supabaseAdmin
       .from('wallets')
       .select('balance')
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .single();
 
     if (walletError || !wallet) {
@@ -64,7 +63,7 @@ export async function POST(request: NextRequest) {
 
     // Upload QR code image to Supabase storage
     const fileExtension = qrCodeImage.name.split('.').pop() || 'jpg';
-    const fileName = `withdrawal-qr-${session.user.id}-${Date.now()}.${fileExtension}`;
+    const fileName = `withdrawal-qr-${user.id}-${Date.now()}.${fileExtension}`;
 
     // Convert File to ArrayBuffer
     const arrayBuffer = await qrCodeImage.arrayBuffer();
@@ -95,7 +94,7 @@ export async function POST(request: NextRequest) {
     const { data: withdrawalRequest, error: requestError } = await supabaseAdmin
       .from('wallet_requests')
       .insert({
-        user_id: session.user.id,
+        user_id: user.id,
         type: 'WITHDRAWAL',
         amount: parseFloat(amount),
         payment_method: 'UPI_QR',
@@ -112,8 +111,8 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (requestError) {
-      return NextResponse.json({ 
-        error: 'Failed to create withdrawal request' 
+      return NextResponse.json({
+        error: 'Failed to create withdrawal request'
       }, { status: 500 });
     }
 
@@ -125,8 +124,8 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    return NextResponse.json({ 
-      error: 'Internal server error' 
+    return NextResponse.json({
+      error: 'Internal server error'
     }, { status: 500 });
   }
 }

@@ -1,22 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 import { supabaseAdmin } from '@/lib/supabase';
 import { UserRole } from '@/types';
 
-// POST - Apply for a service (Retailer only)
+// POST - Apply for a service
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // Updated to Promise for Next.js 15+ compat
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session || session.user.role !== UserRole.RETAILER) {
+    const user = await getAuthenticatedUser(request);
+
+    // Check if user is authenticated and has permitted role (Retailer or Customer)
+    if (!user || (user.role !== UserRole.RETAILER && user.role !== UserRole.CUSTOMER)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const serviceId = params.id;
+    const { id: serviceId } = await params;
     const body = await request.json();
     const {
       customer_name,
@@ -63,7 +63,7 @@ export async function POST(
     }
 
     // Use retailer_id from request or session user id
-    const userId = retailer_id || session.user.id;
+    const userId = retailer_id || user.id;
 
     // Get retailer's wallet for payment processing
     const { data: wallet, error: walletError } = await supabaseAdmin
@@ -80,7 +80,7 @@ export async function POST(
 
     const servicePrice = service.is_free ? 0 : parseFloat(service.price);
 
-    // Check wallet balance if service is not free (but don't deduct yet - deduction happens after approval)
+    // Check wallet balance if service is not free
     if (!service.is_free && wallet.balance < servicePrice) {
       return NextResponse.json({
         error: `Insufficient wallet balance. Required: ₹${servicePrice}, Available: ₹${wallet.balance}`
@@ -141,8 +141,8 @@ export async function POST(
       }, { status: 500 });
     }
 
-    // Note: Payment processing will happen after admin approval
-    // Wallet deduction is moved to the approval process
+    // Note: Payment processing will happen after admin approval for some, or immediate for others depending on logic
+    // The current logic seems to be: Create Transaction immediately as "Payment for [Service]"
 
     // Create transaction record
     await supabaseAdmin

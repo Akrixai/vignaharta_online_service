@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 
 // GET /api/transactions - Get user's transactions
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session) {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -49,9 +48,9 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false });
 
     // Filter based on user role
-    if (session.user.role === 'RETAILER' || session.user.role === 'CUSTOMER') {
+    if (user.role === 'RETAILER' || user.role === 'CUSTOMER') {
       // Retailers and Customers only see their own transactions
-      query = query.eq('user_id', session.user.id);
+      query = query.eq('user_id', user.id);
     }
     // Admin and Employee can see all transactions
 
@@ -88,9 +87,9 @@ export async function GET(request: NextRequest) {
 // POST /api/transactions - Create new transaction
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session) {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -108,7 +107,7 @@ export async function POST(request: NextRequest) {
     const { data: wallet, error: walletError } = await supabaseAdmin
       .from('wallets')
       .select('*')
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .single();
 
     if (walletError || !wallet) {
@@ -117,7 +116,7 @@ export async function POST(request: NextRequest) {
 
     // Validate transaction based on type
     const transactionAmount = parseFloat(amount.toString());
-    
+
     if (type === 'WITHDRAWAL' || type === 'SCHEME_PAYMENT') {
       const currentBalance = parseFloat(wallet.balance.toString());
       if (currentBalance < transactionAmount) {
@@ -137,7 +136,7 @@ export async function POST(request: NextRequest) {
     const { data: transaction, error: transactionError } = await supabaseAdmin
       .from('transactions')
       .insert({
-        user_id: session.user.id,
+        user_id: user.id,
         wallet_id: wallet.id,
         type,
         amount: transactionAmount,

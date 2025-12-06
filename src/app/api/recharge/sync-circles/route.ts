@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import kwikapi from '@/lib/kwikapi';
-import { getServerSession } from 'next-auth';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,8 +10,8 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession();
-    if (!session?.user?.email) {
+    const authUser = await getAuthenticatedUser(request);
+    if (!authUser?.email) {
       return NextResponse.json(
         { success: false, message: 'Unauthorized' },
         { status: 401 }
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     const { data: user } = await supabase
       .from('users')
       .select('role')
-      .eq('email', session.user.email)
+      .eq('email', authUser.email)
       .single();
 
     if (!user || user.role !== 'ADMIN') {
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     const axios = require('axios');
     const KWIKAPI_BASE_URL = process.env.KWIKAPI_BASE_URL || 'https://www.kwikapi.com';
     const KWIKAPI_API_KEY = process.env.KWIKAPI_API_KEY!;
-    
+
     const response = await axios.get(
       `${KWIKAPI_BASE_URL}/api/v2/circle_codes.php`,
       {

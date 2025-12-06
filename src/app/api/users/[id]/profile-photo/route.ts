@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 import { supabaseAdmin } from '@/lib/supabase';
 import { createClient } from '@supabase/supabase-js';
 
@@ -14,9 +13,9 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getAuthenticatedUser(request);
 
-    if (!session?.user) {
+    if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -26,7 +25,7 @@ export async function POST(
     const { id: userId } = await params;
 
     // Check if user is updating their own profile or is admin
-    if (session.user.id !== userId && session.user.role !== 'ADMIN') {
+    if (user.id !== userId && user.role !== 'ADMIN') {
       return NextResponse.json(
         { error: 'Forbidden' },
         { status: 403 }
@@ -61,15 +60,15 @@ export async function POST(
     }
 
     // Delete old profile photo if exists
-    const { data: user } = await supabaseAdmin
+    const { data: dbUser } = await supabaseAdmin
       .from('users')
       .select('profile_photo_url')
       .eq('id', userId)
       .single();
 
-    if (user?.profile_photo_url) {
+    if (dbUser?.profile_photo_url) {
       // Extract file path from URL
-      const oldPath = user.profile_photo_url.split('/').slice(-2).join('/');
+      const oldPath = dbUser.profile_photo_url.split('/').slice(-2).join('/');
       await supabase.storage
         .from('profile-photos')
         .remove([oldPath]);
@@ -138,9 +137,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getAuthenticatedUser(request);
 
-    if (!session?.user) {
+    if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -150,7 +149,7 @@ export async function DELETE(
     const { id: userId } = await params;
 
     // Check if user is updating their own profile or is admin
-    if (session.user.id !== userId && session.user.role !== 'ADMIN') {
+    if (user.id !== userId && user.role !== 'ADMIN') {
       return NextResponse.json(
         { error: 'Forbidden' },
         { status: 403 }
@@ -158,15 +157,15 @@ export async function DELETE(
     }
 
     // Get current profile photo
-    const { data: user } = await supabaseAdmin
+    const { data: dbUser } = await supabaseAdmin
       .from('users')
       .select('profile_photo_url')
       .eq('id', userId)
       .single();
 
-    if (user?.profile_photo_url) {
+    if (dbUser?.profile_photo_url) {
       // Extract file path from URL
-      const filePath = user.profile_photo_url.split('/').slice(-2).join('/');
+      const filePath = dbUser.profile_photo_url.split('/').slice(-2).join('/');
       await supabase.storage
         .from('profile-photos')
         .remove([filePath]);

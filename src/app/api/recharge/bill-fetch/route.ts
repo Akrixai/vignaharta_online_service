@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import kwikapi from '@/lib/kwikapi';
-import { getServerSession } from 'next-auth';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,8 +10,8 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession();
-    if (!session?.user?.email) {
+    const authUser = await getAuthenticatedUser(request);
+    if (!authUser?.email) {
       return NextResponse.json(
         { success: false, message: 'Unauthorized' },
         { status: 401 }
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     const { data: user } = await supabase
       .from('users')
       .select('id, email')
-      .eq('email', session.user.email)
+      .eq('email', authUser.email)
       .single();
 
     if (!user) {
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
 
     // First check if operator supports bill fetch
     const operatorDetails = await kwikapi.getOperatorDetails(opid);
-    
+
     if (!operatorDetails.success || operatorDetails.data.bill_fetch !== 'YES') {
       return NextResponse.json(
         { success: false, message: 'Bill fetch not supported for this operator' },

@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import kwikapi from '@/lib/kwikapi';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 
 export async function GET(request: NextRequest) {
   try {
+    const user = await getAuthenticatedUser(request);
+
+    // Optional: If you want to enforce auth for this endpoint, uncomment below:
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const opid = searchParams.get('opid');
 

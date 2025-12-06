@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 import { supabaseAdmin } from '@/lib/supabase';
 
 // DELETE /api/notifications/[id] - Delete specific notification
@@ -9,23 +8,22 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getAuthenticatedUser(request);
 
-    if (!session) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Only allow ADMIN and EMPLOYEE to delete notifications
-    if (session.user.role !== 'ADMIN' && session.user.role !== 'EMPLOYEE') {
+    if (user.role !== 'ADMIN' && user.role !== 'EMPLOYEE') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const resolvedParams = await params;
-    const notificationId = resolvedParams.id;
+    const { id: notificationId } = await params;
 
     if (!notificationId) {
-      return NextResponse.json({ 
-        error: 'Notification ID is required' 
+      return NextResponse.json({
+        error: 'Notification ID is required'
       }, { status: 400 });
     }
 
@@ -37,19 +35,19 @@ export async function DELETE(
       .single();
 
     if (fetchError || !notification) {
-      return NextResponse.json({ 
-        error: 'Notification not found' 
+      return NextResponse.json({
+        error: 'Notification not found'
       }, { status: 404 });
     }
 
     // Check if user has access to this notification
-    const hasAccess = 
-      (notification.target_roles && notification.target_roles.includes(session.user.role)) ||
-      (notification.target_users && notification.target_users.includes(session.user.id));
+    const hasAccess =
+      (notification.target_roles && notification.target_roles.includes(user.role)) ||
+      (notification.target_users && notification.target_users.includes(user.id));
 
     if (!hasAccess) {
-      return NextResponse.json({ 
-        error: 'Access denied to this notification' 
+      return NextResponse.json({
+        error: 'Access denied to this notification'
       }, { status: 403 });
     }
 
@@ -60,8 +58,8 @@ export async function DELETE(
       .eq('id', notificationId);
 
     if (deleteError) {
-      return NextResponse.json({ 
-        error: 'Failed to delete notification' 
+      return NextResponse.json({
+        error: 'Failed to delete notification'
       }, { status: 500 });
     }
 
@@ -71,8 +69,8 @@ export async function DELETE(
     });
 
   } catch (error) {
-    return NextResponse.json({ 
-      error: 'Internal server error' 
+    return NextResponse.json({
+      error: 'Internal server error'
     }, { status: 500 });
   }
 }

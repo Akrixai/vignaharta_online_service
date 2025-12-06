@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     let query = supabaseAdmin
       .from('notifications')
       .select('*')
-      .or(`target_roles.cs.{${session.user.role}},target_users.cs.{${session.user.id}}`)
+      .or(`target_roles.cs.{${user.role}},target_users.cs.{${user.id}}`)
       .order('created_at', { ascending: false })
       .limit(limit);
 
@@ -99,9 +99,9 @@ export async function POST(request: NextRequest) {
 // PATCH /api/notifications - Mark notifications as read
 export async function PATCH(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getAuthenticatedUser(request);
 
-    if (!session) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -114,7 +114,7 @@ export async function PATCH(request: NextRequest) {
 
     if (mark_all_read) {
       // Mark all notifications for this user as read
-      query = query.or(`target_roles.cs.{${session.user.role}},target_users.cs.{${session.user.id}}`);
+      query = query.or(`target_roles.cs.{${user.role}},target_users.cs.{${user.id}}`);
     } else if (notification_ids && notification_ids.length > 0) {
       // Mark specific notifications as read
       query = query.in('id', notification_ids);
@@ -143,21 +143,21 @@ export async function PATCH(request: NextRequest) {
 // DELETE /api/notifications - Delete all notifications for user
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getAuthenticatedUser(request);
 
-    if (!session) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Only allow ADMIN and EMPLOYEE to delete notifications
-    if (session.user.role !== 'ADMIN' && session.user.role !== 'EMPLOYEE') {
+    if (user.role !== 'ADMIN' && user.role !== 'EMPLOYEE') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const { error } = await supabaseAdmin
       .from('notifications')
       .delete()
-      .or(`target_roles.cs.{${session.user.role}},target_users.cs.{${session.user.id}}`);
+      .or(`target_roles.cs.{${user.role}},target_users.cs.{${user.id}}`);
 
     if (error) {
       return NextResponse.json({ error: 'Failed to delete notifications' }, { status: 500 });

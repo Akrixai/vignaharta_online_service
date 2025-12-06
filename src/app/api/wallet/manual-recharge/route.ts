@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 import { supabaseAdmin } from '@/lib/supabase';
 
 // POST /api/wallet/manual-recharge - Submit manual wallet recharge request with QR payment
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getAuthenticatedUser(request);
 
-    if (!session?.user) {
+    if (!user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
@@ -49,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     // Upload screenshot to Supabase Storage using admin client
     const fileExt = paymentScreenshot.name.split('.').pop();
-    const fileName = `${session.user.id}_${Date.now()}.${fileExt}`;
+    const fileName = `${user.id}_${Date.now()}.${fileExt}`;
     const bytes = await paymentScreenshot.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
@@ -77,7 +76,7 @@ export async function POST(request: NextRequest) {
     const { data: walletRequest, error: requestError } = await supabaseAdmin
       .from('wallet_requests')
       .insert({
-        user_id: session.user.id,
+        user_id: user.id,
         type: 'TOPUP',
         amount: amount,
         base_amount: amount, // Full amount without GST
@@ -113,12 +112,12 @@ export async function POST(request: NextRequest) {
     // Create notification for admin/employee
     await supabaseAdmin.from('notifications').insert({
       title: 'New Manual Wallet Recharge Request',
-      message: `${session.user.name} has submitted a manual wallet recharge request for ₹${amount}`,
+      message: `${user.name} has submitted a manual wallet recharge request for ₹${amount}`,
       type: 'WALLET_REQUEST',
       target_roles: ['ADMIN', 'EMPLOYEE'],
       data: {
         wallet_request_id: walletRequest.id,
-        user_id: session.user.id,
+        user_id: user.id,
         amount: amount,
       },
     });

@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getAuthenticatedUser(request);
 
-    if (!session) {
+    if (!user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
@@ -52,8 +51,8 @@ export async function GET(
     }
 
     // Check if user has permission to view this application
-    const userRole = session.user.role;
-    const userId = session.user.id;
+    const userRole = user.role;
+    const userId = user.id;
 
     if (userRole === 'RETAILER' || userRole === 'CUSTOMER') {
       // Retailers and customers can only view their own applications

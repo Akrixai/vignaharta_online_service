@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 
 // GET /api/schemes - Get all active schemes
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getAuthenticatedUser(request);
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
     const search = searchParams.get('search');
@@ -22,7 +21,7 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false });
 
     // Filter by customer visibility if user is a customer
-    if (session?.user?.role === 'CUSTOMER') {
+    if (user?.role === 'CUSTOMER') {
       query = query.eq('show_to_customer', true);
     }
 
@@ -42,7 +41,7 @@ export async function GET(request: NextRequest) {
 
     // For customers, use customer_price if available
     const processedSchemes = schemes?.map(scheme => {
-      if (session?.user?.role === 'CUSTOMER' && scheme.customer_price !== null) {
+      if (user?.role === 'CUSTOMER' && scheme.customer_price !== null) {
         return {
           ...scheme,
           price: scheme.customer_price,
@@ -71,9 +70,9 @@ export async function GET(request: NextRequest) {
 // POST /api/schemes - Create new scheme (Admin only)
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session || session.user.role !== 'ADMIN') {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user || user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

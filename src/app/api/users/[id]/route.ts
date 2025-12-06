@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import bcrypt from 'bcryptjs';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 
 // GET /api/users/[id] - Get user by ID
 export async function GET(
@@ -10,20 +8,20 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session) {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { id: userId } = await params;
 
     // Users can only view their own profile unless they're admin/employee
-    if (session.user.id !== userId && !['ADMIN', 'EMPLOYEE'].includes(session.user.role)) {
+    if (user.id !== userId && !['ADMIN', 'EMPLOYEE'].includes(user.role)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const { data: user, error } = await supabaseAdmin
+    const { data: dbUser, error } = await supabaseAdmin
       .from('users')
       .select(`
         id,
@@ -55,13 +53,13 @@ export async function GET(
       .eq('id', userId)
       .single();
 
-    if (error || !user) {
+    if (error || !dbUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     return NextResponse.json({
       success: true,
-      data: user
+      data: dbUser
     });
 
   } catch (error) {
@@ -75,9 +73,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session) {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -85,7 +83,7 @@ export async function PUT(
     const body = await request.json();
 
     // Users can only update their own profile unless they're admin
-    if (session.user.id !== userId && session.user.role !== 'ADMIN') {
+    if (user.id !== userId && user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -100,7 +98,7 @@ export async function PUT(
     }
 
     // Admin can update additional fields
-    if (session.user.role === 'ADMIN') {
+    if (user.role === 'ADMIN') {
       if (body.is_active !== undefined) {
         updateData.is_active = body.is_active;
       }
@@ -110,7 +108,7 @@ export async function PUT(
     }
 
     // Admin and Employee can update employee-specific fields
-    if (session.user.role === 'ADMIN' || session.user.role === 'EMPLOYEE') {
+    if (user.role === 'ADMIN' || user.role === 'EMPLOYEE') {
       if (body.employee_id !== undefined) {
         updateData.employee_id = body.employee_id;
       }
@@ -126,7 +124,7 @@ export async function PUT(
       return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
     }
 
-    const { data: user, error } = await supabaseAdmin
+    const { data: updatedUser, error } = await supabaseAdmin
       .from('users')
       .update(updateData)
       .eq('id', userId)
@@ -162,7 +160,7 @@ export async function PUT(
     return NextResponse.json({
       success: true,
       message: 'User updated successfully',
-      data: user
+      data: updatedUser
     });
 
   } catch (error) {
@@ -176,16 +174,16 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session || session.user.role !== 'ADMIN') {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user || user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { id: userId } = await params;
 
     // Prevent admin from deleting themselves
-    if (session.user.id === userId) {
+    if (user.id === userId) {
       return NextResponse.json({ error: 'Cannot delete your own account' }, { status: 400 });
     }
 
