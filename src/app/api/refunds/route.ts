@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 import { supabaseAdmin } from '@/lib/supabase';
 import { UserRole } from '@/types';
 
 // GET /api/refunds - Get refunds for current user or all refunds for admin/employee
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session) {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -28,8 +27,8 @@ export async function GET(request: NextRequest) {
       .limit(limit);
 
     // Filter based on user role
-    if (session.user.role === UserRole.RETAILER) {
-      query = query.eq('user_id', session.user.id);
+    if (user.role === UserRole.RETAILER) {
+      query = query.eq('user_id', user.id);
     }
     // Admin and employees can see all refunds
 
@@ -53,9 +52,9 @@ export async function GET(request: NextRequest) {
 // POST /api/refunds - Create new refund request
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session || session.user.role !== UserRole.RETAILER) {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user || user.role !== UserRole.RETAILER) {
       return NextResponse.json({ error: 'Unauthorized - Retailer access required' }, { status: 401 });
     }
 
@@ -86,7 +85,7 @@ export async function POST(request: NextRequest) {
     const { data: refund, error } = await supabaseAdmin
       .from('refunds')
       .insert({
-        user_id: session.user.id,
+        user_id: user.id,
         application_id: application_id || null,
         amount: parseFloat(amount),
         reason,
@@ -112,11 +111,11 @@ export async function POST(request: NextRequest) {
       .from('notifications')
       .insert({
         title: 'New Refund Request',
-        message: `Retailer ${session.user.name} has submitted a refund request for ₹${amount}`,
+        message: `Retailer ${user.name} has submitted a refund request for ₹${amount}`,
         type: 'REFUND_SUBMITTED',
         data: { refund_id: refund.id, amount, reason },
         target_roles: ['ADMIN', 'EMPLOYEE'],
-        created_by: session.user.id
+        created_by: user.id
       });
 
     return NextResponse.json({

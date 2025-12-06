@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 import { supabaseAdmin } from '@/lib/supabase';
 import { UserRole } from '@/types';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session) {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -54,9 +53,9 @@ export async function GET(request: NextRequest) {
       .range(offset, offset + limit - 1);
 
     // Filter based on user role
-    if (session.user.role === UserRole.RETAILER || session.user.role === UserRole.CUSTOMER) {
+    if (user.role === UserRole.RETAILER || user.role === UserRole.CUSTOMER) {
       // Retailers and Customers only see their own receipts
-      query = query.eq('retailer_id', session.user.id);
+      query = query.eq('retailer_id', user.id);
     }
     // Employees and admins can see all receipts
 
@@ -76,9 +75,9 @@ export async function GET(request: NextRequest) {
 // Get receipt count for pagination
 export async function HEAD(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session) {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user) {
       return new NextResponse(null, { status: 401 });
     }
 
@@ -87,8 +86,8 @@ export async function HEAD(request: NextRequest) {
       .select('id', { count: 'exact', head: true });
 
     // Filter based on user role
-    if (session.user.role === UserRole.RETAILER || session.user.role === UserRole.CUSTOMER) {
-      query = query.eq('retailer_id', session.user.id);
+    if (user.role === UserRole.RETAILER || user.role === UserRole.CUSTOMER) {
+      query = query.eq('retailer_id', user.id);
     }
 
     const { count, error } = await query;

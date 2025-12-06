@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 import { supabaseAdmin } from '@/lib/supabase';
 import { UserRole } from '@/types';
 
 // GET - Fetch active products for retailers and employees
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
+    const user = await getAuthenticatedUser(request);
+
     // Allow access to retailers, employees, customers, and admin
-    if (!session || (session.user.role !== UserRole.RETAILER && session.user.role !== UserRole.EMPLOYEE && session.user.role !== UserRole.ADMIN && session.user.role !== UserRole.CUSTOMER)) {
+    if (!user || (user.role !== UserRole.RETAILER && user.role !== UserRole.EMPLOYEE && user.role !== UserRole.ADMIN && user.role !== UserRole.CUSTOMER)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -43,7 +42,7 @@ export async function GET(request: NextRequest) {
       .range(offset, offset + limit - 1);
 
     // Filter products based on user role
-    if (session.user.role === UserRole.CUSTOMER) {
+    if (user.role === UserRole.CUSTOMER) {
       // Customers only see products marked as show_to_customer
       query = query.eq('show_to_customer', true);
     }
@@ -78,8 +77,8 @@ export async function GET(request: NextRequest) {
 
     const { count: totalCount } = await countQuery;
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       products: products || [],
       pagination: {
         page,

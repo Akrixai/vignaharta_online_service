@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 import { supabaseAdmin } from '@/lib/supabase';
 import { UserRole } from '@/types';
 
 // GET - Fetch orders
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getAuthenticatedUser(request);
 
-    if (!session) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -25,9 +24,9 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false });
 
     // Filter based on user role
-    if (session.user.role === UserRole.RETAILER || session.user.role === UserRole.CUSTOMER) {
+    if (user.role === UserRole.RETAILER || user.role === UserRole.CUSTOMER) {
       // Retailers and Customers only see their own orders
-      ordersQuery = ordersQuery.eq('user_id', session.user.id);
+      ordersQuery = ordersQuery.eq('user_id', user.id);
     }
     // Admin and Employee can see all orders
 
@@ -121,9 +120,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session || (session.user.role !== UserRole.RETAILER && session.user.role !== UserRole.CUSTOMER)) {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user || (user.role !== UserRole.RETAILER && user.role !== UserRole.CUSTOMER)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -131,8 +130,8 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!product_id || !payment_method || !amount || !customer_details) {
-      return NextResponse.json({ 
-        error: 'Missing required fields' 
+      return NextResponse.json({
+        error: 'Missing required fields'
       }, { status: 400 });
     }
 
@@ -145,15 +144,15 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (productError || !product) {
-      return NextResponse.json({ 
-        error: 'Product not found or inactive' 
+      return NextResponse.json({
+        error: 'Product not found or inactive'
       }, { status: 404 });
     }
 
     // Check stock availability
     if (product.stock_quantity !== null && product.stock_quantity <= 0) {
-      return NextResponse.json({ 
-        error: 'Product is out of stock' 
+      return NextResponse.json({
+        error: 'Product is out of stock'
       }, { status: 400 });
     }
 
@@ -165,34 +164,34 @@ export async function POST(request: NextRequest) {
       const { data: wallet, error: walletError } = await supabaseAdmin
         .from('wallets')
         .select('*')
-        .eq('user_id', session.user.id)
+        .eq('user_id', user.id)
         .single();
 
       if (walletError || !wallet) {
-        return NextResponse.json({ 
-          error: 'Wallet not found' 
+        return NextResponse.json({
+          error: 'Wallet not found'
         }, { status: 404 });
       }
 
       // Check sufficient balance
       if (wallet.balance < amount) {
-        return NextResponse.json({ 
-          error: 'Insufficient wallet balance' 
+        return NextResponse.json({
+          error: 'Insufficient wallet balance'
         }, { status: 400 });
       }
 
       // Deduct amount from wallet
       const { error: updateWalletError } = await supabaseAdmin
         .from('wallets')
-        .update({ 
+        .update({
           balance: wallet.balance - amount,
           updated_at: new Date().toISOString()
         })
         .eq('id', wallet.id);
 
       if (updateWalletError) {
-        return NextResponse.json({ 
-          error: 'Failed to process wallet payment' 
+        return NextResponse.json({
+          error: 'Failed to process wallet payment'
         }, { status: 500 });
       }
 
@@ -200,7 +199,7 @@ export async function POST(request: NextRequest) {
       const { data: transaction, error: transactionError } = await supabaseAdmin
         .from('transactions')
         .insert({
-          user_id: session.user.id,
+          user_id: user.id,
           wallet_id: wallet.id,
           type: 'DEBIT',
           amount: amount,
@@ -227,7 +226,7 @@ export async function POST(request: NextRequest) {
 
     // Create order record
     const orderData = {
-      user_id: session.user.id,
+      user_id: user.id,
       product_id: product_id,
       quantity: 1, // Default quantity
       amount: amount,
@@ -248,21 +247,21 @@ export async function POST(request: NextRequest) {
 
     if (orderError) {
       // Error handled silently
-      
+
       // If wallet payment was processed, we need to refund
       if (payment_method === 'WALLET' && walletTransaction) {
         // Refund the wallet
         await supabaseAdmin
           .from('wallets')
-          .update({ 
+          .update({
             balance: supabaseAdmin.sql`balance + ${amount}`,
             updated_at: new Date().toISOString()
           })
-          .eq('user_id', session.user.id);
+          .eq('user_id', user.id);
       }
-      
-      return NextResponse.json({ 
-        error: 'Failed to create order' 
+
+      return NextResponse.json({
+        error: 'Failed to create order'
       }, { status: 500 });
     }
 
@@ -270,7 +269,7 @@ export async function POST(request: NextRequest) {
     if (product.stock_quantity !== null) {
       await supabaseAdmin
         .from('products')
-        .update({ 
+        .update({
           stock_quantity: product.stock_quantity - 1,
           updated_at: new Date().toISOString()
         })
@@ -290,8 +289,8 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    return NextResponse.json({ 
-      error: 'Internal server error' 
+    return NextResponse.json({
+      error: 'Internal server error'
     }, { status: 500 });
   }
 }

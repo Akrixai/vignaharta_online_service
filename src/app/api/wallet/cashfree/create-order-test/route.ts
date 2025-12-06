@@ -92,6 +92,9 @@ export async function POST(request: NextRequest) {
 
         const response = await cashfreeResponse.json();
 
+        // DEBUG: Log the exact response from Cashfree
+        console.log('Cashfree API Response:', JSON.stringify(response, null, 2));
+
         if (!cashfreeResponse.ok || !response) {
             console.error('Cashfree TEST API error:', {
                 status: cashfreeResponse.status,
