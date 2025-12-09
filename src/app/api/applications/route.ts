@@ -167,7 +167,10 @@ export async function POST(request: NextRequest) {
       };
     }
 
-    // Check if user has sufficient balance (but don't debit yet - will debit after approval)
+    // Check wallet balance and deduct immediately on submission
+    let walletId: string | null = null;
+    let deductedAmount = 0;
+    
     if (!scheme.is_free && calculatedFeeBreakdown && calculatedFeeBreakdown.total_amount > 0) {
       const { data: wallet, error: walletError } = await supabaseAdmin
         .from('wallets')
@@ -192,17 +195,38 @@ export async function POST(request: NextRequest) {
         }
 
         currentBalance = 0;
+        walletId = newWallet.id;
       } else {
         currentBalance = parseFloat(wallet.balance.toString());
+        walletId = wallet.id;
       }
 
-      // Check if user has sufficient balance (but don't debit yet)
+      // Check if user has sufficient balance
       if (currentBalance < calculatedFeeBreakdown.total_amount) {
         return NextResponse.json(
           { error: `Insufficient wallet balance. Required: ₹${calculatedFeeBreakdown.total_amount}, Available: ₹${currentBalance}` },
           { status: 400 }
         );
       }
+
+      // Deduct amount from wallet immediately
+      const newBalance = currentBalance - calculatedFeeBreakdown.total_amount;
+      const { error: walletUpdateError } = await supabaseAdmin
+        .from('wallets')
+        .update({
+          balance: newBalance,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', walletId);
+
+      if (walletUpdateError) {
+        return NextResponse.json(
+          { error: 'Failed to deduct amount from wallet' },
+          { status: 500 }
+        );
+      }
+
+      deductedAmount = calculatedFeeBreakdown.total_amount;
     }
 
     // Calculate cashback for customers
@@ -242,7 +266,7 @@ export async function POST(request: NextRequest) {
         gst_amount: calculatedFeeBreakdown?.gst_amount || 0,
         platform_fee: calculatedFeeBreakdown?.platform_fee || 0,
         total_amount: calculatedFeeBreakdown?.total_amount || 0,
-        payment_status: 'PENDING', // Will be PAID after approval
+        payment_status: deductedAmount > 0 ? 'PAID' : 'PENDING', // PAID if amount was deducted
         status: 'PENDING',
         notes: is_reapply ? `REAPPLICATION - Original Application ID: ${original_application_id}` : null,
         commission_rate: user.role === UserRole.RETAILER ? (scheme.commission_rate || 0) : 0,
@@ -250,7 +274,8 @@ export async function POST(request: NextRequest) {
         cashback_percentage: cashbackPercentage,
         cashback_amount: cashbackAmount,
         cashback_claimed: false,
-        scratch_card_revealed: false
+        scratch_card_revealed: false,
+        refund_processed: false
       })
       .select(`
         id,
@@ -275,10 +300,44 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (applicationError) {
+      // Rollback wallet deduction if application creation fails
+      if (deductedAmount > 0 && walletId) {
+        await supabaseAdmin
+          .from('wallets')
+          .update({
+            balance: supabaseAdmin.raw(`balance + ${deductedAmount}`),
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', walletId);
+      }
+      
       return NextResponse.json({
         error: 'Failed to create application',
         details: applicationError.message
       }, { status: 500 });
+    }
+
+    // Create wallet transaction record if amount was deducted
+    if (deductedAmount > 0 && walletId) {
+      await supabaseAdmin
+        .from('transactions')
+        .insert({
+          user_id: user.id,
+          wallet_id: walletId,
+          type: 'SCHEME_PAYMENT',
+          amount: -deductedAmount, // Negative for deduction
+          status: 'COMPLETED',
+          description: `Payment for ${scheme.name} application`,
+          reference: application.id,
+          metadata: {
+            application_id: application.id,
+            scheme_id: scheme_id,
+            scheme_name: scheme.name,
+            fee_breakdown: calculatedFeeBreakdown
+          },
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
     }
 
     // Send real-time notification to admins/employees
@@ -318,9 +377,15 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Application submitted successfully. Payment will be debited after approval.',
+      message: deductedAmount > 0 
+        ? `Application submitted successfully! ₹${deductedAmount.toFixed(2)} has been deducted from your wallet.`
+        : 'Application submitted successfully!',
       data: application,
-      fee_breakdown: calculatedFeeBreakdown
+      fee_breakdown: calculatedFeeBreakdown,
+      payment_info: {
+        amount_deducted: deductedAmount,
+        payment_status: deductedAmount > 0 ? 'PAID' : 'FREE'
+      }
     });
 
   } catch (error) {

@@ -413,16 +413,15 @@ export default function ServiceApplicationPage() {
       });
 
       if (response.ok) {
+        const result = await response.json();
         showToast.success(
-          isReapply 
-            ? 'Reapplication submitted successfully!' 
-            : 'Application submitted successfully! Payment will be debited after approval.'
+          result.message || 'Application submitted successfully!'
         );
         setShowPaymentModal(false);
         router.push('/dashboard/applications');
       } else {
         const error = await response.json();
-        showToast.error(error.message || 'Failed to submit application');
+        showToast.error(error.error || error.message || 'Failed to submit application');
       }
     } catch (error) {
       showToast.error('Failed to submit application');
@@ -894,7 +893,7 @@ export default function ServiceApplicationPage() {
                         Payment After Approval
                       </p>
                       <p className="text-xs text-yellow-800 leading-relaxed">
-                        No immediate payment required. The total amount of <strong>₹{feeBreakdown.total_amount.toFixed(2)}</strong> will be automatically debited from your wallet only when the admin approves your application. Make sure you have sufficient balance in your wallet.
+                        The total amount of <strong>₹{feeBreakdown.total_amount.toFixed(2)}</strong> will be immediately debited from your wallet upon submission. If your application is rejected, the full amount will be automatically refunded to your wallet.
                       </p>
                     </div>
                   </div>

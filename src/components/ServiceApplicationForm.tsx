@@ -1076,7 +1076,7 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
                               Payment After Approval
                             </p>
                             <p className="text-xs text-yellow-800 leading-relaxed">
-                              No immediate payment required. The total amount of <strong>₹{breakdown.total_amount.toFixed(2)}</strong> will be automatically debited from your wallet only when the admin approves your application. Make sure you have sufficient balance.
+                              The total amount of <strong>₹{breakdown.total_amount.toFixed(2)}</strong> will be immediately debited from your wallet upon submission. If your application is rejected, the full amount will be automatically refunded to your wallet.
                             </p>
                           </div>
                         </div>

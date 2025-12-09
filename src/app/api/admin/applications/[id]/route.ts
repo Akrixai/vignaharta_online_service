@@ -73,7 +73,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Failed to update application' }, { status: 500 });
     }
 
-    // If approved, handle payment deduction and commission
+    // If approved, handle commission payment (payment already deducted on submission)
     if (status === 'APPROVED' && existingApp.status === 'PENDING') {
       try {
         // Get user wallet
@@ -88,60 +88,6 @@ export async function PUT(
             { error: 'Wallet not found for user' },
             { status: 404 }
           );
-        }
-
-        const totalAmount = parseFloat(existingApp.total_amount?.toString() || existingApp.amount?.toString() || '0');
-        
-        // Deduct payment from wallet if total_amount > 0 and payment not already made
-        if (totalAmount > 0 && existingApp.payment_status === 'PENDING') {
-          const currentBalance = parseFloat(wallet.balance.toString());
-          
-          // Check if user has sufficient balance
-          if (currentBalance < totalAmount) {
-            return NextResponse.json(
-              { error: `Insufficient wallet balance. Required: ₹${totalAmount}, Available: ₹${currentBalance}` },
-              { status: 400 }
-            );
-          }
-
-          // Deduct amount from wallet
-          const newBalanceAfterPayment = currentBalance - totalAmount;
-          await supabaseAdmin
-            .from('wallets')
-            .update({
-              balance: newBalanceAfterPayment,
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', wallet.id);
-
-          // Create payment transaction
-          await supabaseAdmin
-            .from('transactions')
-            .insert({
-              user_id: existingApp.user_id,
-              wallet_id: wallet.id,
-              type: 'SCHEME_PAYMENT',
-              amount: -totalAmount, // Negative for debit
-              status: 'COMPLETED',
-              description: `Payment for application #${applicationId} (Base: ₹${existingApp.base_amount || 0}, GST: ₹${existingApp.gst_amount || 0}, Platform Fee: ₹${existingApp.platform_fee || 0})`,
-              reference: `application_${applicationId}`,
-              metadata: {
-                application_id: applicationId,
-                base_amount: existingApp.base_amount || 0,
-                gst_percentage: existingApp.gst_percentage || 0,
-                gst_amount: existingApp.gst_amount || 0,
-                platform_fee: existingApp.platform_fee || 0,
-                total_amount: totalAmount
-              },
-              processed_by: session.user.id,
-              processed_at: new Date().toISOString()
-            });
-
-          // Update application payment status
-          await supabaseAdmin
-            .from('applications')
-            .update({ payment_status: 'PAID' })
-            .eq('id', applicationId);
         }
 
         // Handle commission payment for retailers (not customers)
@@ -167,131 +113,141 @@ export async function PUT(
 
           // Only pay commission to retailers, not customers
           if (commissionAmount > 0 && user?.role === 'RETAILER') {
-            // Get updated wallet balance
-            const { data: updatedWallet } = await supabaseAdmin
+            const currentBalance = parseFloat(wallet.balance.toString());
+            const newBalance = currentBalance + commissionAmount;
+
+            // Update wallet balance with commission
+            await supabaseAdmin
               .from('wallets')
-              .select('id, balance')
-              .eq('user_id', existingApp.user_id)
-              .single();
+              .update({
+                balance: newBalance,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', wallet.id);
 
-            if (updatedWallet) {
-              const currentBalance = parseFloat(updatedWallet.balance.toString());
-              const newBalance = currentBalance + commissionAmount;
-
-              // Update wallet balance with commission
-              await supabaseAdmin
-                .from('wallets')
-                .update({
-                  balance: newBalance,
-                  updated_at: new Date().toISOString()
-                })
-                .eq('id', updatedWallet.id);
-
-              // Create commission transaction
-              await supabaseAdmin
-                .from('transactions')
-                .insert({
-                  user_id: existingApp.user_id,
-                  wallet_id: updatedWallet.id,
-                  type: 'COMMISSION',
-                  amount: commissionAmount,
-                  status: 'COMPLETED',
-                  description: `Commission for approved application #${applicationId} (${commissionRate}% of ₹${applicationAmount})`,
-                  reference: `COMM_${applicationId}`,
-                  metadata: {
-                    application_id: applicationId,
-                    commission_rate: commissionRate,
-                    base_amount: applicationAmount
-                  },
-                  processed_by: session.user.id,
-                  processed_at: new Date().toISOString()
-                });
-
-              // Mark commission as paid in application
-              await supabaseAdmin
-                .from('applications')
-                .update({
+            // Create commission transaction
+            await supabaseAdmin
+              .from('transactions')
+              .insert({
+                user_id: existingApp.user_id,
+                wallet_id: wallet.id,
+                type: 'COMMISSION',
+                amount: commissionAmount,
+                status: 'COMPLETED',
+                description: `Commission for approved application #${applicationId} (${commissionRate}% of ₹${applicationAmount})`,
+                reference: `COMM_${applicationId}`,
+                metadata: {
+                  application_id: applicationId,
                   commission_rate: commissionRate,
-                  commission_amount: commissionAmount,
-                  commission_paid: true,
-                  commission_paid_at: new Date().toISOString()
-                })
-                .eq('id', applicationId);
-            }
+                  base_amount: applicationAmount
+                },
+                processed_by: session.user.id,
+                processed_at: new Date().toISOString()
+              });
+
+            // Mark commission as paid in application
+            await supabaseAdmin
+              .from('applications')
+              .update({
+                commission_rate: commissionRate,
+                commission_amount: commissionAmount,
+                commission_paid: true,
+                commission_paid_at: new Date().toISOString()
+              })
+              .eq('id', applicationId);
           }
         }
       } catch (walletError) {
-        console.error('Wallet/Commission error:', walletError);
+        console.error('Commission error:', walletError);
         return NextResponse.json(
-          { error: 'Failed to process payment or commission' },
+          { error: 'Failed to process commission' },
           { status: 500 }
         );
       }
     }
 
-    // Refund logic for admin rejection
-    let updatedWallet = null;
-    let refundTransaction = null;
-    if (status === 'REJECTED' && body.refund === true && existingApp.payment_status === 'PAID') {
-
-      // Fetch wallet
-      const { data: wallet, error: walletError } = await supabaseAdmin
-        .from('wallets')
-        .select('id, balance')
-        .eq('user_id', existingApp.user_id)
-        .single();
-      if (walletError || !wallet) {
-      } else {
-        const currentBalance = parseFloat(wallet.balance.toString());
-        // Refund the total_amount (which includes GST and platform fee)
-        const refundAmount = parseFloat(existingApp.total_amount?.toString() || existingApp.amount?.toString() || '0');
-        const newBalance = currentBalance + refundAmount;
-        // Update wallet
-        const { data: walletData, error: updateError } = await supabaseAdmin
+    // Automatic refund logic for rejection (if payment was made)
+    let refundInfo = null;
+    if (status === 'REJECTED' && existingApp.payment_status === 'PAID' && !existingApp.refund_processed) {
+      try {
+        // Fetch wallet
+        const { data: wallet, error: walletError } = await supabaseAdmin
           .from('wallets')
-          .update({ balance: newBalance, updated_at: new Date().toISOString() })
-          .eq('id', wallet.id)
-          .select()
+          .select('id, balance')
+          .eq('user_id', existingApp.user_id)
           .single();
-        updatedWallet = walletData;
-        if (updateError) {
-        } else {
 
+        if (wallet && !walletError) {
+          const currentBalance = parseFloat(wallet.balance.toString());
+          // Refund the total_amount (which includes GST and platform fee)
+          const refundAmount = parseFloat(existingApp.total_amount?.toString() || existingApp.amount?.toString() || '0');
+          const newBalance = currentBalance + refundAmount;
+
+          // Update wallet
+          const { error: updateError } = await supabaseAdmin
+            .from('wallets')
+            .update({ 
+              balance: newBalance, 
+              updated_at: new Date().toISOString() 
+            })
+            .eq('id', wallet.id);
+
+          if (!updateError) {
+            // Create refund transaction
+            const { data: refundTx, error: txError } = await supabaseAdmin
+              .from('transactions')
+              .insert({
+                user_id: existingApp.user_id,
+                wallet_id: wallet.id,
+                type: 'REFUND',
+                amount: refundAmount,
+                status: 'COMPLETED',
+                description: `Refund for rejected application #${applicationId}`,
+                reference: `refund_${applicationId}`,
+                metadata: {
+                  application_id: applicationId,
+                  original_amount: refundAmount,
+                  rejection_reason: notes || 'Application rejected'
+                },
+                processed_by: session.user.id,
+                processed_at: new Date().toISOString()
+              })
+              .select()
+              .single();
+
+            if (!txError && refundTx) {
+              // Mark application as refunded
+              await supabaseAdmin
+                .from('applications')
+                .update({ 
+                  payment_status: 'REFUNDED',
+                  refund_processed: true,
+                  refund_processed_at: new Date().toISOString(),
+                  refund_transaction_id: refundTx.id
+                })
+                .eq('id', applicationId);
+
+              refundInfo = {
+                refund_amount: refundAmount,
+                new_balance: newBalance,
+                transaction_id: refundTx.id
+              };
+            }
+          }
         }
-        // Create refund transaction
-        const { data: refundTx, error: txError } = await supabaseAdmin
-          .from('transactions')
-          .insert({
-            user_id: existingApp.user_id,
-            wallet_id: wallet.id,
-            type: 'REFUND',
-            amount: refundAmount,
-            status: 'COMPLETED',
-            description: `Refund for rejected application: ${applicationId}`,
-            reference: `refund_${applicationId}`,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
-          .select()
-          .single();
-        refundTransaction = refundTx;
-        if (txError) {
-        } else {
-          // Mark application as refunded
-          await supabaseAdmin
-            .from('applications')
-            .update({ payment_status: 'REFUNDED' })
-            .eq('id', applicationId);
-        }
+      } catch (refundError) {
+        console.error('Refund error:', refundError);
+        // Don't fail the rejection if refund fails, but log it
       }
     }
 
     return NextResponse.json({ 
       success: true, 
-      message: 'Application updated successfully',
+      message: status === 'REJECTED' && refundInfo 
+        ? `Application rejected and ₹${refundInfo.refund_amount.toFixed(2)} refunded to wallet`
+        : 'Application updated successfully',
       application,
-      wallet: updatedWallet,
-      refund_transaction: refundTransaction
+      refund_info: refundInfo
     });
 
   } catch (error) {
