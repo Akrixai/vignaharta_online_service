@@ -238,36 +238,36 @@ export default function ElectricityBillPage() {
 
   return (
     <DashboardLayout>
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-6 text-gray-800">⚡ Electricity Bill Payment</h1>
+    <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-4xl">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-800">⚡ Electricity Bill Payment</h1>
 
-      {/* Wallet Balance Display */}
-      <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl shadow-lg p-6 mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm opacity-90 mb-1">💰 Available Wallet Balance</p>
-            <p className="text-4xl font-bold">
+      {/* Wallet Balance Display - Responsive */}
+      <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl shadow-lg p-4 sm:p-6 mb-6 sm:mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex-1">
+            <p className="text-xs sm:text-sm opacity-90 mb-1">💰 Available Wallet Balance</p>
+            <p className="text-3xl sm:text-4xl font-bold">
               {loadingBalance ? (
                 <span className="animate-pulse">...</span>
               ) : (
                 `₹${walletBalance.toFixed(2)}`
               )}
             </p>
-            <p className="text-xs opacity-75 mt-2">
+            <p className="text-xs opacity-75 mt-1 sm:mt-2">
               {session?.user?.name && `${session.user.name}'s Wallet`}
             </p>
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="flex sm:flex-col gap-2 w-full sm:w-auto">
             <button
               onClick={fetchWalletBalance}
               disabled={loadingBalance}
-              className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-all disabled:opacity-50 text-sm font-medium"
+              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-all disabled:opacity-50 text-xs sm:text-sm font-medium whitespace-nowrap"
             >
               🔄 Refresh
             </button>
             <button
               onClick={() => router.push('/dashboard/wallet')}
-              className="px-4 py-2 bg-white text-green-600 hover:bg-green-50 rounded-lg transition-all text-sm font-medium"
+              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-white text-green-600 hover:bg-green-50 rounded-lg transition-all text-xs sm:text-sm font-medium whitespace-nowrap"
             >
               💳 Add Money
             </button>
@@ -275,8 +275,8 @@ export default function ElectricityBillPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           {/* Consumer Number */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">

@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/dashboard/layout';
 import SearchableSelect from '@/components/SearchableSelect';
+import PlanDetailsModal from '@/components/PlanDetailsModal';
 
 interface Operator {
     id: string;
@@ -65,6 +66,10 @@ export default function DTHRechargePageEnhanced() {
     // Wallet balance state
     const [walletBalance, setWalletBalance] = useState<number>(0);
     const [loadingBalance, setLoadingBalance] = useState(false);
+    
+    // Modal state
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalPlan, setModalPlan] = useState<Plan | null>(null);
 
     useEffect(() => {
         if (status === 'unauthenticated') {
@@ -203,11 +208,17 @@ export default function DTHRechargePageEnhanced() {
         }
     }, [dthNumber, selectedOperator]);
 
+    const handlePlanClick = (plan: Plan) => {
+        setModalPlan(plan);
+        setIsModalOpen(true);
+    };
+
     const handlePlanSelect = (plan: Plan) => {
         setSelectedPlan(plan);
         setAmount(plan.amount.toString());
+        setIsModalOpen(false);
         // Scroll to form on mobile
-        if (window.innerWidth < 1024) {
+        if (window.innerWidth < 768) {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     };
@@ -300,36 +311,45 @@ export default function DTHRechargePageEnhanced() {
 
     return (
         <DashboardLayout>
-            <div className="container mx-auto px-4 py-8 max-w-7xl">
-                <h1 className="text-3xl font-bold mb-6 text-gray-800">📺 DTH Recharge</h1>
+            <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-7xl">
+                {/* Plan Details Modal */}
+                <PlanDetailsModal
+                    plan={modalPlan}
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    onSelect={handlePlanSelect}
+                    serviceType="DTH"
+                />
+                
+                <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-800">📺 DTH Recharge</h1>
 
-                {/* Wallet Balance Display */}
-                <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl shadow-lg p-6 mb-8">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm opacity-90 mb-1">💰 Available Wallet Balance</p>
-                            <p className="text-4xl font-bold">
+                {/* Wallet Balance Display - Responsive */}
+                <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl shadow-lg p-4 sm:p-6 mb-6 sm:mb-8">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div className="flex-1">
+                            <p className="text-xs sm:text-sm opacity-90 mb-1">💰 Available Wallet Balance</p>
+                            <p className="text-3xl sm:text-4xl font-bold">
                                 {loadingBalance ? (
                                     <span className="animate-pulse">...</span>
                                 ) : (
                                     `₹${walletBalance.toFixed(2)}`
                                 )}
                             </p>
-                            <p className="text-xs opacity-75 mt-2">
+                            <p className="text-xs opacity-75 mt-1 sm:mt-2">
                                 {session?.user?.name && `${session.user.name}'s Wallet`}
                             </p>
                         </div>
-                        <div className="flex flex-col gap-2">
+                        <div className="flex sm:flex-col gap-2 w-full sm:w-auto">
                             <button
                                 onClick={fetchWalletBalance}
                                 disabled={loadingBalance}
-                                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-all disabled:opacity-50 text-sm font-medium"
+                                className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-all disabled:opacity-50 text-xs sm:text-sm font-medium whitespace-nowrap"
                             >
                                 🔄 Refresh
                             </button>
                             <button
                                 onClick={() => router.push('/dashboard/wallet')}
-                                className="px-4 py-2 bg-white text-green-600 hover:bg-green-50 rounded-lg transition-all text-sm font-medium"
+                                className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-white text-green-600 hover:bg-green-50 rounded-lg transition-all text-xs sm:text-sm font-medium whitespace-nowrap"
                             >
                                 💳 Add Money
                             </button>
@@ -337,10 +357,10 @@ export default function DTHRechargePageEnhanced() {
                     </div>
                 </div>
 
-                {/* Form Section */}
-                <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Form Section - Responsive */}
+                <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-6 sm:mb-8">
+                    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                             {/* DTH Number */}
                             <div className="md:col-span-2">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -464,13 +484,13 @@ export default function DTHRechargePageEnhanced() {
                     </form>
                 </div>
 
-                {/* Plans Section - Full Width Below Form */}
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                    <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-2">
+                {/* Plans Section - Full Width Below Form - Responsive */}
+                <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+                    <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-gray-800 flex flex-wrap items-center gap-2">
                         <span>📋</span>
                         <span>Available DTH Plans</span>
                         {totalPlansCount > 0 && (
-                            <span className="text-sm font-normal text-gray-600">
+                            <span className="text-xs sm:text-sm font-normal text-gray-600">
                                 ({totalPlansCount} plans available)
                             </span>
                         )}
@@ -629,12 +649,12 @@ export default function DTHRechargePageEnhanced() {
                                 </div>
                             </div>
 
-                            {/* Plans Grid - Professional Design */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                            {/* Plans Grid - Professional Design - Fully Responsive */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
                                 {getFilteredPlans().map((plan, index) => (
                                     <div
                                         key={`${plan.amount}-${plan.validity}-${index}`}
-                                        onClick={() => handlePlanSelect(plan)}
+                                        onClick={() => handlePlanClick(plan)}
                                         className={`relative overflow-hidden rounded-2xl cursor-pointer transition-all duration-300 group ${selectedPlan?.amount === plan.amount &&
                                             selectedPlan?.validity === plan.validity
                                             ? 'shadow-2xl ring-4 ring-purple-400 transform scale-105'
