@@ -133,11 +133,13 @@ export default function MobileRechargePageEnhanced() {
   const detectOperator = async () => {
     if (!/^[0-9]{10}$/.test(mobileNumber)) {
       setMessage('⚠️ Please enter a valid 10-digit mobile number');
+      setMessageType('error');
       return;
     }
 
     setDetecting(true);
     setMessage('🔍 Finding your operator and circle...');
+    setMessageType('info');
 
     try {
       console.log('🔍 [Frontend] Calling detect-operator API for:', mobileNumber);
@@ -194,21 +196,32 @@ export default function MobileRechargePageEnhanced() {
         let successMessage = `✅ Found: ${data.data.operator_name} - ${data.data.circle_name}`;
 
         setMessage(successMessage);
+        setMessageType('success');
 
         if (!operator || !circle) {
           setMessage(prev => prev + '\n⚠️ Some information could not be matched. Please verify the selection.');
+          setMessageType('info');
         }
       } else {
         console.error('❌ [Frontend] Detection failed:', data.message);
         setMessage(`⚠️ ${data.message || 'Unable to find operator automatically. Please select from the list.'}`);
+        setMessageType('info');
       }
     } catch (error: any) {
       console.error('❌ [Frontend] Detection error:', error);
       setMessage(`❌ Error: ${error.message || 'Unable to find operator. Please try again or select manually.'}`);
+      setMessageType('error');
     } finally {
       setDetecting(false);
     }
   };
+
+  // Auto-detect when 10 digits are entered
+  useEffect(() => {
+    if (mobileNumber.length === 10 && /^[0-9]{10}$/.test(mobileNumber) && serviceType === 'PREPAID') {
+      detectOperator();
+    }
+  }, [mobileNumber]);
 
   const fetchPlans = async () => {
     if (serviceType === 'POSTPAID') {
@@ -479,24 +492,31 @@ export default function MobileRechargePageEnhanced() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Mobile Number
                 </label>
-                <div className="flex gap-2">
+                <div className="relative">
                   <input
                     type="tel"
                     value={mobileNumber}
                     onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                    placeholder="Enter 10-digit mobile number"
-                    className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter 10-digit mobile number (auto-detects operator)"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-24"
                     required
                   />
-                  <button
-                    type="button"
-                    onClick={detectOperator}
-                    disabled={detecting || mobileNumber.length !== 10}
-                    className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed whitespace-nowrap"
-                  >
-                    {detecting ? '🔍 Finding...' : 'Auto Detect'}
-                  </button>
+                  {detecting && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                    </div>
+                  )}
+                  {mobileNumber.length === 10 && !detecting && selectedOperator && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-600">
+                      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
                 </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  ✨ Operator and circle will be detected automatically after entering 10 digits
+                </p>
               </div>
 
               {/* Operator Selection - Searchable */}
@@ -825,62 +845,105 @@ export default function MobileRechargePageEnhanced() {
                   </div>
                 </div>
 
-                {/* Plans Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {/* Plans Grid - Professional Design */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                   {getFilteredPlans().map((plan, index) => (
                     <div
                       key={`${plan.amount}-${index}`}
                       onClick={() => handlePlanSelect(plan)}
-                      className={`relative p-5 border-2 rounded-xl cursor-pointer transition-all hover:shadow-lg group ${selectedPlan?.amount === plan.amount &&
+                      className={`relative overflow-hidden rounded-2xl cursor-pointer transition-all duration-300 group ${selectedPlan?.amount === plan.amount &&
                         selectedPlan?.validity === plan.validity
-                        ? 'border-blue-600 bg-blue-50 shadow-md ring-2 ring-blue-200'
-                        : 'border-gray-200 hover:border-blue-300'
+                        ? 'shadow-2xl ring-4 ring-blue-400 transform scale-105'
+                        : 'shadow-md hover:shadow-xl hover:transform hover:scale-102'
                         }`}
                     >
-                      {/* Popular badge for common amounts */}
+                      {/* Card Background with Gradient */}
+                      <div className={`absolute inset-0 ${selectedPlan?.amount === plan.amount &&
+                        selectedPlan?.validity === plan.validity
+                        ? 'bg-gradient-to-br from-blue-50 via-white to-blue-50'
+                        : 'bg-white group-hover:bg-gradient-to-br group-hover:from-gray-50 group-hover:via-white group-hover:to-gray-50'
+                        }`} />
+
+                      {/* Popular Badge */}
                       {(plan.amount === 299 || plan.amount === 399 || plan.amount === 499) && (
-                        <div className="absolute top-0 right-0 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-xs px-3 py-1 rounded-bl-lg rounded-tr-lg font-bold shadow-md">
-                          POPULAR
+                        <div className="absolute top-0 right-0 z-10">
+                          <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-4 py-1.5 rounded-bl-2xl rounded-tr-2xl font-bold shadow-lg flex items-center gap-1">
+                            <span>⭐</span>
+                            <span>POPULAR</span>
+                          </div>
                         </div>
                       )}
 
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <div className="text-xs text-gray-600 mb-1">Amount</div>
-                          <div className="text-2xl font-bold text-blue-600">
-                            ₹{plan.amount}
+                      {/* Selected Badge */}
+                      {selectedPlan?.amount === plan.amount &&
+                        selectedPlan?.validity === plan.validity && (
+                          <div className="absolute top-0 left-0 z-10">
+                            <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs px-4 py-1.5 rounded-br-2xl rounded-tl-2xl font-bold shadow-lg flex items-center gap-1">
+                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                              <span>SELECTED</span>
+                            </div>
+                          </div>
+                        )}
+
+                      {/* Card Content */}
+                      <div className="relative p-6">
+                        {/* Amount Box - Right Corner Style */}
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="flex-1">
+                            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                              Recharge Amount
+                            </div>
+                          </div>
+                          <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-xl px-4 py-3 shadow-lg transform group-hover:scale-110 transition-transform">
+                            <div className="text-2xl font-black leading-none">
+                              ₹{plan.amount}
+                            </div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="text-xs text-gray-600 mb-1">Validity</div>
-                          <div className="text-sm font-semibold bg-green-100 text-green-800 px-3 py-1 rounded-full">
-                            {plan.validity}
+
+                        {/* Validity Badge */}
+                        <div className="mb-4">
+                          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-100 to-emerald-100 border-2 border-green-300 text-green-800 px-4 py-2 rounded-full">
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                            </svg>
+                            <span className="text-sm font-bold">{plan.validity}</span>
+                          </div>
+                        </div>
+
+                        {/* Description */}
+                        <div className="mb-4 min-h-[60px]">
+                          <p className="text-sm text-gray-700 leading-relaxed line-clamp-3">
+                            {plan.description}
+                          </p>
+                        </div>
+
+                        {/* Plan Type Badge */}
+                        {plan.type && (
+                          <div className="flex items-center gap-2">
+                            <span className="inline-flex items-center gap-1.5 text-xs bg-gradient-to-r from-purple-100 to-pink-100 border border-purple-300 text-purple-800 px-3 py-1.5 rounded-full font-semibold">
+                              <span>🏷️</span>
+                              <span>{plan.type}</span>
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Click to Select Hint */}
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <div className="text-center">
+                            <span className="text-xs font-semibold text-blue-600 group-hover:text-blue-700">
+                              {selectedPlan?.amount === plan.amount && selectedPlan?.validity === plan.validity
+                                ? '✓ This plan is selected'
+                                : '👆 Click to select this plan'}
+                            </span>
                           </div>
                         </div>
                       </div>
 
-                      <p className="text-sm text-gray-700 mb-3 line-clamp-2 min-h-[40px]">
-                        {plan.description}
-                      </p>
-
-                      {plan.type && (
-                        <span className="inline-block text-xs bg-purple-100 text-purple-800 px-3 py-1 rounded-full font-medium">
-                          {plan.type}
-                        </span>
-                      )}
-
-                      {selectedPlan?.amount === plan.amount &&
-                        selectedPlan?.validity === plan.validity && (
-                          <div className="mt-3 flex items-center text-blue-600 text-sm font-semibold">
-                            <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                            </svg>
-                            Selected
-                          </div>
-                        )}
-
-                      {/* Hover effect overlay */}
-                      <div className="absolute inset-0 bg-blue-600 opacity-0 group-hover:opacity-5 transition-opacity pointer-events-none rounded-xl" />
+                      {/* Hover Glow Effect */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-400/0 via-blue-400/0 to-blue-400/0 group-hover:from-blue-400/10 group-hover:via-transparent group-hover:to-purple-400/10 transition-all duration-300 pointer-events-none rounded-2xl" />
                     </div>
                   ))}
                 </div>
