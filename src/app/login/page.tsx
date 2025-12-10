@@ -116,13 +116,13 @@ function LoginPageContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-red-100 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-      {/* Animated Background Elements */}
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-red-100 py-12 px-4 sm:px-6 lg:px-8">
+      {/* Background Elements - Static */}
       <div className="absolute inset-0 overflow-hidden -z-10">
-        <div className="absolute top-10 left-10 w-32 h-32 bg-red-200/20 rounded-full animate-floating animate-delay-1000"></div>
-        <div className="absolute top-20 right-20 w-24 h-24 bg-orange-200/20 rounded-full animate-floating animate-delay-2000"></div>
-        <div className="absolute bottom-20 left-20 w-40 h-40 bg-pink-200/20 rounded-full animate-floating animate-delay-3000"></div>
-        <div className="absolute bottom-10 right-10 w-28 h-28 bg-yellow-200/20 rounded-full animate-floating animate-delay-4000"></div>
+        <div className="absolute top-10 left-10 w-32 h-32 bg-red-200/20 rounded-full"></div>
+        <div className="absolute top-20 right-20 w-24 h-24 bg-orange-200/20 rounded-full"></div>
+        <div className="absolute bottom-20 left-20 w-40 h-40 bg-pink-200/20 rounded-full"></div>
+        <div className="absolute bottom-10 right-10 w-28 h-28 bg-yellow-200/20 rounded-full"></div>
       </div>
 
       {/* Akrix Solutions Branding - Top Right Corner */}
@@ -131,7 +131,7 @@ function LoginPageContent() {
           href="https://akrixsolutions.in/"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 font-bold text-xs px-3 py-2 rounded-lg hover:from-pink-500 hover:via-purple-500 hover:to-blue-500 transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center space-x-1 backdrop-blur-sm animate-pulse-glow"
+          className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 font-bold text-xs px-3 py-2 rounded-lg flex items-center space-x-1 backdrop-blur-sm"
         >
           <span className="text-xs">🚀</span>
           <span>Developed by Akrix Solutions</span>
@@ -145,14 +145,14 @@ function LoginPageContent() {
           <div className="hidden lg:block">
             <div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-4xl font-bold text-red-800 mb-4 animate-fade-in animate-delay-100">
+                <h2 className="text-4xl font-bold text-red-800 mb-4">
                   Welcome to विघ्नहर्ता ऑनलाईन सर्विसेस
                 </h2>
-                <p className="text-lg text-red-600 mb-8 animate-fade-in animate-delay-200">
+                <p className="text-lg text-red-600 mb-8">
                   Your gateway to seamless government services
                 </p>
               </div>
-              <div className="bg-gradient-to-br from-red-100 to-orange-100 p-6 rounded-2xl shadow-xl border border-red-200 animate-scale-in animate-delay-300">
+              <div className="bg-gradient-to-br from-red-100 to-orange-100 p-6 rounded-2xl shadow-xl border border-red-200">
                 <SafeLoginAdvertisements className="h-[500px]" />
               </div>
             </div>
@@ -161,37 +161,37 @@ function LoginPageContent() {
           {/* Login Section - Right Side */}
           <div className="w-full max-w-md mx-auto space-y-6 lg:space-y-8">
             {/* Header */}
-            <div className="text-center animate-fade-in">
+            <div className="text-center">
               <Link href="/" className="inline-block mb-4 lg:mb-6">
-                <Logo size="md" showText={true} animated={true} />
+                <Logo size="md" showText={true} animated={false} />
               </Link>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-red-800 mb-4 animate-gradient-shift bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-red-800 mb-4 bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
                 Sign in to your account
               </h2>
-              <div className={`flex items-center justify-center space-x-2 sm:space-x-3 p-3 sm:p-4 border-2 rounded-xl shadow-lg bg-white ${getRoleColor(formData.role)} transform hover:scale-105 transition-transform duration-300`}>
-                <span className="text-2xl sm:text-3xl animate-bounce-gentle">{getRoleIcon(formData.role)}</span>
+              <div className={`flex items-center justify-center space-x-2 sm:space-x-3 p-3 sm:p-4 border-2 rounded-xl shadow-lg bg-white ${getRoleColor(formData.role)}`}>
+                <span className="text-2xl sm:text-3xl">{getRoleIcon(formData.role)}</span>
                 <span className="font-bold text-base sm:text-lg capitalize">{formData.role.toLowerCase()} Login</span>
               </div>
             </div>
 
             {/* Information Section */}
-            <div className="bg-gradient-to-r from-red-600 to-red-700 p-4 sm:p-6 rounded-xl shadow-lg text-white animate-scale-in animate-pulse-glow-enhanced">
+            <div className="bg-gradient-to-r from-red-600 to-red-700 p-4 sm:p-6 rounded-xl shadow-lg text-white">
               <div className="text-center">
-                <h3 className="font-bold text-base sm:text-lg mb-2 animate-bounce-gentle">🔐 Secure Login Portal</h3>
-                <p className="text-red-100 text-xs sm:text-sm animate-fade-in animate-delay-100">
+                <h3 className="font-bold text-base sm:text-lg mb-2">🔐 Secure Login Portal</h3>
+                <p className="text-red-100 text-xs sm:text-sm">
                   Access your dashboard and manage government services securely
                 </p>
               </div>
             </div>
 
             {/* Login Form */}
-            <form className="bg-white p-4 sm:p-6 lg:p-8 rounded-xl shadow-xl border border-red-200 animate-slide-in-left relative overflow-hidden" onSubmit={handleSubmit}>
+            <form className="bg-white p-4 sm:p-6 lg:p-8 rounded-xl shadow-xl border border-red-200 relative" onSubmit={handleSubmit}>
               {/* Decorative gradient border */}
-              <div className="absolute inset-0 border-2 border-transparent rounded-xl bg-gradient-to-r from-red-200 via-orange-200 to-pink-200 opacity-20 animate-gradient-shift"></div>
+              <div className="absolute inset-0 border-2 border-transparent rounded-xl bg-gradient-to-r from-red-200 via-orange-200 to-pink-200 opacity-20"></div>
               <div className="space-y-4 sm:space-y-6 relative z-10">
                 {/* Role Selection */}
-                <div className="animate-fade-in animate-delay-100">
-                  <label htmlFor="role" className="block text-sm font-medium text-red-700 mb-2 animate-bounce-gentle">
+                <div>
+                  <label htmlFor="role" className="block text-sm font-medium text-red-700 mb-2">
                     Login as
                   </label>
                   <select
@@ -199,7 +199,7 @@ function LoginPageContent() {
                     name="role"
                     value={formData.role}
                     onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors text-sm sm:text-base hover:shadow-lg transform hover:scale-105"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors text-sm sm:text-base"
                   >
                     <option value={UserRole.CUSTOMER}>👤 Customer</option>
                     <option value={UserRole.RETAILER}>🏪 Retailer</option>
@@ -208,12 +208,12 @@ function LoginPageContent() {
                 </div>
 
                 {/* Login Method Toggle */}
-                <div className="flex justify-center space-x-2 mb-4 animate-fade-in animate-delay-200">
+                <div className="flex justify-center space-x-2 mb-4">
                   <button
                     type="button"
                     onClick={() => handleLoginMethodChange('email')}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all transform hover:scale-105 ${loginMethod === 'email'
-                      ? 'bg-red-600 text-white shadow-lg animate-pulse-glow'
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${loginMethod === 'email'
+                      ? 'bg-red-600 text-white shadow-lg'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                       }`}
                   >
@@ -222,8 +222,8 @@ function LoginPageContent() {
                   <button
                     type="button"
                     onClick={() => handleLoginMethodChange('phone')}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all transform hover:scale-105 ${loginMethod === 'phone'
-                      ? 'bg-red-600 text-white shadow-lg animate-pulse-glow'
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${loginMethod === 'phone'
+                      ? 'bg-red-600 text-white shadow-lg'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                       }`}
                   >
@@ -232,8 +232,8 @@ function LoginPageContent() {
                 </div>
 
                 {/* Email or Phone */}
-                <div className="animate-fade-in animate-delay-300">
-                  <label htmlFor="email" className="block text-sm font-medium text-red-700 mb-2 animate-bounce-gentle">
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-red-700 mb-2">
                     {loginMethod === 'email' ? '📧 Email address' : '📱 Mobile Number'}
                   </label>
                   <input
@@ -247,13 +247,13 @@ function LoginPageContent() {
                     pattern={loginMethod === 'phone' ? '[0-9]{10}' : undefined}
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors text-sm sm:text-base hover:shadow-lg transform hover:scale-105"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors text-sm sm:text-base"
                   />
                 </div>
 
                 {/* Password */}
-                <div className="animate-fade-in animate-delay-400">
-                  <label htmlFor="password" className="block text-sm font-medium text-red-700 mb-2 animate-bounce-gentle">
+                <div>
+                  <label htmlFor="password" className="block text-sm font-medium text-red-700 mb-2">
                     Password
                   </label>
                   <input
@@ -264,25 +264,25 @@ function LoginPageContent() {
                     required
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors text-sm sm:text-base hover:shadow-lg transform hover:scale-105"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors text-sm sm:text-base"
                     placeholder="Enter your password"
                   />
                 </div>
               </div>
 
               {/* Submit Button */}
-              <div className="pt-4 animate-fade-in animate-delay-500">
+              <div className="pt-4">
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className={`w-full flex justify-center items-center py-3 sm:py-4 px-4 sm:px-6 border border-transparent text-base sm:text-lg font-bold rounded-xl text-white transition-all duration-200 transform hover:scale-105 ${isLoading
+                  className={`w-full flex justify-center items-center py-3 sm:py-4 px-4 sm:px-6 border border-transparent text-base sm:text-lg font-bold rounded-xl text-white transition-colors duration-200 ${isLoading
                     ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 focus:outline-none focus:ring-4 focus:ring-red-300 shadow-lg hover:shadow-xl animate-pulse-glow-enhanced'
+                    : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 focus:outline-none focus:ring-4 focus:ring-red-300 shadow-lg hover:shadow-xl'
                     }`}
                 >
                   {isLoading ? (
                     <>
-                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white animate-rotate-3d" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
@@ -290,7 +290,7 @@ function LoginPageContent() {
                     </>
                   ) : (
                     <>
-                      <span className="mr-2 animate-bounce-gentle">🔐</span>
+                      <span className="mr-2">🔐</span>
                       Sign in
                     </>
                   )}
@@ -338,24 +338,24 @@ function LoginPageContent() {
 
             {/* Register Buttons */}
             {formData.role && (formData.role.toUpperCase() === 'RETAILER' || formData.role.toUpperCase() === 'CUSTOMER') && (
-              <div className="mt-6 flex flex-col items-center animate-fade-in space-y-3 animate-delay-1000">
+              <div className="mt-6 flex flex-col items-center space-y-3">
                 {formData.role.toUpperCase() === 'RETAILER' && (
                   <Link
                     href="/register?type=retailer"
-                    className="w-full max-w-xs bg-gradient-to-r from-yellow-400 via-pink-500 to-red-600 text-white font-extrabold text-lg py-4 rounded-2xl shadow-xl hover:from-pink-500 hover:to-yellow-400 transition-all duration-300 flex items-center justify-center space-x-3 border-2 border-white/30 animate-pulse-glow-enhanced transform hover:scale-105"
+                    className="w-full max-w-xs bg-gradient-to-r from-yellow-400 via-pink-500 to-red-600 text-white font-extrabold text-lg py-4 rounded-2xl shadow-xl hover:from-pink-500 hover:to-yellow-400 transition-colors duration-300 flex items-center justify-center space-x-3 border-2 border-white/30"
                     style={{ textShadow: '0 0 8px #fff, 0 0 16px #f472b6' }}
                   >
-                    <span className="text-2xl animate-bounce-gentle">📝</span>
+                    <span className="text-2xl">📝</span>
                     <span className="drop-shadow-lg">Register as Retailer</span>
                   </Link>
                 )}
                 {formData.role.toUpperCase() === 'CUSTOMER' && (
                   <Link
                     href="/register?type=customer"
-                    className="w-full max-w-xs bg-gradient-to-r from-blue-400 via-purple-500 to-pink-600 text-white font-extrabold text-lg py-4 rounded-2xl shadow-xl hover:from-purple-500 hover:to-blue-400 transition-all duration-300 flex items-center justify-center space-x-3 border-2 border-white/30 animate-pulse-glow-enhanced transform hover:scale-105"
+                    className="w-full max-w-xs bg-gradient-to-r from-blue-400 via-purple-500 to-pink-600 text-white font-extrabold text-lg py-4 rounded-2xl shadow-xl hover:from-purple-500 hover:to-blue-400 transition-colors duration-300 flex items-center justify-center space-x-3 border-2 border-white/30"
                     style={{ textShadow: '0 0 8px #fff, 0 0 16px #a78bfa' }}
                   >
-                    <span className="text-2xl animate-bounce-gentle">👤</span>
+                    <span className="text-2xl">👤</span>
                     <span className="drop-shadow-lg">Register as Customer</span>
                   </Link>
                 )}
@@ -363,15 +363,15 @@ function LoginPageContent() {
             )}
 
             {/* Back to Home */}
-            <div className="text-center animate-fade-in space-y-2 animate-delay-2000">
-              <Link href="/" className="inline-flex items-center text-red-600 hover:text-red-700 transition-colors font-medium transform hover:scale-105">
-                <svg className="w-4 h-4 mr-2 animate-bounce-gentle" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="text-center space-y-2">
+              <Link href="/" className="inline-flex items-center text-red-600 hover:text-red-700 transition-colors font-medium">
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
                 Back to Home
               </Link>
               <div>
-                <Link href="/admin/login" className="text-xs text-gray-400 hover:text-gray-600 transition-colors transform hover:scale-105">
+                <Link href="/admin/login" className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
                   Admin Access
                 </Link>
               </div>
