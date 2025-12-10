@@ -116,9 +116,9 @@ function LoginPageContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-red-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-red-100 py-12 px-4 sm:px-6 lg:px-8 relative">
       {/* Background Elements - Static */}
-      <div className="absolute inset-0 overflow-hidden -z-10">
+      <div className="absolute inset-0 -z-10 pointer-events-none">
         <div className="absolute top-10 left-10 w-32 h-32 bg-red-200/20 rounded-full"></div>
         <div className="absolute top-20 right-20 w-24 h-24 bg-orange-200/20 rounded-full"></div>
         <div className="absolute bottom-20 left-20 w-40 h-40 bg-pink-200/20 rounded-full"></div>
@@ -138,7 +138,7 @@ function LoginPageContent() {
         </a>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center min-h-[calc(100vh-6rem)]">
 
           {/* Advertisement Section - Left Side */}
@@ -185,9 +185,9 @@ function LoginPageContent() {
             </div>
 
             {/* Login Form */}
-            <form className="bg-white p-4 sm:p-6 lg:p-8 rounded-xl shadow-xl border border-red-200 relative" onSubmit={handleSubmit}>
-              {/* Decorative gradient border */}
-              <div className="absolute inset-0 border-2 border-transparent rounded-xl bg-gradient-to-r from-red-200 via-orange-200 to-pink-200 opacity-20"></div>
+            <form className="bg-white p-4 sm:p-6 lg:p-8 rounded-xl shadow-xl border border-red-200 relative z-10" onSubmit={handleSubmit}>
+              {/* Decorative gradient border - non-interactive */}
+              <div className="absolute inset-0 border-2 border-transparent rounded-xl bg-gradient-to-r from-red-200 via-orange-200 to-pink-200 opacity-20 pointer-events-none"></div>
               <div className="space-y-4 sm:space-y-6 relative z-10">
                 {/* Role Selection */}
                 <div>
@@ -208,11 +208,12 @@ function LoginPageContent() {
                 </div>
 
                 {/* Login Method Toggle */}
-                <div className="flex justify-center space-x-2 mb-4">
+                <div className="flex justify-center space-x-2 mb-4 relative z-20">
                   <button
                     type="button"
                     onClick={() => handleLoginMethodChange('email')}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${loginMethod === 'email'
+                    style={{ pointerEvents: 'auto', zIndex: 9999 }}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors relative z-20 ${loginMethod === 'email'
                       ? 'bg-red-600 text-white shadow-lg'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                       }`}
@@ -222,7 +223,8 @@ function LoginPageContent() {
                   <button
                     type="button"
                     onClick={() => handleLoginMethodChange('phone')}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${loginMethod === 'phone'
+                    style={{ pointerEvents: 'auto', zIndex: 9999 }}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors relative z-20 ${loginMethod === 'phone'
                       ? 'bg-red-600 text-white shadow-lg'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                       }`}
@@ -271,11 +273,12 @@ function LoginPageContent() {
               </div>
 
               {/* Submit Button */}
-              <div className="pt-4">
+              <div className="pt-4 relative z-20">
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className={`w-full flex justify-center items-center py-3 sm:py-4 px-4 sm:px-6 border border-transparent text-base sm:text-lg font-bold rounded-xl text-white transition-colors duration-200 ${isLoading
+                  style={{ pointerEvents: 'auto', zIndex: 9999 }}
+                  className={`w-full flex justify-center items-center py-3 sm:py-4 px-4 sm:px-6 border border-transparent text-base sm:text-lg font-bold rounded-xl text-white transition-colors duration-200 relative z-20 ${isLoading
                     ? 'bg-gray-400 cursor-not-allowed'
                     : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 focus:outline-none focus:ring-4 focus:ring-red-300 shadow-lg hover:shadow-xl'
                     }`}
@@ -298,8 +301,8 @@ function LoginPageContent() {
               </div>
 
               {/* Forgot Password Link */}
-              <div className="text-center pt-2">
-                <Link href="/forgot-password" className="text-sm text-red-600 hover:text-red-700 font-medium">
+              <div className="text-center pt-2 relative z-20">
+                <Link href="/forgot-password" className="text-sm text-red-600 hover:text-red-700 font-medium relative z-20" style={{ pointerEvents: 'auto', zIndex: 9999 }}>
                   Forgot your password?
                 </Link>
               </div>
@@ -338,12 +341,12 @@ function LoginPageContent() {
 
             {/* Register Buttons */}
             {formData.role && (formData.role.toUpperCase() === 'RETAILER' || formData.role.toUpperCase() === 'CUSTOMER') && (
-              <div className="mt-6 flex flex-col items-center space-y-3">
+              <div className="mt-6 flex flex-col items-center space-y-3 relative z-20">
                 {formData.role.toUpperCase() === 'RETAILER' && (
                   <Link
                     href="/register?type=retailer"
-                    className="w-full max-w-xs bg-gradient-to-r from-yellow-400 via-pink-500 to-red-600 text-white font-extrabold text-lg py-4 rounded-2xl shadow-xl hover:from-pink-500 hover:to-yellow-400 transition-colors duration-300 flex items-center justify-center space-x-3 border-2 border-white/30"
-                    style={{ textShadow: '0 0 8px #fff, 0 0 16px #f472b6' }}
+                    className="w-full max-w-xs bg-gradient-to-r from-yellow-400 via-pink-500 to-red-600 text-white font-extrabold text-lg py-4 rounded-2xl shadow-xl hover:from-pink-500 hover:to-yellow-400 transition-colors duration-300 flex items-center justify-center space-x-3 border-2 border-white/30 relative z-20"
+                    style={{ textShadow: '0 0 8px #fff, 0 0 16px #f472b6', pointerEvents: 'auto', zIndex: 9999 }}
                   >
                     <span className="text-2xl">📝</span>
                     <span className="drop-shadow-lg">Register as Retailer</span>
@@ -352,8 +355,8 @@ function LoginPageContent() {
                 {formData.role.toUpperCase() === 'CUSTOMER' && (
                   <Link
                     href="/register?type=customer"
-                    className="w-full max-w-xs bg-gradient-to-r from-blue-400 via-purple-500 to-pink-600 text-white font-extrabold text-lg py-4 rounded-2xl shadow-xl hover:from-purple-500 hover:to-blue-400 transition-colors duration-300 flex items-center justify-center space-x-3 border-2 border-white/30"
-                    style={{ textShadow: '0 0 8px #fff, 0 0 16px #a78bfa' }}
+                    className="w-full max-w-xs bg-gradient-to-r from-blue-400 via-purple-500 to-pink-600 text-white font-extrabold text-lg py-4 rounded-2xl shadow-xl hover:from-purple-500 hover:to-blue-400 transition-colors duration-300 flex items-center justify-center space-x-3 border-2 border-white/30 relative z-20"
+                    style={{ textShadow: '0 0 8px #fff, 0 0 16px #a78bfa', pointerEvents: 'auto', zIndex: 9999 }}
                   >
                     <span className="text-2xl">👤</span>
                     <span className="drop-shadow-lg">Register as Customer</span>
