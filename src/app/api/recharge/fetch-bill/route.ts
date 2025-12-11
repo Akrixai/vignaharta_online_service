@@ -117,16 +117,58 @@ export async function POST(request: NextRequest) {
       // opt8 is set to "Bills" in the kwikapi library
     };
 
-    // Handle special cases based on operator message
-    if (operatorMessage.includes('Billing Unit') && operatorMessage.includes('optional1')) {
-      // For operators like MSEDC that need billing unit in opt1
-      // This would need to be provided by the frontend
-      console.log('⚠️ [Bill Fetch] Operator requires billing unit in opt1:', operator.operator_name);
-    }
-
-    if (operatorMessage.includes('Mobile Number') && operatorMessage.includes('optional1')) {
-      // For operators that need mobile number in opt1
-      billFetchParams.opt1 = mobile_number || dbUser.phone;
+    // Handle special cases based on operator message from KWIKAPI documentation
+    if (operatorMessage) {
+      const messageUpper = operatorMessage.toUpperCase();
+      
+      // Handle operators that need mobile number in opt1
+      if (messageUpper.includes('MOBILE NUMBER') && messageUpper.includes('OPTIONAL1')) {
+        billFetchParams.opt1 = mobile_number || dbUser.phone;
+        console.log('📱 [Bill Fetch] Adding mobile number to opt1:', billFetchParams.opt1);
+      }
+      
+      // Handle operators that need billing unit in opt1 (like MSEDC MAHARASHTRA)
+      if (messageUpper.includes('BILLING UNIT') && messageUpper.includes('OPTIONAL1')) {
+        console.log('⚠️ [Bill Fetch] Operator requires billing unit in opt1:', operator.operator_name);
+        // This would need to be provided by the frontend in the request body
+        if (body.billing_unit) {
+          billFetchParams.opt1 = body.billing_unit;
+        }
+      }
+      
+      // Handle operators that need subdivision code (like JBVNL - JHARKHAND)
+      if (messageUpper.includes('SUBDIVISION CODE') && messageUpper.includes('OPTIONAL1')) {
+        console.log('🏢 [Bill Fetch] Operator requires subdivision code in opt1:', operator.operator_name);
+        if (body.subdivision_code) {
+          billFetchParams.opt1 = body.subdivision_code;
+        }
+      }
+      
+      // Handle operators that need city in opt1 (like Torrent Power operators)
+      if (messageUpper.includes('CITY') && messageUpper.includes('OPTIONAL1')) {
+        console.log('🏙️ [Bill Fetch] Operator requires city in opt1:', operator.operator_name);
+        if (body.city) {
+          billFetchParams.opt1 = body.city;
+        }
+      }
+      
+      // Handle operators that need account number in opt1 (like MTNL landline)
+      if (messageUpper.includes('ACCOUNT NUMBER') && messageUpper.includes('OPTIONAL1')) {
+        console.log('🔢 [Bill Fetch] Operator requires account number in opt1:', operator.operator_name);
+        if (body.account_number) {
+          billFetchParams.opt1 = body.account_number;
+        }
+      }
+      
+      // Handle operators that need telephone number in account and account number in opt1
+      if (messageUpper.includes('TELEPHONE NUMBER') && messageUpper.includes('ACCOUNT')) {
+        console.log('☎️ [Bill Fetch] Operator uses telephone number format:', operator.operator_name);
+        // For MTNL operators: pass Telephone Number in 'account' and Account Number in 'optional1'
+        if (body.telephone_number && body.account_number) {
+          billFetchParams.number = body.telephone_number;
+          billFetchParams.opt1 = body.account_number;
+        }
+      }
     }
 
     console.log('🔍 [Bill Fetch] KWIKAPI parameters:', {

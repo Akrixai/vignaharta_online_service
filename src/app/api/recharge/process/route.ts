@@ -239,17 +239,16 @@ export async function POST(request: NextRequest) {
         case 'ELECTRICITY':
         case 'GAS':
         case 'WATER':
-          rechargeResponse = await kwikapi.payElectricityBill({
+          rechargeResponse = await kwikapi.payUtilityBill({
             opid: parseInt(opid),
-            consumer_number: consumer_number!,
+            number: consumer_number!,
             amount,
             order_id: transactionRef,
             mobile: mobile_number || dbUser.email,
-            circle: circle_code,
-            ref_id: body.ref_id,
-            opt1: body.opt1,
-            opt2: body.opt2,
-            opt3: body.opt3,
+            ref_id: ref_id, // CRITICAL: ref_id from bill fetch response
+            opt1: opt1,
+            opt2: opt2,
+            opt3: opt3,
           });
           break;
 

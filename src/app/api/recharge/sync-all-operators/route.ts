@@ -112,6 +112,34 @@ export async function POST(request: NextRequest) {
           .eq('kwikapi_opid', parseInt(op.operator_id))
           .single();
 
+        // Get detailed operator information for proper message field
+        let detailedMessage = op.message || '';
+        let detailedDescription = op.description || '';
+        
+        // For operators with bill fetch support, get detailed info
+        if (op.bill_fetch === 'YES') {
+          try {
+            const detailResponse = await axios.post(
+              `${KWIKAPI_BASE_URL}/api/v2/operatorFetch.php`,
+              new URLSearchParams({
+                api_key: KWIKAPI_API_KEY,
+                opid: op.operator_id.toString(),
+              }),
+              {
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                timeout: 10000,
+              }
+            );
+
+            if (detailResponse.data?.success && detailResponse.data.message) {
+              detailedMessage = detailResponse.data.message;
+              detailedDescription = detailResponse.data.description || detailedDescription;
+            }
+          } catch (detailError) {
+            console.warn(`Could not fetch detailed info for operator ${op.operator_id}:`, detailError);
+          }
+        }
+
         const operatorData = {
           operator_name: op.operator_name,
           service_type: serviceType,
@@ -121,12 +149,19 @@ export async function POST(request: NextRequest) {
           max_amount: parseFloat(op.amount_maximum) || 50000,
           commission_rate: serviceType === 'PREPAID' ? 2.5 : serviceType === 'DTH' ? 2.0 : 1.0,
           metadata: {
-            bill_fetch: op.bill_fetch,
-            bbps_enabled: op.bbps_enabled,
-            message: op.message,
-            description: op.description,
+            bill_fetch: op.bill_fetch || 'NO',
+            bbps_enabled: op.bbps_enabled || 'NO',
+            message: detailedMessage,
+            description: detailedDescription,
+            original_service_type: op.service_type,
+            last_synced: new Date().toISOString(),
           },
         };
+
+        // Log operators with bill fetch support for debugging
+        if (op.bill_fetch === 'YES') {
+          console.log(`💡 [Bill Fetch] ${op.operator_name} (${serviceType}) - Message: "${detailedMessage}"`);
+        }
 
         if (existing) {
           // Update existing
