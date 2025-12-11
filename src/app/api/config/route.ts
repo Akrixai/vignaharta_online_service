@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 
 // GET - Get site configuration (public configs or all for admin)
 export async function GET(request: NextRequest) {
@@ -12,9 +11,9 @@ export async function GET(request: NextRequest) {
 
     let query = supabaseAdmin.from('site_configuration').select('*');
 
-    // Check if user is authenticated
-    const session = await getServerSession(authOptions);
-    const isAdmin = session?.user?.role === 'ADMIN';
+    // Check if user is authenticated (supports both web and app)
+    const user = await getAuthenticatedUser(request);
+    const isAdmin = user?.role === 'ADMIN';
 
     // Non-admin users only see public configs
     if (!isAdmin) {
@@ -44,13 +43,13 @@ export async function GET(request: NextRequest) {
 // PUT - Update site configuration (admin only)
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user) {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (session.user.role !== 'ADMIN') {
+    if (user.role !== 'ADMIN') {
       return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
     }
 
@@ -65,7 +64,7 @@ export async function PUT(request: NextRequest) {
       .from('site_configuration')
       .update({
         config_value,
-        updated_by: session.user.id,
+        updated_by: user.id,
         updated_at: new Date().toISOString()
       })
       .eq('config_key', config_key)
@@ -83,13 +82,13 @@ export async function PUT(request: NextRequest) {
 // POST - Create or update multiple configurations (admin only)
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user) {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (session.user.role !== 'ADMIN') {
+    if (user.role !== 'ADMIN') {
       return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
     }
 
@@ -122,7 +121,7 @@ export async function POST(request: NextRequest) {
           .from('site_configuration')
           .update({
             config_value,
-            updated_by: session.user.id,
+            updated_by: user.id,
             updated_at: new Date().toISOString()
           })
           .eq('config_key', config_key)
@@ -141,7 +140,7 @@ export async function POST(request: NextRequest) {
             category: category || 'GENERAL',
             description,
             is_public: is_public || false,
-            updated_by: session.user.id
+            updated_by: user.id
           })
           .select()
           .single();
