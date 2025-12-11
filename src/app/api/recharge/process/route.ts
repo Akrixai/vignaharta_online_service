@@ -84,9 +84,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get circle if applicable
+    // Get circle if applicable (only for PREPAID)
     let circleId = null;
-    if (circle_code) {
+    if (circle_code && service_type.toUpperCase() === 'PREPAID') {
       const { data: circle } = await supabase
         .from('recharge_circles')
         .select('id')
@@ -221,14 +221,14 @@ export async function POST(request: NextRequest) {
           break;
 
         case 'POSTPAID':
-          rechargeResponse = await kwikapi.rechargePostpaid({
+          // For postpaid mobile, use utility payment API with ref_id from bill fetch
+          rechargeResponse = await kwikapi.payUtilityBill({
             opid: parseInt(opid),
             number: mobile_number!,
             amount,
-            circle: circle_code,
             order_id: transactionRef,
             mobile: mobile_number!,
-            ref_id: body.ref_id,
+            ref_id: ref_id, // CRITICAL: ref_id from bill fetch response
           });
           break;
 

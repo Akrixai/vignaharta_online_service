@@ -265,11 +265,11 @@ export default function MobileRechargePageEnhanced() {
       return;
     }
 
-    if (!selectedOperator || !selectedCircle) return;
+    if (!selectedOperator || (serviceType === 'PREPAID' && !selectedCircle)) return;
 
     const operator = operators.find(op => op.id === selectedOperator);
-    const circle = circles.find(c => c.id === selectedCircle);
-    if (!operator || !circle) return;
+    const circle = serviceType === 'PREPAID' ? circles.find(c => c.id === selectedCircle) : null;
+    if (!operator || (serviceType === 'PREPAID' && !circle)) return;
 
     setLoadingPlans(true);
     setPlanCategories([]);
@@ -278,9 +278,12 @@ export default function MobileRechargePageEnhanced() {
     try {
       const params = new URLSearchParams({
         operator_code: operator.kwikapi_opid.toString(),
-        circle_code: circle.circle_code,
         service_type: serviceType,
       });
+
+      if (circle) {
+        params.append('circle_code', circle.circle_code);
+      }
 
       const res = await fetch(`/api/recharge/plans?${params}`);
       const data = await res.json();
@@ -297,7 +300,7 @@ export default function MobileRechargePageEnhanced() {
   };
 
   useEffect(() => {
-    if (selectedOperator && selectedCircle) {
+    if (selectedOperator && (serviceType === 'POSTPAID' || selectedCircle)) {
       fetchPlans();
     }
   }, [selectedOperator, selectedCircle, serviceType]);
@@ -352,8 +355,13 @@ export default function MobileRechargePageEnhanced() {
         setMessage(`✅ Bill found for ${data.data.consumer_name} - Amount: ₹${data.data.due_amount}`);
         setMessageType('success');
       } else {
-        setMessage(`❌ ${data.message}`);
+        setMessage(data.message);
         setMessageType('error');
+        
+        // If manual entry is allowed, don't block the user
+        if (data.allow_manual) {
+          setMessage(prev => prev + '\n\n✅ You can still enter the amount manually below and proceed with payment.');
+        }
       }
     } catch (error: any) {
       setMessage(`❌ Error fetching bill: ${error.message}`);
@@ -393,10 +401,10 @@ export default function MobileRechargePageEnhanced() {
       return;
     }
     
-    // For POSTPAID with bill fetch support, ensure bill is fetched first
+    // For POSTPAID with bill fetch support, try to get bill details first (but allow manual entry)
     const operator = operators.find(op => op.id === selectedOperator);
-    if (serviceType === 'POSTPAID' && operator?.metadata?.bill_fetch === 'YES' && !billDetails) {
-      setMessage('⚠️ Please get your bill details first before making payment.');
+    if (serviceType === 'POSTPAID' && operator?.metadata?.bill_fetch === 'YES' && !billDetails && !amount) {
+      setMessage('⚠️ Please either fetch your bill details or enter the amount manually.');
       setMessageType('error');
       return;
     }
@@ -406,16 +414,20 @@ export default function MobileRechargePageEnhanced() {
 
     try {
       const operator = operators.find(op => op.id === selectedOperator);
-      const circle = circles.find(c => c.id === selectedCircle);
+      const circle = serviceType === 'PREPAID' ? circles.find(c => c.id === selectedCircle) : null;
 
       const payload: any = {
         service_type: serviceType,
         operator_code: operator?.operator_code,
         mobile_number: mobileNumber,
-        circle_code: circle?.circle_code,
         amount: parseFloat(amount),
         customer_name: customerName || billDetails?.consumer_name,
       };
+
+      // Only add circle for prepaid
+      if (serviceType === 'PREPAID' && circle) {
+        payload.circle_code = circle.circle_code;
+      }
 
       if (selectedPlan) {
         payload.plan_details = {
@@ -504,6 +516,9 @@ export default function MobileRechargePageEnhanced() {
                 setSelectedCircle('');
                 setPlanCategories([]);
                 setSelectedPlan(null);
+                setBillDetails(null);
+                setAmount('');
+                setMessage('');
               }}
               className={`flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition-all text-sm sm:text-base ${serviceType === type
                 ? 'bg-blue-600 text-white shadow-lg'
@@ -563,7 +578,9 @@ export default function MobileRechargePageEnhanced() {
                     type="tel"
                     value={mobileNumber}
                     onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                    placeholder="Enter 10-digit mobile number (auto-detects operator)"
+                    placeholder={serviceType === 'PREPAID' 
+                      ? "Enter 10-digit mobile number (auto-detects operator)" 
+                      : "Enter 10-digit mobile number"}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-24"
                     required
                   />
@@ -581,12 +598,14 @@ export default function MobileRechargePageEnhanced() {
                   )}
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
-                  ✨ Operator and circle will be detected automatically after entering 10 digits
+                  {serviceType === 'PREPAID' 
+                    ? '✨ Operator and circle will be detected automatically after entering 10 digits'
+                    : '📱 For postpaid, please select operator manually after entering mobile number'}
                 </p>
               </div>
 
               {/* Operator Selection - Searchable */}
-              <div>
+              <div className={serviceType === 'PREPAID' ? '' : 'md:col-span-1'}>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Select Operator
                 </label>
@@ -603,26 +622,28 @@ export default function MobileRechargePageEnhanced() {
                 />
               </div>
 
-              {/* Circle Selection - Searchable */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Circle
-                </label>
-                <SearchableSelect
-                  options={circles.map(c => ({
-                    value: c.id,
-                    label: c.circle_name,
-                    data: c
-                  }))}
-                  value={selectedCircle}
-                  onChange={setSelectedCircle}
-                  placeholder="Search and select circle..."
-                  required
-                />
-              </div>
+              {/* Circle Selection - Only for PREPAID */}
+              {serviceType === 'PREPAID' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Select Circle
+                  </label>
+                  <SearchableSelect
+                    options={circles.map(c => ({
+                      value: c.id,
+                      label: c.circle_name,
+                      data: c
+                    }))}
+                    value={selectedCircle}
+                    onChange={setSelectedCircle}
+                    placeholder="Search and select circle..."
+                    required
+                  />
+                </div>
+              )}
 
               {/* Amount */}
-              <div>
+              <div className={serviceType === 'PREPAID' ? '' : 'md:col-span-1'}>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Amount (₹)
                 </label>
@@ -638,8 +659,8 @@ export default function MobileRechargePageEnhanced() {
                 />
               </div>
 
-              {/* Customer Name */}
-              <div>
+              {/* Customer Name - Full width for postpaid, half width for prepaid */}
+              <div className={serviceType === 'PREPAID' ? 'md:col-span-2' : 'md:col-span-2'}>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Customer Name (Optional)
                 </label>
@@ -754,18 +775,18 @@ export default function MobileRechargePageEnhanced() {
 
             {/* Submit Button - Different for POSTPAID with bill fetch */}
             {serviceType === 'POSTPAID' && operators.find(op => op.id === selectedOperator)?.metadata?.bill_fetch === 'YES' ? (
-              billDetails ? (
+              (billDetails || amount) ? (
                 <button
                   type="submit"
                   disabled={loading}
                   className="w-full py-4 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all shadow-lg"
                 >
-                  {loading ? '⏳ Processing Payment...' : `💳 Pay Bill - ₹${amount}`}
+                  {loading ? '⏳ Processing Payment...' : `Pay ₹${amount} - ${billDetails ? 'Bill Payment' : 'Manual Payment'}`}ayment...' : `💳 Pay Bill - ₹${amount}`}
                 </button>
               ) : (
-                <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded">
-                  <p className="text-sm text-yellow-800">
-                    ⚠️ Please get your bill details first before making payment.
+                <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                  <p className="text-sm text-blue-800">
+                    💡 Please either fetch your bill details above or enter the amount manually to proceed with payment.
                   </p>
                 </div>
               )

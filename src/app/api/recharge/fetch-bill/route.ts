@@ -49,6 +49,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log('🔍 [Bill Fetch API] Request received:', {
+      operator_code,
+      accountNumber,
+      service_type,
+      mobile_number
+    });
+
     // Get operator details
     const { data: operator } = await supabase
       .from('recharge_operators')
@@ -109,26 +116,29 @@ export async function POST(request: NextRequest) {
       // Handle specific error cases
       const errorMessage = billResponse.data?.message || billResponse.message || 'Failed to fetch bill details';
       
-      if (errorMessage.includes('Time Out') || errorMessage.includes('timeout')) {
+      if (errorMessage.includes('Time Out') || errorMessage.includes('timeout') || errorMessage.includes('undefined Exceptions')) {
         return NextResponse.json({
           success: false,
-          message: '⏰ Request timed out. This could mean:\n• The mobile number may not have an active postpaid connection\n• Network connectivity issues\n• Try again in a few moments or contact customer support',
+          message: '⏰ Bill fetch timed out. This usually means:\n\n• The mobile number may not have an active postpaid connection with this operator\n• The operator\'s system is temporarily unavailable\n• Network connectivity issues\n\n💡 You can still proceed with manual amount entry if you know your bill amount.',
           error_details: billResponse.data,
+          allow_manual: true,
         }, { status: 408 });
       }
       
       if (errorMessage.includes('Invalid') || errorMessage.includes('not found')) {
         return NextResponse.json({
           success: false,
-          message: '❌ Invalid mobile number or no postpaid connection found. Please verify:\n• The mobile number is correct\n• It has an active postpaid connection with this operator\n• Try a different operator if needed',
+          message: '❌ Invalid mobile number or no postpaid connection found. Please verify:\n\n• The mobile number is correct (10 digits)\n• It has an active postpaid connection with this operator\n• Try selecting a different operator if needed\n\n💡 You can still proceed with manual amount entry.',
           error_details: billResponse.data,
+          allow_manual: true,
         }, { status: 404 });
       }
 
       return NextResponse.json({
         success: false,
-        message: `❌ ${errorMessage}\n\nPlease check the mobile number and try again, or proceed with manual amount entry.`,
+        message: `❌ ${errorMessage}\n\nPlease check the mobile number and operator selection, or proceed with manual amount entry if you know your bill amount.`,
         error_details: billResponse.data,
+        allow_manual: true,
       }, { status: 400 });
     }
 

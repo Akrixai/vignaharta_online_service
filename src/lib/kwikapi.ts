@@ -449,18 +449,24 @@ class KwikAPIClient {
   }
 
   /**
-   * Postpaid Recharge (Deprecated - use utility payments instead)
+   * Postpaid Recharge (Use utility payment API for postpaid mobile)
    */
   async rechargePostpaid(params: {
     opid: number;
     number: string;
     amount: number;
-    circle?: string;
     order_id?: string;
     mobile: string;
     ref_id?: string;
   }): Promise<KwikAPIResponse> {
-    // Use utility payment for postpaid
+    console.log('📱 [KWIKAPI] Processing postpaid mobile payment:', {
+      opid: params.opid,
+      number: params.number,
+      amount: params.amount,
+      ref_id: params.ref_id
+    });
+
+    // Use utility payment for postpaid mobile (no circle required)
     return this.payUtilityBill({
       opid: params.opid,
       number: params.number,
@@ -468,7 +474,6 @@ class KwikAPIClient {
       order_id: params.order_id,
       mobile: params.mobile,
       ref_id: params.ref_id,
-      opt1: params.circle,
     });
   }
 
