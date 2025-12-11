@@ -164,16 +164,8 @@ export async function POST(request: NextRequest) {
       metadata: { recharge_transaction_id: transaction.id },
     });
 
-    // Get KWIKAPI operator ID (opid) from operator_code
-    // You need to map your operator_code to KWIKAPI's opid
-    // This should be stored in your recharge_operators table
-    const { data: operatorMapping } = await supabase
-      .from('recharge_operators')
-      .select('metadata')
-      .eq('operator_code', operator_code)
-      .single();
-
-    const opid = operatorMapping?.metadata?.kwikapi_opid || operator.id;
+    // Use the kwikapi_opid from the operator record
+    const opid = operator.kwikapi_opid;
 
     // Check KWIKAPI wallet balance first
     const walletBalanceResponse = await kwikapi.getWalletBalance();

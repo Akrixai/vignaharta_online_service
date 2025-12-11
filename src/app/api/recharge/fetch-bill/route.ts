@@ -53,7 +53,8 @@ export async function POST(request: NextRequest) {
       operator_code,
       accountNumber,
       service_type,
-      mobile_number
+      mobile_number,
+      user_email: user.email
     });
 
     // Get operator details
@@ -74,8 +75,23 @@ export async function POST(request: NextRequest) {
     const billFetchSupported = operator.metadata?.bill_fetch === 'YES';
 
     if (!billFetchSupported) {
+      const serviceTypeUpper = service_type?.toUpperCase() || 'UNKNOWN';
+      let message = 'Bill fetch not supported for this operator. ';
+      
+      if (serviceTypeUpper === 'POSTPAID') {
+        message += 'Please enter your bill amount manually to proceed with payment.';
+      } else if (serviceTypeUpper === 'ELECTRICITY') {
+        message += 'Please enter your bill amount manually or check your electricity bill for the amount due.';
+      } else {
+        message += 'You can proceed with manual amount entry.';
+      }
+      
       return NextResponse.json(
-        { success: false, message: 'Bill fetch not supported for this operator. You can proceed with manual amount entry.' },
+        { 
+          success: false, 
+          message: message,
+          allow_manual: true 
+        },
         { status: 400 }
       );
     }
@@ -102,41 +118,128 @@ export async function POST(request: NextRequest) {
       service_type
     });
 
-    const billResponse = await kwikapi.fetchBill({
+    // Parse operator message for additional required fields
+    const operatorMessage = operator.metadata?.message || '';
+    const billFetchParams: any = {
       opid: operator.kwikapi_opid,
       number: accountNumber, // Use the account number (mobile number for postpaid mobile)
       amount: '10', // Dummy amount for bill fetch
       mobile: mobile_number || accountNumber || dbUser.phone || '9999999999',
       // opt8 is set to "Bills" in the kwikapi library
+    };
+
+    // Handle special cases based on operator message
+    if (operatorMessage.includes('Billing Unit') && operatorMessage.includes('optional1')) {
+      // For operators like MSEDC that need billing unit in opt1
+      // This would need to be provided by the frontend
+      console.log('⚠️ [Bill Fetch] Operator requires billing unit in opt1:', operator.operator_name);
+    }
+
+    if (operatorMessage.includes('Mobile Number') && operatorMessage.includes('optional1')) {
+      // For operators that need mobile number in opt1
+      billFetchParams.opt1 = mobile_number || dbUser.phone;
+    }
+
+    console.log('🔍 [Bill Fetch] KWIKAPI parameters:', {
+      opid: billFetchParams.opid,
+      number: billFetchParams.number,
+      mobile: billFetchParams.mobile,
+      opt1: billFetchParams.opt1 || 'not set',
+      operator_name: operator.operator_name,
+      service_type: service_type
+    });
+
+    const billResponse = await kwikapi.fetchBill(billFetchParams);
+
+    console.log('📦 [Bill Fetch] KWIKAPI Response Status:', {
+      success: billResponse.success,
+      status: billResponse.data?.status,
+      message: billResponse.data?.message,
+      operator: operator.operator_name
     });
 
     console.log('Bill Response:', billResponse);
 
     if (!billResponse.success || billResponse.data?.status !== 'SUCCESS') {
-      // Handle specific error cases
+      // Handle specific error cases based on service type
       const errorMessage = billResponse.data?.message || billResponse.message || 'Failed to fetch bill details';
       
+      // Service-specific error messages
+      const serviceTypeUpper = service_type?.toUpperCase() || 'UNKNOWN';
+      
       if (errorMessage.includes('Time Out') || errorMessage.includes('timeout') || errorMessage.includes('undefined Exceptions')) {
+        let timeoutMessage = '⏰ Bill fetch timed out. This usually means:\n\n';
+        
+        if (serviceTypeUpper === 'POSTPAID') {
+          timeoutMessage += '• The mobile number may not have an active postpaid connection with this operator\n';
+          timeoutMessage += '• The operator\'s billing system is temporarily unavailable\n';
+          timeoutMessage += '• Network connectivity issues\n\n';
+          timeoutMessage += '💡 You can still proceed with manual amount entry if you know your bill amount.';
+        } else if (serviceTypeUpper === 'ELECTRICITY') {
+          timeoutMessage += '• The consumer number may be incorrect or inactive\n';
+          timeoutMessage += '• The electricity board\'s system is temporarily unavailable\n';
+          timeoutMessage += '• Network connectivity issues\n\n';
+          timeoutMessage += '💡 Please verify your consumer number or proceed with manual amount entry.';
+        } else {
+          timeoutMessage += '• The account number may be incorrect or inactive\n';
+          timeoutMessage += '• The service provider\'s system is temporarily unavailable\n';
+          timeoutMessage += '• Network connectivity issues\n\n';
+          timeoutMessage += '💡 You can still proceed with manual amount entry if you know your bill amount.';
+        }
+        
         return NextResponse.json({
           success: false,
-          message: '⏰ Bill fetch timed out. This usually means:\n\n• The mobile number may not have an active postpaid connection with this operator\n• The operator\'s system is temporarily unavailable\n• Network connectivity issues\n\n💡 You can still proceed with manual amount entry if you know your bill amount.',
+          message: timeoutMessage,
           error_details: billResponse.data,
           allow_manual: true,
         }, { status: 408 });
       }
       
       if (errorMessage.includes('Invalid') || errorMessage.includes('not found')) {
+        let invalidMessage = '';
+        
+        if (serviceTypeUpper === 'POSTPAID') {
+          invalidMessage = '❌ Invalid mobile number or no postpaid connection found. Please verify:\n\n';
+          invalidMessage += '• The mobile number is correct (10 digits)\n';
+          invalidMessage += '• It has an active postpaid connection with this operator\n';
+          invalidMessage += '• Try selecting a different operator if needed\n\n';
+          invalidMessage += '💡 You can still proceed with manual amount entry.';
+        } else if (serviceTypeUpper === 'ELECTRICITY') {
+          invalidMessage = '❌ Invalid consumer number or account not found. Please verify:\n\n';
+          invalidMessage += '• The consumer number is correct (check your electricity bill)\n';
+          invalidMessage += '• The account is active with this electricity board\n';
+          invalidMessage += '• Try selecting the correct electricity board for your area\n\n';
+          invalidMessage += '💡 You can still proceed with manual amount entry if you know your bill amount.';
+        } else {
+          invalidMessage = '❌ Invalid account number or service not found. Please verify:\n\n';
+          invalidMessage += '• The account/consumer number is correct\n';
+          invalidMessage += '• The account is active with this service provider\n';
+          invalidMessage += '• Try selecting the correct service provider\n\n';
+          invalidMessage += '💡 You can still proceed with manual amount entry.';
+        }
+        
         return NextResponse.json({
           success: false,
-          message: '❌ Invalid mobile number or no postpaid connection found. Please verify:\n\n• The mobile number is correct (10 digits)\n• It has an active postpaid connection with this operator\n• Try selecting a different operator if needed\n\n💡 You can still proceed with manual amount entry.',
+          message: invalidMessage,
           error_details: billResponse.data,
           allow_manual: true,
         }, { status: 404 });
       }
 
+      // Generic error message based on service type
+      let genericMessage = `❌ ${errorMessage}\n\n`;
+      
+      if (serviceTypeUpper === 'POSTPAID') {
+        genericMessage += 'Please check the mobile number and operator selection, or proceed with manual amount entry if you know your bill amount.';
+      } else if (serviceTypeUpper === 'ELECTRICITY') {
+        genericMessage += 'Please check the consumer number and electricity board selection, or proceed with manual amount entry if you know your bill amount.';
+      } else {
+        genericMessage += 'Please check the account details and service provider selection, or proceed with manual amount entry if you know your bill amount.';
+      }
+
       return NextResponse.json({
         success: false,
-        message: `❌ ${errorMessage}\n\nPlease check the mobile number and operator selection, or proceed with manual amount entry if you know your bill amount.`,
+        message: genericMessage,
         error_details: billResponse.data,
         allow_manual: true,
       }, { status: 400 });

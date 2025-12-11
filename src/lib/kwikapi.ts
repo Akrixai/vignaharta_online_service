@@ -134,7 +134,8 @@ class KwikAPIClient {
 
       console.log('📡 [KWIKAPI] Bill Fetch API Call:', {
         url: '/api/v2/bills/validation.php',
-        params: { ...queryParams, api_key: '***' } // Hide API key in logs
+        params: { ...queryParams, api_key: '***' }, // Hide API key in logs
+        baseURL: KWIKAPI_BASE_URL
       });
 
       const response = await this.client.get('/api/v2/bills/validation.php', {
@@ -194,6 +195,12 @@ class KwikAPIClient {
         success: false,
         data: error.response?.data || {},
         message: errorMessage,
+        debug_info: {
+          error_code: error.code,
+          status: error.response?.status,
+          url: error.config?.url,
+          baseURL: error.config?.baseURL
+        }
       };
     }
   }
