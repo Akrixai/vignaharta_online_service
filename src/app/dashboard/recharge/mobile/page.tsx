@@ -330,7 +330,7 @@ export default function MobileRechargePageEnhanced() {
       console.log('🔍 [Frontend] Fetching bill for:', {
         operator: operator.operator_name,
         mobile: mobileNumber,
-        service_type: 'POSTPAID'
+        service_type: serviceType
       });
       
       const res = await fetch('/api/recharge/fetch-bill', {
@@ -340,7 +340,7 @@ export default function MobileRechargePageEnhanced() {
           operator_code: operator?.operator_code,
           consumer_number: mobileNumber, // For postpaid mobile, consumer number is the mobile number
           mobile_number: mobileNumber,
-          service_type: 'POSTPAID',
+          service_type: serviceType, // Use dynamic service type
         }),
       });
 

@@ -220,7 +220,7 @@ export async function POST(request: NextRequest) {
             amount,
             order_id: transactionRef,
             mobile: mobile_number!,
-            ref_id: ref_id, // CRITICAL: ref_id from bill fetch response
+            ref_id: ref_id, // CRITICAL: ref_id from bill fetch response (if available)
           });
           break;
 

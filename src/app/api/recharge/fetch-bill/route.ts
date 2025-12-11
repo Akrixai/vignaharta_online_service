@@ -101,16 +101,6 @@ export async function POST(request: NextRequest) {
     console.log('Operator message:', operatorMessage);
     console.log('Operator metadata:', operator.metadata);
 
-    // Fetch bill from KWIKAPI
-    // According to KWIKAPI docs, bill fetch requires:
-    // - number: Consumer/Account number (for postpaid mobile, this is the mobile number)
-    // - amount: Dummy amount (usually 10)
-    // - opid: Operator ID
-    // - order_id: Unique transaction ID
-    // - opt8: "Bills" (required literal)
-    // - mobile: Customer mobile
-    // - opt1-opt10: Additional fields as per operator requirements
-
     console.log('🔍 [Bill Fetch] Fetching bill for:', {
       operator: operator.operator_name,
       opid: operator.kwikapi_opid,
@@ -119,7 +109,6 @@ export async function POST(request: NextRequest) {
     });
 
     // Parse operator message for additional required fields
-    const operatorMessage = operator.metadata?.message || '';
     const billFetchParams: any = {
       opid: operator.kwikapi_opid,
       number: accountNumber, // Use the account number (mobile number for postpaid mobile)
