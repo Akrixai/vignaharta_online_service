@@ -63,6 +63,9 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // For POSTPAID, show all postpaid operators (they are already filtered by service_type in the query)
+    // No additional filtering needed as postpaid operators are properly categorized
+
     // Remove sensitive commission/cashback data from response for non-admin users
     const sanitizedOperators = filteredOperators.map(op => ({
       id: op.id,

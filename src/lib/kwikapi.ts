@@ -105,6 +105,12 @@ class KwikAPIClient {
     opt10?: string;
   }): Promise<KwikAPIResponse> {
     try {
+      console.log('📋 [KWIKAPI] Bill Fetch Request for:', {
+        operator_id: params.opid,
+        account_number: params.number,
+        mobile: params.mobile
+      });
+
       const queryParams: any = {
         api_key: KWIKAPI_API_KEY,
         number: params.number,
@@ -126,24 +132,68 @@ class KwikAPIClient {
       if (params.opt9) queryParams.opt9 = params.opt9;
       if (params.opt10) queryParams.opt10 = params.opt10;
 
-      console.log('KWIKAPI Bill Fetch Request:', queryParams);
+      console.log('📡 [KWIKAPI] Bill Fetch API Call:', {
+        url: '/api/v2/bills/validation.php',
+        params: { ...queryParams, api_key: '***' } // Hide API key in logs
+      });
 
       const response = await this.client.get('/api/v2/bills/validation.php', {
         params: queryParams,
+        timeout: 30000, // 30 second timeout for bill fetch
       });
 
-      console.log('KWIKAPI Bill Fetch Response:', response.data);
+      console.log('📦 [KWIKAPI] Bill Fetch Response:', response.data);
+
+      // Check if the response indicates success
+      const isSuccess = response.data.status === 'SUCCESS' || response.data.STATUS === 'SUCCESS';
+      
+      if (isSuccess) {
+        console.log('✅ [KWIKAPI] Bill fetch successful:', {
+          customer_name: response.data.customer_name || response.data.customername,
+          due_amount: response.data.due_amount || response.data.dueamount,
+          bill_number: response.data.bill_number || response.data.billnumber
+        });
+      } else {
+        console.warn('⚠️ [KWIKAPI] Bill fetch failed:', {
+          status: response.data.status || response.data.STATUS,
+          message: response.data.message || response.data.MESSAGE
+        });
+      }
 
       return {
-        success: response.data.status === 'SUCCESS',
+        success: isSuccess,
         data: response.data,
+        message: response.data.message || response.data.MESSAGE,
       };
     } catch (error: any) {
-      console.error('KWIKAPI Bill Fetch Error:', error.response?.data || error.message);
+      console.error('❌ [KWIKAPI] Bill Fetch Error:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        code: error.code
+      });
+
+      // Provide more specific error messages
+      let errorMessage = 'Failed to fetch bill details';
+      
+      if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
+        errorMessage = 'Network connection failed. Please check your internet connection and try again.';
+      } else if (error.code === 'ETIMEDOUT') {
+        errorMessage = 'Request timed out. Please try again.';
+      } else if (error.response?.status === 401) {
+        errorMessage = 'Invalid API key. Please check KWIKAPI configuration.';
+      } else if (error.response?.status === 403) {
+        errorMessage = 'Access denied. Please check KWIKAPI permissions.';
+      } else if (error.response?.status >= 500) {
+        errorMessage = 'KWIKAPI server error. Please try again later.';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+
       return {
         success: false,
         data: error.response?.data || {},
-        message: error.response?.data?.message || error.message,
+        message: errorMessage,
       };
     }
   }

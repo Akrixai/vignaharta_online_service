@@ -39,9 +39,12 @@ export async function POST(request: NextRequest) {
       service_type,
     } = body;
 
-    if (!operator_code || !consumer_number) {
+    // For postpaid mobile, consumer_number is typically the mobile number
+    const accountNumber = consumer_number || mobile_number;
+
+    if (!operator_code || !accountNumber) {
       return NextResponse.json(
-        { success: false, message: 'Operator and consumer number are required' },
+        { success: false, message: 'Operator and account/mobile number are required' },
         { status: 400 }
       );
     }
@@ -77,7 +80,7 @@ export async function POST(request: NextRequest) {
 
     // Fetch bill from KWIKAPI
     // According to KWIKAPI docs, bill fetch requires:
-    // - number: Consumer/Account number
+    // - number: Consumer/Account number (for postpaid mobile, this is the mobile number)
     // - amount: Dummy amount (usually 10)
     // - opid: Operator ID
     // - order_id: Unique transaction ID
@@ -85,20 +88,46 @@ export async function POST(request: NextRequest) {
     // - mobile: Customer mobile
     // - opt1-opt10: Additional fields as per operator requirements
 
+    console.log('🔍 [Bill Fetch] Fetching bill for:', {
+      operator: operator.operator_name,
+      opid: operator.kwikapi_opid,
+      accountNumber,
+      service_type
+    });
+
     const billResponse = await kwikapi.fetchBill({
       opid: operator.kwikapi_opid,
-      number: consumer_number,
+      number: accountNumber, // Use the account number (mobile number for postpaid mobile)
       amount: '10', // Dummy amount for bill fetch
-      mobile: mobile_number || dbUser.phone || dbUser.email || '9999999999',
+      mobile: mobile_number || accountNumber || dbUser.phone || '9999999999',
       // opt8 is set to "Bills" in the kwikapi library
     });
 
     console.log('Bill Response:', billResponse);
 
     if (!billResponse.success || billResponse.data?.status !== 'SUCCESS') {
+      // Handle specific error cases
+      const errorMessage = billResponse.data?.message || billResponse.message || 'Failed to fetch bill details';
+      
+      if (errorMessage.includes('Time Out') || errorMessage.includes('timeout')) {
+        return NextResponse.json({
+          success: false,
+          message: '⏰ Request timed out. This could mean:\n• The mobile number may not have an active postpaid connection\n• Network connectivity issues\n• Try again in a few moments or contact customer support',
+          error_details: billResponse.data,
+        }, { status: 408 });
+      }
+      
+      if (errorMessage.includes('Invalid') || errorMessage.includes('not found')) {
+        return NextResponse.json({
+          success: false,
+          message: '❌ Invalid mobile number or no postpaid connection found. Please verify:\n• The mobile number is correct\n• It has an active postpaid connection with this operator\n• Try a different operator if needed',
+          error_details: billResponse.data,
+        }, { status: 404 });
+      }
+
       return NextResponse.json({
         success: false,
-        message: billResponse.message || billResponse.data?.message || 'Failed to fetch bill details. Please check the consumer number and try again.',
+        message: `❌ ${errorMessage}\n\nPlease check the mobile number and try again, or proceed with manual amount entry.`,
         error_details: billResponse.data,
       }, { status: 400 });
     }
@@ -111,7 +140,7 @@ export async function POST(request: NextRequest) {
       await supabase.from('bill_fetch_history').insert({
         user_id: dbUser.id,
         operator_id: operator.id,
-        consumer_number,
+        consumer_number: accountNumber,
         consumer_name: billData.customer_name || billData.customername || 'N/A',
         bill_amount: parseFloat(billData.bill_amount || billData.billamount || '0'),
         due_amount: parseFloat(billData.due_amount || billData.dueamount || '0'),

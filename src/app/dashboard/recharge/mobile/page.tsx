@@ -239,6 +239,25 @@ export default function MobileRechargePageEnhanced() {
     }
   }, [mobileNumber]);
 
+  // Auto bill fetch for postpaid when mobile number and operator are selected
+  useEffect(() => {
+    if (
+      serviceType === 'POSTPAID' && 
+      mobileNumber.length === 10 && 
+      /^[0-9]{10}$/.test(mobileNumber) && 
+      selectedOperator
+    ) {
+      const operator = operators.find(op => op.id === selectedOperator);
+      if (operator?.metadata?.bill_fetch === 'YES') {
+        console.log('🔍 [Frontend] Auto-fetching bill for postpaid:', {
+          operator: operator.operator_name,
+          mobile: mobileNumber
+        });
+        fetchBill();
+      }
+    }
+  }, [mobileNumber, selectedOperator, serviceType, operators]);
+
   const fetchPlans = async () => {
     if (serviceType === 'POSTPAID') {
       setPlanCategories([]);
@@ -290,18 +309,33 @@ export default function MobileRechargePageEnhanced() {
       return;
     }
 
+    const operator = operators.find(op => op.id === selectedOperator);
+    
+    // Check if operator supports bill fetch
+    if (operator?.metadata?.bill_fetch !== 'YES') {
+      setMessage('⚠️ Bill fetch not supported for this operator. Please enter the amount manually.');
+      setMessageType('info');
+      return;
+    }
+
     setFetchingBill(true);
-    setMessage('');
+    setMessage('🔍 Fetching your bill details...');
+    setMessageType('info');
     setBillDetails(null);
 
     try {
-      const operator = operators.find(op => op.id === selectedOperator);
+      console.log('🔍 [Frontend] Fetching bill for:', {
+        operator: operator.operator_name,
+        mobile: mobileNumber,
+        service_type: 'POSTPAID'
+      });
       
       const res = await fetch('/api/recharge/fetch-bill', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           operator_code: operator?.operator_code,
+          consumer_number: mobileNumber, // For postpaid mobile, consumer number is the mobile number
           mobile_number: mobileNumber,
           service_type: 'POSTPAID',
         }),
@@ -309,15 +343,17 @@ export default function MobileRechargePageEnhanced() {
 
       const data = await res.json();
       
+      console.log('📦 [Frontend] Bill fetch response:', data);
+      
       if (data.success) {
         setBillDetails(data.data);
         setAmount(data.data.due_amount);
         setCustomerName(data.data.consumer_name);
-        setMessage(`✅ Bill found for ${data.data.consumer_name}`);
+        setMessage(`✅ Bill found for ${data.data.consumer_name} - Amount: ₹${data.data.due_amount}`);
         setMessageType('success');
       } else {
-        setMessage(`ℹ️ ${data.message}`);
-        setMessageType('info');
+        setMessage(`❌ ${data.message}`);
+        setMessageType('error');
       }
     } catch (error: any) {
       setMessage(`❌ Error fetching bill: ${error.message}`);
@@ -623,14 +659,20 @@ export default function MobileRechargePageEnhanced() {
                 <div className="flex items-start gap-3 mb-3">
                   <div className="text-3xl">📋</div>
                   <div className="flex-1">
-                    <h3 className="font-bold text-purple-900 mb-1">Bill Fetch</h3>
+                    <h3 className="font-bold text-purple-900 mb-1">Postpaid Bill Fetch</h3>
                     <p className="text-sm text-purple-700">
                       {operators.find(op => op.id === selectedOperator)?.metadata?.bill_fetch === 'YES'
-                        ? 'Click "Get Bill Details" to view your bill information.'
-                        : 'Bill fetch not available for this operator. Enter amount manually.'}
+                        ? fetchingBill 
+                          ? 'Fetching your bill details automatically...'
+                          : billDetails 
+                            ? 'Bill details fetched successfully!'
+                            : 'We will automatically fetch your bill details, or click below to fetch manually.'
+                        : 'Bill fetch not available for this operator. Please enter the amount manually.'}
                     </p>
                   </div>
                 </div>
+                
+                {/* Show fetch button only if bill fetch is supported and no bill details yet */}
                 {operators.find(op => op.id === selectedOperator)?.metadata?.bill_fetch === 'YES' && !billDetails && (
                   <button
                     type="button"
@@ -638,8 +680,16 @@ export default function MobileRechargePageEnhanced() {
                     disabled={fetchingBill}
                     className="w-full py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
                   >
-                    {fetchingBill ? '⏳ Getting Your Bill...' : '🔍 Get Bill Details'}
+                    {fetchingBill ? '⏳ Fetching Your Bill...' : '🔍 Fetch Bill Details'}
                   </button>
+                )}
+
+                {/* Show status when fetching */}
+                {fetchingBill && (
+                  <div className="mt-3 flex items-center gap-2 text-purple-700">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
+                    <span className="text-sm">Connecting to {operators.find(op => op.id === selectedOperator)?.operator_name}...</span>
+                  </div>
                 )}
               </div>
             )}
