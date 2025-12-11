@@ -14,6 +14,7 @@ interface Operator {
   logo_url: string;
   min_amount: number;
   max_amount: number;
+  commission_rate?: number;
   metadata?: {
     bill_fetch?: string;
     message?: string;
@@ -54,6 +55,11 @@ export default function ElectricityBillPage() {
   const [amount, setAmount] = useState('');
   const [customerName, setCustomerName] = useState('');
   
+  // Special fields for operators with additional requirements
+  const [billingUnit, setBillingUnit] = useState('');
+  const [subdivisionCode, setSubdivisionCode] = useState('');
+  const [city, setCity] = useState('');
+  
   const [loading, setLoading] = useState(false);
   const [fetchingBill, setFetchingBill] = useState(false);
   const [message, setMessage] = useState('');
@@ -75,6 +81,13 @@ export default function ElectricityBillPage() {
     fetchCircles();
     fetchWalletBalance();
   }, []);
+
+  useEffect(() => {
+    // Reset special fields when operator changes
+    setBillingUnit('');
+    setSubdivisionCode('');
+    setCity('');
+  }, [selectedOperator]);
 
   const fetchWalletBalance = async () => {
     setLoadingBalance(true);
@@ -129,14 +142,32 @@ export default function ElectricityBillPage() {
     try {
       const operator = operators.find(op => op.id === selectedOperator);
       
+      // Prepare request body with special fields based on operator requirements
+      const requestBody: any = {
+        operator_code: operator?.operator_code,
+        consumer_number: consumerNumber,
+        service_type: 'ELECTRICITY',
+      };
+
+      // Add special fields based on operator message
+      const operatorMessage = operator?.metadata?.message?.toUpperCase() || '';
+      
+      if (operatorMessage.includes('BILLING UNIT') && operatorMessage.includes('OPTIONAL1')) {
+        requestBody.billing_unit = billingUnit || (consumerNumber.length >= 2 ? consumerNumber.slice(-2) : '');
+      }
+      
+      if (operatorMessage.includes('SUBDIVISION CODE') && operatorMessage.includes('OPTIONAL1')) {
+        requestBody.subdivision_code = subdivisionCode;
+      }
+      
+      if (operatorMessage.includes('CITY') && operatorMessage.includes('OPTIONAL1')) {
+        requestBody.city = city;
+      }
+
       const res = await fetch('/api/recharge/fetch-bill', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          operator_code: operator?.operator_code,
-          consumer_number: consumerNumber,
-          service_type: 'ELECTRICITY',
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       const data = await res.json();
@@ -222,6 +253,9 @@ export default function ElectricityBillPage() {
         setAmount('');
         setCustomerName('');
         setBillDetails(null);
+        setBillingUnit('');
+        setSubdivisionCode('');
+        setCity('');
       } else {
         setMessage(`❌ ${data.message}`);
       }
@@ -235,6 +269,10 @@ export default function ElectricityBillPage() {
   if (status === 'loading') {
     return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
   }
+
+  // Get selected operator for conditional rendering
+  const selectedOperatorObj = operators.find(op => op.id === selectedOperator);
+  const operatorMessage = selectedOperatorObj?.metadata?.message?.toUpperCase() || '';
 
   return (
     <DashboardLayout>
@@ -294,6 +332,64 @@ export default function ElectricityBillPage() {
               required
             />
           </div>
+
+          {/* Special Fields for Operators with Additional Requirements */}
+          {selectedOperator && operatorMessage.includes('BILLING UNIT') && operatorMessage.includes('OPTIONAL1') && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Billing Unit
+              </label>
+              <input
+                type="text"
+                value={billingUnit}
+                onChange={(e) => setBillingUnit(e.target.value)}
+                placeholder="Enter billing unit (last 2 digits of consumer number)"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                For MSEDC MAHARASHTRA, this is typically the last 2 digits of your consumer number
+              </p>
+            </div>
+          )}
+
+          {selectedOperator && operatorMessage.includes('SUBDIVISION CODE') && operatorMessage.includes('OPTIONAL1') && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Subdivision Code
+              </label>
+              <input
+                type="text"
+                value={subdivisionCode}
+                onChange={(e) => setSubdivisionCode(e.target.value)}
+                placeholder="Enter subdivision code"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Required for JBVNL - JHARKHAND. Please check your electricity bill for this code.
+              </p>
+            </div>
+          )}
+
+          {selectedOperator && operatorMessage.includes('CITY') && operatorMessage.includes('OPTIONAL1') && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                City
+              </label>
+              <input
+                type="text"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="Enter city name"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Required for Torrent Power operators. Please enter the correct city name.
+              </p>
+            </div>
+          )}
 
           {/* Operator Selection - Searchable */}
           <div>
@@ -520,7 +616,7 @@ export default function ElectricityBillPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-semibold text-gray-800">{op.operator_name}</h4>
-                  <p className="text-sm text-gray-600">{rewardLabel}: {op.commission_rate}%</p>
+                  <p className="text-sm text-gray-600">{rewardLabel}: {op.commission_rate ?? 0}%</p>
                 </div>
                 <div className="text-3xl">⚡</div>
               </div>

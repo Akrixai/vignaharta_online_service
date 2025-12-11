@@ -37,6 +37,11 @@ export async function POST(request: NextRequest) {
       consumer_number,
       mobile_number,
       service_type,
+      billing_unit,
+      subdivision_code,
+      city,
+      account_number,
+      telephone_number,
     } = body;
 
     // For postpaid mobile, consumer_number is typically the mobile number
@@ -71,7 +76,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if operator supports bill fetch
+    // Check if operator supports bill fetch in our system
     const billFetchSupported = operator.metadata?.bill_fetch === 'YES';
 
     if (!billFetchSupported) {
@@ -111,11 +116,26 @@ export async function POST(request: NextRequest) {
     // Parse operator message for additional required fields
     const billFetchParams: any = {
       opid: operator.kwikapi_opid,
-      number: accountNumber, // Use the account number (mobile number for postpaid mobile)
+      number: accountNumber, // Use the account number (consumer number for electricity)
       amount: '10', // Dummy amount for bill fetch
-      mobile: mobile_number || accountNumber || dbUser.phone || '9999999999',
+      mobile: mobile_number || dbUser.phone, // Use proper mobile number - no fallback to dummy number
       // opt8 is set to "Bills" in the kwikapi library
     };
+
+    // Validate mobile number - must be provided for bill fetch
+    if (!billFetchParams.mobile || !/^[0-9]{10}$/.test(billFetchParams.mobile)) {
+      return NextResponse.json({
+        success: false,
+        message: '❌ Valid mobile number is required for bill fetch. Please provide a 10-digit mobile number.',
+        allow_manual: true,
+      }, { status: 400 });
+    }
+
+    // For electricity bills, ensure we have a valid mobile number
+    if (service_type?.toUpperCase() === 'ELECTRICITY') {
+      // For electricity bills, mobile should be the user's registered mobile, not the consumer number
+      console.log('⚡ [Bill Fetch] Electricity bill - using mobile:', billFetchParams.mobile);
+    }
 
     // Handle special cases based on operator message from KWIKAPI documentation
     if (operatorMessage) {
@@ -133,6 +153,14 @@ export async function POST(request: NextRequest) {
         // This would need to be provided by the frontend in the request body
         if (body.billing_unit) {
           billFetchParams.opt1 = body.billing_unit;
+        } else {
+          // For MSEDC MAHARASHTRA, we need to extract billing unit from consumer number
+          // Consumer number format: XXXXXXXXXXXXXYY where YY is the billing unit
+          if (service_type?.toUpperCase() === 'ELECTRICITY' && accountNumber.length >= 2) {
+            const billingUnit = accountNumber.slice(-2);
+            billFetchParams.opt1 = billingUnit;
+            console.log('🏭 [Bill Fetch] Extracted billing unit from consumer number:', billingUnit);
+          }
         }
       }
       

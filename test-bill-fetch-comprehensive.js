@@ -66,6 +66,17 @@ const testCases = [
     test_numbers: ['12438555985', '98765432101'], // CA Numbers from documentation
     expected_bill_fetch: 'YES',
     notes: 'Pass CA Number in account field'
+  },
+  {
+    name: 'MSEDC MAHARASHTRA',
+    opid: 76,
+    service_type: 'ELECTRICITY',
+    test_numbers: ['123456789012', '987654321098'], // Consumer Numbers with billing unit
+    expected_bill_fetch: 'YES',
+    notes: 'Pass Consumer Number in account and Billing Unit in optional1',
+    special_params: {
+      opt1: '12' // Billing unit (last 2 digits of consumer number)
+    }
   }
 ];
 
@@ -104,7 +115,7 @@ async function testOperatorDetails(opid) {
   }
 }
 
-async function testBillFetch(opid, accountNumber, mobileNumber = '9999999999') {
+async function testBillFetch(opid, accountNumber, mobileNumber = '9999999999', additionalParams = {}) {
   console.log(`\n💳 Testing Bill Fetch for OPID: ${opid}, Account: ${accountNumber}`);
   
   try {
@@ -117,6 +128,16 @@ async function testBillFetch(opid, accountNumber, mobileNumber = '9999999999') {
       opt8: 'Bills', // Required literal
       mobile: mobileNumber
     });
+
+    // Add additional parameters for specific operators
+    if (additionalParams.opt1) {
+      params.append('opt1', additionalParams.opt1);
+      console.log('📋 Adding opt1 parameter:', additionalParams.opt1);
+    }
+    if (additionalParams.opt2) {
+      params.append('opt2', additionalParams.opt2);
+      console.log('📋 Adding opt2 parameter:', additionalParams.opt2);
+    }
 
     const url = `${KWIKAPI_BASE_URL}/api/v2/bills/validation.php?${params.toString()}`;
     console.log('📡 Bill Fetch URL:', url.replace(KWIKAPI_API_KEY, '***'));

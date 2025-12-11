@@ -248,13 +248,22 @@ export default function MobileRechargePageEnhanced() {
       selectedOperator
     ) {
       const operator = operators.find(op => op.id === selectedOperator);
-      if (operator?.metadata?.bill_fetch === 'YES') {
-        console.log('🔍 [Frontend] Auto-fetching bill for postpaid:', {
-          operator: operator.operator_name,
-          mobile: mobileNumber
-        });
+      // Always try auto-fetch for postpaid operators
+      console.log('🔍 [Frontend] Auto-fetching bill for postpaid:', {
+        operator: operator?.operator_name,
+        mobile: mobileNumber
+      });
+      
+      // Auto-fetch bill after a short delay to avoid too many API calls
+      const timeoutId = setTimeout(() => {
         fetchBill();
-      }
+      }, 1500); // Slightly longer delay for better UX
+      
+      return () => clearTimeout(timeoutId);
+    } else if (serviceType === 'POSTPAID') {
+      // Clear any previous bill details when switching operators or clearing mobile
+      setBillDetails(null);
+      setMessage('');
     }
   }, [mobileNumber, selectedOperator, serviceType, operators]);
 
@@ -339,7 +348,7 @@ export default function MobileRechargePageEnhanced() {
         body: JSON.stringify({
           operator_code: operator?.operator_code,
           consumer_number: mobileNumber, // For postpaid mobile, consumer number is the mobile number
-          mobile_number: mobileNumber,
+          mobile_number: mobileNumber, // Pass mobile number separately for proper handling
           service_type: serviceType, // Use dynamic service type
         }),
       });
@@ -369,6 +378,17 @@ export default function MobileRechargePageEnhanced() {
     } finally {
       setFetchingBill(false);
     }
+  };
+
+  // Manual bill fetch function for user-triggered fetch
+  const handleManualBillFetch = async () => {
+    if (!mobileNumber || !selectedOperator) {
+      setMessage('Please enter mobile number and select operator first');
+      setMessageType('error');
+      return;
+    }
+
+    await fetchBill();
   };
 
   const handlePlanClick = (plan: Plan) => {
@@ -674,36 +694,68 @@ export default function MobileRechargePageEnhanced() {
               </div>
             </div>
 
-            {/* Bill Fetch Section for POSTPAID */}
+            {/* Bill Fetch Section for POSTPAID - Always show for all operators */}
             {serviceType === 'POSTPAID' && selectedOperator && mobileNumber.length === 10 && (
               <div className="bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-purple-200 rounded-lg p-4">
                 <div className="flex items-start gap-3 mb-3">
                   <div className="text-3xl">📋</div>
                   <div className="flex-1">
-                    <h3 className="font-bold text-purple-900 mb-1">Postpaid Bill Fetch</h3>
+                    <h3 className="font-bold text-purple-900 mb-1">Postpaid Bill Management</h3>
                     <p className="text-sm text-purple-700">
-                      {operators.find(op => op.id === selectedOperator)?.metadata?.bill_fetch === 'YES'
-                        ? fetchingBill 
-                          ? 'Fetching your bill details automatically...'
-                          : billDetails 
-                            ? 'Bill details fetched successfully!'
-                            : 'We will automatically fetch your bill details, or click below to fetch manually.'
-                        : 'Bill fetch not available for this operator. Please enter the amount manually.'}
+                      {(() => {
+                        if (fetchingBill) {
+                          return 'Fetching your bill details...';
+                        } else if (billDetails) {
+                          return 'Bill details fetched successfully! You can also enter amount manually if needed.';
+                        } else {
+                          return 'Try automatic bill fetch first, or enter your bill amount manually below.';
+                        }
+                      })()}
                     </p>
                   </div>
                 </div>
                 
-                {/* Show fetch button only if bill fetch is supported and no bill details yet */}
-                {operators.find(op => op.id === selectedOperator)?.metadata?.bill_fetch === 'YES' && !billDetails && (
-                  <button
-                    type="button"
-                    onClick={fetchBill}
-                    disabled={fetchingBill}
-                    className="w-full py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
-                  >
-                    {fetchingBill ? '⏳ Fetching Your Bill...' : '🔍 Fetch Bill Details'}
-                  </button>
-                )}
+                {/* Action buttons - Always show both auto and manual options */}
+                <div className="space-y-3">
+                  {/* Auto-fetch button - always available */}
+                  {!billDetails && (
+                    <button
+                      type="button"
+                      onClick={handleManualBillFetch}
+                      disabled={fetchingBill}
+                      className="w-full py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
+                    >
+                      {fetchingBill ? '⏳ Fetching Your Bill...' : '🔍 Try Auto-Fetch Bill Details'}
+                    </button>
+                  )}
+                  
+                  {/* Re-fetch button if bill already fetched */}
+                  {billDetails && (
+                    <button
+                      type="button"
+                      onClick={handleManualBillFetch}
+                      disabled={fetchingBill}
+                      className="w-full py-2 bg-purple-100 text-purple-700 font-medium rounded-lg hover:bg-purple-200 disabled:bg-gray-100 disabled:cursor-not-allowed transition-all border border-purple-300"
+                    >
+                      {fetchingBill ? '⏳ Re-fetching...' : '🔄 Re-fetch Bill Details'}
+                    </button>
+                  )}
+
+                  {/* Manual entry info - always show */}
+                  <div className="bg-blue-50 border border-blue-300 rounded-lg p-3">
+                    <div className="flex items-center gap-2 text-blue-800">
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      <span className="text-sm font-medium">Manual Entry Available</span>
+                    </div>
+                    <p className="text-xs text-blue-700 mt-1">
+                      {billDetails 
+                        ? 'You can modify the amount above if needed before payment.'
+                        : 'If auto-fetch doesn\'t work, enter your bill amount in the form above.'}
+                    </p>
+                  </div>
+                </div>
 
                 {/* Show status when fetching */}
                 {fetchingBill && (
@@ -773,32 +825,72 @@ export default function MobileRechargePageEnhanced() {
               </div>
             )}
 
-            {/* Submit Button - Different for POSTPAID with bill fetch */}
-            {serviceType === 'POSTPAID' && operators.find(op => op.id === selectedOperator)?.metadata?.bill_fetch === 'YES' ? (
-              (billDetails || amount) ? (
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-4 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all shadow-lg"
-                >
-                  {loading ? '⏳ Processing Payment...' : `Pay ₹${amount} - ${billDetails ? 'Bill Payment' : 'Manual Payment'}`}ayment...' : `💳 Pay Bill - ₹${amount}`}
-                </button>
-              ) : (
-                <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-                  <p className="text-sm text-blue-800">
-                    💡 Please either fetch your bill details above or enter the amount manually to proceed with payment.
-                  </p>
-                </div>
-              )
-            ) : (
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all shadow-lg"
-              >
-                {loading ? 'Processing...' : `Proceed to ${serviceType} ${serviceType === 'POSTPAID' ? 'Bill Payment' : 'Recharge'}`}
-              </button>
-            )}
+            {/* Submit Button - Enhanced for all scenarios */}
+            {(() => {
+              const operator = operators.find(op => op.id === selectedOperator);
+              const supportsBillFetch = operator?.metadata?.bill_fetch === 'YES';
+              const hasAmount = amount && parseFloat(amount) > 0;
+              
+              if (serviceType === 'POSTPAID') {
+                if (supportsBillFetch) {
+                  // Operator supports bill fetch
+                  if (billDetails || hasAmount) {
+                    return (
+                      <button
+                        type="submit"
+                        disabled={loading || !hasAmount}
+                        className="w-full py-4 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all shadow-lg"
+                      >
+                        {loading 
+                          ? '⏳ Processing Payment...' 
+                          : `💳 Pay ₹${amount} - ${billDetails ? 'Auto-Fetched Bill' : 'Manual Entry'}`
+                        }
+                      </button>
+                    );
+                  } else {
+                    return (
+                      <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                        <p className="text-sm text-blue-800">
+                          💡 Please either fetch your bill details above or enter the amount manually to proceed with payment.
+                        </p>
+                      </div>
+                    );
+                  }
+                } else {
+                  // Operator doesn't support bill fetch - manual entry only
+                  if (hasAmount) {
+                    return (
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all shadow-lg"
+                      >
+                        {loading ? '⏳ Processing Payment...' : `💳 Pay Bill - ₹${amount}`}
+                      </button>
+                    );
+                  } else {
+                    return (
+                      <div className="bg-orange-50 border-l-4 border-orange-500 p-4 rounded">
+                        <p className="text-sm text-orange-800">
+                          📝 Please enter your bill amount above to proceed with manual payment.
+                        </p>
+                      </div>
+                    );
+                  }
+                }
+              } else {
+                // PREPAID - standard flow
+                return (
+                  <button
+                    type="submit"
+                    disabled={loading || !hasAmount}
+                    className="w-full py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all shadow-lg"
+                  >
+                    {loading ? '⏳ Processing Recharge...' : `🚀 Proceed to Recharge - ₹${amount || '0'}`}
+                  </button>
+                );
+              }
+            })()}
 
             {/* Message */}
             {message && (

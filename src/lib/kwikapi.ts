@@ -101,6 +101,7 @@ class KwikAPIClient {
     opt5?: string;
     opt6?: string;
     opt7?: string;
+    opt8?: string;
     opt9?: string;
     opt10?: string;
   }): Promise<KwikAPIResponse> {
@@ -117,7 +118,7 @@ class KwikAPIClient {
         amount: params.amount || '10',
         opid: params.opid.toString(),
         order_id: params.order_id || this.generateOrderId(),
-        opt8: 'Bills', // Required literal - CRITICAL!
+        opt8: params.opt8 || 'Bills', // Required literal - CRITICAL!
         mobile: params.mobile,
       };
 
