@@ -55,10 +55,8 @@ export default function ElectricityBillPage() {
   const [amount, setAmount] = useState('');
   const [customerName, setCustomerName] = useState('');
   
-  // Special fields for operators with additional requirements
-  const [billingUnit, setBillingUnit] = useState('');
-  const [subdivisionCode, setSubdivisionCode] = useState('');
-  const [city, setCity] = useState('');
+  // Dynamic fields for operators with additional requirements
+  const [dynamicFields, setDynamicFields] = useState<{[key: string]: string}>({});
   
   const [loading, setLoading] = useState(false);
   const [fetchingBill, setFetchingBill] = useState(false);
@@ -83,10 +81,8 @@ export default function ElectricityBillPage() {
   }, []);
 
   useEffect(() => {
-    // Reset special fields when operator changes
-    setBillingUnit('');
-    setSubdivisionCode('');
-    setCity('');
+    // Reset dynamic fields when operator changes
+    setDynamicFields({});
   }, [selectedOperator]);
 
   const fetchWalletBalance = async () => {
@@ -149,20 +145,18 @@ export default function ElectricityBillPage() {
         service_type: 'ELECTRICITY',
       };
 
-      // Add special fields based on operator message
+      // Add dynamic fields based on operator requirements
       const operatorMessage = operator?.metadata?.message?.toUpperCase() || '';
       
-      if (operatorMessage.includes('BILLING UNIT') && operatorMessage.includes('OPTIONAL1')) {
-        requestBody.billing_unit = billingUnit || (consumerNumber.length >= 2 ? consumerNumber.slice(-2) : '');
-      }
+      // Parse operator message to determine required fields
+      const requiredFields = parseOperatorRequirements(operatorMessage);
       
-      if (operatorMessage.includes('SUBDIVISION CODE') && operatorMessage.includes('OPTIONAL1')) {
-        requestBody.subdivision_code = subdivisionCode;
-      }
-      
-      if (operatorMessage.includes('CITY') && operatorMessage.includes('OPTIONAL1')) {
-        requestBody.city = city;
-      }
+      // Add dynamic fields to request
+      requiredFields.forEach(field => {
+        if (field.parameter && dynamicFields[field.key]) {
+          requestBody[field.parameter] = dynamicFields[field.key];
+        }
+      });
 
       const res = await fetch('/api/recharge/fetch-bill', {
         method: 'POST',
@@ -253,9 +247,7 @@ export default function ElectricityBillPage() {
         setAmount('');
         setCustomerName('');
         setBillDetails(null);
-        setBillingUnit('');
-        setSubdivisionCode('');
-        setCity('');
+        setDynamicFields({});
       } else {
         setMessage(`❌ ${data.message}`);
       }
@@ -270,9 +262,61 @@ export default function ElectricityBillPage() {
     return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
   }
 
+  // Helper function to parse operator requirements
+  const parseOperatorRequirements = (message: string) => {
+    const requirements = [];
+    
+    if (message.includes('BILLING UNIT') && message.includes('OPTIONAL1')) {
+      requirements.push({
+        key: 'billing_unit',
+        label: 'Billing Unit',
+        placeholder: 'Enter billing unit (last 2 digits of consumer number)',
+        required: true,
+        parameter: 'billing_unit',
+        description: 'For MSEDC MAHARASHTRA, this is typically the last 2 digits of your consumer number'
+      });
+    }
+    
+    if (message.includes('SUBDIVISION CODE') && message.includes('OPTIONAL1')) {
+      requirements.push({
+        key: 'subdivision_code',
+        label: 'Subdivision Code',
+        placeholder: 'Enter subdivision code',
+        required: true,
+        parameter: 'subdivision_code',
+        description: 'Required for JBVNL - JHARKHAND. Please check your electricity bill for this code.'
+      });
+    }
+    
+    if (message.includes('CITY') && message.includes('OPTIONAL1')) {
+      requirements.push({
+        key: 'city',
+        label: 'City',
+        placeholder: 'Enter city name',
+        required: true,
+        parameter: 'city',
+        description: 'Required for Torrent Power operators. Please enter the correct city name.'
+      });
+    }
+    
+    if (message.includes('MOBILE NUMBER') && message.includes('OPTIONAL1')) {
+      requirements.push({
+        key: 'mobile_number',
+        label: 'Mobile Number',
+        placeholder: 'Enter mobile number',
+        required: true,
+        parameter: 'mobile_number',
+        description: 'Required for UHBVN - HARYANA. Enter your registered mobile number.'
+      });
+    }
+    
+    return requirements;
+  };
+
   // Get selected operator for conditional rendering
   const selectedOperatorObj = operators.find(op => op.id === selectedOperator);
   const operatorMessage = selectedOperatorObj?.metadata?.message?.toUpperCase() || '';
+  const requiredFields = parseOperatorRequirements(operatorMessage);
 
   return (
     <DashboardLayout>
@@ -333,63 +377,28 @@ export default function ElectricityBillPage() {
             />
           </div>
 
-          {/* Special Fields for Operators with Additional Requirements */}
-          {selectedOperator && operatorMessage.includes('BILLING UNIT') && operatorMessage.includes('OPTIONAL1') && (
-            <div>
+          {/* Dynamic Fields for Operators with Additional Requirements */}
+          {selectedOperator && requiredFields.map((field) => (
+            <div key={field.key}>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Billing Unit
+                {field.label}
               </label>
               <input
                 type="text"
-                value={billingUnit}
-                onChange={(e) => setBillingUnit(e.target.value)}
-                placeholder="Enter billing unit (last 2 digits of consumer number)"
+                value={dynamicFields[field.key] || ''}
+                onChange={(e) => setDynamicFields(prev => ({
+                  ...prev,
+                  [field.key]: e.target.value
+                }))}
+                placeholder={field.placeholder}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
+                required={field.required}
               />
               <p className="text-xs text-gray-500 mt-1">
-                For MSEDC MAHARASHTRA, this is typically the last 2 digits of your consumer number
+                {field.description}
               </p>
             </div>
-          )}
-
-          {selectedOperator && operatorMessage.includes('SUBDIVISION CODE') && operatorMessage.includes('OPTIONAL1') && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Subdivision Code
-              </label>
-              <input
-                type="text"
-                value={subdivisionCode}
-                onChange={(e) => setSubdivisionCode(e.target.value)}
-                placeholder="Enter subdivision code"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Required for JBVNL - JHARKHAND. Please check your electricity bill for this code.
-              </p>
-            </div>
-          )}
-
-          {selectedOperator && operatorMessage.includes('CITY') && operatorMessage.includes('OPTIONAL1') && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                City
-              </label>
-              <input
-                type="text"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                placeholder="Enter city name"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Required for Torrent Power operators. Please enter the correct city name.
-              </p>
-            </div>
-          )}
+          ))}
 
           {/* Operator Selection - Searchable */}
           <div>

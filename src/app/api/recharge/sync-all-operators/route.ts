@@ -105,12 +105,19 @@ export async function POST(request: NextRequest) {
           continue;
         }
 
-        // Check if operator exists
-        const { data: existing } = await supabase
+        // Check if operator exists - use proper error handling
+        const { data: existing, error: existingError } = await supabase
           .from('recharge_operators')
-          .select('id')
+          .select('id, operator_name, metadata')
           .eq('kwikapi_opid', parseInt(op.operator_id))
-          .single();
+          .maybeSingle(); // Use maybeSingle() instead of single() to avoid errors when no record found
+
+        // Handle query errors
+        if (existingError && existingError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+          console.error(`Error checking existing operator ${op.operator_id}:`, existingError);
+          skippedCount++;
+          continue;
+        }
 
         // Get detailed operator information for proper message field
         let detailedMessage = op.message || '';
@@ -164,12 +171,28 @@ export async function POST(request: NextRequest) {
         }
 
         if (existing) {
-          // Update existing
-          await supabase
-            .from('recharge_operators')
-            .update(operatorData)
-            .eq('id', existing.id);
-          updatedCount++;
+          // Check if update is needed (compare metadata to avoid unnecessary updates)
+          const needsUpdate = 
+            existing.operator_name !== op.operator_name ||
+            JSON.stringify(existing.metadata) !== JSON.stringify(operatorData.metadata) ||
+            existing.is_active !== operatorData.is_active;
+
+          if (needsUpdate) {
+            const { error: updateError } = await supabase
+              .from('recharge_operators')
+              .update(operatorData)
+              .eq('id', existing.id);
+
+            if (updateError) {
+              console.error(`Error updating operator ${op.operator_id}:`, updateError);
+              skippedCount++;
+            } else {
+              updatedCount++;
+            }
+          } else {
+            // No update needed, but count as processed
+            skippedCount++;
+          }
         } else {
           // Insert new - generate operator_code from name and opid
           const operatorCode = `${op.operator_name
@@ -177,11 +200,17 @@ export async function POST(request: NextRequest) {
             .replace(/[^A-Z0-9]/g, '_')
             .substring(0, 40)}_${op.operator_id}`;
 
-          await supabase.from('recharge_operators').insert({
+          const { error: insertError } = await supabase.from('recharge_operators').insert({
             ...operatorData,
             operator_code: operatorCode,
           });
-          syncedCount++;
+
+          if (insertError) {
+            console.error(`Error inserting operator ${op.operator_id}:`, insertError);
+            skippedCount++;
+          } else {
+            syncedCount++;
+          }
         }
       } catch (error: any) {
         console.error(`Error syncing operator ${op.operator_id}:`, error.message);
