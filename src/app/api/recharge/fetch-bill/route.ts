@@ -37,6 +37,10 @@ export async function POST(request: NextRequest) {
       consumer_number,
       mobile_number,
       service_type,
+      optional1,
+      optional2,
+      optional3,
+      // Legacy field names for backward compatibility
       billing_unit,
       subdivision_code,
       city,
@@ -137,64 +141,81 @@ export async function POST(request: NextRequest) {
       console.log('⚡ [Bill Fetch] Electricity bill - using mobile:', billFetchParams.mobile);
     }
 
+    // Handle dynamic fields based on operator requirements
+    // Use new parameter names (optional1, optional2, optional3) with fallback to legacy names
+    if (optional1 || billing_unit || subdivision_code || city || mobile_number) {
+      billFetchParams.opt1 = optional1 || billing_unit || subdivision_code || city || mobile_number;
+      console.log('📝 [Bill Fetch] Adding opt1:', billFetchParams.opt1);
+    }
+    
+    if (optional2) {
+      billFetchParams.opt2 = optional2;
+      console.log('📝 [Bill Fetch] Adding opt2:', billFetchParams.opt2);
+    }
+    
+    if (optional3) {
+      billFetchParams.opt3 = optional3;
+      console.log('📝 [Bill Fetch] Adding opt3:', billFetchParams.opt3);
+    }
+
     // Handle special cases based on operator message from KWIKAPI documentation
     if (operatorMessage) {
       const messageUpper = operatorMessage.toUpperCase();
       
-      // Handle operators that need mobile number in opt1
-      if (messageUpper.includes('MOBILE NUMBER') && messageUpper.includes('OPTIONAL1')) {
+      // Handle operators that need mobile number in opt1 (UHBVN/DHBVN - HARYANA)
+      if (messageUpper.includes('MOBILE NUMBER') && messageUpper.includes('OPTIONAL1') && !billFetchParams.opt1) {
         billFetchParams.opt1 = mobile_number || dbUser.phone;
         console.log('📱 [Bill Fetch] Adding mobile number to opt1:', billFetchParams.opt1);
       }
       
-      // Handle operators that need billing unit in opt1 (like MSEDC MAHARASHTRA)
-      if (messageUpper.includes('BILLING UNIT') && messageUpper.includes('OPTIONAL1')) {
+      // Handle operators that need billing unit in opt1 (MSEDC MAHARASHTRA)
+      if (messageUpper.includes('BILLING UNIT') && messageUpper.includes('OPTIONAL1') && !billFetchParams.opt1) {
         console.log('⚠️ [Bill Fetch] Operator requires billing unit in opt1:', operator.operator_name);
-        // This would need to be provided by the frontend in the request body
-        if (body.billing_unit) {
-          billFetchParams.opt1 = body.billing_unit;
-        } else {
-          // For MSEDC MAHARASHTRA, we need to extract billing unit from consumer number
-          // Consumer number format: XXXXXXXXXXXXXYY where YY is the billing unit
-          if (service_type?.toUpperCase() === 'ELECTRICITY' && accountNumber.length >= 2) {
-            const billingUnit = accountNumber.slice(-2);
-            billFetchParams.opt1 = billingUnit;
-            console.log('🏭 [Bill Fetch] Extracted billing unit from consumer number:', billingUnit);
-          }
+        if (billing_unit) {
+          billFetchParams.opt1 = billing_unit;
+        } else if (service_type?.toUpperCase() === 'ELECTRICITY' && accountNumber.length >= 2) {
+          // For MSEDC MAHARASHTRA, extract billing unit from consumer number (last 2 digits)
+          const billingUnit = accountNumber.slice(-2);
+          billFetchParams.opt1 = billingUnit;
+          console.log('🏭 [Bill Fetch] Extracted billing unit from consumer number:', billingUnit);
         }
       }
       
-      // Handle operators that need subdivision code (like JBVNL - JHARKHAND)
-      if (messageUpper.includes('SUBDIVISION CODE') && messageUpper.includes('OPTIONAL1')) {
+      // Handle operators that need subdivision code (JBVNL - JHARKHAND)
+      if (messageUpper.includes('SUBDIVISION CODE') && messageUpper.includes('OPTIONAL1') && !billFetchParams.opt1) {
         console.log('🏢 [Bill Fetch] Operator requires subdivision code in opt1:', operator.operator_name);
-        if (body.subdivision_code) {
-          billFetchParams.opt1 = body.subdivision_code;
+        if (subdivision_code) {
+          billFetchParams.opt1 = subdivision_code;
         }
       }
       
-      // Handle operators that need city in opt1 (like Torrent Power operators)
-      if (messageUpper.includes('CITY') && messageUpper.includes('OPTIONAL1')) {
+      // Handle operators that need city in opt1 (Torrent Power operators)
+      if (messageUpper.includes('CITY') && messageUpper.includes('OPTIONAL1') && !billFetchParams.opt1) {
         console.log('🏙️ [Bill Fetch] Operator requires city in opt1:', operator.operator_name);
-        if (body.city) {
-          billFetchParams.opt1 = body.city;
+        if (city) {
+          billFetchParams.opt1 = city;
         }
       }
       
-      // Handle operators that need account number in opt1 (like MTNL landline)
-      if (messageUpper.includes('ACCOUNT NUMBER') && messageUpper.includes('OPTIONAL1')) {
-        console.log('🔢 [Bill Fetch] Operator requires account number in opt1:', operator.operator_name);
-        if (body.account_number) {
-          billFetchParams.opt1 = body.account_number;
-        }
+      // Handle operators that need email in opt2 (PSPCL - PUNJAB, Adani Electricity)
+      if (messageUpper.includes('EMAIL') && messageUpper.includes('OPTIONAL2') && !billFetchParams.opt2) {
+        console.log('📧 [Bill Fetch] Operator requires email in opt2:', operator.operator_name);
+        // Email would be provided from frontend
+      }
+      
+      // Handle operators that need UID in opt3 (Adani Electricity - MUMBAI)
+      if (messageUpper.includes('UID') && messageUpper.includes('OPTIONAL3') && !billFetchParams.opt3) {
+        console.log('🆔 [Bill Fetch] Operator requires UID in opt3:', operator.operator_name);
+        // UID would be provided from frontend
       }
       
       // Handle operators that need telephone number in account and account number in opt1
       if (messageUpper.includes('TELEPHONE NUMBER') && messageUpper.includes('ACCOUNT')) {
         console.log('☎️ [Bill Fetch] Operator uses telephone number format:', operator.operator_name);
         // For MTNL operators: pass Telephone Number in 'account' and Account Number in 'optional1'
-        if (body.telephone_number && body.account_number) {
-          billFetchParams.number = body.telephone_number;
-          billFetchParams.opt1 = body.account_number;
+        if (telephone_number && account_number) {
+          billFetchParams.number = telephone_number;
+          billFetchParams.opt1 = account_number;
         }
       }
     }

@@ -265,48 +265,101 @@ export default function ElectricityBillPage() {
   // Helper function to parse operator requirements
   const parseOperatorRequirements = (message: string) => {
     const requirements = [];
+    const upperMessage = message.toUpperCase();
     
-    if (message.includes('BILLING UNIT') && message.includes('OPTIONAL1')) {
+    // MSEDC MAHARASHTRA - Billing Unit in optional1
+    if (upperMessage.includes('BILLING UNIT') && upperMessage.includes('OPTIONAL1')) {
       requirements.push({
         key: 'billing_unit',
         label: 'Billing Unit',
         placeholder: 'Enter billing unit (last 2 digits of consumer number)',
         required: true,
-        parameter: 'billing_unit',
+        parameter: 'optional1',
         description: 'For MSEDC MAHARASHTRA, this is typically the last 2 digits of your consumer number'
       });
     }
     
-    if (message.includes('SUBDIVISION CODE') && message.includes('OPTIONAL1')) {
+    // JBVNL - JHARKHAND - Subdivision Code in optional1
+    if (upperMessage.includes('SUBDIVISION CODE') && upperMessage.includes('OPTIONAL1')) {
       requirements.push({
         key: 'subdivision_code',
         label: 'Subdivision Code',
         placeholder: 'Enter subdivision code',
         required: true,
-        parameter: 'subdivision_code',
+        parameter: 'optional1',
         description: 'Required for JBVNL - JHARKHAND. Please check your electricity bill for this code.'
       });
     }
     
-    if (message.includes('CITY') && message.includes('OPTIONAL1')) {
+    // Torrent Power operators - City in optional1
+    if (upperMessage.includes('CITY') && upperMessage.includes('OPTIONAL1')) {
       requirements.push({
         key: 'city',
         label: 'City',
         placeholder: 'Enter city name',
         required: true,
-        parameter: 'city',
+        parameter: 'optional1',
         description: 'Required for Torrent Power operators. Please enter the correct city name.'
       });
     }
     
-    if (message.includes('MOBILE NUMBER') && message.includes('OPTIONAL1')) {
+    // UHBVN/DHBVN - HARYANA - Mobile Number in optional1
+    if (upperMessage.includes('MOBILE NUMBER') && upperMessage.includes('OPTIONAL1')) {
       requirements.push({
         key: 'mobile_number',
         label: 'Mobile Number',
-        placeholder: 'Enter mobile number',
+        placeholder: 'Enter mobile number (10 digits)',
         required: true,
-        parameter: 'mobile_number',
-        description: 'Required for UHBVN - HARYANA. Enter your registered mobile number.'
+        parameter: 'optional1',
+        description: 'Required for UHBVN/DHBVN - HARYANA. Enter your registered mobile number.'
+      });
+    }
+    
+    // PSPCL - PUNJAB - Email Id in optional2
+    if (upperMessage.includes('EMAIL ID') && upperMessage.includes('OPTIONAL2')) {
+      requirements.push({
+        key: 'email_id',
+        label: 'Email ID',
+        placeholder: 'Enter email address',
+        required: true,
+        parameter: 'optional2',
+        description: 'Required for PSPCL - PUNJAB. Enter your registered email address.'
+      });
+    }
+    
+    // Adani Electricity - MUMBAI - Consumer Mobile Number in optional1
+    if (upperMessage.includes('CONSUMER MOBILE NUMBER') && upperMessage.includes('OPTIONAL1')) {
+      requirements.push({
+        key: 'mobile_number',
+        label: 'Mobile Number',
+        placeholder: 'Enter mobile number (10 digits)',
+        required: true,
+        parameter: 'optional1',
+        description: 'Required for Adani Electricity - MUMBAI. Enter your registered mobile number.'
+      });
+    }
+    
+    // Adani Electricity - MUMBAI - Consumer Email Id in optional2
+    if (upperMessage.includes('CONSUMER EMAIL ID') && upperMessage.includes('OPTIONAL2')) {
+      requirements.push({
+        key: 'email_id',
+        label: 'Email ID',
+        placeholder: 'Enter email address',
+        required: true,
+        parameter: 'optional2',
+        description: 'Required for Adani Electricity - MUMBAI. Enter your registered email address.'
+      });
+    }
+    
+    // Adani Electricity - MUMBAI - UID in optional3
+    if (upperMessage.includes('UID') && upperMessage.includes('OPTIONAL3')) {
+      requirements.push({
+        key: 'uid',
+        label: 'UID',
+        placeholder: 'Enter UID',
+        required: true,
+        parameter: 'optional3',
+        description: 'Required for Adani Electricity - MUMBAI. Enter your UID.'
       });
     }
     
