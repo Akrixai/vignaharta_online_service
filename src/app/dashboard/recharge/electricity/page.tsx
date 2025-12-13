@@ -83,7 +83,38 @@ export default function ElectricityBillPage() {
   useEffect(() => {
     // Reset dynamic fields when operator changes
     setDynamicFields({});
+    
+    // Load field options for the selected operator
+    if (selectedOperator) {
+      const operator = operators.find(op => op.id === selectedOperator);
+      const operatorMessage = operator?.metadata?.message?.toUpperCase() || '';
+      const requiredFields = parseOperatorRequirements(operatorMessage);
+      
+      // Load dropdown options for fields that need them
+      requiredFields.forEach(field => {
+        if (field.key === 'city' || field.key === 'subdivision_code' || field.key === 'billing_unit') {
+          loadFieldOptions(field.key, operator?.operator_code || '');
+        }
+      });
+    }
   }, [selectedOperator]);
+
+  const [fieldOptions, setFieldOptions] = useState<{[key: string]: {value: string; label: string}[]}>({});
+
+  const loadFieldOptions = async (fieldType: string, operatorCode: string) => {
+    try {
+      const res = await fetch(`/api/recharge/field-options?field_type=${fieldType}&operator_code=${operatorCode}`);
+      const data = await res.json();
+      if (data.success) {
+        setFieldOptions(prev => ({
+          ...prev,
+          [fieldType]: data.data
+        }));
+      }
+    } catch (error) {
+      console.error('Error loading field options:', error);
+    }
+  };
 
   const fetchWalletBalance = async () => {
     setLoadingBalance(true);
@@ -291,7 +322,7 @@ export default function ElectricityBillPage() {
       });
     }
     
-    // Torrent Power operators - City in optional1
+    // Torrent Power operators - City in optional1 (based on KWIKAPI collection)
     if (upperMessage.includes('CITY') && upperMessage.includes('OPTIONAL1')) {
       requirements.push({
         key: 'city',
@@ -300,6 +331,18 @@ export default function ElectricityBillPage() {
         required: true,
         parameter: 'optional1',
         description: 'Required for Torrent Power operators. Please enter the correct city name.'
+      });
+    }
+    
+    // Support for City in optional2 (if any operators use it - but not for Torrent Power)
+    if (upperMessage.includes('CITY') && upperMessage.includes('OPTIONAL2') && !upperMessage.includes('OPTIONAL1')) {
+      requirements.push({
+        key: 'city',
+        label: 'City',
+        placeholder: 'Enter city name',
+        required: true,
+        parameter: 'optional2',
+        description: 'Required for this operator. Please enter the correct city name.'
       });
     }
     
@@ -436,17 +479,38 @@ export default function ElectricityBillPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {field.label}
               </label>
-              <input
-                type="text"
-                value={dynamicFields[field.key] || ''}
-                onChange={(e) => setDynamicFields(prev => ({
-                  ...prev,
-                  [field.key]: e.target.value
-                }))}
-                placeholder={field.placeholder}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required={field.required}
-              />
+              {fieldOptions[field.key] && fieldOptions[field.key].length > 0 ? (
+                // Render dropdown if options are available
+                <select
+                  value={dynamicFields[field.key] || ''}
+                  onChange={(e) => setDynamicFields(prev => ({
+                    ...prev,
+                    [field.key]: e.target.value
+                  }))}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required={field.required}
+                >
+                  <option value="">Select {field.label}</option>
+                  {fieldOptions[field.key].map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                // Render text input if no options available
+                <input
+                  type="text"
+                  value={dynamicFields[field.key] || ''}
+                  onChange={(e) => setDynamicFields(prev => ({
+                    ...prev,
+                    [field.key]: e.target.value
+                  }))}
+                  placeholder={field.placeholder}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required={field.required}
+                />
+              )}
               <p className="text-xs text-gray-500 mt-1">
                 {field.description}
               </p>
@@ -469,6 +533,19 @@ export default function ElectricityBillPage() {
               placeholder="Search and select electricity board..."
               required
             />
+            {selectedOperator && operators.find(op => op.id === selectedOperator)?.operator_name?.includes('Torrent Power') && (
+              <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  <strong>💡 Torrent Power Tip:</strong> Select the specific Torrent Power operator for your city:
+                </p>
+                <ul className="text-xs text-blue-700 mt-1 ml-4 list-disc">
+                  <li>Torrent Power - SURAT (for Surat area)</li>
+                  <li>Torrent Power - AHMEDABAD (for Ahmedabad area)</li>
+                  <li>Torrent Power - BHIWANDI (for Bhiwandi area)</li>
+                  <li>Torrent Power - AGRA (for Agra area)</li>
+                </ul>
+              </div>
+            )}
           </div>
 
           {/* Circle Selection - Searchable */}

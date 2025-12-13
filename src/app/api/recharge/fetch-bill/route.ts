@@ -143,13 +143,13 @@ export async function POST(request: NextRequest) {
 
     // Handle dynamic fields based on operator requirements
     // Use new parameter names (optional1, optional2, optional3) with fallback to legacy names
-    if (optional1 || billing_unit || subdivision_code || city || mobile_number) {
-      billFetchParams.opt1 = optional1 || billing_unit || subdivision_code || city || mobile_number;
+    if (optional1 || billing_unit || subdivision_code || mobile_number) {
+      billFetchParams.opt1 = optional1 || billing_unit || subdivision_code || mobile_number;
       console.log('📝 [Bill Fetch] Adding opt1:', billFetchParams.opt1);
     }
     
-    if (optional2) {
-      billFetchParams.opt2 = optional2;
+    if (optional2 || city) {
+      billFetchParams.opt2 = optional2 || city;
       console.log('📝 [Bill Fetch] Adding opt2:', billFetchParams.opt2);
     }
     
@@ -189,11 +189,19 @@ export async function POST(request: NextRequest) {
         }
       }
       
-      // Handle operators that need city in opt1 (Torrent Power operators)
+      // Handle operators that need city in opt1 (Torrent Power operators - based on KWIKAPI collection)
       if (messageUpper.includes('CITY') && messageUpper.includes('OPTIONAL1') && !billFetchParams.opt1) {
         console.log('🏙️ [Bill Fetch] Operator requires city in opt1:', operator.operator_name);
-        if (city) {
-          billFetchParams.opt1 = city;
+        if (city || optional1) {
+          billFetchParams.opt1 = optional1 || city;
+        }
+      }
+      
+      // Handle operators that need city in opt2 (if any operators use it)
+      if (messageUpper.includes('CITY') && messageUpper.includes('OPTIONAL2') && !messageUpper.includes('OPTIONAL1') && !billFetchParams.opt2) {
+        console.log('🏙️ [Bill Fetch] Operator requires city in opt2:', operator.operator_name);
+        if (city || optional2) {
+          billFetchParams.opt2 = optional2 || city;
         }
       }
       
@@ -246,6 +254,26 @@ export async function POST(request: NextRequest) {
       
       // Service-specific error messages
       const serviceTypeUpper = service_type?.toUpperCase() || 'UNKNOWN';
+      
+      if (errorMessage.includes('Operator Offline')) {
+        let offlineMessage = '🔧 This electricity board is temporarily offline. This can happen due to:\n\n';
+        offlineMessage += '• Maintenance on the electricity board\'s system\n';
+        offlineMessage += '• Temporary connectivity issues\n';
+        offlineMessage += '• System updates in progress\n\n';
+        offlineMessage += '💡 **Solutions:**\n';
+        offlineMessage += '• Try again in a few minutes\n';
+        offlineMessage += '• Use manual amount entry if you know your bill amount\n';
+        if (serviceTypeUpper === 'ELECTRICITY' && operator.operator_name?.includes('Torrent Power')) {
+          offlineMessage += '• Try the generic "Torrent Power" operator as an alternative\n';
+        }
+        
+        return NextResponse.json({
+          success: false,
+          message: offlineMessage,
+          error_details: billResponse.data,
+          allow_manual: true,
+        }, { status: 503 });
+      }
       
       if (errorMessage.includes('Time Out') || errorMessage.includes('timeout') || errorMessage.includes('undefined Exceptions')) {
         let timeoutMessage = '⏰ Bill fetch timed out. This usually means:\n\n';

@@ -80,6 +80,11 @@ export default function MobileRechargePageEnhanced() {
   
   // Bill details for POSTPAID
   const [billDetails, setBillDetails] = useState<any>(null);
+  
+  // R-OFFER state
+  const [rOffers, setROffers] = useState<any[]>([]);
+  const [loadingOffers, setLoadingOffers] = useState(false);
+  const [showOffers, setShowOffers] = useState(false);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -116,6 +121,13 @@ export default function MobileRechargePageEnhanced() {
       const res = await fetch(`/api/recharge/operators?service_type=${serviceType}`);
       const data = await res.json();
       if (data.success) {
+        console.log('📋 [Frontend] Loaded operators for', serviceType, ':', data.data.length, 'operators');
+        console.log('📋 [Frontend] Sample operators:', data.data.slice(0, 3).map(op => ({
+          id: op.id,
+          name: op.operator_name,
+          kwikapi_opid: op.kwikapi_opid,
+          operator_code: op.operator_code
+        })));
         setOperators(data.data);
       }
     } catch (error) {
@@ -170,12 +182,30 @@ export default function MobileRechargePageEnhanced() {
         // Find operator by kwikapi_opid first (most reliable), then by operator_code
         let operator = null;
         
+        console.log('🔍 [Frontend] Looking for operator with kwikapi_opid:', data.data.kwikapi_opid);
+        console.log('🔍 [Frontend] Available operators:', operators.map(op => ({
+          id: op.id,
+          name: op.operator_name,
+          kwikapi_opid: op.kwikapi_opid,
+          operator_code: op.operator_code
+        })));
+        
         if (data.data.kwikapi_opid) {
-          operator = operators.find(op => op.kwikapi_opid === data.data.kwikapi_opid.toString());
+          // Try both string and number comparison for kwikapi_opid
+          operator = operators.find(op => 
+            op.kwikapi_opid === data.data.kwikapi_opid.toString() ||
+            op.kwikapi_opid === data.data.kwikapi_opid ||
+            op.kwikapi_opid?.toString() === data.data.kwikapi_opid?.toString()
+          );
+          console.log('🔍 [Frontend] Operator found by kwikapi_opid:', operator ? operator.operator_name : 'Not found');
         }
         
         if (!operator && data.data.operator_code) {
-          operator = operators.find(op => op.operator_code === data.data.operator_code);
+          operator = operators.find(op => 
+            op.operator_code === data.data.operator_code ||
+            op.operator_code?.toLowerCase() === data.data.operator_code?.toLowerCase()
+          );
+          console.log('🔍 [Frontend] Operator found by operator_code:', operator ? operator.operator_name : 'Not found');
         }
 
         // If still not found, try matching by operator name (case-insensitive)
@@ -184,6 +214,7 @@ export default function MobileRechargePageEnhanced() {
             op.operator_name.toLowerCase().includes(data.data.operator_name.toLowerCase()) ||
             data.data.operator_name.toLowerCase().includes(op.operator_name.toLowerCase())
           );
+          console.log('🔍 [Frontend] Operator found by name matching:', operator ? operator.operator_name : 'Not found');
         }
 
         const circle = circles.find(c => c.circle_code === data.data.circle_code);
@@ -196,8 +227,19 @@ export default function MobileRechargePageEnhanced() {
         if (operator) {
           setSelectedOperator(operator.id);
           console.log('✅ [Frontend] Operator selected:', operator.operator_name);
+          console.log('✅ [Frontend] Selected operator ID:', operator.id);
         } else {
-          console.warn('⚠️ [Frontend] Operator not found in database:', data.data.operator_code);
+          console.warn('⚠️ [Frontend] Operator not found in database for:', {
+            kwikapi_opid: data.data.kwikapi_opid,
+            operator_code: data.data.operator_code,
+            operator_name: data.data.operator_name
+          });
+          console.warn('⚠️ [Frontend] Available operators sample:', operators.slice(0, 5).map(op => ({
+            id: op.id,
+            name: op.operator_name,
+            kwikapi_opid: op.kwikapi_opid,
+            operator_code: op.operator_code
+          })));
         }
 
 
@@ -234,10 +276,105 @@ export default function MobileRechargePageEnhanced() {
 
   // Auto-detect when 10 digits are entered
   useEffect(() => {
-    if (mobileNumber.length === 10 && /^[0-9]{10}$/.test(mobileNumber) && serviceType === 'PREPAID') {
+    if (mobileNumber.length === 10 && /^[0-9]{10}$/.test(mobileNumber) && serviceType === 'PREPAID' && operators.length > 0) {
+      console.log('🚀 [Frontend] Auto-detecting for mobile:', mobileNumber, 'with', operators.length, 'operators loaded');
       detectOperator();
+      // Also check for R-OFFERS
+      checkROffers();
     }
-  }, [mobileNumber]);
+  }, [mobileNumber, operators]);
+
+  // Function to parse R-OFFER benefits from description
+  const parseOfferBenefits = (description: string) => {
+    const benefits = {
+      data: '',
+      validity: '',
+      talktime: '',
+      sms: '',
+      other: []
+    };
+
+    if (!description) return benefits;
+
+    const desc = description.toLowerCase();
+
+    // Extract data benefits
+    const dataMatch = desc.match(/(\d+\.?\d*)\s*(gb|mb)/i);
+    if (dataMatch) {
+      benefits.data = `${dataMatch[1]}${dataMatch[2].toUpperCase()}`;
+    }
+
+    // Extract validity
+    const validityMatch = desc.match(/(\d+)\s*(day|days|month|months)/i);
+    if (validityMatch) {
+      benefits.validity = `${validityMatch[1]} ${validityMatch[2]}`;
+    }
+
+    // Extract talktime
+    const talktimeMatch = desc.match(/(?:talktime|talk time|balance).*?₹?(\d+)/i);
+    if (talktimeMatch) {
+      benefits.talktime = `₹${talktimeMatch[1]}`;
+    }
+
+    // Extract SMS
+    const smsMatch = desc.match(/(\d+)\s*sms/i);
+    if (smsMatch) {
+      benefits.sms = `${smsMatch[1]} SMS`;
+    }
+
+    // Extract other benefits
+    if (desc.includes('unlimited')) benefits.other.push('Unlimited Calls');
+    if (desc.includes('roaming')) benefits.other.push('Roaming');
+    if (desc.includes('free')) benefits.other.push('Free Benefits');
+
+    return benefits;
+  };
+
+  const checkROffers = async () => {
+    if (!/^[0-9]{10}$/.test(mobileNumber)) {
+      return;
+    }
+
+    setLoadingOffers(true);
+    setROffers([]);
+    setShowOffers(false);
+
+    try {
+      console.log('🔍 [Frontend] Checking R-OFFERS for:', mobileNumber);
+
+      const res = await fetch('/api/recharge/r-offer-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile_number: mobileNumber }),
+      });
+
+      const data = await res.json();
+      console.log('📦 [Frontend] R-OFFER response:', data);
+
+      if (data.success && data.data.offers.length > 0) {
+        setROffers(data.data.offers);
+        setShowOffers(true);
+        console.log('✅ [Frontend] Found', data.data.offers.length, 'R-OFFERS for', data.data.operator_name);
+        console.log('📋 [Frontend] Sample R-OFFER data:', data.data.offers[0]);
+      } else {
+        console.log('ℹ️ [Frontend] No R-OFFERS found:', data.message);
+        setROffers([]);
+        setShowOffers(false);
+        
+        // Show info message if operator doesn't support R-OFFER
+        if (data.data?.supported === false) {
+          setMessage(`ℹ️ ${data.message}`);
+          setMessageType('info');
+        }
+      }
+    } catch (error: any) {
+      console.error('❌ [Frontend] R-OFFER check error:', error);
+      setROffers([]);
+      setShowOffers(false);
+    } finally {
+      setLoadingOffers(false);
+    }
+  };
 
   // Auto bill fetch for postpaid when mobile number and operator are selected
   useEffect(() => {
@@ -400,6 +537,13 @@ export default function MobileRechargePageEnhanced() {
     setSelectedPlan(plan);
     setAmount(plan.amount.toString());
     setIsModalOpen(false);
+    
+    // Show success message for R-OFFERS
+    if (plan.type === 'R-OFFER') {
+      setMessage(`✅ R-OFFER selected: ₹${plan.amount} - ${plan.validity}`);
+      setMessageType('success');
+    }
+    
     // Scroll to form on mobile
     if (window.innerWidth < 768) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -803,6 +947,148 @@ export default function MobileRechargePageEnhanced() {
                     ⚠️ <strong>Note:</strong> The amount has been auto-filled. Please verify before proceeding with payment.
                   </p>
                 </div>
+              </div>
+            )}
+
+            {/* R-OFFERS Section */}
+            {serviceType === 'PREPAID' && mobileNumber.length === 10 && /^[0-9]{10}$/.test(mobileNumber) && (
+              <div className="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-200 rounded-lg p-4">
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="text-3xl">🎁</div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-orange-900 mb-1">Special Offers for Your Number</h3>
+                    <p className="text-sm text-orange-700">
+                      {loadingOffers 
+                        ? 'Checking for exclusive offers...'
+                        : showOffers && rOffers.length > 0
+                        ? `Found ${rOffers.length} special offer${rOffers.length > 1 ? 's' : ''} for your number!`
+                        : message.includes('No special offers available')
+                        ? 'No special offers available for this number right now. Check back later!'
+                        : 'R-OFFER service is only available for Airtel and VI networks.'
+                      }
+                    </p>
+                  </div>
+                </div>
+
+                {loadingOffers && (
+                  <div className="flex items-center gap-2 text-orange-700">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-600"></div>
+                    <span className="text-sm">Finding best offers for you...</span>
+                  </div>
+                )}
+
+                {showOffers && rOffers.length > 0 && (
+                  <div className="mt-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-bold text-orange-900">🎁 Special R-OFFERS</h4>
+                      <span className="text-xs bg-orange-200 text-orange-800 px-2 py-1 rounded-full">
+                        {rOffers.length} offers
+                      </span>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      {rOffers.map((offer, index) => (
+                        <div
+                          key={index}
+                          onClick={() => {
+                            // Parse benefits from description
+                            const benefits = parseOfferBenefits(offer.description || offer.offer_text || '');
+                            
+                            // Create enhanced description with structured benefits
+                            let enhancedDescription = offer.description || offer.offer_text || 'Special offer for your number';
+                            
+                            if (benefits.data || benefits.talktime || benefits.sms || benefits.other.length > 0) {
+                              const benefitsList = [];
+                              if (benefits.data) benefitsList.push(`📶 Data: ${benefits.data}`);
+                              if (benefits.talktime) benefitsList.push(`📞 Talktime: ${benefits.talktime}`);
+                              if (benefits.sms) benefitsList.push(`💬 SMS: ${benefits.sms}`);
+                              if (benefits.other.length > 0) benefitsList.push(`⭐ ${benefits.other.join(', ')}`);
+                              
+                              enhancedDescription = `🎁 SPECIAL R-OFFER BENEFITS:\n\n${benefitsList.join('\n')}\n\n📋 Original Description:\n${enhancedDescription}`;
+                            }
+                            
+                            // Show R-OFFER details in modal
+                            setModalPlan({
+                              amount: offer.amount,
+                              validity: offer.validity || '1 Day', // Default validity if not provided
+                              description: enhancedDescription,
+                              type: 'R-OFFER',
+                              planName: `Special R-OFFER - ₹${offer.amount}${offer.discount ? ` (Save ₹${offer.discount})` : ''}`,
+                              discount: offer.discount,
+                              original_price: offer.original_price,
+                              offer_text: offer.offer_text !== offer.description ? offer.offer_text : undefined
+                            });
+                            setIsModalOpen(true);
+                          }}
+                          className={`relative bg-white border-2 rounded-lg p-3 cursor-pointer transition-all duration-200 ${
+                            selectedPlan?.amount === offer.amount && selectedPlan?.type === 'R-OFFER'
+                              ? 'border-orange-400 bg-orange-50 shadow-lg'
+                              : 'border-orange-200 hover:border-orange-300 hover:bg-orange-50'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            {/* Left side - Offer info */}
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                                  🎁 R-OFFER
+                                </span>
+                                {offer.discount && (
+                                  <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                                    Save ₹{offer.discount}
+                                  </span>
+                                )}
+                                {selectedPlan?.amount === offer.amount && selectedPlan?.type === 'R-OFFER' && (
+                                  <span className="bg-green-600 text-white text-xs px-2 py-1 rounded-full font-bold">
+                                    ✓ SELECTED
+                                  </span>
+                                )}
+                              </div>
+                              
+                              <p className="text-sm text-gray-700 mb-2 line-clamp-2">
+                                {offer.description || offer.offer_text || 'Special offer for your number'}
+                              </p>
+                              
+                              <div className="flex items-center gap-4 text-xs text-gray-600">
+                                {offer.validity && (
+                                  <span className="flex items-center gap-1">
+                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                                    </svg>
+                                    {offer.validity}
+                                  </span>
+                                )}
+                                {offer.type && (
+                                  <span className="flex items-center gap-1">
+                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M7 2a1 1 0 00-.707 1.707L7 4.414v3.758a1 1 0 01-.293.707l-4 4C.817 14.769 2.156 18 4.828 18h10.343c2.673 0 4.012-3.231 2.122-5.121l-4-4A1 1 0 0113 8.172V4.414l.707-.707A1 1 0 0013 2H7zm2 6.172V4h2v4.172a3 3 0 00.879 2.12l1.027 1.028a4 4 0 00-2.171.102l-.47.156a4 4 0 01-2.53 0l-.47-.156a4 4 0 00-2.171-.102L6.12 10.293A3 3 0 009 8.172z" clipRule="evenodd" />
+                                    </svg>
+                                    {offer.type}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Right side - Amount */}
+                            <div className="text-right ml-4">
+                              <div className="text-2xl font-bold text-orange-600">
+                                ₹{offer.amount}
+                              </div>
+                              {offer.original_price && offer.original_price > offer.amount && (
+                                <div className="text-xs text-gray-500 line-through">
+                                  ₹{offer.original_price}
+                                </div>
+                              )}
+                              <div className="text-xs text-orange-600 mt-1">
+                                👆 Click for details
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

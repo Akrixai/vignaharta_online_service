@@ -52,6 +52,13 @@ const menuItems: MenuItem[] = [
   { name: 'DTH Recharge', href: '/dashboard/recharge/dth', icon: '📺', roles: [UserRole.RETAILER, UserRole.CUSTOMER], requiresEmail: 'AkrixRetailerTest@gmail.com' },
   { name: 'Electricity Bill', href: '/dashboard/recharge/electricity', icon: '⚡', roles: [UserRole.RETAILER, UserRole.CUSTOMER], requiresEmail: 'AkrixRetailerTest@gmail.com' },
   { name: 'Recharge History', href: '/dashboard/recharge/transactions', icon: '📊', roles: [UserRole.RETAILER, UserRole.CUSTOMER], requiresEmail: 'AkrixRetailerTest@gmail.com' },
+
+  // PAN Services (Only for specific retailer)
+  { name: 'PAN Services', href: '/dashboard/pan-services', icon: '🆔', roles: [UserRole.RETAILER, UserRole.CUSTOMER], requiresEmail: 'AkrixRetailerTest@gmail.com' },
+  { name: 'New PAN Application', href: '/dashboard/pan-services/new', icon: '🆔', roles: [UserRole.RETAILER, UserRole.CUSTOMER], requiresEmail: 'AkrixRetailerTest@gmail.com' },
+  { name: 'PAN Correction', href: '/dashboard/pan-services/correction', icon: '✏️', roles: [UserRole.RETAILER, UserRole.CUSTOMER], requiresEmail: 'AkrixRetailerTest@gmail.com' },
+  { name: 'Incomplete PAN', href: '/dashboard/pan-services/incomplete', icon: '📋', roles: [UserRole.RETAILER, UserRole.CUSTOMER], requiresEmail: 'AkrixRetailerTest@gmail.com' },
+  { name: 'PAN Services History', href: '/dashboard/pan-services/history', icon: '📊', roles: [UserRole.RETAILER, UserRole.CUSTOMER], requiresEmail: 'AkrixRetailerTest@gmail.com' },
   
   // Coming Soon Services
   { name: 'Gas Bill', href: '/dashboard/coming-soon', icon: '🔥', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
@@ -74,6 +81,7 @@ const menuItems: MenuItem[] = [
   // Admin Management Section
   { name: 'KWIKAPI Wallet', href: '/dashboard/admin/kwikapi-wallet', icon: '💰', roles: [UserRole.ADMIN] },
   { name: 'Recharge Configuration', href: '/dashboard/admin/recharge-config', icon: '⚙️', roles: [UserRole.ADMIN] },
+  { name: 'PAN Commission Config', href: '/dashboard/admin/pan-commission', icon: '🆔', roles: [UserRole.ADMIN] },
   { name: 'Blog Management', href: '/dashboard/admin/blog', icon: '📝', roles: [UserRole.ADMIN, UserRole.EMPLOYEE] },
   { name: 'Manage Products', href: '/dashboard/admin/products', icon: '📦', roles: [UserRole.ADMIN] },
   { name: 'Manage Training', href: '/dashboard/admin/training', icon: '🎬', roles: [UserRole.ADMIN] },
@@ -356,6 +364,30 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </>
               )}
 
+              {/* PAN Services Section */}
+              {filteredMenuItems.some(item => 
+                ['PAN Services', 'New PAN Application', 'PAN Correction', 'Incomplete PAN', 'PAN Services History'].includes(item.name)
+              ) && (
+                <>
+                  <div className="pt-3 pb-1 px-2">
+                    <h3 className="text-xs font-semibold text-red-300 uppercase tracking-wider">PAN Services</h3>
+                  </div>
+                  {filteredMenuItems.filter(item => 
+                    ['PAN Services', 'New PAN Application', 'PAN Correction', 'Incomplete PAN', 'PAN Services History'].includes(item.name)
+                  ).map((item) => (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className="group flex items-center px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg text-red-100 hover:bg-red-700 hover:text-white transition-all duration-200 hover:shadow-md"
+                      onClick={() => setSidebarOpen(false)}
+                    >
+                      <span className="mr-2 sm:mr-3 text-base sm:text-lg flex-shrink-0">{item.icon}</span>
+                      <span className="truncate">{item.name}</span>
+                    </Link>
+                  ))}
+                </>
+              )}
+
               {/* Employee Section */}
               {filteredMenuItems.some(item => 
                 ['Employee Management', 'All Employees & Documents', 'Employee Certificate', 'Free Services', 'My Referrals', 'Organization Hierarchy', 'Training Videos'].includes(item.name)
@@ -406,14 +438,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
               {/* Admin Configuration Section */}
               {userRole === UserRole.ADMIN && filteredMenuItems.some(item => 
-                ['KWIKAPI Wallet', 'Recharge Configuration', 'Referral Configuration', 'Contact Configuration', 'Registration Fee', 'Platform & Yearly Fees', 'Penalty Management', 'Leaderboard Emails', 'Shareable Service Forms'].includes(item.name)
+                ['KWIKAPI Wallet', 'Recharge Configuration', 'PAN Commission Config', 'Referral Configuration', 'Contact Configuration', 'Registration Fee', 'Platform & Yearly Fees', 'Penalty Management', 'Leaderboard Emails', 'Shareable Service Forms'].includes(item.name)
               ) && (
                 <>
                   <div className="pt-3 pb-1 px-2">
                     <h3 className="text-xs font-semibold text-yellow-300 uppercase tracking-wider">Admin - Configuration</h3>
                   </div>
                   {filteredMenuItems.filter(item => 
-                    ['KWIKAPI Wallet', 'Recharge Configuration', 'Referral Configuration', 'Contact Configuration', 'Registration Fee', 'Platform & Yearly Fees', 'Penalty Management', 'Leaderboard Emails', 'Shareable Service Forms'].includes(item.name)
+                    ['KWIKAPI Wallet', 'Recharge Configuration', 'PAN Commission Config', 'Referral Configuration', 'Contact Configuration', 'Registration Fee', 'Platform & Yearly Fees', 'Penalty Management', 'Leaderboard Emails', 'Shareable Service Forms'].includes(item.name)
                   ).map((item) => (
                     <Link
                       key={item.name}

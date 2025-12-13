@@ -12,6 +12,9 @@ interface Plan {
   paidChannels?: string;
   hdChannels?: string;
   lastUpdate?: string;
+  discount?: number;
+  original_price?: number;
+  offer_text?: string;
 }
 
 interface PlanDetailsModalProps {
@@ -54,7 +57,13 @@ export default function PlanDetailsModal({ plan, isOpen, onClose, onSelect, serv
         }`}
       >
         {/* Header with Gradient */}
-        <div className={`relative ${serviceType === 'MOBILE' ? 'bg-gradient-to-r from-blue-600 to-blue-700' : 'bg-gradient-to-r from-purple-600 to-purple-700'} text-white p-6`}>
+        <div className={`relative ${
+          plan.type === 'R-OFFER' 
+            ? 'bg-gradient-to-r from-red-500 to-orange-500' 
+            : serviceType === 'MOBILE' 
+            ? 'bg-gradient-to-r from-blue-600 to-blue-700' 
+            : 'bg-gradient-to-r from-purple-600 to-purple-700'
+        } text-white p-6`}>
           <button
             onClick={onClose}
             className="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-full transition-colors"
@@ -67,7 +76,11 @@ export default function PlanDetailsModal({ plan, isOpen, onClose, onSelect, serv
           
           <div className="pr-12">
             <h2 className="text-2xl font-bold mb-2">
-              {serviceType === 'MOBILE' ? '📱 Mobile Recharge Plan' : '📺 DTH Recharge Plan'}
+              {plan.type === 'R-OFFER' 
+                ? '🎁 Special R-OFFER' 
+                : serviceType === 'MOBILE' 
+                ? '📱 Mobile Recharge Plan' 
+                : '📺 DTH Recharge Plan'}
             </h2>
             {plan.planName && (
               <p className="text-white/90 text-sm">{plan.planName}</p>
@@ -77,11 +90,43 @@ export default function PlanDetailsModal({ plan, isOpen, onClose, onSelect, serv
 
         {/* Content - Scrollable */}
         <div className="overflow-y-auto max-h-[calc(90vh-200px)] p-6">
+          {/* R-OFFER Savings Highlight */}
+          {plan.type === 'R-OFFER' && plan.discount && (
+            <div className="mb-6 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-2xl p-6">
+              <div className="flex items-center justify-center gap-4">
+                <div className="text-4xl">💰</div>
+                <div className="text-center">
+                  <div className="text-sm font-semibold text-green-600 mb-1">You Save</div>
+                  <div className="text-3xl font-black text-green-700">₹{plan.discount}</div>
+                  {plan.original_price && (
+                    <div className="text-sm text-gray-600">
+                      Original Price: <span className="line-through">₹{plan.original_price}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Amount and Validity - Prominent Display */}
           <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className={`${serviceType === 'MOBILE' ? 'bg-gradient-to-br from-blue-50 to-blue-100 border-blue-300' : 'bg-gradient-to-br from-purple-50 to-purple-100 border-purple-300'} border-2 rounded-2xl p-6 text-center`}>
-              <div className="text-sm font-semibold text-gray-600 mb-2">Recharge Amount</div>
-              <div className={`text-4xl font-black ${serviceType === 'MOBILE' ? 'text-blue-600' : 'text-purple-600'}`}>
+            <div className={`${
+              plan.type === 'R-OFFER' 
+                ? 'bg-gradient-to-br from-orange-50 to-red-100 border-orange-300' 
+                : serviceType === 'MOBILE' 
+                ? 'bg-gradient-to-br from-blue-50 to-blue-100 border-blue-300' 
+                : 'bg-gradient-to-br from-purple-50 to-purple-100 border-purple-300'
+            } border-2 rounded-2xl p-6 text-center`}>
+              <div className="text-sm font-semibold text-gray-600 mb-2">
+                {plan.type === 'R-OFFER' ? 'Offer Amount' : 'Recharge Amount'}
+              </div>
+              <div className={`text-4xl font-black ${
+                plan.type === 'R-OFFER' 
+                  ? 'text-orange-600' 
+                  : serviceType === 'MOBILE' 
+                  ? 'text-blue-600' 
+                  : 'text-purple-600'
+              }`}>
                 ₹{plan.amount}
               </div>
             </div>
@@ -100,8 +145,12 @@ export default function PlanDetailsModal({ plan, isOpen, onClose, onSelect, serv
           {/* Plan Type Badge */}
           {plan.type && (
             <div className="mb-6">
-              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-100 to-yellow-100 border-2 border-orange-300 text-orange-800 px-4 py-2 rounded-full font-semibold">
-                <span>🏷️</span>
+              <div className={`inline-flex items-center gap-2 ${
+                plan.type === 'R-OFFER' 
+                  ? 'bg-gradient-to-r from-red-100 to-orange-100 border-red-300 text-red-800' 
+                  : 'bg-gradient-to-r from-orange-100 to-yellow-100 border-orange-300 text-orange-800'
+              } border-2 px-4 py-2 rounded-full font-semibold`}>
+                <span>{plan.type === 'R-OFFER' ? '🎁' : '🏷️'}</span>
                 <span>{plan.type}</span>
               </div>
             </div>
@@ -152,13 +201,39 @@ export default function PlanDetailsModal({ plan, isOpen, onClose, onSelect, serv
           {/* Description */}
           <div className="mb-6">
             <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
-              <span>📝</span>
-              <span>Plan Details</span>
+              <span>{plan.type === 'R-OFFER' ? '🎁' : '📝'}</span>
+              <span>{plan.type === 'R-OFFER' ? 'Offer Details' : 'Plan Details'}</span>
             </h3>
-            <div className="bg-gray-50 border-2 border-gray-200 rounded-2xl p-5">
+            <div className={`${
+              plan.type === 'R-OFFER' 
+                ? 'bg-orange-50 border-orange-200' 
+                : 'bg-gray-50 border-gray-200'
+            } border-2 rounded-2xl p-5`}>
               <p className="text-gray-700 leading-relaxed whitespace-pre-line">
                 {plan.description}
               </p>
+              
+              {/* Additional R-OFFER text */}
+              {plan.type === 'R-OFFER' && plan.offer_text && plan.offer_text !== plan.description && (
+                <div className="mt-4 pt-4 border-t border-orange-200">
+                  <h4 className="font-semibold text-orange-800 mb-2">Additional Information:</h4>
+                  <p className="text-orange-700 leading-relaxed">
+                    {plan.offer_text}
+                  </p>
+                </div>
+              )}
+              
+              {/* R-OFFER Terms */}
+              {plan.type === 'R-OFFER' && (
+                <div className="mt-4 pt-4 border-t border-orange-200">
+                  <div className="flex items-start gap-2 text-sm text-orange-600">
+                    <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                    <span>This is a special R-OFFER from your operator. Terms and conditions may apply.</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -181,9 +256,15 @@ export default function PlanDetailsModal({ plan, isOpen, onClose, onSelect, serv
             </button>
             <button
               onClick={handleSelect}
-              className={`flex-1 px-6 py-3 ${serviceType === 'MOBILE' ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800' : 'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800'} text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl transform hover:scale-105`}
+              className={`flex-1 px-6 py-3 ${
+                plan.type === 'R-OFFER' 
+                  ? 'bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700' 
+                  : serviceType === 'MOBILE' 
+                  ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800' 
+                  : 'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800'
+              } text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl transform hover:scale-105`}
             >
-              Select This Plan
+              {plan.type === 'R-OFFER' ? 'Select This R-OFFER' : 'Select This Plan'}
             </button>
           </div>
         </div>
