@@ -17,9 +17,11 @@ export default function RetailerRegisterPage() {
   const [step, setStep] = useState(1); // 1 = Details, 2 = Payment
   const [pendingRegistrationId, setPendingRegistrationId] = useState('');
   const [registrationFee, setRegistrationFee] = useState<number>(1499);
+  const [gstPercentage, setGstPercentage] = useState<number>(18);
   
-  // No GST on registration
-  const totalPayable = registrationFee;
+  // Calculate GST on registration fee
+  const gstAmount = (registrationFee * gstPercentage) / 100;
+  const totalPayable = registrationFee + gstAmount;
 
   const [formData, setFormData] = useState({
     name: '',
@@ -43,11 +45,16 @@ export default function RetailerRegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Fetch registration fee
+    // Fetch registration fee and GST percentage
     fetch('/api/admin/registration-fees')
       .then(res => res.json())
       .then(data => {
-        if (data.fee) setRegistrationFee(parseFloat(data.fee.amount));
+        if (data.fee) {
+          setRegistrationFee(parseFloat(data.fee.amount));
+          if (data.fee.gst_percentage) {
+            setGstPercentage(parseFloat(data.fee.gst_percentage));
+          }
+        }
       });
   }, []);
 
@@ -223,7 +230,7 @@ export default function RetailerRegisterPage() {
           password: formData.password,
           recaptchaToken,
           base_amount: registrationFee,
-          gst_amount: 0,
+          gst_amount: gstAmount,
           total_amount: totalPayable
         }),
       });
@@ -621,9 +628,19 @@ export default function RetailerRegisterPage() {
 
               {/* Fee Breakdown */}
               <div className="bg-white rounded-xl p-5 shadow-lg border border-gray-200 space-y-3">
-                <div className="flex justify-between items-center pt-2">
-                  <span className="text-xl font-bold text-blue-600">Total Payable:</span>
-                  <span className="text-3xl font-extrabold text-blue-600">₹{totalPayable.toFixed(2)}</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-lg text-gray-700">Registration Fee:</span>
+                  <span className="text-lg font-semibold text-gray-800">₹{registrationFee.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-lg text-gray-700">GST ({gstPercentage}%):</span>
+                  <span className="text-lg font-semibold text-gray-800">₹{gstAmount.toFixed(2)}</span>
+                </div>
+                <div className="border-t border-gray-200 pt-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xl font-bold text-blue-600">Total Payable:</span>
+                    <span className="text-3xl font-extrabold text-blue-600">₹{totalPayable.toFixed(2)}</span>
+                  </div>
                 </div>
               </div>
 

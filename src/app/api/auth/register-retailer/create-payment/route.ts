@@ -136,10 +136,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Use total_amount from frontend (includes GST) or calculate from base fee
-    const amount = total_amount || parseFloat(feeConfig.amount);
+    // Calculate GST based on database configuration
     const baseAmount = base_amount || parseFloat(feeConfig.amount);
-    const gstAmountValue = gst_amount || 0;
+    const gstPercentage = feeConfig.gst_percentage || 18;
+    const calculatedGstAmount = (baseAmount * gstPercentage) / 100;
+    const gstAmountValue = gst_amount || calculatedGstAmount;
+    const amount = total_amount || (baseAmount + gstAmountValue);
     
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
@@ -217,6 +219,10 @@ export async function POST(request: NextRequest) {
         currency: 'INR',
         status: 'CREATED',
         payment_session_id: cashfreeData.payment_session_id,
+        base_amount: baseAmount,
+        gst_percentage: gstPercentage,
+        gst_amount: gstAmountValue,
+        total_amount: amount,
         metadata: {
           // Store registration details here temporarily
           name,

@@ -29,18 +29,32 @@ export async function PATCH(request: NextRequest) {
     if (!session || session.user.role !== UserRole.ADMIN) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const { amount, currency, description } = await request.json();
+    const { amount, currency, description, gst_percentage, gst_inclusive } = await request.json();
     if (amount === undefined || isNaN(amount)) {
       return NextResponse.json({ error: 'Amount is required and must be a number' }, { status: 400 });
     }
+    
+    const updateData: any = {
+      amount,
+      currency: currency || 'INR',
+      description: description || null,
+      updated_at: new Date().toISOString(),
+    };
+    
+    if (gst_percentage !== undefined) {
+      if (isNaN(gst_percentage) || gst_percentage < 0 || gst_percentage > 100) {
+        return NextResponse.json({ error: 'GST percentage must be a number between 0 and 100' }, { status: 400 });
+      }
+      updateData.gst_percentage = gst_percentage;
+    }
+    
+    if (gst_inclusive !== undefined) {
+      updateData.gst_inclusive = gst_inclusive;
+    }
+    
     const { data, error } = await supabaseAdmin
       .from('registration_fees')
-      .update({
-        amount,
-        currency: currency || 'INR',
-        description: description || null,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq('fee_type', 'RETAILER_REGISTRATION')
       .eq('is_active', true)
       .select()

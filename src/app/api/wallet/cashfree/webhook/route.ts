@@ -1,6 +1,100 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
+
+// Handle registration payment success
+async function handleRegistrationPaymentSuccess(registrationPayment: any, order: any, webhookData: any) {
+  try {
+    // Update registration payment status
+    await supabaseAdmin
+      .from('cashfree_registration_payments')
+      .update({
+        status: 'PAID',
+        payment_method: order.payment_method,
+        payment_time: new Date().toISOString(),
+        webhook_data: webhookData,
+      })
+      .eq('order_id', order.order_id);
+
+    // Get registration details from metadata
+    const metadata = registrationPayment.metadata;
+    
+    // Create user account
+    const { data: newUser, error: userError } = await supabaseAdmin
+      .from('users')
+      .insert({
+        name: metadata.name,
+        email: metadata.email,
+        phone: metadata.phone,
+        password_hash: metadata.password_hash,
+        address: metadata.address,
+        city: metadata.city,
+        state: metadata.state,
+        pincode: metadata.pincode,
+        business_name: metadata.business_name,
+        shop_photo_url: metadata.shop_photo_url,
+        role: 'RETAILER',
+        is_active: true,
+      })
+      .select()
+      .single();
+
+    if (userError || !newUser) {
+      console.error('Failed to create user:', userError);
+      throw new Error('Failed to create user account');
+    }
+
+    // Create wallet for the new user
+    await supabaseAdmin
+      .from('wallets')
+      .insert({
+        user_id: newUser.id,
+        balance: 0,
+      });
+
+    // Update registration payment with user_id
+    await supabaseAdmin
+      .from('cashfree_registration_payments')
+      .update({ user_id: newUser.id })
+      .eq('order_id', order.order_id);
+
+    // Create notification for new user
+    await supabaseAdmin.from('notifications').insert({
+      title: 'Registration Successful!',
+      message: `Welcome ${metadata.name}! Your retailer account has been created successfully. You can now start using our services.`,
+      type: 'REGISTRATION_SUCCESS',
+      target_users: [newUser.id],
+      data: {
+        registration_fee: registrationPayment.base_amount,
+        gst_amount: registrationPayment.gst_amount,
+        total_paid: registrationPayment.amount,
+        payment_method: order.payment_method,
+      },
+    });
+
+    // Create notification for admins
+    await supabaseAdmin.from('notifications').insert({
+      title: 'New Retailer Registration',
+      message: `${metadata.name} (${metadata.email}) has completed registration with payment of ₹${registrationPayment.amount}.`,
+      type: 'NEW_REGISTRATION',
+      target_roles: ['ADMIN'],
+      data: {
+        user_id: newUser.id,
+        user_name: metadata.name,
+        user_email: metadata.email,
+        registration_fee: registrationPayment.base_amount,
+        gst_amount: registrationPayment.gst_amount,
+        total_paid: registrationPayment.amount,
+      },
+    });
+
+    return NextResponse.json({ success: true, message: 'Registration completed successfully' });
+  } catch (error) {
+    console.error('Registration payment processing error:', error);
+    return NextResponse.json({ error: 'Failed to process registration' }, { status: 500 });
+  }
+}
 
 // POST /api/wallet/cashfree/webhook - Handle Cashfree payment webhooks
 export async function POST(request: NextRequest) {
@@ -35,16 +129,28 @@ export async function POST(request: NextRequest) {
     if (type === 'PAYMENT_SUCCESS_WEBHOOK') {
       const { order } = data;
       
-      // Get payment record
+      // Try to get wallet payment record first
       const { data: payment, error: paymentError } = await supabaseAdmin
         .from('cashfree_payments')
         .select('*')
         .eq('order_id', order.order_id)
         .single();
 
+      // If not found in wallet payments, check registration payments
       if (paymentError || !payment) {
-        console.error('Payment record not found:', order.order_id);
-        return NextResponse.json({ error: 'Payment not found' }, { status: 404 });
+        const { data: registrationPayment, error: regPaymentError } = await supabaseAdmin
+          .from('cashfree_registration_payments')
+          .select('*')
+          .eq('order_id', order.order_id)
+          .single();
+
+        if (regPaymentError || !registrationPayment) {
+          console.error('Payment record not found in both tables:', order.order_id);
+          return NextResponse.json({ error: 'Payment not found' }, { status: 404 });
+        }
+
+        // Handle registration payment success
+        return await handleRegistrationPaymentSuccess(registrationPayment, order, data);
       }
 
       // Update payment status
@@ -129,13 +235,39 @@ export async function POST(request: NextRequest) {
     if (type === 'PAYMENT_FAILED_WEBHOOK') {
       const { order } = data;
       
-      await supabaseAdmin
+      // Try wallet payments first
+      const { data: walletPayment } = await supabaseAdmin
         .from('cashfree_payments')
-        .update({
-          status: 'FAILED',
-          webhook_data: data,
-        })
-        .eq('order_id', order.order_id);
+        .select('id')
+        .eq('order_id', order.order_id)
+        .single();
+
+      if (walletPayment) {
+        await supabaseAdmin
+          .from('cashfree_payments')
+          .update({
+            status: 'FAILED',
+            webhook_data: data,
+          })
+          .eq('order_id', order.order_id);
+      } else {
+        // Check registration payments
+        const { data: registrationPayment } = await supabaseAdmin
+          .from('cashfree_registration_payments')
+          .select('id')
+          .eq('order_id', order.order_id)
+          .single();
+
+        if (registrationPayment) {
+          await supabaseAdmin
+            .from('cashfree_registration_payments')
+            .update({
+              status: 'FAILED',
+              webhook_data: data,
+            })
+            .eq('order_id', order.order_id);
+        }
+      }
 
       return NextResponse.json({ success: true, message: 'Payment failure recorded' });
     }
