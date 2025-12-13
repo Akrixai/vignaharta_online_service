@@ -86,10 +86,29 @@ async function handleRegistrationPaymentSuccess(registrationPayment: any, order:
       .update({ user_id: newUser.id })
       .eq('order_id', order.order_id);
 
+    // Send welcome email with credentials
+    try {
+      const { sendWelcomeRetailerEmail } = await import('@/lib/email-service');
+      const emailSent = await sendWelcomeRetailerEmail(
+        metadata.name,
+        metadata.email,
+        metadata.password // This is the plain text password from metadata
+      );
+      
+      if (emailSent) {
+        console.log('Welcome email sent successfully to:', metadata.email);
+      } else {
+        console.error('Failed to send welcome email to:', metadata.email);
+      }
+    } catch (emailError) {
+      console.error('Error sending welcome email:', emailError);
+      // Don't fail the registration if email fails
+    }
+
     // Create notification for new user
     await supabaseAdmin.from('notifications').insert({
       title: 'Registration Successful!',
-      message: `Welcome ${metadata.name}! Your retailer account has been created successfully. You can now start using our services.`,
+      message: `Welcome ${metadata.name}! Your retailer account has been created successfully. You can now start using our services. Check your email for login credentials.`,
       type: 'REGISTRATION_SUCCESS',
       target_users: [newUser.id],
       data: {
@@ -97,6 +116,7 @@ async function handleRegistrationPaymentSuccess(registrationPayment: any, order:
         gst_amount: registrationPayment.gst_amount,
         total_paid: registrationPayment.amount,
         payment_method: order.payment_method,
+        email_sent: true,
       },
     });
 

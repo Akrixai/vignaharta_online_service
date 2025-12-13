@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       // User already created, return credentials for auto-login
       const { data: user } = await supabaseAdmin
         .from('users')
-        .select('email, role')
+        .select('name, email, role')
         .eq('id', registrationPayment.user_id)
         .single();
 
@@ -51,6 +51,7 @@ export async function POST(request: NextRequest) {
             email: user.email,
             password: registrationPayment.metadata.plain_password,
             role: user.role,
+            name: user.name,
           },
         });
       }
@@ -120,6 +121,25 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Send welcome email with credentials
+    try {
+      const { sendWelcomeRetailerEmail } = await import('@/lib/email-service');
+      const emailSent = await sendWelcomeRetailerEmail(
+        metadata.name,
+        metadata.email,
+        metadata.plain_password // Use plain password for email
+      );
+      
+      if (emailSent) {
+        console.log('Welcome email sent successfully to:', metadata.email);
+      } else {
+        console.error('Failed to send welcome email to:', metadata.email);
+      }
+    } catch (emailError) {
+      console.error('Error sending welcome email:', emailError);
+      // Don't fail the registration if email fails
+    }
+
     // Create notification for admins
     await supabaseAdmin.from('notifications').insert({
       title: 'New Retailer Registration',
@@ -143,6 +163,7 @@ export async function POST(request: NextRequest) {
         email: metadata.email,
         password: metadata.plain_password,
         role: 'RETAILER',
+        name: metadata.name,
       },
     });
 

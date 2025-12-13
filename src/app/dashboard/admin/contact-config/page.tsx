@@ -63,15 +63,11 @@ export default function ContactConfigPage() {
   const fetchConfig = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/config?category=CONTACT');
+      const response = await fetch('/api/contact-config');
       const result = await response.json();
       
       if (result.success && result.data) {
-        const configData: any = {};
-        result.data.forEach((item: any) => {
-          configData[item.config_key] = item.config_value;
-        });
-        setConfig(configData as ContactConfig);
+        setConfig(result.data as ContactConfig);
       }
     } catch (error) {
       console.error('Error fetching config:', error);
@@ -85,26 +81,10 @@ export default function ContactConfigPage() {
     try {
       setSaving(true);
 
-      const configs = Object.entries(config).map(([key, value]) => {
-        let config_type = 'STRING';
-        if (key.includes('email')) config_type = 'EMAIL';
-        else if (key.includes('phone') || key.includes('whatsapp')) config_type = 'PHONE';
-        else if (key.includes('url')) config_type = 'URL';
-
-        return {
-          config_key: key,
-          config_value: value,
-          config_type,
-          category: 'CONTACT',
-          description: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-          is_public: true
-        };
-      });
-
-      const response = await fetch('/api/config', {
+      const response = await fetch('/api/contact-config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ configs })
+        body: JSON.stringify({ config })
       });
 
       const data = await response.json();

@@ -46,6 +46,9 @@ function PaymentSuccessContent() {
             setProcessing(false);
             // Account created successfully, auto-login and redirect to dashboard
             if (result.credentials) {
+              // Show success message
+              console.log('Auto-login attempt for:', result.credentials.email);
+              
               // Auto-login using NextAuth signIn
               const loginResult = await signIn('credentials', {
                 email: result.credentials.email,
@@ -54,21 +57,23 @@ function PaymentSuccessContent() {
                 redirect: false,
               });
 
-              if (loginResult?.ok) {
+              if (loginResult?.ok && !loginResult.error) {
                 // Login successful, redirect to dashboard
+                console.log('Auto-login successful, redirecting to dashboard');
                 redirectTimer = setTimeout(() => {
                   window.location.href = '/dashboard';
                 }, 2000);
               } else {
-                // Login failed, redirect to login page
+                // Login failed, redirect to login page with message
+                console.error('Auto-login failed:', loginResult?.error);
                 redirectTimer = setTimeout(() => {
-                  window.location.href = '/login?registered=true&error=auto_login_failed';
+                  window.location.href = `/login?registered=true&email=${encodeURIComponent(result.credentials.email)}&message=Account created successfully! Please login with your credentials. Check your email for login details.`;
                 }, 3000);
               }
             } else {
               // No credentials, redirect to login
               redirectTimer = setTimeout(() => {
-                window.location.href = '/login?registered=true';
+                window.location.href = '/login?registered=true&message=Account created successfully! Please check your email for login credentials.';
               }, 3000);
             }
           } else {
@@ -185,13 +190,18 @@ function PaymentSuccessContent() {
                 </div>
               ) : (
                 <div className="bg-green-50 p-4 rounded-lg mb-6 text-left">
-                  <h3 className="font-bold text-green-800 mb-2">✅ Account Created!</h3>
+                  <h3 className="font-bold text-green-800 mb-2">✅ Account Created Successfully!</h3>
                   <ul className="text-sm text-green-700 space-y-1">
                     <li>• Your retailer account is ready</li>
-                    <li>• You can now login with your credentials</li>
+                    <li>• Welcome email sent with login credentials</li>
                     <li>• Start providing services and earn commission</li>
-                    <li>• Redirecting to login...</li>
+                    <li>• Logging you in automatically...</li>
                   </ul>
+                  <div className="mt-3 p-2 bg-blue-50 rounded border border-blue-200">
+                    <p className="text-xs text-blue-700 font-medium">
+                      💡 Check your email for login credentials and welcome information!
+                    </p>
+                  </div>
                 </div>
               )
             ) : (

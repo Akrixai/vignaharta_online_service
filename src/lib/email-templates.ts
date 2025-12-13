@@ -165,74 +165,124 @@ export function getWelcomeRetailerEmailTemplate(
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome to विघ्नहर्ता ऑनलाईन सर्विसेस</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f8f9fa; }
-        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
-        .header { background: linear-gradient(135deg, #059669, #047857); color: white; padding: 30px; text-align: center; }
-        .logo { font-size: 28px; font-weight: bold; margin-bottom: 10px; }
-        .content { padding: 40px 30px; }
-        .credentials-box { background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 2px solid #86efac; border-radius: 12px; padding: 25px; margin: 20px 0; }
-        .cta-button { background: linear-gradient(135deg, #059669, #047857); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; margin: 20px 0; }
-        .footer { background-color: #f3f4f6; padding: 30px; text-align: center; color: #6b7280; }
-        .highlight { background-color: #fef3c7; padding: 2px 6px; border-radius: 4px; color: #92400e; }
-        .warning { background-color: #fef2f2; border: 1px solid #fca5a5; padding: 15px; border-radius: 8px; color: #dc2626; margin: 15px 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: linear-gradient(135deg, #f0fdf4, #dcfce7); }
+        .container { max-width: 650px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 20px 40px rgba(0,0,0,0.1); border-radius: 20px; overflow: hidden; }
+        .header { background: linear-gradient(135deg, #059669, #047857, #065f46); color: white; padding: 40px 30px; text-align: center; position: relative; }
+        .header::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>'); }
+        .logo { font-size: 32px; font-weight: bold; margin-bottom: 15px; position: relative; z-index: 1; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .header h1 { position: relative; z-index: 1; margin: 0; font-size: 28px; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+        .header p { position: relative; z-index: 1; margin: 10px 0 0 0; opacity: 0.9; font-size: 16px; }
+        .content { padding: 50px 40px; }
+        .welcome-badge { background: linear-gradient(135deg, #fef3c7, #fde68a); border: 2px solid #f59e0b; border-radius: 50px; padding: 15px 25px; display: inline-block; margin-bottom: 30px; }
+        .credentials-box { background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 3px solid #86efac; border-radius: 16px; padding: 30px; margin: 30px 0; box-shadow: 0 10px 25px rgba(34, 197, 94, 0.1); }
+        .credentials-box h3 { color: #059669; margin-top: 0; font-size: 20px; display: flex; align-items: center; }
+        .credential-item { background: white; padding: 15px; border-radius: 10px; margin: 15px 0; border-left: 4px solid #059669; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .password-display { background-color: #f8fafc; padding: 12px 16px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 16px; font-weight: bold; color: #1e293b; border: 2px dashed #059669; letter-spacing: 1px; }
+        .cta-button { background: linear-gradient(135deg, #059669, #047857); color: white; padding: 18px 35px; text-decoration: none; border-radius: 12px; display: inline-block; font-weight: bold; margin: 25px 0; font-size: 16px; box-shadow: 0 8px 20px rgba(5, 150, 105, 0.3); transition: all 0.3s ease; }
+        .cta-button:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(5, 150, 105, 0.4); }
+        .info-section { background: linear-gradient(135deg, #eff6ff, #dbeafe); padding: 25px; border-radius: 12px; margin: 25px 0; border-left: 5px solid #3b82f6; }
+        .benefits-section { background: linear-gradient(135deg, #f0fdf4, #dcfce7); padding: 25px; border-radius: 12px; margin: 25px 0; border-left: 5px solid #22c55e; }
+        .footer { background: linear-gradient(135deg, #f3f4f6, #e5e7eb); padding: 40px 30px; text-align: center; color: #6b7280; }
+        .highlight { background: linear-gradient(135deg, #fef3c7, #fde68a); padding: 4px 8px; border-radius: 6px; color: #92400e; font-weight: bold; }
+        .warning { background: linear-gradient(135deg, #fef2f2, #fee2e2); border: 2px solid #fca5a5; padding: 20px; border-radius: 12px; color: #dc2626; margin: 20px 0; }
+        .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+        .feature-item { background: white; padding: 15px; border-radius: 8px; border-left: 3px solid #059669; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .step-item { background: white; padding: 15px; border-radius: 8px; margin: 10px 0; border-left: 3px solid #22c55e; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        @media (max-width: 600px) { .feature-grid { grid-template-columns: 1fr; } .content { padding: 30px 20px; } }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <div class="logo">🏛️ विघ्नहर्ता ऑनलाईन सर्विसेस</div>
-            <h1>Welcome to Our Network!</h1>
-            <p>Your retailer account is now active</p>
+            <h1>🎉 Welcome to Our Network!</h1>
+            <p>Your retailer account is now active and ready to use</p>
         </div>
         
         <div class="content">
-            <h2>Welcome ${name}! 🎉</h2>
+            <div class="welcome-badge">
+                <strong>🌟 Congratulations ${name}! 🌟</strong>
+            </div>
             
-            <p>Welcome to <span class="highlight">विघ्नहर्ता ऑनलाईन सर्विसेस</span>! You are now part of the <span class="highlight">विघ्नहर्ता ऑनलाईन सर्विसेस</span> network, helping citizens access government services easily.</p>
+            <p style="font-size: 18px; line-height: 1.6; color: #374151;">
+                Welcome to <span class="highlight">विघ्नहर्ता ऑनलाईन सर्विसेस</span>! You are now officially part of our trusted network of service providers, helping citizens access government services with ease and efficiency.
+            </p>
             
             <div class="credentials-box">
-                <h3 style="color: #059669; margin-top: 0;">🔐 Your Login Credentials</h3>
-                <p><strong>Email:</strong> ${email}</p>
-                <p><strong>Password:</strong> <code style="background-color: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-family: monospace;">${password}</code></p>
+                <h3>🔐 Your Login Credentials</h3>
+                <div class="credential-item">
+                    <strong>📧 Email Address:</strong><br>
+                    <span style="color: #059669; font-size: 16px; font-weight: bold;">${email}</span>
+                </div>
+                <div class="credential-item">
+                    <strong>🔑 Password:</strong><br>
+                    <div class="password-display">${password}</div>
+                </div>
                 
                 <div class="warning">
                     <strong>⚠️ Important Security Notice:</strong><br>
-                    Please change your password after your first login for security purposes.
+                    For your account security, please change your password immediately after your first login. Never share your credentials with anyone.
                 </div>
             </div>
             
             <div style="text-align: center;">
                 <a href="${process.env.NEXTAUTH_URL || 'https://www.vighnahartaonlineservice.in'}/login?role=retailer" class="cta-button">
-                    🚀 Login to Dashboard
+                    🚀 Login to Your Dashboard
                 </a>
             </div>
             
-            <div style="background-color: #eff6ff; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #3b82f6;">
-                <h3 style="color: #1e40af; margin-top: 0;">🎯 What You Can Do:</h3>
-                <ul style="color: #1e40af; margin: 0;">
-                    <li><strong>Offer Government Services:</strong> Help customers with various government applications</li>
-                    <li><strong>Earn Commission:</strong> Get paid for every successful service completion</li>
-                    <li><strong>Manage Wallet:</strong> Track your earnings and manage payments</li>
-                    <li><strong>Real-time Support:</strong> Get help from our employee team when needed</li>
-                </ul>
+            <div class="info-section">
+                <h3 style="color: #1e40af; margin-top: 0; font-size: 20px;">🎯 What You Can Do Now:</h3>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <strong>🏛️ Government Services</strong><br>
+                        <small>Help customers with 100+ government applications</small>
+                    </div>
+                    <div class="feature-item">
+                        <strong>💰 Earn Commission</strong><br>
+                        <small>Get paid up to 15% for every successful service</small>
+                    </div>
+                    <div class="feature-item">
+                        <strong>💳 Digital Wallet</strong><br>
+                        <small>Track earnings and manage payments easily</small>
+                    </div>
+                    <div class="feature-item">
+                        <strong>🆘 24/7 Support</strong><br>
+                        <small>Get help from our employee team anytime</small>
+                    </div>
+                </div>
             </div>
             
-            <div style="background-color: #f0fdf4; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #22c55e;">
-                <h3 style="color: #15803d; margin-top: 0;">📋 Next Steps:</h3>
-                <ol style="color: #15803d; margin: 0;">
-                    <li>Login to your dashboard using the credentials above</li>
-                    <li>Complete your profile setup</li>
-                    <li>Browse available services</li>
-                    <li>Start helping customers and earning money!</li>
-                </ol>
+            <div class="benefits-section">
+                <h3 style="color: #15803d; margin-top: 0; font-size: 20px;">📋 Your Next Steps:</h3>
+                <div class="step-item">
+                    <strong>1.</strong> Login to your dashboard using the credentials above
+                </div>
+                <div class="step-item">
+                    <strong>2.</strong> Complete your profile setup and verify your details
+                </div>
+                <div class="step-item">
+                    <strong>3.</strong> Browse available services and understand the process
+                </div>
+                <div class="step-item">
+                    <strong>4.</strong> Start helping customers and earning commission today!
+                </div>
+            </div>
+
+            <div style="background: linear-gradient(135deg, #fef7cd, #fef3c7); padding: 20px; border-radius: 12px; border: 2px solid #f59e0b; text-align: center; margin: 30px 0;">
+                <h4 style="color: #92400e; margin: 0 0 10px 0;">🎊 Special Welcome Bonus</h4>
+                <p style="color: #92400e; margin: 0; font-size: 14px;">
+                    As a new retailer, you'll receive priority support during your first month. Our team is here to help you succeed!
+                </p>
             </div>
         </div>
         
         <div class="footer">
-            <p><strong>विघ्नहर्ता ऑनलाईन सर्विसेस</strong></p>
-            <p>Making government services accessible to everyone</p>
-            <p style="font-size: 12px; margin-top: 20px;">
-                Need help? Contact our support team or use the chat feature in your dashboard.
+            <p style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">विघ्नहर्ता ऑनलाईन सर्विसेस</p>
+            <p style="margin-bottom: 20px;">Making government services accessible to everyone</p>
+            <p style="font-size: 12px; color: #9ca3af;">
+                Need help? Contact our support team at <strong>vighnahartaenterprises.sangli@gmail.com</strong><br>
+                or use the chat feature in your dashboard for instant assistance.
             </p>
         </div>
         ${getAkrixBrandingFooter()}
@@ -241,34 +291,43 @@ export function getWelcomeRetailerEmailTemplate(
 </html>`;
 
   const text = `
-Welcome to विघ्नहर्ता ऑनलाईन सर्विसेस!
+🎉 Welcome to विघ्नहर्ता ऑनलाईन सर्विसेस!
 
-Hello ${name}!
+Congratulations ${name}!
 
-Congratulations! Your retailer account has been successfully created.
+Your retailer account has been successfully created and is now active. You are now part of our trusted network of service providers!
 
-Your Login Credentials:
+🔐 YOUR LOGIN CREDENTIALS:
 Email: ${email}
 Password: ${password}
 
-IMPORTANT: Please change your password after your first login for security.
+⚠️ IMPORTANT SECURITY NOTICE:
+Please change your password immediately after your first login for account security. Never share your credentials with anyone.
 
-Login here: ${process.env.NEXTAUTH_URL || 'https://www.vighnahartaonlineservice.in'}/login?role=retailer
+🚀 LOGIN TO YOUR DASHBOARD:
+${process.env.NEXTAUTH_URL || 'https://www.vighnahartaonlineservice.in'}/login?role=retailer
 
-What You Can Do:
-- Offer Government Services: Help customers with various government applications
-- Earn Commission: Get paid for every successful service completion
-- Manage Wallet: Track your earnings and manage payments
-- Real-time Support: Get help from our employee team when needed
+🎯 WHAT YOU CAN DO NOW:
+• Government Services: Help customers with 100+ government applications
+• Earn Commission: Get paid up to 15% for every successful service
+• Digital Wallet: Track your earnings and manage payments easily
+• 24/7 Support: Get help from our employee team anytime
 
-Next Steps:
+📋 YOUR NEXT STEPS:
 1. Login to your dashboard using the credentials above
-2. Complete your profile setup
-3. Browse available services
-4. Start helping customers and earning money!
+2. Complete your profile setup and verify your details
+3. Browse available services and understand the process
+4. Start helping customers and earning commission today!
+
+🎊 SPECIAL WELCOME BONUS:
+As a new retailer, you'll receive priority support during your first month. Our team is here to help you succeed!
+
+Need help? Contact our support team at vighnahartaenterprises.sangli@gmail.com or use the chat feature in your dashboard for instant assistance.
 
 Best regards,
 विघ्नहर्ता ऑनलाईन सर्विसेस Team
+
+Making government services accessible to everyone
 ${getAkrixBrandingText()}`;
 
   return { subject, html, text };
