@@ -37,7 +37,7 @@ const Logo: React.FC<LogoProps> = ({
       {/* Logo with modern styling */}
       <div className="flex-shrink-0 p-1 bg-white rounded-full shadow-lg border-2 border-red-600">
         <Image
-          src="/vignaharta.png"
+          src="/vignaharta.png?v=2"
           alt="विघ्नहर्ता ऑनलाईन सर्विसेस Logo"
           width={size === 'sm' ? 48 : size === 'md' ? 64 : size === 'lg' ? 80 : size === 'xl' ? 96 : 128}
           height={size === 'sm' ? 48 : size === 'md' ? 64 : size === 'lg' ? 80 : size === 'xl' ? 96 : 128}

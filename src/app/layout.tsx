@@ -10,7 +10,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { defaultSEO, structuredData } from "@/lib/seo";
 // removed google analytics Script import to disable GA
 
-const inter = Inter({ 
+const inter = Inter({
   subsets: ["latin"],
   display: 'swap',
   variable: '--font-inter'
@@ -39,19 +39,19 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${notoSansDevanagari.variable}`}>
       <head>
-        <link rel="icon" href="https://cdn.vighnahartaonlineservice.in/favicon.ico" sizes="any" />
-        <link rel="icon" href="https://cdn.vighnahartaonlineservice.in/vignaharta.png" type="image/png" />
-        <link rel="apple-touch-icon" href="https://cdn.vighnahartaonlineservice.in/apple-touch-icon.png" />
+        <link rel="icon" href="/favicon.ico?v=2" sizes="any" />
+        <link rel="icon" href="/vignaharta.png?v=2" type="image/png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2" />
         <meta name="theme-color" content="#dc2626" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="format-detection" content="telephone=no" />
-        
+
         {/* Preconnect to reCAPTCHA Enterprise */}
         <link rel="preconnect" href="https://www.google.com" />
         <link rel="preconnect" href="https://www.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://www.google.com" />
         <link rel="dns-prefetch" href="https://www.gstatic.com" />
-        
+
         {/* Hreflang tags for multilingual support */}
         <link rel="alternate" hrefLang="en" href="https://www.vighnahartaonlineservice.in" />
         <link rel="alternate" hrefLang="en-IN" href="https://www.vighnahartaonlineservice.in" />
@@ -170,8 +170,8 @@ export default function RootLayout({
         <NextAuthSessionProvider>
           <LanguageProvider>
             <NotificationManager>
-                <ErrorBoundary>
-                  {children}
+              <ErrorBoundary>
+                {children}
                 <Toaster
                   position="top-right"
                   toastOptions={{

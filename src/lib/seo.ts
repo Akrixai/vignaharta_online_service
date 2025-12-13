@@ -65,7 +65,7 @@ export const defaultSEO: Metadata = {
     description: defaultDescription,
     images: [
       {
-        url: '/images/og-image.jpg',
+        url: '/images/og-image.jpg?v=2',
         width: 1200,
         height: 630,
         alt: 'Vighnaharta Online Services - Government Portal',
@@ -76,7 +76,7 @@ export const defaultSEO: Metadata = {
     card: 'summary_large_image',
     title: `${siteName} - Government Services Online Portal India`,
     description: defaultDescription,
-    images: ['/images/twitter-image.jpg'],
+    images: ['/images/twitter-image.jpg?v=2'],
     creator: '@VighnahartaOnline',
   },
   robots: {
@@ -105,7 +105,7 @@ export function generateSEO(config: SEOConfig): Metadata {
   const title = config.title;
   const description = config.description;
   const canonical = config.canonical ? `${baseUrl}${config.canonical}` : baseUrl;
-  const ogImage = config.ogImage || '/images/og-image.jpg';
+  const ogImage = config.ogImage || '/images/og-image.jpg?v=2';
 
   return {
     title,
@@ -280,7 +280,7 @@ export const structuredData = {
     '@type': 'Organization',
     name: siteName,
     url: baseUrl,
-    logo: `${baseUrl}/images/logo.png`,
+    logo: `${baseUrl}/images/logo.png?v=2`,
     description: defaultDescription,
     contactPoint: {
       '@type': 'ContactPoint',
@@ -301,7 +301,7 @@ export const structuredData = {
     '@id': `${baseUrl}/#organization`,
     name: siteName,
     url: baseUrl,
-    logo: `${baseUrl}/images/logo.png`,
+    logo: `${baseUrl}/images/logo.png?v=2`,
     description: defaultDescription,
     address: {
       '@type': 'PostalAddress',
