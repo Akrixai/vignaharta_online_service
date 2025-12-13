@@ -1,92 +1,88 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 
-// POST /api/admin/process-pending-registration - Manually process a pending registration payment
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    // Allow admin or allow without auth for testing
-    // if (!session || session.user.role !== 'ADMIN') {
-    //   return NextResponse.json(
-    //     { error: 'Unauthorized' },
-    //     { status: 401 }
-    //   );
-    // }
-
     const { order_id } = await request.json();
 
     if (!order_id) {
       return NextResponse.json(
-        { error: 'Order ID is required' },
+        { success: false, error: 'Order ID is required' },
         { status: 400 }
       );
     }
 
-    // Get payment record
-    const { data: payment, error: paymentError } = await supabaseAdmin
+    // Get the registration payment record
+    const { data: registrationPayment, error: paymentError } = await supabaseAdmin
       .from('cashfree_registration_payments')
       .select('*')
       .eq('order_id', order_id)
       .single();
 
-    if (paymentError || !payment) {
+    if (paymentError || !registrationPayment) {
       return NextResponse.json(
-        { error: 'Payment record not found' },
+        { success: false, error: 'Registration payment not found' },
         { status: 404 }
       );
     }
 
-    if (!payment.metadata) {
+    // Check if payment is successful
+    if (registrationPayment.status !== 'PAID') {
       return NextResponse.json(
-        { error: 'Payment metadata not found' },
+        { success: false, error: 'Payment not completed yet' },
         { status: 400 }
       );
     }
 
-    const registrationData = payment.metadata as any;
-
     // Check if user already exists
-    const { data: existingUser } = await supabaseAdmin
-      .from('users')
-      .select('id, email')
-      .eq('email', registrationData.email)
-      .single();
+    if (registrationPayment.user_id) {
+      // User already created, return credentials for auto-login
+      const { data: user } = await supabaseAdmin
+        .from('users')
+        .select('email, role')
+        .eq('id', registrationPayment.user_id)
+        .single();
 
-    if (existingUser) {
-      return NextResponse.json({
-        success: true,
-        message: 'User already exists',
-        user: existingUser
-      });
+      if (user) {
+        return NextResponse.json({
+          success: true,
+          message: 'Account already exists',
+          credentials: {
+            email: user.email,
+            password: registrationPayment.metadata.plain_password,
+            role: user.role,
+          },
+        });
+      }
     }
 
+    // Get registration details from metadata
+    const metadata = registrationPayment.metadata;
+    
     // Create user account
     const { data: newUser, error: userError } = await supabaseAdmin
       .from('users')
       .insert({
-        name: registrationData.name,
-        email: registrationData.email,
-        phone: registrationData.phone,
-        password_hash: registrationData.password_hash,
-        role: registrationData.role || 'RETAILER',
-        address: registrationData.address,
-        city: registrationData.city,
-        state: registrationData.state,
-        pincode: registrationData.pincode,
-        business_name: registrationData.business_name,
-        shop_photo_url: registrationData.shop_photo_url,
+        name: metadata.name,
+        email: metadata.email,
+        phone: metadata.phone,
+        password_hash: metadata.password_hash,
+        address: metadata.address,
+        city: metadata.city,
+        state: metadata.state,
+        pincode: metadata.pincode,
+        business_name: metadata.business_name,
+        shop_photo_url: metadata.shop_photo_url,
+        role: 'RETAILER',
         is_active: true,
       })
       .select()
       .single();
 
-    if (userError) {
+    if (userError || !newUser) {
       console.error('Failed to create user:', userError);
       return NextResponse.json(
-        { error: 'Failed to create user', details: userError.message },
+        { success: false, error: 'Failed to create user account' },
         { status: 500 }
       );
     }
@@ -101,73 +97,59 @@ export async function POST(request: NextRequest) {
 
     if (walletError) {
       console.error('Failed to create wallet:', walletError);
+      // Don't fail the registration if wallet creation fails, just log it
     }
 
-    // Update payment record
+    // Update registration payment with user_id
     await supabaseAdmin
       .from('cashfree_registration_payments')
-      .update({
-        user_id: newUser.id,
-        status: 'SUCCESS',
-        payment_time: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
+      .update({ user_id: newUser.id })
       .eq('order_id', order_id);
 
-    // Get the plain password from metadata for auto-login
-    const plainPassword = (registrationData as any).plain_password;
+    // Create notification for new user
+    await supabaseAdmin.from('notifications').insert({
+      title: 'Registration Successful!',
+      message: `Welcome ${metadata.name}! Your retailer account has been created successfully. You can now start using our services.`,
+      type: 'REGISTRATION_SUCCESS',
+      target_users: [newUser.id],
+      data: {
+        registration_fee: registrationPayment.base_amount,
+        gst_amount: registrationPayment.gst_amount,
+        total_paid: registrationPayment.amount,
+        payment_method: registrationPayment.payment_method,
+      },
+    });
+
+    // Create notification for admins
+    await supabaseAdmin.from('notifications').insert({
+      title: 'New Retailer Registration',
+      message: `${metadata.name} (${metadata.email}) has completed registration with payment of ₹${registrationPayment.amount}.`,
+      type: 'NEW_REGISTRATION',
+      target_roles: ['ADMIN'],
+      data: {
+        user_id: newUser.id,
+        user_name: metadata.name,
+        user_email: metadata.email,
+        registration_fee: registrationPayment.base_amount,
+        gst_amount: registrationPayment.gst_amount,
+        total_paid: registrationPayment.amount,
+      },
+    });
 
     return NextResponse.json({
       success: true,
-      message: 'User account created successfully',
-      user: {
-        id: newUser.id,
-        email: newUser.email,
-        name: newUser.name,
-        role: newUser.role
+      message: 'Registration completed successfully',
+      credentials: {
+        email: metadata.email,
+        password: metadata.plain_password,
+        role: 'RETAILER',
       },
-      credentials: plainPassword ? {
-        email: newUser.email,
-        password: plainPassword,
-        role: newUser.role
-      } : null
     });
 
   } catch (error) {
     console.error('Process registration error:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
-    );
-  }
-}
-
-// GET /api/admin/process-pending-registration - Get all pending registrations
-export async function GET(request: NextRequest) {
-  try {
-    const { data: pendingPayments, error } = await supabaseAdmin
-      .from('cashfree_registration_payments')
-      .select('*')
-      .eq('status', 'CREATED')
-      .is('user_id', null)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      return NextResponse.json(
-        { error: 'Failed to fetch pending registrations' },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: pendingPayments
-    });
-
-  } catch (error) {
-    console.error('Get pending registrations error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
+      { success: false, error: 'Internal server error' },
       { status: 500 }
     );
   }

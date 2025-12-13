@@ -108,6 +108,7 @@ const menuItems: MenuItem[] = [
   { name: 'Registration Fee', href: '/dashboard/admin/registration-fee', icon: '💵', roles: [UserRole.ADMIN] },
   { name: 'Platform & Yearly Fees', href: '/dashboard/admin/platform-fees', icon: '💰', roles: [UserRole.ADMIN] },
   { name: 'Registration Requests', href: '/dashboard/admin/pending-registrations', icon: '👤', roles: [UserRole.ADMIN, UserRole.EMPLOYEE] },
+  { name: 'Registration Payments', href: '/dashboard/admin/registration-payments', icon: '💳', roles: [UserRole.ADMIN] },
   { name: 'Database Cleanup', href: '/dashboard/admin/data-cleanup', icon: '🗄️', roles: [UserRole.ADMIN] },
   { name: 'Transactions', href: '/dashboard/transactions', icon: '💳', roles: [UserRole.ADMIN, UserRole.EMPLOYEE, UserRole.RETAILER, UserRole.CUSTOMER] },
   { name: 'Wallet Approvals', href: '/dashboard/admin/wallet-approvals', icon: '💰', roles: [UserRole.ADMIN, UserRole.EMPLOYEE] },
