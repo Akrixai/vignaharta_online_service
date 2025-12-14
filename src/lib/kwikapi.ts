@@ -774,10 +774,10 @@ class KwikAPIClient {
       console.log('🔍 [KWIKAPI] Details object:', JSON.stringify(details, null, 2));
 
       // Extract operator and circle (handle both old and new formats)
-      // New format: provider, opid, circle_code, circle_name
-      // Old format: operator, Operator, Circle, circle
-      const operatorName = details.provider || details.operator || details.Operator || '';
-      const circleName = details.circle_name || details.Circle || details.circle || '';
+      // KWIKAPI v2 format: operator, Circle (most common)
+      // Alternative formats: provider, opid, circle_code, circle_name
+      const operatorName = details.operator || details.provider || details.Operator || '';
+      const circleName = details.Circle || details.circle_name || details.circle || '';
       const kwikapi_opid = details.opid ? parseInt(details.opid) : null;
       const circleCodeFromAPI = details.circle_code || '';
 
@@ -798,16 +798,16 @@ class KwikAPIClient {
         };
       }
 
-      // Map KWIKAPI operator names to our operator codes
-      const operatorMapping: Record<string, { code: string; name: string; opid: number }> = {
-        'JIO': { code: 'JIO', name: 'Reliance Jio', opid: 8 },
-        'RELIANCE JIO': { code: 'JIO', name: 'Reliance Jio', opid: 8 },
-        'AIRTEL': { code: 'AIRTEL', name: 'Airtel', opid: 1 },
-        'IDEA': { code: 'VI', name: 'Vodafone Idea', opid: 3 },
-        'VODAFONE': { code: 'VI', name: 'Vodafone Idea', opid: 3 },
-        'VI': { code: 'VI', name: 'Vodafone Idea', opid: 3 },
-        'BSNL': { code: 'BSNL', name: 'BSNL', opid: 4 },
-        'MTNL': { code: 'MTNL', name: 'MTNL', opid: 14 },
+      // Map KWIKAPI operator names to our operator codes and database identifiers
+      const operatorMapping: Record<string, { code: string; name: string; opid: number; db_operator_code: string }> = {
+        'JIO': { code: 'JIO', name: 'Jio Prepaid', opid: 8, db_operator_code: 'JIO_OFFICIAL_181' },
+        'RELIANCE JIO': { code: 'JIO', name: 'Jio Prepaid', opid: 8, db_operator_code: 'JIO_OFFICIAL_181' },
+        'AIRTEL': { code: 'AIRTEL', name: 'Airtel Prepaid', opid: 1, db_operator_code: 'AIRTEL_OFFICIAL_177' },
+        'IDEA': { code: 'VI', name: 'VI Prepaid', opid: 3, db_operator_code: 'VI_OFFICIAL_178' },
+        'VODAFONE': { code: 'VI', name: 'VI Prepaid', opid: 3, db_operator_code: 'VI_OFFICIAL_178' },
+        'VI': { code: 'VI', name: 'VI Prepaid', opid: 3, db_operator_code: 'VI_OFFICIAL_178' },
+        'BSNL': { code: 'BSNL', name: 'BSNL', opid: 4, db_operator_code: 'BSNL' },
+        'MTNL': { code: 'MTNL', name: 'MTNL', opid: 14, db_operator_code: 'MTNL' },
       };
 
       // Map circle names to circle codes (handle both formats)
@@ -865,22 +865,28 @@ class KwikAPIClient {
 
       const operatorUpper = operatorName.toUpperCase().trim();
 
-      // Try to find operator by name first, then use opid from API if available
+      // Find operator by name mapping (this is the primary method since KWIKAPI doesn't return opid)
       let operatorInfo = operatorMapping[operatorUpper];
 
-      if (!operatorInfo && kwikapi_opid) {
-        // If not found by name, create from API opid
+      if (!operatorInfo) {
+        // Try partial matching for variations
+        for (const [key, value] of Object.entries(operatorMapping)) {
+          if (operatorUpper.includes(key) || key.includes(operatorUpper)) {
+            operatorInfo = value;
+            console.log(`✅ [KWIKAPI] Found operator by partial match: ${operatorUpper} -> ${key}`);
+            break;
+          }
+        }
+      }
+
+      if (!operatorInfo) {
+        // Fallback - create a generic entry
+        console.warn(`⚠️ [KWIKAPI] Unknown operator: ${operatorUpper}, using fallback`);
         operatorInfo = {
           code: operatorUpper,
           name: operatorName,
-          opid: kwikapi_opid
-        };
-      } else if (!operatorInfo) {
-        // Fallback
-        operatorInfo = {
-          code: operatorUpper,
-          name: operatorName,
-          opid: 1 // Default to Airtel opid
+          opid: 1, // Default to Airtel opid
+          db_operator_code: operatorUpper
         };
       }
 
@@ -903,6 +909,7 @@ class KwikAPIClient {
         operator: operatorInfo.name,
         operatorCode: operatorInfo.code,
         kwikapi_opid: operatorInfo.opid,
+        db_operator_code: operatorInfo.db_operator_code,
         circle: circleNameTrimmed,
         circleCode,
         credit_balance: response.data.credit_balance,
@@ -913,7 +920,7 @@ class KwikAPIClient {
         success: true,
         data: {
           mobile_number,
-          operator_code: operatorInfo.code,
+          operator_code: operatorInfo.db_operator_code, // Use the database operator code for matching
           operator_name: operatorInfo.name,
           kwikapi_opid: operatorInfo.opid,
           circle_code: circleCode,

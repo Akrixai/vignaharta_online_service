@@ -201,11 +201,21 @@ export default function MobileRechargePageEnhanced() {
         }
         
         if (!operator && data.data.operator_code) {
+          // Try exact match first
           operator = operators.find(op => 
             op.operator_code === data.data.operator_code ||
             op.operator_code?.toLowerCase() === data.data.operator_code?.toLowerCase()
           );
-          console.log('🔍 [Frontend] Operator found by operator_code:', operator ? operator.operator_name : 'Not found');
+          console.log('🔍 [Frontend] Operator found by exact operator_code:', operator ? operator.operator_name : 'Not found');
+          
+          // If not found, try pattern matching
+          if (!operator) {
+            operator = operators.find(op => 
+              op.operator_code?.toLowerCase().includes(data.data.operator_code?.toLowerCase()) ||
+              data.data.operator_code?.toLowerCase().includes(op.operator_code?.toLowerCase())
+            );
+            console.log('🔍 [Frontend] Operator found by operator_code pattern:', operator ? operator.operator_name : 'Not found');
+          }
         }
 
         // If still not found, try matching by operator name (case-insensitive)

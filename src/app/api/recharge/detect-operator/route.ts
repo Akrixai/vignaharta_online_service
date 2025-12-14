@@ -33,13 +33,88 @@ export async function POST(request: NextRequest) {
     console.log('📦 [API] KWIKAPI detection result:', detection);
 
     if (detection.success) {
-      // Find operator and circle in our database using kwikapi_opid
-      const { data: operator } = await supabase
-        .from('recharge_operators')
-        .select('*')
-        .eq('kwikapi_opid', detection.data.kwikapi_opid)
-        .eq('service_type', 'PREPAID')
-        .single();
+      // Find operator in our database - try multiple matching strategies
+      let operator = null;
+      
+      // Strategy 1: Try to match by kwikapi_opid if available
+      if (detection.data.kwikapi_opid) {
+        const { data: opByOpid } = await supabase
+          .from('recharge_operators')
+          .select('*')
+          .eq('kwikapi_opid', detection.data.kwikapi_opid)
+          .eq('service_type', 'PREPAID')
+          .eq('is_active', true)
+          .single();
+        operator = opByOpid;
+        if (operator) {
+          console.log('✅ [API] Operator matched by kwikapi_opid:', operator.operator_name);
+        }
+      }
+      
+      // Strategy 2: If not found by opid, try exact match by operator_code
+      if (!operator && detection.data.operator_code) {
+        const { data: opByCode } = await supabase
+          .from('recharge_operators')
+          .select('*')
+          .eq('operator_code', detection.data.operator_code)
+          .eq('service_type', 'PREPAID')
+          .eq('is_active', true)
+          .single();
+        operator = opByCode;
+        if (operator) {
+          console.log('✅ [API] Operator matched by exact operator_code:', operator.operator_name);
+        }
+      }
+      
+      // Strategy 2b: If still not found, try pattern matching by operator_code
+      if (!operator && detection.data.operator_code) {
+        const { data: opByCodePattern } = await supabase
+          .from('recharge_operators')
+          .select('*')
+          .ilike('operator_code', `%${detection.data.operator_code}%`)
+          .eq('service_type', 'PREPAID')
+          .eq('is_active', true)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+        operator = opByCodePattern;
+        if (operator) {
+          console.log('✅ [API] Operator matched by operator_code pattern:', operator.operator_name);
+        }
+      }
+      
+      // Strategy 3: If still not found, try matching by operator name
+      if (!operator && detection.data.operator_name) {
+        const operatorName = detection.data.operator_name.toUpperCase();
+        let searchPattern = '';
+        
+        // Map common operator names to search patterns
+        if (operatorName.includes('JIO') || operatorName.includes('RELIANCE')) {
+          searchPattern = '%JIO_OFFICIAL%';
+        } else if (operatorName.includes('AIRTEL')) {
+          searchPattern = '%AIRTEL_OFFICIAL%';
+        } else if (operatorName.includes('VI') || operatorName.includes('VODAFONE') || operatorName.includes('IDEA')) {
+          searchPattern = '%VI_OFFICIAL%';
+        } else if (operatorName.includes('BSNL')) {
+          searchPattern = '%BSNL%';
+        }
+        
+        if (searchPattern) {
+          const { data: opByName } = await supabase
+            .from('recharge_operators')
+            .select('*')
+            .ilike('operator_code', searchPattern)
+            .eq('service_type', 'PREPAID')
+            .eq('is_active', true)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+          operator = opByName;
+          if (operator) {
+            console.log('✅ [API] Operator matched by name pattern:', operator.operator_name);
+          }
+        }
+      }
 
       const { data: circle } = await supabase
         .from('recharge_circles')
