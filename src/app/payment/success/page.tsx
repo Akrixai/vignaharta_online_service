@@ -30,10 +30,86 @@ function PaymentSuccessContent() {
 
     let redirectTimer: NodeJS.Timeout;
 
+    // If wallet payment, verify payment status
+    if (!isRegistration && orderId) {
+      const verifyPayment = async () => {
+        try {
+          console.log('Verifying wallet payment:', orderId);
+          const response = await fetch('/api/wallet/cashfree/verify-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ order_id: orderId }),
+          });
+
+          const result = await response.json();
+          console.log('Payment verification result:', result);
+          
+          if (result.success && result.status === 'PAID') {
+            console.log('Payment verified and processed successfully');
+          } else {
+            console.warn('Payment verification failed or payment not successful:', result);
+          }
+        } catch (err) {
+          console.error('Failed to verify payment:', err);
+        }
+      };
+
+      // Verify payment after a short delay to allow webhook processing
+      setTimeout(verifyPayment, 2000);
+    }
+
     // If registration, process it immediately
     if (isRegistration && orderId) {
       const processRegistration = async () => {
         try {
+          // First try to verify the payment status
+          console.log('Verifying registration payment:', orderId);
+          const verifyResponse = await fetch('/api/auth/verify-registration-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ order_id: orderId }),
+          });
+
+          const verifyResult = await verifyResponse.json();
+          
+          if (verifyResult.success && verifyResult.status === 'PAID') {
+            // Payment verified and account created
+            console.log('Registration payment verified and account created');
+            setProcessing(false);
+            
+            if (verifyResult.credentials) {
+              // Auto-login using NextAuth signIn
+              const loginResult = await signIn('credentials', {
+                email: verifyResult.credentials.email,
+                password: verifyResult.credentials.password,
+                role: verifyResult.credentials.role,
+                redirect: false,
+              });
+
+              if (loginResult?.ok && !loginResult.error) {
+                // Login successful, redirect to dashboard
+                console.log('Auto-login successful, redirecting to dashboard');
+                redirectTimer = setTimeout(() => {
+                  window.location.href = '/dashboard';
+                }, 2000);
+              } else {
+                // Login failed, redirect to login page with message
+                console.error('Auto-login failed:', loginResult?.error);
+                redirectTimer = setTimeout(() => {
+                  window.location.href = `/login?registered=true&email=${encodeURIComponent(verifyResult.credentials.email)}&message=Account created successfully! Please login with your credentials. Check your email for login details.`;
+                }, 3000);
+              }
+            } else {
+              // No credentials, redirect to login
+              redirectTimer = setTimeout(() => {
+                window.location.href = '/login?registered=true&message=Account created successfully! Please check your email for login credentials.';
+              }, 3000);
+            }
+            return;
+          }
+
+          // If verification didn't work, try the old process method
+          console.log('Payment verification failed, trying process method');
           const response = await fetch('/api/admin/process-pending-registration', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
