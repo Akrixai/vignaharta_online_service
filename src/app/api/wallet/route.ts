@@ -2,13 +2,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { getAuthenticatedUser } from '@/lib/auth-helper';
 
+// Add CORS headers for cross-origin requests (Flutter app)
+function addCorsHeaders(response: NextResponse) {
+  response.headers.set('Access-Control-Allow-Origin', '*');
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  return response;
+}
+
+export async function OPTIONS(request: NextRequest) {
+  return addCorsHeaders(new NextResponse(null, { status: 200 }));
+}
+
 // GET /api/wallet - Get user's wallet
 export async function GET(request: NextRequest) {
   try {
     const user = await getAuthenticatedUser(request);
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return addCorsHeaders(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }));
     }
 
     // First, try to get existing wallet
@@ -19,7 +31,7 @@ export async function GET(request: NextRequest) {
 
     if (fetchError) {
       console.error('Wallet fetch error:', fetchError);
-      return NextResponse.json({ error: 'Failed to fetch wallet' }, { status: 500 });
+      return addCorsHeaders(NextResponse.json({ error: 'Failed to fetch wallet' }, { status: 500 }));
     }
 
     // If multiple wallets exist (shouldn't happen with unique constraint), use the first one
@@ -38,7 +50,7 @@ export async function GET(request: NextRequest) {
 
       if (createError) {
         console.error('Wallet creation error:', createError);
-        return NextResponse.json({ error: 'Failed to create wallet' }, { status: 500 });
+        return addCorsHeaders(NextResponse.json({ error: 'Failed to create wallet' }, { status: 500 }));
       }
 
       wallet = newWallet;
@@ -50,17 +62,17 @@ export async function GET(request: NextRequest) {
       balance: typeof wallet.balance === 'string' ? parseFloat(wallet.balance) : wallet.balance
     };
 
-    return NextResponse.json({
+    return addCorsHeaders(NextResponse.json({
       success: true,
       data: formattedWallet
-    });
+    }));
 
   } catch (error) {
     console.error('Wallet API error:', error);
-    return NextResponse.json({
+    return addCorsHeaders(NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+    }, { status: 500 }));
   }
 }
 
@@ -70,17 +82,17 @@ export async function POST(request: NextRequest) {
     const user = await getAuthenticatedUser(request);
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return addCorsHeaders(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }));
     }
 
     const body = await request.json();
     const { amount, type, description, reference, bank_details } = body;
 
     if (!amount || !type) {
-      return NextResponse.json(
+      return addCorsHeaders(NextResponse.json(
         { error: 'Amount and type are required' },
         { status: 400 }
-      );
+      ));
     }
 
     // Determine wallet request type
@@ -98,14 +110,14 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (walletError || !wallet) {
-        return NextResponse.json({ error: 'Wallet not found' }, { status: 404 });
+        return addCorsHeaders(NextResponse.json({ error: 'Wallet not found' }, { status: 404 }));
       }
 
       if (parseFloat(wallet.balance) < parseFloat(amount)) {
-        return NextResponse.json({ error: 'Insufficient wallet balance' }, { status: 400 });
+        return addCorsHeaders(NextResponse.json({ error: 'Insufficient wallet balance' }, { status: 400 }));
       }
     } else {
-      return NextResponse.json({ error: 'Invalid transaction type' }, { status: 400 });
+      return addCorsHeaders(NextResponse.json({ error: 'Invalid transaction type' }, { status: 400 }));
     }
 
     // Create wallet request for admin approval
@@ -129,10 +141,10 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (requestError) {
-      return NextResponse.json({ error: 'Failed to create wallet request' }, { status: 500 });
+      return addCorsHeaders(NextResponse.json({ error: 'Failed to create wallet request' }, { status: 500 }));
     }
 
-    return NextResponse.json({
+    return addCorsHeaders(NextResponse.json({
       success: true,
       message: `${requestType} request submitted successfully. Waiting for admin approval.`,
       data: {
@@ -141,9 +153,9 @@ export async function POST(request: NextRequest) {
         amount: amount,
         status: 'PENDING'
       }
-    });
+    }));
 
   } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return addCorsHeaders(NextResponse.json({ error: 'Internal server error' }, { status: 500 }));
   }
 }

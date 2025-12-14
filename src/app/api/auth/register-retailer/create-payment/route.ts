@@ -3,6 +3,18 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { validateEmail, validatePhone } from '@/lib/utils';
 import bcrypt from 'bcryptjs';
 
+// Add CORS headers for cross-origin requests (Flutter app)
+function addCorsHeaders(response: NextResponse) {
+  response.headers.set('Access-Control-Allow-Origin', '*');
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  return response;
+}
+
+export async function OPTIONS(request: NextRequest) {
+  return addCorsHeaders(new NextResponse(null, { status: 200 }));
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -24,45 +36,45 @@ export async function POST(request: NextRequest) {
 
     // Validation
     if (!name || !email || !password) {
-      return NextResponse.json(
+      return addCorsHeaders(NextResponse.json(
         { error: 'Name, email, and password are required' },
         { status: 400 }
-      );
+      ));
     }
 
     if (!validateEmail(email)) {
-      return NextResponse.json(
+      return addCorsHeaders(NextResponse.json(
         { error: 'Invalid email format' },
         { status: 400 }
-      );
+      ));
     }
 
     if (phone && !validatePhone(phone)) {
-      return NextResponse.json(
+      return addCorsHeaders(NextResponse.json(
         { error: 'Invalid phone number format' },
         { status: 400 }
-      );
+      ));
     }
 
     if (password.length < 8) {
-      return NextResponse.json(
+      return addCorsHeaders(NextResponse.json(
         { error: 'Password must be at least 8 characters long' },
         { status: 400 }
-      );
+      ));
     }
 
     if (!phone || !address || !city || !state || !pincode || !business_name || !shop_photo_url) {
-      return NextResponse.json(
+      return addCorsHeaders(NextResponse.json(
         { error: 'All fields including business name and shop photo are required for retailer registration' },
         { status: 400 }
-      );
+      ));
     }
 
     if (!/^\d{6}$/.test(pincode)) {
-      return NextResponse.json(
+      return addCorsHeaders(NextResponse.json(
         { error: 'Please enter a valid 6-digit PIN code' },
         { status: 400 }
-      );
+      ));
     }
 
     // Check if email already exists
@@ -73,10 +85,10 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     if (existingEmail) {
-      return NextResponse.json(
+      return addCorsHeaders(NextResponse.json(
         { error: 'Email already registered' },
         { status: 400 }
-      );
+      ));
     }
 
     // Check if phone already exists
@@ -87,10 +99,10 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     if (existingPhone) {
-      return NextResponse.json(
+      return addCorsHeaders(NextResponse.json(
         { error: 'Phone number already registered' },
         { status: 400 }
-      );
+      ));
     }
 
     // Original check kept for compatibility
@@ -101,10 +113,10 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     if (existingUser) {
-      return NextResponse.json(
+      return addCorsHeaders(NextResponse.json(
         { error: 'User with this email already exists' },
         { status: 400 }
-      );
+      ));
     }
 
     // Check if pending registration already exists
@@ -115,10 +127,10 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (existingPending && existingPending.status === 'pending') {
-      return NextResponse.json(
+      return addCorsHeaders(NextResponse.json(
         { error: 'Registration request already submitted and pending approval' },
         { status: 400 }
-      );
+      ));
     }
 
     // Get registration fee
@@ -130,10 +142,10 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (!feeConfig) {
-      return NextResponse.json(
+      return addCorsHeaders(NextResponse.json(
         { error: 'Registration fee not configured' },
         { status: 500 }
-      );
+      ));
     }
 
     // Calculate GST based on database configuration
@@ -192,20 +204,20 @@ export async function POST(request: NextRequest) {
     if (!cashfreeResponse.ok) {
       const errorData = await cashfreeResponse.json();
       console.error('Cashfree API error:', errorData);
-      return NextResponse.json(
+      return addCorsHeaders(NextResponse.json(
         { error: errorData.message || 'Failed to create Cashfree order' },
         { status: 500 }
-      );
+      ));
     }
 
     const cashfreeData = await cashfreeResponse.json();
 
     if (!cashfreeData.payment_session_id) {
       console.error('Invalid Cashfree response:', cashfreeData);
-      return NextResponse.json(
+      return addCorsHeaders(NextResponse.json(
         { error: 'Invalid response from Cashfree' },
         { status: 500 }
-      );
+      ));
     }
 
     // Store payment record with registration details in metadata
@@ -245,24 +257,27 @@ export async function POST(request: NextRequest) {
 
     if (paymentError) {
       console.error('Error storing payment record:', paymentError);
-      return NextResponse.json(
+      return addCorsHeaders(NextResponse.json(
         { error: 'Failed to store payment record' },
         { status: 500 }
-      );
+      ));
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       payment_session_id: cashfreeData.payment_session_id,
       order_id: orderId,
       amount: amount,
     });
 
+    return addCorsHeaders(response);
+
   } catch (error) {
     console.error('Registration payment error:', error);
-    return NextResponse.json(
+    const errorResponse = NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );
+    return addCorsHeaders(errorResponse);
   }
 }

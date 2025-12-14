@@ -2,13 +2,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { getAuthenticatedUser } from '@/lib/auth-helper';
 
+// Add CORS headers for cross-origin requests (Flutter app)
+function addCorsHeaders(response: NextResponse) {
+  response.headers.set('Access-Control-Allow-Origin', '*');
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  return response;
+}
+
+export async function OPTIONS(request: NextRequest) {
+  return addCorsHeaders(new NextResponse(null, { status: 200 }));
+}
+
 // GET /api/auth/profile - Get current user profile
 export async function GET(request: NextRequest) {
     try {
         const user = await getAuthenticatedUser(request);
 
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return addCorsHeaders(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }));
         }
 
         // Fetch full user profile
@@ -46,7 +58,7 @@ export async function GET(request: NextRequest) {
             .single();
 
         if (error || !profile) {
-            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+            return addCorsHeaders(NextResponse.json({ error: 'User not found' }, { status: 404 }));
         }
 
         // Format response to match what Flutter app expects
@@ -56,14 +68,14 @@ export async function GET(request: NextRequest) {
             user_id: profile.id // Flutter app expects user_id
         };
 
-        return NextResponse.json({
+        return addCorsHeaders(NextResponse.json({
             success: true,
             data: formattedProfile
-        });
+        }));
 
     } catch (error) {
         console.error('Profile API error:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return addCorsHeaders(NextResponse.json({ error: 'Internal server error' }, { status: 500 }));
     }
 }
 
@@ -73,7 +85,7 @@ export async function PUT(request: NextRequest) {
         const user = await getAuthenticatedUser(request);
 
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return addCorsHeaders(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }));
         }
 
         const body = await request.json();
@@ -94,16 +106,16 @@ export async function PUT(request: NextRequest) {
             .single();
 
         if (error) {
-            return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
+            return addCorsHeaders(NextResponse.json({ error: 'Failed to update profile' }, { status: 500 }));
         }
 
-        return NextResponse.json({
+        return addCorsHeaders(NextResponse.json({
             success: true,
             message: 'Profile updated successfully',
             data: updatedProfile
-        });
+        }));
 
     } catch (error) {
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return addCorsHeaders(NextResponse.json({ error: 'Internal server error' }, { status: 500 }));
     }
 }

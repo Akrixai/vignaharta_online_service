@@ -3,6 +3,18 @@ import { supabaseAdmin } from '@/lib/supabase';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 
+// Add CORS headers for cross-origin requests (Flutter app)
+function addCorsHeaders(response: NextResponse) {
+  response.headers.set('Access-Control-Allow-Origin', '*');
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-webhook-signature, x-webhook-timestamp');
+  return response;
+}
+
+export async function OPTIONS(request: NextRequest) {
+  return addCorsHeaders(new NextResponse(null, { status: 200 }));
+}
+
 // Handle registration payment success
 async function handleRegistrationPaymentSuccess(registrationPayment: any, order: any, webhookData: any) {
   try {
@@ -136,10 +148,10 @@ async function handleRegistrationPaymentSuccess(registrationPayment: any, order:
       },
     });
 
-    return NextResponse.json({ success: true, message: 'Registration completed successfully' });
+    return addCorsHeaders(NextResponse.json({ success: true, message: 'Registration completed successfully' }));
   } catch (error) {
     console.error('Registration payment processing error:', error);
-    return NextResponse.json({ error: 'Failed to process registration' }, { status: 500 });
+    return addCorsHeaders(NextResponse.json({ error: 'Failed to process registration' }, { status: 500 }));
   }
 }
 
@@ -164,7 +176,7 @@ export async function POST(request: NextRequest) {
     
     if (isProduction && (!signature || !timestamp)) {
       console.error('Missing webhook signature or timestamp in production');
-      return NextResponse.json({ error: 'Invalid webhook' }, { status: 400 });
+      return addCorsHeaders(NextResponse.json({ error: 'Invalid webhook' }, { status: 400 }));
     }
 
     // Verify signature if available
@@ -185,7 +197,7 @@ export async function POST(request: NextRequest) {
         
         // In production, reject invalid signatures
         if (isProduction) {
-          return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+          return addCorsHeaders(NextResponse.json({ error: 'Invalid signature' }, { status: 401 }));
         } else {
           console.warn('Signature mismatch in development - proceeding anyway');
         }
@@ -216,7 +228,7 @@ export async function POST(request: NextRequest) {
 
         if (regPaymentError || !registrationPayment) {
           console.error('Payment record not found in both tables:', order.order_id);
-          return NextResponse.json({ error: 'Payment not found' }, { status: 404 });
+          return addCorsHeaders(NextResponse.json({ error: 'Payment not found' }, { status: 404 }));
         }
 
         // Handle registration payment success
@@ -243,7 +255,7 @@ export async function POST(request: NextRequest) {
 
       if (walletError || !wallet) {
         console.error('Wallet not found for user:', payment.user_id);
-        return NextResponse.json({ error: 'Wallet not found' }, { status: 404 });
+        return addCorsHeaders(NextResponse.json({ error: 'Wallet not found' }, { status: 404 }));
       }
 
       // Credit only base amount to wallet (without GST)
@@ -299,7 +311,7 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      return NextResponse.json({ success: true, message: 'Payment processed' });
+      return addCorsHeaders(NextResponse.json({ success: true, message: 'Payment processed' }));
     }
 
     if (type === 'PAYMENT_FAILED_WEBHOOK') {
@@ -339,12 +351,12 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      return NextResponse.json({ success: true, message: 'Payment failure recorded' });
+      return addCorsHeaders(NextResponse.json({ success: true, message: 'Payment failure recorded' }));
     }
 
-    return NextResponse.json({ success: true });
+    return addCorsHeaders(NextResponse.json({ success: true }));
   } catch (error) {
     console.error('Webhook error:', error);
-    return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
+    return addCorsHeaders(NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 }));
   }
 }

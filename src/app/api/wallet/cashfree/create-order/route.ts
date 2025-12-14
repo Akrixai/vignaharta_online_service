@@ -2,6 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth-helper';
 import { supabaseAdmin } from '@/lib/supabase';
 
+// Add CORS headers for cross-origin requests (Flutter app)
+function addCorsHeaders(response: NextResponse) {
+  response.headers.set('Access-Control-Allow-Origin', '*');
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  return response;
+}
+
+export async function OPTIONS(request: NextRequest) {
+  return addCorsHeaders(new NextResponse(null, { status: 200 }));
+}
+
 // Cashfree configuration
 const CASHFREE_APP_ID = process.env.CASHFREE_APP_ID || '';
 const CASHFREE_SECRET_KEY = process.env.CASHFREE_SECRET_KEY || '';
@@ -25,21 +37,21 @@ export async function POST(request: NextRequest) {
     const user = await getAuthenticatedUser(request);
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return addCorsHeaders(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }));
     }
 
     const body = await request.json();
     const { amount } = body;
 
     if (!amount || amount <= 0) {
-      return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
+      return addCorsHeaders(NextResponse.json({ error: 'Invalid amount' }, { status: 400 }));
     }
 
     const baseAmount = parseFloat(amount);
 
     // Validate amount range
     if (baseAmount < 10) {
-      return NextResponse.json({ error: 'Minimum amount is ₹10' }, { status: 400 });
+      return addCorsHeaders(NextResponse.json({ error: 'Minimum amount is ₹10' }, { status: 400 }));
     }
 
     const gstPercentage = 2.00; // 2% GST
@@ -49,10 +61,10 @@ export async function POST(request: NextRequest) {
     // No artificial limits - let Cashfree handle its own account limits
     // Maximum is set to ₹50,000 for safety
     if (baseAmount > 50000) {
-      return NextResponse.json({
+      return addCorsHeaders(NextResponse.json({
         error: 'Maximum amount is ₹50,000 per transaction',
         max_amount: 50000
-      }, { status: 400 });
+      }, { status: 400 }));
     }
 
     // Generate unique order ID
@@ -109,11 +121,11 @@ export async function POST(request: NextRequest) {
         errorMessage = `${response.message}. This is a Cashfree account limit. Please contact Cashfree support to increase your transaction limits, or use QR Payment for higher amounts (no limits, no GST).`;
       }
 
-      return NextResponse.json({
+      return addCorsHeaders(NextResponse.json({
         error: errorMessage,
         details: response,
         suggestion: 'Use QR Payment (no GST, no limits) for higher amounts'
-      }, { status: 500 });
+      }, { status: 500 }));
     }
 
     // Store payment record in database
@@ -142,10 +154,10 @@ export async function POST(request: NextRequest) {
 
     if (dbError) {
       console.error('Database error:', dbError);
-      return NextResponse.json({ error: 'Failed to save payment record' }, { status: 500 });
+      return addCorsHeaders(NextResponse.json({ error: 'Failed to save payment record' }, { status: 500 }));
     }
 
-    return NextResponse.json({
+    return addCorsHeaders(NextResponse.json({
       success: true,
       data: {
         order_id: orderId,
@@ -156,11 +168,11 @@ export async function POST(request: NextRequest) {
         total_amount: totalAmount,
         wallet_credit_amount: baseAmount,
       }
-    });
+    }));
   } catch (error: any) {
     console.error('Error creating Cashfree order:', error);
-    return NextResponse.json({
+    return addCorsHeaders(NextResponse.json({
       error: error.message || 'Internal server error',
-    }, { status: 500 });
+    }, { status: 500 }));
   }
 }
