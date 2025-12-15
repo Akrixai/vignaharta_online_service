@@ -38,6 +38,21 @@ interface PendingRegistration {
   approved_by?: string;
   approved_at?: string;
   rejected_reason?: string;
+  business_name?: string;
+  shop_photo_url?: string;
+  payment_screenshot_url?: string;
+  payment_request?: {
+    id: string;
+    amount: number;
+    status: string;
+    screenshot_url: string;
+    utr_number?: string;
+    payer_name?: string;
+    payer_phone?: string;
+    transaction_date?: string;
+  };
+  has_manual_payment?: boolean;
+  payment_type?: string;
 }
 
 export default function PendingRegistrationsPage() {
@@ -59,7 +74,7 @@ export default function PendingRegistrationsPage() {
   const fetchRegistrations = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/admin/pending-registrations?status=${statusFilter}`);
+      const response = await fetch(`/api/admin/pending-registrations/with-payments?status=${statusFilter}`);
       if (response.ok) {
         const data = await response.json();
         setRegistrations(data.registrations);
@@ -71,7 +86,7 @@ export default function PendingRegistrationsPage() {
     }
   };
 
-  const handleApprove = async (registrationId: string) => {
+  const handleApprove = async (registrationId: string, registration: PendingRegistration) => {
     if (session?.user?.role !== UserRole.ADMIN) {
       showToast.error('Unauthorized', { description: 'Only admins can approve registrations' });
       return;
@@ -79,13 +94,27 @@ export default function PendingRegistrationsPage() {
 
     try {
       setProcessing(registrationId);
-      const response = await fetch('/api/admin/pending-registrations', {
+      
+      // Use different API endpoint for manual payments
+      const endpoint = registration.has_manual_payment 
+        ? '/api/admin/pending-registrations/approve-manual'
+        : '/api/admin/pending-registrations';
+      
+      const requestBody = registration.has_manual_payment
+        ? {
+            registrationId,
+            walletRequestId: registration.payment_request?.id,
+            adminNotes: 'Manual payment verified and approved'
+          }
+        : {
+            registrationId,
+            action: 'approve'
+          };
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          registrationId,
-          action: 'approve'
-        })
+        body: JSON.stringify(requestBody)
       });
 
       const data = await response.json();
@@ -266,13 +295,26 @@ export default function PendingRegistrationsPage() {
                         <div>
                           <h3 className="text-xl font-bold text-gray-900">{registration.name}</h3>
                           <p className="text-sm text-gray-600 capitalize">{registration.role} Registration</p>
+                          {registration.business_name && (
+                            <p className="text-sm text-blue-600 font-medium">Business: {registration.business_name}</p>
+                          )}
                         </div>
-                        <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          registration.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                          registration.status === 'approved' ? 'bg-green-100 text-green-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {registration.status.toUpperCase()}
+                        <div className="flex flex-col space-y-1">
+                          <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            registration.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                            registration.status === 'approved' ? 'bg-green-100 text-green-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
+                            {registration.status.toUpperCase()}
+                          </div>
+                          {registration.payment_type && (
+                            <div className={`px-2 py-1 rounded text-xs font-medium ${
+                              registration.payment_type === 'MANUAL_QR' ? 'bg-orange-100 text-orange-800' :
+                              'bg-blue-100 text-blue-800'
+                            }`}>
+                              {registration.payment_type === 'MANUAL_QR' ? 'Manual Payment' : 'Cashfree Gateway'}
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -295,6 +337,13 @@ export default function PendingRegistrationsPage() {
                             {new Date(registration.created_at).toLocaleDateString('en-GB')}
                           </span>
                         </div>
+                        {registration.payment_request && (
+                          <div className="flex items-center space-x-2">
+                            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                              ₹{registration.payment_request.amount} paid
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                       {registration.rejected_reason && (
@@ -324,7 +373,7 @@ export default function PendingRegistrationsPage() {
                           <Button
                             size="sm"
                             className="bg-green-600 hover:bg-green-700"
-                            onClick={() => handleApprove(registration.id)}
+                            onClick={() => handleApprove(registration.id, registration)}
                             disabled={processing === registration.id}
                           >
                             <CheckCircle className="w-4 h-4 mr-1" />
@@ -438,6 +487,96 @@ export default function PendingRegistrationsPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Business Information */}
+                {(selectedRegistration.business_name || selectedRegistration.shop_photo_url) && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Business Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {selectedRegistration.business_name && (
+                        <div>
+                          <label className="text-sm font-medium text-gray-600">Business Name</label>
+                          <p className="text-gray-900 font-medium">{selectedRegistration.business_name}</p>
+                        </div>
+                      )}
+                      {selectedRegistration.shop_photo_url && (
+                        <div>
+                          <label className="text-sm font-medium text-gray-600">Shop Photo</label>
+                          <div className="mt-2">
+                            <img 
+                              src={selectedRegistration.shop_photo_url} 
+                              alt="Shop Photo" 
+                              className="w-32 h-32 object-cover rounded-lg border"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Payment Information */}
+                {selectedRegistration.payment_request && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment Information</h3>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-sm font-medium text-gray-600">Payment Type</label>
+                          <p className="text-gray-900 font-medium">Manual QR Payment</p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-600">Amount</label>
+                          <p className="text-gray-900 font-medium">₹{selectedRegistration.payment_request.amount}</p>
+                        </div>
+                        {selectedRegistration.payment_request.utr_number && (
+                          <div>
+                            <label className="text-sm font-medium text-gray-600">UTR Number</label>
+                            <p className="text-gray-900 font-medium">{selectedRegistration.payment_request.utr_number}</p>
+                          </div>
+                        )}
+                        {selectedRegistration.payment_request.payer_name && (
+                          <div>
+                            <label className="text-sm font-medium text-gray-600">Payer Name</label>
+                            <p className="text-gray-900 font-medium">{selectedRegistration.payment_request.payer_name}</p>
+                          </div>
+                        )}
+                        {selectedRegistration.payment_request.payer_phone && (
+                          <div>
+                            <label className="text-sm font-medium text-gray-600">Payer Phone</label>
+                            <p className="text-gray-900 font-medium">{selectedRegistration.payment_request.payer_phone}</p>
+                          </div>
+                        )}
+                        {selectedRegistration.payment_request.transaction_date && (
+                          <div>
+                            <label className="text-sm font-medium text-gray-600">Transaction Date</label>
+                            <p className="text-gray-900 font-medium">
+                              {new Date(selectedRegistration.payment_request.transaction_date).toLocaleString('en-GB')}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {selectedRegistration.payment_request.screenshot_url && (
+                        <div className="mt-4">
+                          <label className="text-sm font-medium text-gray-600">Payment Screenshot</label>
+                          <div className="mt-2">
+                            <img 
+                              src={selectedRegistration.payment_request.screenshot_url} 
+                              alt="Payment Screenshot" 
+                              className="max-w-full h-auto max-h-96 rounded-lg border cursor-pointer"
+                              onClick={() => window.open(selectedRegistration.payment_request?.screenshot_url, '_blank')}
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Click to view full size</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Status Information */}
                 <div>

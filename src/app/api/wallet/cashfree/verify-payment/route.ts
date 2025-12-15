@@ -62,7 +62,18 @@ export async function POST(request: NextRequest) {
       }));
     }
 
-    // Check payment status with Cashfree API
+    // Check if cf_order_id exists
+    if (!payment.cf_order_id) {
+      console.error('Missing cf_order_id for payment:', payment.order_id);
+      return addCorsHeaders(NextResponse.json({ 
+        error: 'Payment record missing Cashfree order ID',
+        status: 'ERROR'
+      }, { status: 400 }));
+    }
+
+    // Check payment status with Cashfree API using cf_order_id
+    console.log('Querying Cashfree API with cf_order_id:', payment.cf_order_id);
+    
     const cashfreeResponse = await fetch(`${CASHFREE_API_URL}/orders/${payment.cf_order_id}`, {
       method: 'GET',
       headers: {

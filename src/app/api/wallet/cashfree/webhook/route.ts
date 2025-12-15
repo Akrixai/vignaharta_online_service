@@ -15,6 +15,22 @@ export async function OPTIONS(request: NextRequest) {
   return addCorsHeaders(new NextResponse(null, { status: 200 }));
 }
 
+// GET endpoint to test webhook URL accessibility
+export async function GET(request: NextRequest) {
+  console.log('🔍 Webhook URL accessed via GET:', {
+    timestamp: new Date().toISOString(),
+    url: request.url,
+    headers: Object.fromEntries(request.headers.entries())
+  });
+  
+  return addCorsHeaders(NextResponse.json({
+    success: true,
+    message: 'Cashfree webhook endpoint is accessible',
+    timestamp: new Date().toISOString(),
+    environment: process.env.CASHFREE_ENVIRONMENT || 'TEST'
+  }));
+}
+
 // Handle registration payment success
 async function handleRegistrationPaymentSuccess(registrationPayment: any, order: any, webhookData: any) {
   try {
@@ -23,6 +39,12 @@ async function handleRegistrationPaymentSuccess(registrationPayment: any, order:
       payment_method: order.payment_method,
       customer_email: registrationPayment.metadata?.email
     });
+
+    // Check if registration payment is already processed to avoid double processing
+    if (registrationPayment.status === 'PAID') {
+      console.log('Registration payment already processed, skipping:', order.order_id);
+      return addCorsHeaders(NextResponse.json({ success: true, message: 'Registration payment already processed' }));
+    }
 
     // Update registration payment status
     const { error: updateError } = await supabaseAdmin
@@ -158,11 +180,30 @@ async function handleRegistrationPaymentSuccess(registrationPayment: any, order:
 // POST /api/wallet/cashfree/webhook - Handle Cashfree payment webhooks
 export async function POST(request: NextRequest) {
   try {
+    console.log('🔔 CASHFREE WEBHOOK RECEIVED!', {
+      timestamp: new Date().toISOString(),
+      method: request.method,
+      url: request.url,
+      headers: Object.fromEntries(request.headers.entries())
+    });
+
+    // Check if this is a Cashfree webhook or a browser request
+    const userAgent = request.headers.get('user-agent') || '';
+    const contentType = request.headers.get('content-type') || '';
+    const url = new URL(request.url);
+    const hasNgrokBypass = url.searchParams.has('ngrok-skip-browser-warning') || request.headers.get('ngrok-skip-browser-warning');
+    
+    console.log('🔍 Request details:', {
+      userAgent,
+      contentType,
+      hasNgrokBypass,
+      queryParams: Object.fromEntries(url.searchParams.entries())
+    });
+
     const body = await request.json();
     
     // Log webhook for debugging
-    console.log('Cashfree webhook received:', {
-      headers: Object.fromEntries(request.headers.entries()),
+    console.log('📦 Cashfree webhook payload:', {
       body: body,
       timestamp: new Date().toISOString()
     });
@@ -207,6 +248,12 @@ export async function POST(request: NextRequest) {
 
         // Handle registration payment success
         return await handleRegistrationPaymentSuccess(registrationPayment, order, data);
+      }
+
+      // Check if payment is already processed to avoid double processing
+      if (payment.status === 'PAID') {
+        console.log('Payment already processed, skipping:', order.order_id);
+        return addCorsHeaders(NextResponse.json({ success: true, message: 'Payment already processed' }));
       }
 
       // Update payment status

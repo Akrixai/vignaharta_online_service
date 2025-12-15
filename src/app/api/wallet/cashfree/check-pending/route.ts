@@ -33,13 +33,14 @@ export async function POST(request: NextRequest) {
 
     console.log('Checking pending payments for user:', user.id);
 
-    // Get pending payments for this user (created in last 24 hours)
+    // Get pending payments for this user (created in last 6 hours)
+    // Cashfree test orders typically expire within a few hours
     const { data: pendingPayments, error: paymentsError } = await supabaseAdmin
       .from('cashfree_payments')
       .select('*')
       .eq('user_id', user.id)
       .eq('status', 'CREATED')
-      .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()) // Last 24 hours
+      .gte('created_at', new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString()) // Last 6 hours
       .order('created_at', { ascending: false });
 
     if (paymentsError) {
@@ -65,7 +66,20 @@ export async function POST(request: NextRequest) {
       try {
         console.log(`Checking payment status for order: ${payment.order_id}`);
 
-        // Check payment status with Cashfree API
+        // Check if cf_order_id exists
+        if (!payment.cf_order_id) {
+          console.error(`Missing cf_order_id for payment: ${payment.order_id}`);
+          results.push({
+            order_id: payment.order_id,
+            status: 'MISSING_CF_ORDER_ID',
+            error: 'Missing Cashfree order ID'
+          });
+          continue;
+        }
+
+        // Check payment status with Cashfree API using cf_order_id
+        console.log(`Querying Cashfree API with cf_order_id: ${payment.cf_order_id} for order: ${payment.order_id}`);
+        
         const cashfreeResponse = await fetch(`${CASHFREE_API_URL}/orders/${payment.cf_order_id}`, {
           method: 'GET',
           headers: {
@@ -80,11 +94,40 @@ export async function POST(request: NextRequest) {
 
         if (!cashfreeResponse.ok) {
           console.error(`Cashfree API error for ${payment.order_id}:`, orderStatus);
-          results.push({
-            order_id: payment.order_id,
-            status: 'API_ERROR',
-            error: orderStatus
-          });
+          
+          // If order not found and payment is older than 2 hours, mark as expired/failed
+          const paymentAge = Date.now() - new Date(payment.created_at).getTime();
+          const twoHours = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
+          
+          if (orderStatus.code === 'order_not_found' && paymentAge > twoHours) {
+            console.log(`Marking old payment as expired: ${payment.order_id} (age: ${Math.round(paymentAge / (60 * 1000))} minutes)`);
+            
+            // Mark payment as expired/failed
+            await supabaseAdmin
+              .from('cashfree_payments')
+              .update({
+                status: 'FAILED',
+                webhook_data: {
+                  ...orderStatus,
+                  auto_expired: true,
+                  expired_at: new Date().toISOString(),
+                  reason: 'Order not found in Cashfree API (likely expired)'
+                },
+              })
+              .eq('order_id', payment.order_id);
+            
+            results.push({
+              order_id: payment.order_id,
+              status: 'EXPIRED',
+              reason: 'Order not found (expired)'
+            });
+          } else {
+            results.push({
+              order_id: payment.order_id,
+              status: 'API_ERROR',
+              error: orderStatus
+            });
+          }
           continue;
         }
 

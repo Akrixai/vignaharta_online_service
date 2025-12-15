@@ -3,6 +3,11 @@ import bcrypt from 'bcryptjs';
 import { supabaseAdmin } from '@/lib/supabase';
 import { UserRole } from '@/types';
 import { validateEmail, validatePhone } from '@/lib/utils';
+import { corsHeaders, handleCorsPreflightRequest } from '@/lib/cors';
+
+export async function OPTIONS() {
+  return handleCorsPreflightRequest();
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,51 +26,51 @@ export async function POST(request: NextRequest) {
     // Validation
     if (!name || !email || !password) {
       return NextResponse.json(
-        { error: 'Name, email, and password are required' },
-        { status: 400 }
+        { success: false, error: 'Name, email, and password are required' },
+        { status: 400, headers: corsHeaders }
       );
     }
 
     if (!validateEmail(email)) {
       return NextResponse.json(
-        { error: 'Invalid email format' },
-        { status: 400 }
+        { success: false, error: 'Invalid email format' },
+        { status: 400, headers: corsHeaders }
       );
     }
 
     if (phone && !validatePhone(phone)) {
       return NextResponse.json(
-        { error: 'Invalid phone number format' },
-        { status: 400 }
+        { success: false, error: 'Invalid phone number format' },
+        { status: 400, headers: corsHeaders }
       );
     }
 
     if (password.length < 8) {
       return NextResponse.json(
-        { error: 'Password must be at least 8 characters long' },
-        { status: 400 }
+        { success: false, error: 'Password must be at least 8 characters long' },
+        { status: 400, headers: corsHeaders }
       );
     }
 
     // Validate required fields for customers
     if (!phone) {
       return NextResponse.json(
-        { error: 'Phone number is required' },
-        { status: 400 }
+        { success: false, error: 'Phone number is required' },
+        { status: 400, headers: corsHeaders }
       );
     }
 
     if (!address || !city || !state || !pincode) {
       return NextResponse.json(
-        { error: 'Address, city, state, and pincode are required' },
-        { status: 400 }
+        { success: false, error: 'Address, city, state, and pincode are required' },
+        { status: 400, headers: corsHeaders }
       );
     }
 
     if (!/^\d{6}$/.test(pincode)) {
       return NextResponse.json(
-        { error: 'Please enter a valid 6-digit PIN code' },
-        { status: 400 }
+        { success: false, error: 'Please enter a valid 6-digit PIN code' },
+        { status: 400, headers: corsHeaders }
       );
     }
 
@@ -78,8 +83,8 @@ export async function POST(request: NextRequest) {
 
     if (existingEmail) {
       return NextResponse.json(
-        { error: 'Email already registered' },
-        { status: 400 }
+        { success: false, error: 'Email already registered' },
+        { status: 400, headers: corsHeaders }
       );
     }
 
@@ -92,22 +97,8 @@ export async function POST(request: NextRequest) {
 
     if (existingPhone) {
       return NextResponse.json(
-        { error: 'Phone number already registered' },
-        { status: 400 }
-      );
-    }
-
-    // Original check kept for compatibility
-    const { data: existingUser } = await supabaseAdmin
-      .from('users')
-      .select('id')
-      .eq('email', email)
-      .maybeSingle();
-
-    if (existingUser) {
-      return NextResponse.json(
-        { error: 'User with this email already exists' },
-        { status: 400 }
+        { success: false, error: 'Phone number already registered' },
+        { status: 400, headers: corsHeaders }
       );
     }
 
@@ -136,8 +127,8 @@ export async function POST(request: NextRequest) {
     if (userError) {
       console.error('Error creating customer user:', userError);
       return NextResponse.json(
-        { error: 'Failed to create customer account' },
-        { status: 500 }
+        { success: false, error: 'Failed to create customer account' },
+        { status: 500, headers: corsHeaders }
       );
     }
 
@@ -154,27 +145,36 @@ export async function POST(request: NextRequest) {
       // Rollback user creation
       await supabaseAdmin.from('users').delete().eq('id', user.id);
       return NextResponse.json(
-        { error: 'Failed to create wallet' },
-        { status: 500 }
+        { success: false, error: 'Failed to create wallet' },
+        { status: 500, headers: corsHeaders }
       );
     }
 
     return NextResponse.json({
       success: true,
       message: 'Customer registration successful! You can now login.',
-      user: {
+      data: {
+        user_id: user.id,
         id: user.id,
         name: user.name,
         email: user.email,
+        phone: user.phone,
         role: user.role,
+        is_active: user.is_active,
+        address: user.address,
+        city: user.city,
+        state: user.state,
+        pincode: user.pincode,
+        created_at: user.created_at,
+        updated_at: user.updated_at,
       }
-    });
+    }, { headers: corsHeaders });
 
   } catch (error) {
     console.error('Customer registration error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { success: false, error: 'Internal server error' },
+      { status: 500, headers: corsHeaders }
     );
   }
 }
