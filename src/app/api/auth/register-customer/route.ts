@@ -23,6 +23,8 @@ export async function POST(request: NextRequest) {
       pincode,
     } = body;
 
+    console.log('Customer registration attempt:', { name, email, phone: phone?.substring(0, 3) + 'XXXXX' });
+
     // Validation
     if (!name || !email || !password) {
       return NextResponse.json(
@@ -75,13 +77,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if email already exists
-    const { data: existingEmail } = await supabaseAdmin
+    const { data: existingEmail, error: emailCheckError } = await supabaseAdmin
       .from('users')
       .select('id')
       .eq('email', email)
       .maybeSingle();
 
+    if (emailCheckError) {
+      console.error('Error checking existing email:', emailCheckError);
+      return NextResponse.json(
+        { success: false, error: 'Database error during validation' },
+        { status: 500, headers: corsHeaders }
+      );
+    }
+
     if (existingEmail) {
+      console.log('Email already exists:', email);
       return NextResponse.json(
         { success: false, error: 'Email already registered' },
         { status: 400, headers: corsHeaders }
@@ -89,13 +100,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if phone already exists
-    const { data: existingPhone } = await supabaseAdmin
+    const { data: existingPhone, error: phoneCheckError } = await supabaseAdmin
       .from('users')
       .select('id')
       .eq('phone', phone)
       .maybeSingle();
 
+    if (phoneCheckError) {
+      console.error('Error checking existing phone:', phoneCheckError);
+      return NextResponse.json(
+        { success: false, error: 'Database error during validation' },
+        { status: 500, headers: corsHeaders }
+      );
+    }
+
     if (existingPhone) {
+      console.log('Phone already exists:', phone?.substring(0, 3) + 'XXXXX');
       return NextResponse.json(
         { success: false, error: 'Phone number already registered' },
         { status: 400, headers: corsHeaders }
@@ -126,15 +146,27 @@ export async function POST(request: NextRequest) {
 
     if (userError) {
       console.error('Error creating customer user:', userError);
+      console.error('User error details:', {
+        code: userError.code,
+        message: userError.message,
+        details: userError.details,
+        hint: userError.hint
+      });
       
       // Provide more specific error message
       let errorMessage = 'Failed to create customer account';
       if (userError.code === '23505') {
-        if (userError.message.includes('email')) {
+        if (userError.message.includes('email') || userError.message.includes('users_email_key')) {
           errorMessage = 'Email already registered';
-        } else if (userError.message.includes('phone')) {
+        } else if (userError.message.includes('phone') || userError.message.includes('users_phone_key')) {
           errorMessage = 'Phone number already registered';
+        } else {
+          errorMessage = 'Account with this information already exists';
         }
+      } else if (userError.code === '23502') {
+        errorMessage = 'Missing required information';
+      } else if (userError.code === '23514') {
+        errorMessage = 'Invalid data format';
       }
       
       return NextResponse.json(
@@ -145,6 +177,8 @@ export async function POST(request: NextRequest) {
 
     // Wallet is automatically created by database trigger for CUSTOMER role
     // No need to manually create wallet here
+
+    console.log('Customer registration successful:', { userId: user.id, email: user.email });
 
     return NextResponse.json({
       success: true,

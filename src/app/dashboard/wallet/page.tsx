@@ -201,36 +201,7 @@ export default function WalletPage() {
     }
   }, []);
 
-  // Check for pending payments and verify them
-  useEffect(() => {
-    if (!session) return;
-
-    const checkPendingPayments = async () => {
-      try {
-        const response = await fetch('/api/wallet/cashfree/check-pending', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-        });
-
-        if (response.ok) {
-          const result = await response.json();
-          if (result.verified_payments > 0) {
-            // Some payments were verified and processed
-            refreshWalletAndTransactions();
-            showToast.success('Payment Processed', {
-              description: `${result.verified_payments} pending payment(s) have been processed and added to your wallet.`
-            });
-          }
-        }
-      } catch (error) {
-        console.error('Failed to check pending payments:', error);
-      }
-    };
-
-    // Check for pending payments when wallet page loads
-    const timer = setTimeout(checkPendingPayments, 2000);
-    return () => clearTimeout(timer);
-  }, [session]);
+  // Removed automatic pending payment check - webhook handles all processing automatically
 
   // Calculate GST breakdown instantly when amount changes
   useEffect(() => {

@@ -133,99 +133,15 @@ export async function POST(request: NextRequest) {
 
         console.log(`Order ${payment.order_id} status:`, orderStatus.order_status);
 
-        // Check if payment is successful
+        // Check if payment is successful - but don't process it here, let webhook handle it
         if (orderStatus.order_status === 'PAID') {
-          // Update payment status
-          await supabaseAdmin
-            .from('cashfree_payments')
-            .update({
-              status: 'PAID',
-              payment_method: orderStatus.payment_method || 'UNKNOWN',
-              payment_time: new Date().toISOString(),
-              webhook_data: orderStatus,
-            })
-            .eq('order_id', payment.order_id);
-
-          // Get user's wallet
-          const { data: wallet, error: walletError } = await supabaseAdmin
-            .from('wallets')
-            .select('id, balance')
-            .eq('user_id', user.id)
-            .single();
-
-          if (walletError || !wallet) {
-            console.error('Wallet not found for user:', user.id);
-            results.push({
-              order_id: payment.order_id,
-              status: 'WALLET_ERROR',
-              error: 'Wallet not found'
-            });
-            continue;
-          }
-
-          // Credit only base amount to wallet (without GST)
-          const walletCreditAmount = payment.wallet_credit_amount || payment.base_amount;
-          const newBalance = parseFloat(wallet.balance.toString()) + walletCreditAmount;
-
-          await supabaseAdmin
-            .from('wallets')
-            .update({ balance: newBalance })
-            .eq('user_id', user.id);
-
-          // Create transaction record
-          const { data: transaction } = await supabaseAdmin
-            .from('transactions')
-            .insert({
-              user_id: user.id,
-              wallet_id: wallet.id,
-              type: 'DEPOSIT',
-              amount: walletCreditAmount,
-              status: 'COMPLETED',
-              description: `Wallet recharge via Cashfree (Base: ₹${payment.base_amount}, GST: ₹${payment.gst_amount}, Total Paid: ₹${payment.amount})`,
-              reference: payment.order_id,
-              metadata: {
-                payment_method: orderStatus.payment_method || 'UNKNOWN',
-                cf_order_id: payment.cf_order_id,
-                base_amount: payment.base_amount,
-                gst_amount: payment.gst_amount,
-                total_paid: payment.amount,
-                wallet_credited: walletCreditAmount,
-                auto_verified: true,
-              },
-            })
-            .select()
-            .single();
-
-          // Update cashfree_payments with transaction_id
-          if (transaction) {
-            await supabaseAdmin
-              .from('cashfree_payments')
-              .update({ transaction_id: transaction.id })
-              .eq('order_id', payment.order_id);
-          }
-
-          // Create notification for user
-          await supabaseAdmin.from('notifications').insert({
-            title: 'Wallet Recharged Successfully',
-            message: `₹${walletCreditAmount} has been added to your wallet via Cashfree payment gateway.`,
-            type: 'WALLET_CREDIT',
-            target_users: [user.id],
-            data: {
-              amount: walletCreditAmount,
-              transaction_id: transaction?.id,
-              payment_method: orderStatus.payment_method || 'UNKNOWN',
-              auto_verified: true,
-            },
-          });
-
-          verifiedCount++;
+          console.log(`Payment ${payment.order_id} is PAID but not processed here - webhook should handle it`);
           results.push({
             order_id: payment.order_id,
-            status: 'PROCESSED',
-            amount_credited: walletCreditAmount
+            status: 'PAID_AWAITING_WEBHOOK',
+            cashfree_status: orderStatus.order_status,
+            message: 'Payment successful, awaiting webhook processing'
           });
-
-          console.log(`Payment ${payment.order_id} processed successfully. Amount credited: ₹${walletCreditAmount}`);
         } else if (orderStatus.order_status === 'CANCELLED' || orderStatus.order_status === 'FAILED') {
           // Update payment status to failed
           await supabaseAdmin
