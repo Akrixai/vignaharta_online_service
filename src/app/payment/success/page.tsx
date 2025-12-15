@@ -30,32 +30,11 @@ function PaymentSuccessContent() {
 
     let redirectTimer: NodeJS.Timeout;
 
-    // If wallet payment, verify payment status
+    // For wallet payments, we don't need to verify here as webhooks handle processing
+    // Only log the success - webhook will handle the actual wallet crediting
     if (!isRegistration && orderId) {
-      const verifyPayment = async () => {
-        try {
-          console.log('Verifying wallet payment:', orderId);
-          const response = await fetch('/api/wallet/cashfree/verify-payment', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ order_id: orderId }),
-          });
-
-          const result = await response.json();
-          console.log('Payment verification result:', result);
-          
-          if (result.success && result.status === 'PAID') {
-            console.log('Payment verified and processed successfully');
-          } else {
-            console.warn('Payment verification failed or payment not successful:', result);
-          }
-        } catch (err) {
-          console.error('Failed to verify payment:', err);
-        }
-      };
-
-      // Verify payment after a short delay to allow webhook processing
-      setTimeout(verifyPayment, 2000);
+      console.log('Wallet payment success page loaded for order:', orderId);
+      console.log('Webhook will handle payment processing automatically');
     }
 
     // If registration, process it immediately

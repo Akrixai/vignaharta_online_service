@@ -53,12 +53,14 @@ export async function POST(request: NextRequest) {
       return addCorsHeaders(NextResponse.json({ error: 'Payment not found' }, { status: 404 }));
     }
 
-    // If already processed, return success
+    // If already processed, return success without processing again
     if (payment.status === 'PAID') {
+      console.log('Payment already processed by webhook, skipping manual verification:', order_id);
       return addCorsHeaders(NextResponse.json({ 
         success: true, 
-        message: 'Payment already processed',
-        status: 'PAID'
+        message: 'Payment already processed by webhook',
+        status: 'PAID',
+        already_processed: true
       }));
     }
 
@@ -149,6 +151,7 @@ export async function POST(request: NextRequest) {
             total_paid: payment.amount,
             wallet_credited: walletCreditAmount,
             verified_manually: true,
+            processed_by: 'manual_verification'
           },
         })
         .select()

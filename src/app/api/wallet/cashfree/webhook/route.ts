@@ -313,6 +313,7 @@ export async function POST(request: NextRequest) {
             gst_amount: payment.gst_amount,
             total_paid: payment.amount,
             wallet_credited: walletCreditAmount,
+            processed_by: 'webhook'
           },
         })
         .select()
