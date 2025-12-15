@@ -560,15 +560,19 @@ export default function PendingRegistrationsPage() {
                         )}
                       </div>
                       
-                      {selectedRegistration.payment_request.screenshot_url && (
+                      {(selectedRegistration.payment_request?.screenshot_url || selectedRegistration.payment_screenshot_url) && (
                         <div className="mt-4">
                           <label className="text-sm font-medium text-gray-600">Payment Screenshot</label>
                           <div className="mt-2">
                             <img 
-                              src={selectedRegistration.payment_request.screenshot_url} 
+                              src={selectedRegistration.payment_request?.screenshot_url || selectedRegistration.payment_screenshot_url} 
                               alt="Payment Screenshot" 
                               className="max-w-full h-auto max-h-96 rounded-lg border cursor-pointer"
-                              onClick={() => window.open(selectedRegistration.payment_request?.screenshot_url, '_blank')}
+                              onClick={() => window.open(selectedRegistration.payment_request?.screenshot_url || selectedRegistration.payment_screenshot_url, '_blank')}
+                              onError={(e) => {
+                                console.error('Failed to load payment screenshot:', e.currentTarget.src);
+                                e.currentTarget.style.display = 'none';
+                              }}
                             />
                             <p className="text-xs text-gray-500 mt-1">Click to view full size</p>
                           </div>
@@ -644,7 +648,7 @@ export default function PendingRegistrationsPage() {
                     <div className="flex space-x-3">
                       <Button
                         className="bg-green-600 hover:bg-green-700"
-                        onClick={() => handleApprove(selectedRegistration.id)}
+                        onClick={() => handleApprove(selectedRegistration.id, selectedRegistration)}
                         disabled={processing === selectedRegistration.id}
                       >
                         <CheckCircle className="w-4 h-4 mr-2" />

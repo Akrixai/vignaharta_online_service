@@ -126,29 +126,25 @@ export async function POST(request: NextRequest) {
 
     if (userError) {
       console.error('Error creating customer user:', userError);
+      
+      // Provide more specific error message
+      let errorMessage = 'Failed to create customer account';
+      if (userError.code === '23505') {
+        if (userError.message.includes('email')) {
+          errorMessage = 'Email already registered';
+        } else if (userError.message.includes('phone')) {
+          errorMessage = 'Phone number already registered';
+        }
+      }
+      
       return NextResponse.json(
-        { success: false, error: 'Failed to create customer account' },
+        { success: false, error: errorMessage },
         { status: 500, headers: corsHeaders }
       );
     }
 
-    // Create wallet for customer
-    const { error: walletError } = await supabaseAdmin
-      .from('wallets')
-      .insert({
-        user_id: user.id,
-        balance: 0,
-      });
-
-    if (walletError) {
-      console.error('Error creating wallet:', walletError);
-      // Rollback user creation
-      await supabaseAdmin.from('users').delete().eq('id', user.id);
-      return NextResponse.json(
-        { success: false, error: 'Failed to create wallet' },
-        { status: 500, headers: corsHeaders }
-      );
-    }
+    // Wallet is automatically created by database trigger for CUSTOMER role
+    // No need to manually create wallet here
 
     return NextResponse.json({
       success: true,
