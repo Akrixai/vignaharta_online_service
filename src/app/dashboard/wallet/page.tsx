@@ -255,9 +255,17 @@ export default function WalletPage() {
     setIsAddingMoney(true);
     setPaymentStatusMessage('Initiating payment...');
 
-    // Direct payment without GST
+    // Send base amount to backend (backend will calculate GST)
+    console.log('Payment Debug:', {
+      inputAmount: amount,
+      baseAmount: breakdown.recharge_amount,
+      gstAmount: breakdown.gst_amount,
+      totalPayable: breakdown.total_payable,
+      sendingToBackend: breakdown.recharge_amount
+    });
+    
     await initiatePayment(
-      breakdown.total_payable,
+      breakdown.recharge_amount,
       (data) => {
         // Payment successful
         setAddMoneyAmount('');
@@ -267,7 +275,7 @@ export default function WalletPage() {
         setPaymentStatusMessage('');
 
         showToast.success('Payment Successful!', {
-          description: `₹${breakdown.wallet_credit} will be added to your wallet shortly.`
+          description: `₹${breakdown.wallet_credit} will be added to your wallet shortly. (Total paid: ₹${breakdown.total_payable} including GST)`
         });
 
         // Refresh wallet and transactions after a delay to allow webhook processing
