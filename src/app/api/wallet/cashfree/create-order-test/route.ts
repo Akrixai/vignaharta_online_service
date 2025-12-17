@@ -34,8 +34,17 @@ export async function POST(request: NextRequest) {
         }
 
         const gstPercentage = 2.00; // 2% GST
-        const gstAmount = Math.round((baseAmount * gstPercentage)) / 100;
+        const gstAmount = Math.round((baseAmount * gstPercentage / 100) * 100) / 100; // Correct GST calculation: 2% of base amount
         const totalAmount = parseFloat((baseAmount + gstAmount).toFixed(2));
+
+        // Log GST calculation for debugging
+        console.log(`GST Calculation Debug (Test):`, {
+          baseAmount,
+          gstPercentage,
+          gstAmount,
+          totalAmount,
+          calculation: `${baseAmount} × ${gstPercentage}% = ${gstAmount}`
+        });
 
         if (baseAmount > 50000) {
             return NextResponse.json({

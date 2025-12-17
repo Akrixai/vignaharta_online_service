@@ -55,8 +55,17 @@ export async function POST(request: NextRequest) {
     }
 
     const gstPercentage = 2.00; // 2% GST
-    const gstAmount = Math.round((baseAmount * gstPercentage)) / 100; // Round to 2 decimals
+    const gstAmount = Math.round((baseAmount * gstPercentage / 100) * 100) / 100; // Correct GST calculation: 2% of base amount
     const totalAmount = parseFloat((baseAmount + gstAmount).toFixed(2)); // Ensure exactly 2 decimal places
+
+    // Log GST calculation for debugging
+    console.log(`GST Calculation Debug:`, {
+      baseAmount,
+      gstPercentage,
+      gstAmount,
+      totalAmount,
+      calculation: `${baseAmount} × ${gstPercentage}% = ${gstAmount}`
+    });
 
     // No artificial limits - let Cashfree handle its own account limits
     // Maximum is set to ₹50,000 for safety
