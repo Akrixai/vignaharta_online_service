@@ -286,6 +286,14 @@ export default withAuth(
           return NextResponse.redirect(new URL('/dashboard', req.url));
         }
       }
+
+      // Recharge & Bills access (Only for specific retailer email)
+      if (pathname.startsWith('/dashboard/recharge/')) {
+        const userEmail = token.email as string;
+        if (userEmail !== 'AkrixRetailerTest@gmail.com') {
+          return NextResponse.redirect(new URL('/dashboard/coming-soon', req.url));
+        }
+      }
     }
 
     return NextResponse.next();
