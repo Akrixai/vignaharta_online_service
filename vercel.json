@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "name": "vignaharta-janseva",
+  "name": "vignaharta-online-services",
   "routes": [
     {
       "src": "/api/(.*)",
@@ -22,7 +22,7 @@
   "crons": [
     {
       "path": "/api/cron/pan-services-expiry",
-      "schedule": "0 * * * *"
+      "schedule": "0 0 * * *"
     }
   ],
   "regions": ["bom1"],
