@@ -15,11 +15,13 @@ export async function GET(request: NextRequest) {
     console.log('🔔 [KwikAPI] Callback received (GET):', {
       url: request.url,
       params,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      headers: Object.fromEntries(request.headers.entries())
     });
 
-    // If no parameters, return validation response
+    // If no parameters, return validation response for KwikAPI URL verification
     if (Object.keys(params).length === 0) {
+      console.log('✅ [KwikAPI] URL validation request - responding OK');
       return new NextResponse('OK', {
         status: 200,
         headers: {
@@ -29,10 +31,11 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Process the webhook
+    // Process the webhook with parameters
     return await processKwikAPICallback(params);
   } catch (error: any) {
     console.error('❌ [KwikAPI] GET Error:', error);
+    // Always return OK to KwikAPI to prevent retries
     return new NextResponse('OK', {
       status: 200,
       headers: {
@@ -48,34 +51,60 @@ export async function POST(request: NextRequest) {
   try {
     let params: any = {};
     const contentType = request.headers.get('content-type') || '';
+    const url = new URL(request.url);
     
-    // Handle different content types
-    if (contentType.includes('application/json')) {
-      params = await request.json();
-    } else if (contentType.includes('application/x-www-form-urlencoded')) {
-      const text = await request.text();
-      params = Object.fromEntries(new URLSearchParams(text));
-    } else {
-      // Try to parse as form data
-      const text = await request.text();
-      if (text) {
-        try {
-          params = Object.fromEntries(new URLSearchParams(text));
-        } catch {
-          params = JSON.parse(text);
+    // First, try to get parameters from URL query string (KwikAPI may send via URL)
+    const urlParams = Object.fromEntries(url.searchParams.entries());
+    if (Object.keys(urlParams).length > 0) {
+      params = { ...urlParams };
+    }
+    
+    // Then try to get from request body based on content type
+    try {
+      if (contentType.includes('application/json')) {
+        const jsonBody = await request.json();
+        params = { ...params, ...jsonBody };
+      } else if (contentType.includes('application/x-www-form-urlencoded')) {
+        const text = await request.text();
+        const formParams = Object.fromEntries(new URLSearchParams(text));
+        params = { ...params, ...formParams };
+      } else if (contentType.includes('multipart/form-data')) {
+        const formData = await request.formData();
+        const formParams = Object.fromEntries(formData.entries());
+        params = { ...params, ...formParams };
+      } else {
+        // Try to read as text and parse as query string or JSON
+        const text = await request.text();
+        if (text) {
+          try {
+            const textParams = Object.fromEntries(new URLSearchParams(text));
+            params = { ...params, ...textParams };
+          } catch {
+            try {
+              const jsonBody = JSON.parse(text);
+              params = { ...params, ...jsonBody };
+            } catch {
+              console.log('Could not parse request body:', text);
+            }
+          }
         }
       }
+    } catch (error) {
+      console.log('Error parsing request body:', error);
     }
     
     console.log('🔔 [KwikAPI] Callback received (POST):', {
       contentType,
+      urlParams,
       params,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      headers: Object.fromEntries(request.headers.entries())
     });
 
     return await processKwikAPICallback(params);
   } catch (error: any) {
     console.error('❌ [KwikAPI] POST Error:', error);
+    // Always return OK to KwikAPI to prevent retries
     return new NextResponse('OK', {
       status: 200,
       headers: {
@@ -87,6 +116,7 @@ export async function POST(request: NextRequest) {
 }
 
 // Main callback processing function with dynamic commission/cashback
+// Supports both web and mobile app transactions
 async function processKwikAPICallback(data: any) {
   try {
     const {
@@ -94,10 +124,18 @@ async function processKwikAPICallback(data: any) {
       client_id,       // Your Order Id  
       operator_ref,    // Operator Reference Id
       status,          // SUCCESS/FAILED
+      // Legacy parameters for backward compatibility
+      transaction_id,
+      operator_txn_id,
     } = data;
 
-    if (!payid || !status) {
-      console.log('⚠️ [KwikAPI] Missing required parameters:', { payid, status });
+    // Use KwikAPI parameters or fallback to legacy
+    const kwikApiOrderId = payid || transaction_id;
+    const operatorRef = operator_ref || operator_txn_id;
+    const transactionStatus = status;
+
+    if (!kwikApiOrderId || !transactionStatus) {
+      console.log('⚠️ [KwikAPI] Missing required parameters:', { kwikApiOrderId, transactionStatus, data });
       return new NextResponse('OK', { status: 200, headers: { 'Content-Type': 'text/plain' } });
     }
 
@@ -105,42 +143,55 @@ async function processKwikAPICallback(data: any) {
     let { data: transaction } = await supabase
       .from('recharge_transactions')
       .select('*, user:users(id, email, name, role)')
-      .eq('kwikapi_order_id', payid)
+      .eq('kwikapi_order_id', kwikApiOrderId)
       .single();
 
-    // Fallback: try to find by transaction reference
-    if (!transaction && client_id) {
-      const { data: fallbackTransaction } = await supabase
-        .from('recharge_transactions')
-        .select('*, user:users(id, email, name, role)')
-        .eq('transaction_ref', client_id)
-        .single();
-      transaction = fallbackTransaction;
+    // Fallback: try to find by transaction reference or kwikapi_transaction_id
+    if (!transaction) {
+      if (client_id) {
+        const { data: fallbackTransaction } = await supabase
+          .from('recharge_transactions')
+          .select('*, user:users(id, email, name, role)')
+          .eq('transaction_ref', client_id)
+          .single();
+        transaction = fallbackTransaction;
+      }
+      
+      // Another fallback for legacy compatibility
+      if (!transaction && transaction_id) {
+        const { data: legacyTransaction } = await supabase
+          .from('recharge_transactions')
+          .select('*, user:users(id, email, name, role)')
+          .eq('kwikapi_transaction_id', transaction_id)
+          .single();
+        transaction = legacyTransaction;
+      }
     }
 
     if (!transaction) {
-      console.error('❌ [KwikAPI] Transaction not found:', { payid, client_id });
+      console.error('❌ [KwikAPI] Transaction not found:', { kwikApiOrderId, client_id, transaction_id });
       return new NextResponse('OK', { status: 200, headers: { 'Content-Type': 'text/plain' } });
     }
 
     console.log('✅ [KwikAPI] Transaction found:', {
       id: transaction.id,
       currentStatus: transaction.status,
-      newStatus: status,
-      userRole: transaction.user?.role
+      newStatus: transactionStatus,
+      userRole: transaction.user?.role,
+      serviceType: transaction.service_type
     });
 
     // Update transaction status
     const updateData: any = {
-      status: status.toUpperCase(),
+      status: transactionStatus.toUpperCase(),
       callback_received: true,
       callback_data: data,
       completed_at: new Date().toISOString(),
     };
 
-    if (operator_ref) {
-      updateData.kwikapi_opr_id = operator_ref;
-      updateData.operator_transaction_id = operator_ref;
+    if (operatorRef) {
+      updateData.kwikapi_opr_id = operatorRef;
+      updateData.operator_transaction_id = operatorRef;
     }
 
     await supabase
@@ -148,13 +199,15 @@ async function processKwikAPICallback(data: any) {
       .update(updateData)
       .eq('id', transaction.id);
 
-    // Process rewards for successful transactions
-    if (status === 'SUCCESS' && transaction.status !== 'SUCCESS') {
+    // Process rewards for successful transactions (if status changed to SUCCESS)
+    if (transactionStatus === 'SUCCESS' && transaction.status !== 'SUCCESS') {
+      console.log('💰 [KwikAPI] Processing rewards for successful transaction:', transaction.id);
       await processTransactionRewards(transaction);
     }
 
-    // Process refunds for failed transactions
-    if (status === 'FAILED' && transaction.status !== 'FAILED') {
+    // Process refunds for failed transactions (if status changed to FAILED)
+    if (transactionStatus === 'FAILED' && transaction.status !== 'FAILED') {
+      console.log('💸 [KwikAPI] Processing refund for failed transaction:', transaction.id);
       await processTransactionRefund(transaction);
     }
 
@@ -169,6 +222,7 @@ async function processKwikAPICallback(data: any) {
     });
   } catch (error: any) {
     console.error('❌ [KwikAPI] Processing error:', error);
+    // Always return OK to prevent KwikAPI retries
     return new NextResponse('OK', {
       status: 200,
       headers: {
