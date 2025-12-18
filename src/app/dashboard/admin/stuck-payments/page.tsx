@@ -107,32 +107,7 @@ export default function StuckPaymentsPage() {
     }
   };
 
-  const testCashfreeAPI = async (cfOrderId: string) => {
-    try {
-      const response = await fetch('/api/wallet/cashfree/test-api', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cf_order_id: cfOrderId }),
-      });
-
-      const result = await response.json();
-      
-      if (result.success) {
-        showToast.success('API Test Successful', {
-          description: `Status: ${result.response.body.order_status || 'Unknown'}`
-        });
-      } else {
-        showToast.error('API Test Failed', {
-          description: result.response.body.message || 'Unknown error'
-        });
-      }
-      
-      console.log('Cashfree API test result:', result);
-    } catch (error) {
-      console.error('Error testing API:', error);
-      showToast.error('API test failed');
-    }
-  };
+  // Test API functionality removed for security reasons
 
   if (!session || session.user.role !== 'ADMIN') {
     return (
@@ -242,13 +217,7 @@ export default function StuckPaymentsPage() {
                       ❌ Mark as Failed
                     </Button>
                     
-                    <Button
-                      onClick={() => testCashfreeAPI(payment.cf_order_id)}
-                      variant="outline"
-                      className="border-blue-300 text-blue-600 hover:bg-blue-50"
-                    >
-                      🔍 Test API
-                    </Button>
+                    {/* Test API button removed for security reasons */}
                   </div>
                 </CardContent>
               </Card>
@@ -265,7 +234,7 @@ export default function StuckPaymentsPage() {
             <ul className="space-y-2 text-sm text-blue-700">
               <li>• <strong>Mark as Paid:</strong> Credits the wallet amount and creates transaction record</li>
               <li>• <strong>Mark as Failed:</strong> Updates status to failed without crediting wallet</li>
-              <li>• <strong>Test API:</strong> Checks the actual status with Cashfree API</li>
+              {/* Test API functionality removed for security */}
               <li>• Only payments from the last 24 hours are shown</li>
               <li>• Always verify with the user before manually processing payments</li>
             </ul>

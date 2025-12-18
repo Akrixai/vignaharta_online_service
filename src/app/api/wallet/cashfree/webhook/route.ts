@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { validatePaymentSecurity, logSecurityIncident } from '@/lib/payment-security';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 
@@ -224,17 +225,64 @@ export async function POST(request: NextRequest) {
     console.log('Processing webhook type:', type, 'with data keys:', Object.keys(data || {}));
 
     if (type === 'PAYMENT_SUCCESS_WEBHOOK') {
-      const { order } = data;
+      const { order, payment } = data;
+      
+      // CRITICAL SECURITY CHECK: Comprehensive payment validation
+      const securityCheck = validatePaymentSecurity(data, process.env.CASHFREE_ENVIRONMENT);
+      
+      if (!securityCheck.isValid) {
+        console.error('🚨 SECURITY ALERT: Payment blocked by security validation!', {
+          order_id: order.order_id,
+          reason: securityCheck.reason,
+          riskLevel: securityCheck.riskLevel,
+          blockedIndicators: securityCheck.blockedIndicators,
+          payment_method: payment?.payment_method,
+          upi_id: payment?.payment_method?.upi?.upi_id,
+          bank_reference: payment?.bank_reference,
+          message: payment?.payment_message,
+          timestamp: new Date().toISOString()
+        });
+        
+        // Log security incident
+        await logSecurityIncident({
+          type: 'BLOCKED_PAYMENT',
+          description: securityCheck.reason || 'Payment blocked by security validation',
+          paymentData: data,
+          riskLevel: securityCheck.riskLevel
+        });
+        
+        // Create admin notification
+        await supabaseAdmin.from('notifications').insert({
+          title: `🚨 SECURITY ALERT: ${securityCheck.riskLevel} Risk Payment Blocked`,
+          message: `Blocked payment attempt: Order ${order.order_id}. Reason: ${securityCheck.reason}. Indicators: ${securityCheck.blockedIndicators?.join(', ') || 'N/A'}`,
+          type: 'SECURITY_ALERT',
+          target_roles: ['ADMIN'],
+          data: {
+            order_id: order.order_id,
+            payment_data: payment,
+            security_check: securityCheck,
+            blocked_reason: securityCheck.reason,
+            risk_level: securityCheck.riskLevel,
+            timestamp: new Date().toISOString()
+          },
+        });
+        
+        return addCorsHeaders(NextResponse.json({ 
+          error: 'Payment blocked by security validation',
+          reason: securityCheck.reason,
+          blocked: true 
+        }, { status: 403 }));
+      }
       
       // Try to get wallet payment record first
-      const { data: payment, error: paymentError } = await supabaseAdmin
+      const { data: paymentRecord, error: paymentError } = await supabaseAdmin
         .from('cashfree_payments')
         .select('*')
         .eq('order_id', order.order_id)
         .single();
 
       // If not found in wallet payments, check registration payments
-      if (paymentError || !payment) {
+      if (paymentError || !paymentRecord) {
         const { data: registrationPayment, error: regPaymentError } = await supabaseAdmin
           .from('cashfree_registration_payments')
           .select('*')
@@ -251,7 +299,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Check if payment is already processed to avoid double processing
-      if (payment.status === 'PAID') {
+      if (paymentRecord.status === 'PAID') {
         console.log('Payment already processed, skipping:', order.order_id);
         return addCorsHeaders(NextResponse.json({ success: true, message: 'Payment already processed' }));
       }
@@ -271,20 +319,20 @@ export async function POST(request: NextRequest) {
       const { data: wallet, error: walletError } = await supabaseAdmin
         .from('wallets')
         .select('id, balance')
-        .eq('user_id', payment.user_id)
+        .eq('user_id', paymentRecord.user_id)
         .single();
 
       if (walletError || !wallet) {
-        console.error('Wallet not found for user:', payment.user_id);
+        console.error('Wallet not found for user:', paymentRecord.user_id);
         return addCorsHeaders(NextResponse.json({ error: 'Wallet not found' }, { status: 404 }));
       }
 
       // Credit only base amount to wallet (without GST)
-      const walletCreditAmount = payment.wallet_credit_amount || payment.base_amount;
+      const walletCreditAmount = paymentRecord.wallet_credit_amount || paymentRecord.base_amount;
       const newBalance = parseFloat(wallet.balance.toString()) + walletCreditAmount;
 
       console.log('Crediting wallet:', {
-        user_id: payment.user_id,
+        user_id: paymentRecord.user_id,
         current_balance: wallet.balance,
         credit_amount: walletCreditAmount,
         new_balance: newBalance
@@ -293,25 +341,25 @@ export async function POST(request: NextRequest) {
       await supabaseAdmin
         .from('wallets')
         .update({ balance: newBalance })
-        .eq('user_id', payment.user_id);
+        .eq('user_id', paymentRecord.user_id);
 
       // Create transaction record
       const { data: transaction } = await supabaseAdmin
         .from('transactions')
         .insert({
-          user_id: payment.user_id,
+          user_id: paymentRecord.user_id,
           wallet_id: wallet.id,
           type: 'DEPOSIT',
           amount: walletCreditAmount,
           status: 'COMPLETED',
-          description: `Wallet recharge via Cashfree (Base: ₹${payment.base_amount}, GST: ₹${payment.gst_amount}, Total Paid: ₹${payment.amount})`,
+          description: `Wallet recharge via Cashfree (Base: ₹${paymentRecord.base_amount}, GST: ₹${paymentRecord.gst_amount}, Total Paid: ₹${paymentRecord.amount})`,
           reference: order.order_id,
           metadata: {
             payment_method: order.payment_method,
             cf_order_id: order.cf_order_id,
-            base_amount: payment.base_amount,
-            gst_amount: payment.gst_amount,
-            total_paid: payment.amount,
+            base_amount: paymentRecord.base_amount,
+            gst_amount: paymentRecord.gst_amount,
+            total_paid: paymentRecord.amount,
             wallet_credited: walletCreditAmount,
             processed_by: 'webhook'
           },
@@ -332,7 +380,7 @@ export async function POST(request: NextRequest) {
         title: 'Wallet Recharged Successfully',
         message: `₹${walletCreditAmount} has been added to your wallet via Cashfree payment gateway.`,
         type: 'WALLET_CREDIT',
-        target_users: [payment.user_id],
+        target_users: [paymentRecord.user_id],
         data: {
           amount: walletCreditAmount,
           transaction_id: transaction?.id,
