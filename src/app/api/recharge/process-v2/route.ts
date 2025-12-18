@@ -39,13 +39,13 @@ export async function POST(request: NextRequest) {
       circle_code,
       mobile_number,
       dth_number,
-      subscriber_id, // DTH subscriber ID
+      subscriber_id,
       consumer_number,
       amount,
       plan_id,
       customer_name,
-      ref_id, // From bill fetch for postpaid/electricity - IMPORTANT!
-      bill_details, // Store complete bill details
+      ref_id,
+      bill_details,
       opt1,
       opt2,
       opt3,
@@ -59,40 +59,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get operator details from new kwikapi_billers table
+    // Get operator details from recharge_operators table (admin configured)
     const { data: operator } = await supabase
-      .from('kwikapi_billers')
+      .from('recharge_operators')
       .select('*')
-      .eq('operator_id', parseInt(operator_code)) // operator_code now contains the KwikAPI operator_id
+      .eq('kwikapi_opid', parseInt(operator_code))
+      .eq('service_type', service_type.toUpperCase())
+      .eq('is_active', true)
       .single();
 
     if (!operator) {
       return NextResponse.json(
-        { success: false, message: 'Invalid operator' },
+        { success: false, message: 'Invalid operator or operator not configured' },
         { status: 400 }
       );
     }
 
-    // Get commission and cashback configuration from recharge_operators table
-    const { data: rechargeOperator } = await supabase
-      .from('recharge_operators')
-      .select('commission_rate, cashback_enabled, cashback_min_percentage, cashback_max_percentage')
-      .eq('kwikapi_opid', parseInt(operator_code))
-      .eq('service_type', service_type.toUpperCase())
-      .single();
-
-    // Use configured rates or fallback to defaults
-    const commissionRate = rechargeOperator?.commission_rate || 2.0;
-    const cashbackEnabled = rechargeOperator?.cashback_enabled || false;
-    const cashbackMinPercentage = rechargeOperator?.cashback_min_percentage || 0.5;
-    const cashbackMaxPercentage = rechargeOperator?.cashback_max_percentage || 2.0;
-
     // Validate amount range
-    if (amount < operator.amount_minimum || amount > operator.amount_maximum) {
+    if (amount < operator.min_amount || amount > operator.max_amount) {
       return NextResponse.json(
         {
           success: false,
-          message: `Amount must be between ₹${operator.amount_minimum} and ₹${operator.amount_maximum}`,
+          message: `Amount must be between ₹${operator.min_amount} and ₹${operator.max_amount}`,
         },
         { status: 400 }
       );
@@ -110,21 +98,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Calculate commission/cashback based on user role and admin configuration
-    // RETAILER gets commission, CUSTOMER gets cashback (if enabled)
     let rewardAmount = 0;
     let rewardLabel = '';
 
     if (dbUser.role === 'CUSTOMER') {
       // Customer gets cashback only if enabled for this operator
-      if (cashbackEnabled) {
+      if (operator.cashback_enabled) {
         // Generate random cashback percentage between min and max
-        const randomCashbackPercentage = (Math.random() * (cashbackMaxPercentage - cashbackMinPercentage) + cashbackMinPercentage);
+        const randomCashbackPercentage = (Math.random() * (operator.cashback_max_percentage - operator.cashback_min_percentage) + operator.cashback_min_percentage);
         rewardAmount = (amount * randomCashbackPercentage) / 100;
         rewardLabel = 'Cashback';
       }
     } else {
       // Retailer/Employee gets commission based on configured rate
-      rewardAmount = (amount * commissionRate) / 100;
+      rewardAmount = (amount * operator.commission_rate) / 100;
       rewardLabel = 'Commission';
     }
 
@@ -161,11 +148,15 @@ export async function POST(request: NextRequest) {
         consumer_number,
         account_holder_name: customer_name || dbUser.name,
         amount,
-        commission_amount: rewardAmount,
+        commission_amount: dbUser.role === 'CUSTOMER' ? 0 : rewardAmount,
+        cashback_amount: dbUser.role === 'CUSTOMER' ? rewardAmount : 0,
+        cashback_percentage: dbUser.role === 'CUSTOMER' && operator.cashback_enabled ? (rewardAmount / amount) * 100 : 0,
         platform_fee: platformFee,
         total_amount: totalAmount,
         status: 'PENDING',
         transaction_ref: transactionRef,
+        bill_fetch_data: bill_details || {},
+        dynamic_parameters: { opt1, opt2, opt3, ref_id },
       })
       .select()
       .single();
@@ -190,8 +181,8 @@ export async function POST(request: NextRequest) {
       metadata: { recharge_transaction_id: transaction.id },
     });
 
-    // Use the operator_id from the kwikapi_billers record
-    const opid = operator.operator_id;
+    // Use the kwikapi_opid from the operator record
+    const opid = operator.kwikapi_opid;
 
     // Check KWIKAPI wallet balance first
     const walletBalanceResponse = await kwikapi.getWalletBalance();
@@ -209,14 +200,14 @@ export async function POST(request: NextRequest) {
         .eq('id', transaction.id);
 
       return NextResponse.json({
-        success: true, // Still success from user perspective
+        success: true,
         pending: true,
         data: {
           transaction_id: transaction.id,
           transaction_ref: transactionRef,
           status: 'PENDING',
           amount,
-          message: '⏳ Your transaction is being processed. Amount has been debited from your wallet. You will receive confirmation shortly. Please contact admin if not completed within 24 hours.',
+          message: '⏳ Your transaction is being processed. Amount has been debited from your wallet. You will receive confirmation shortly.',
         },
       });
     }
@@ -238,17 +229,15 @@ export async function POST(request: NextRequest) {
           break;
 
         case 'POSTPAID':
-          // For postpaid mobile, use utility payment API with ref_id from bill fetch
           rechargeResponse = await kwikapi.payUtilityBill({
             opid: parseInt(opid),
             number: mobile_number!,
             amount,
             order_id: transactionRef,
             mobile: mobile_number!,
-            refrence_id: ref_id, // CRITICAL: ref_id from bill fetch response (note: typo in KWIKAPI)
+            refrence_id: ref_id,
           });
           break;
-
 
         case 'DTH':
           rechargeResponse = await kwikapi.rechargeDTH({
@@ -270,7 +259,7 @@ export async function POST(request: NextRequest) {
             amount,
             order_id: transactionRef,
             mobile: mobile_number || dbUser.email,
-            refrence_id: ref_id, // CRITICAL: ref_id from bill fetch response (note: typo in KWIKAPI)
+            refrence_id: ref_id,
             opt1: opt1,
             opt2: opt2,
             opt3: opt3,
@@ -296,58 +285,46 @@ export async function POST(request: NextRequest) {
         .from('recharge_transactions')
         .update({
           status,
+          kwikapi_order_id: rechargeResponse.data?.order_id || rechargeResponse.data?.txid,
           kwikapi_transaction_id: rechargeResponse.data?.transaction_id || rechargeResponse.data?.txid,
           operator_transaction_id: rechargeResponse.data?.operator_txn_id || rechargeResponse.data?.rrn,
+          kwikapi_opr_id: rechargeResponse.data?.opr_id,
+          kwikapi_balance: rechargeResponse.data?.balance,
+          kwikapi_charged_amount: rechargeResponse.data?.charged_amount,
+          kwikapi_message: rechargeResponse.data?.message,
+          kwikapi_provider: rechargeResponse.data?.provider,
           response_data: rechargeResponse.data,
           completed_at: status === 'SUCCESS' ? new Date().toISOString() : null,
         })
         .eq('id', transaction.id);
 
-      // Update transaction with reward info for successful transactions
-      let actualReward = rewardAmount;
-      if (dbUser.role === 'CUSTOMER' && status === 'SUCCESS' && cashbackEnabled) {
-        // Cashback was already calculated above, update transaction with cashback info
-        const cashbackPercentage = (rewardAmount / amount) * 100;
+      // If successful, add commission/cashback to user wallet immediately
+      if (status === 'SUCCESS' && rewardAmount > 0) {
+        await supabase
+          .from('wallets')
+          .update({ balance: wallet.balance - totalAmount + rewardAmount })
+          .eq('user_id', dbUser.id);
+
+        await supabase.from('transactions').insert({
+          user_id: dbUser.id,
+          wallet_id: wallet.id,
+          type: dbUser.role === 'CUSTOMER' ? 'REFUND' : 'COMMISSION',
+          amount: rewardAmount,
+          status: 'COMPLETED',
+          description: `${rewardLabel} for ${service_type} ${mobile_number || subscriber_id || dth_number || consumer_number}`,
+          reference: transactionRef,
+        });
+
+        // Mark as claimed/paid
         await supabase
           .from('recharge_transactions')
           .update({
-            cashback_percentage: cashbackPercentage,
-            cashback_amount: rewardAmount,
+            [dbUser.role === 'CUSTOMER' ? 'cashback_claimed' : 'commission_paid']: true,
+            [dbUser.role === 'CUSTOMER' ? 'cashback_claimed_at' : 'commission_paid_at']: new Date().toISOString(),
           })
           .eq('id', transaction.id);
-      }
 
-      // If successful, add commission/cashback to user wallet
-      if (status === 'SUCCESS') {
-        if (actualReward > 0) {
-          await supabase
-            .from('wallets')
-            .update({ balance: wallet.balance - totalAmount + actualReward })
-            .eq('user_id', dbUser.id);
-
-          await supabase.from('transactions').insert({
-            user_id: dbUser.id,
-            wallet_id: wallet.id,
-            type: dbUser.role === 'CUSTOMER' ? 'REFUND' : 'COMMISSION',
-            amount: actualReward,
-            status: 'COMPLETED',
-            description: `${rewardLabel} for ${service_type} ${mobile_number || subscriber_id || dth_number || consumer_number}`,
-            reference: transactionRef,
-          });
-
-          // Mark as claimed
-          await supabase
-            .from('recharge_transactions')
-            .update({
-              [dbUser.role === 'CUSTOMER' ? 'cashback_claimed' : 'commission_paid']: true,
-              [dbUser.role === 'CUSTOMER' ? 'cashback_claimed_at' : 'commission_paid_at']: new Date().toISOString(),
-            })
-            .eq('id', transaction.id);
-        }
-
-        const successMessage = actualReward > 0 
-          ? `✅ Recharge successful! ${rewardLabel} of ₹${actualReward.toFixed(2)} has been added to your wallet.`
-          : '✅ Recharge successful!';
+        const successMessage = `✅ Recharge successful! ${rewardLabel} of ₹${rewardAmount.toFixed(2)} has been added to your wallet.`;
 
         return NextResponse.json({
           success: true,
@@ -356,7 +333,7 @@ export async function POST(request: NextRequest) {
             transaction_ref: transactionRef,
             status: 'SUCCESS',
             amount,
-            reward_amount: actualReward,
+            reward_amount: rewardAmount,
             reward_label: rewardLabel,
             message: successMessage,
             response: rechargeResponse.data,
@@ -371,7 +348,7 @@ export async function POST(request: NextRequest) {
             transaction_ref: transactionRef,
             status: 'PENDING',
             amount,
-            message: '⏳ Your transaction is being processed. Amount has been debited from your wallet. You will receive confirmation shortly. Please contact admin if not completed within 24 hours.',
+            message: '⏳ Your transaction is being processed. You will receive confirmation shortly.',
           },
         });
       } else {
@@ -420,12 +397,12 @@ export async function POST(request: NextRequest) {
           transaction_ref: transactionRef,
           status: 'PENDING',
           amount,
-          message: '⏳ Your transaction is being processed. Amount has been debited from your wallet. You will receive confirmation shortly. Please contact admin if not completed within 24 hours.',
+          message: '⏳ Your transaction is being processed. You will receive confirmation shortly.',
         },
       });
     }
   } catch (error: any) {
-    console.error('Recharge Process API Error:', error);
+    console.error('Recharge Process V2 API Error:', error);
     return NextResponse.json(
       { success: false, message: error.message || 'Internal server error' },
       { status: 500 }

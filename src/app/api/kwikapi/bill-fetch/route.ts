@@ -4,6 +4,22 @@ import { getAuthenticatedUser } from '@/lib/auth-helper';
 const KWIKAPI_BASE_URL = 'https://www.kwikapi.com/api/v2';
 const KWIKAPI_API_KEY = process.env.KWIKAPI_API_KEY;
 
+// Handle GET requests (for testing)
+export async function GET(request: NextRequest) {
+  return NextResponse.json({
+    message: 'Bill fetch API endpoint. Use POST method with opid, number, and mobile parameters.',
+    example: {
+      method: 'POST',
+      body: {
+        opid: 29,
+        number: '9876543210',
+        mobile: '9876543210',
+        amount: 10
+      }
+    }
+  });
+}
+
 export async function POST(request: NextRequest) {
   try {
     const user = await getAuthenticatedUser(request);
@@ -19,42 +35,44 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    console.log('📥 [Bill Fetch] Received request body:', body);
+    
     const { opid, number, amount = 10, mobile, opt1, opt2, opt3, opt4, opt5, opt6, opt7, opt8, opt9, opt10 } = body;
 
+    console.log('📥 [Bill Fetch] Extracted parameters:', { opid, number, amount, mobile });
+
     if (!opid || !number) {
+      console.error('❌ [Bill Fetch] Missing parameters:', { opid, number, hasOpid: !!opid, hasNumber: !!number });
       return NextResponse.json(
-        { error: 'Missing required parameters: opid and number' },
+        { error: 'Missing required parameters: opid and number', received: { opid, number } },
         { status: 400 }
       );
     }
 
     // Generate unique order ID (5-14 numeric characters as per KwikAPI requirement)
     const timestamp = Date.now().toString().slice(-10); // Last 10 digits of timestamp
-    const orderId = timestamp; // Use timestamp as order ID (10 digits)
+    const randomSuffix = Math.floor(Math.random() * 9999).toString().padStart(4, '0');
+    const orderId = timestamp + randomSuffix; // 14 digits total
 
-    // Build KwikAPI bill validation URL
+    // Build KwikAPI bill validation URL with all required parameters
     const params = new URLSearchParams({
       api_key: KWIKAPI_API_KEY,
       number: number.toString(),
       amount: amount.toString(),
       opid: opid.toString(),
       order_id: orderId,
-      opt1: opt1 || '',
+      opt1: opt1 || number.toString(), // Often the mobile number itself
       opt2: opt2 || '',
       opt3: opt3 || '',
       opt4: opt4 || '',
       opt5: opt5 || '',
       opt6: opt6 || '',
       opt7: opt7 || '',
-      opt8: opt8 || 'Bills',
+      opt8: opt8 || 'Bills', // Required for bill fetch
       opt9: opt9 || '',
       opt10: opt10 || '',
+      mobile: mobile || number.toString(), // Customer mobile number
     });
-
-    // Add mobile parameter if provided
-    if (mobile) {
-      params.append('mobile', mobile.toString());
-    }
 
     const kwikApiUrl = `${KWIKAPI_BASE_URL}/bills/validation.php?${params.toString()}`;
 
@@ -64,6 +82,7 @@ export async function POST(request: NextRequest) {
       amount,
       orderId,
       orderIdLength: orderId.length,
+      mobile: mobile || number,
       url: kwikApiUrl.replace(KWIKAPI_API_KEY, 'HIDDEN')
     });
 
@@ -76,19 +95,34 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Call KwikAPI bill validation endpoint
+    // Call KwikAPI bill validation endpoint (GET request)
     const response = await fetch(kwikApiUrl, {
       method: 'GET',
       headers: {
         'User-Agent': 'VighnahartaOnlineServices/1.0',
+        'Accept': 'application/json',
       },
     });
 
     if (!response.ok) {
+      console.error('KwikAPI HTTP Error:', response.status, response.statusText);
       throw new Error(`KwikAPI request failed: ${response.status} ${response.statusText}`);
     }
 
-    const data = await response.json();
+    const responseText = await response.text();
+    console.log('📦 [KwikAPI] Raw response:', responseText);
+
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('JSON Parse Error:', parseError);
+      return NextResponse.json({
+        success: false,
+        message: 'Invalid response from operator. Please try again.',
+        error: 'PARSE_ERROR'
+      }, { status: 500 });
+    }
     
     console.log('📦 [KwikAPI] Bill fetch response:', {
       status: data.status,
@@ -112,6 +146,7 @@ export async function POST(request: NextRequest) {
           bill_date: data.bill_date || data.billdate,
           bill_period: data.bill_period || data.billperiod,
           ref_id: data.ref_id || data.refid,
+          refrence_id: data.ref_id || data.refid, // Alternative spelling
           order_id: orderId,
           kwikapi_response: data
         }
@@ -125,8 +160,8 @@ export async function POST(request: NextRequest) {
       if (data.message?.includes('Payment channel') && data.message?.includes('disable')) {
         userMessage = 'This operator is temporarily unavailable for bill fetch. Please try again later or enter the amount manually.';
         errorType = 'OPERATOR_UNAVAILABLE';
-      } else if (data.message?.includes('Invalid') || data.message?.includes('not found')) {
-        userMessage = 'Invalid mobile number or operator. Please check and try again.';
+      } else if (data.message?.includes('Invalid Account Number') || data.message?.includes('Invalid') || data.message?.includes('not found')) {
+        userMessage = 'Invalid mobile number for this operator. Please check and try again.';
         errorType = 'INVALID_DETAILS';
       } else if (data.message?.includes('Order Id')) {
         userMessage = 'Technical error with order generation. Please try again.';
@@ -139,7 +174,7 @@ export async function POST(request: NextRequest) {
         error: errorType,
         kwikapi_message: data.message, // Keep original message for debugging
         kwikapi_response: data
-      }, { status: 400 });
+      }, { status: 200 }); // Return 200 for failed bill fetch, not 400
     }
 
   } catch (error: any) {

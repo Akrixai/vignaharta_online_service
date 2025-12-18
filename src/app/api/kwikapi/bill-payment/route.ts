@@ -34,21 +34,24 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const {
-      service_type,
+      service_type, // 'POSTPAID' or 'ELECTRICITY' or 'GAS' or 'WATER'
       operator_code,
-      circle_code,
       mobile_number,
-      dth_number,
-      subscriber_id, // DTH subscriber ID
       consumer_number,
       amount,
-      plan_id,
       customer_name,
       ref_id, // From bill fetch for postpaid/electricity - IMPORTANT!
       bill_details, // Store complete bill details
       opt1,
       opt2,
       opt3,
+      opt4,
+      opt5,
+      opt6,
+      opt7,
+      opt8,
+      opt9,
+      opt10,
     } = body;
 
     // Validate inputs
@@ -59,11 +62,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get operator details from new kwikapi_billers table
+    // Get operator details from kwikapi_billers table
     const { data: operator } = await supabase
       .from('kwikapi_billers')
       .select('*')
-      .eq('operator_id', parseInt(operator_code)) // operator_code now contains the KwikAPI operator_id
+      .eq('operator_id', parseInt(operator_code))
       .single();
 
     if (!operator) {
@@ -72,20 +75,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    // Get commission and cashback configuration from recharge_operators table
-    const { data: rechargeOperator } = await supabase
-      .from('recharge_operators')
-      .select('commission_rate, cashback_enabled, cashback_min_percentage, cashback_max_percentage')
-      .eq('kwikapi_opid', parseInt(operator_code))
-      .eq('service_type', service_type.toUpperCase())
-      .single();
-
-    // Use configured rates or fallback to defaults
-    const commissionRate = rechargeOperator?.commission_rate || 2.0;
-    const cashbackEnabled = rechargeOperator?.cashback_enabled || false;
-    const cashbackMinPercentage = rechargeOperator?.cashback_min_percentage || 0.5;
-    const cashbackMaxPercentage = rechargeOperator?.cashback_max_percentage || 2.0;
 
     // Validate amount range
     if (amount < operator.amount_minimum || amount > operator.amount_maximum) {
@@ -98,35 +87,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get circle if applicable (only for PREPAID)
-    let circleId = null;
-    if (circle_code && service_type.toUpperCase() === 'PREPAID') {
-      const { data: circle } = await supabase
-        .from('recharge_circles')
-        .select('id')
-        .eq('circle_code', circle_code)
-        .single();
-      circleId = circle?.id;
-    }
-
-    // Calculate commission/cashback based on user role and admin configuration
-    // RETAILER gets commission, CUSTOMER gets cashback (if enabled)
-    let rewardAmount = 0;
-    let rewardLabel = '';
-
-    if (dbUser.role === 'CUSTOMER') {
-      // Customer gets cashback only if enabled for this operator
-      if (cashbackEnabled) {
-        // Generate random cashback percentage between min and max
-        const randomCashbackPercentage = (Math.random() * (cashbackMaxPercentage - cashbackMinPercentage) + cashbackMinPercentage);
-        rewardAmount = (amount * randomCashbackPercentage) / 100;
-        rewardLabel = 'Cashback';
-      }
-    } else {
-      // Retailer/Employee gets commission based on configured rate
-      rewardAmount = (amount * commissionRate) / 100;
-      rewardLabel = 'Commission';
-    }
+    // Calculate commission/cashback based on user role
+    const rewardRate = 2.0; // Default 2% - can be made configurable later
+    const rewardAmount = (amount * rewardRate) / 100;
+    const rewardLabel = dbUser.role === 'CUSTOMER' ? 'Cashback' : 'Commission';
 
     const platformFee = 0; // No platform fee
     const totalAmount = amount;
@@ -154,10 +118,8 @@ export async function POST(request: NextRequest) {
       .insert({
         user_id: dbUser.id,
         operator_id: operator.id,
-        circle_id: circleId,
         service_type: service_type.toUpperCase(),
         mobile_number,
-        dth_number: subscriber_id || dth_number,
         consumer_number,
         account_holder_name: customer_name || dbUser.name,
         amount,
@@ -166,13 +128,14 @@ export async function POST(request: NextRequest) {
         total_amount: totalAmount,
         status: 'PENDING',
         transaction_ref: transactionRef,
+        bill_details: bill_details ? JSON.stringify(bill_details) : null,
       })
       .select()
       .single();
 
     if (txnError) throw txnError;
 
-    // Deduct from wallet
+    // Deduct from wallet immediately
     await supabase
       .from('wallets')
       .update({ balance: wallet.balance - totalAmount })
@@ -185,7 +148,7 @@ export async function POST(request: NextRequest) {
       type: 'WITHDRAWAL',
       amount: totalAmount,
       status: 'COMPLETED',
-      description: `${service_type} ${mobile_number || subscriber_id || dth_number || consumer_number}`,
+      description: `${service_type} Bill Payment ${mobile_number || consumer_number}`,
       reference: transactionRef,
       metadata: { recharge_transaction_id: transaction.id },
     });
@@ -221,68 +184,32 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Process recharge with KWIKAPI
-    let rechargeResponse;
+    // Process bill payment with KWIKAPI
+    let paymentResponse;
 
     try {
-      switch (service_type.toUpperCase()) {
-        case 'PREPAID':
-          rechargeResponse = await kwikapi.rechargePrepaid({
-            opid: parseInt(opid),
-            number: mobile_number!,
-            amount,
-            state_code: circle_code,
-            order_id: transactionRef,
-            mobile: mobile_number!,
-          });
-          break;
-
-        case 'POSTPAID':
-          // For postpaid mobile, use utility payment API with ref_id from bill fetch
-          rechargeResponse = await kwikapi.payUtilityBill({
-            opid: parseInt(opid),
-            number: mobile_number!,
-            amount,
-            order_id: transactionRef,
-            mobile: mobile_number!,
-            refrence_id: ref_id, // CRITICAL: ref_id from bill fetch response (note: typo in KWIKAPI)
-          });
-          break;
-
-
-        case 'DTH':
-          rechargeResponse = await kwikapi.rechargeDTH({
-            opid: parseInt(opid),
-            number: subscriber_id || dth_number!,
-            amount,
-            order_id: transactionRef,
-            mobile: mobile_number || dbUser.email,
-            opt1: plan_id,
-          });
-          break;
-
-        case 'ELECTRICITY':
-        case 'GAS':
-        case 'WATER':
-          rechargeResponse = await kwikapi.payUtilityBill({
-            opid: parseInt(opid),
-            number: consumer_number!,
-            amount,
-            order_id: transactionRef,
-            mobile: mobile_number || dbUser.email,
-            refrence_id: ref_id, // CRITICAL: ref_id from bill fetch response (note: typo in KWIKAPI)
-            opt1: opt1,
-            opt2: opt2,
-            opt3: opt3,
-          });
-          break;
-
-        default:
-          throw new Error('Invalid service type');
-      }
+      // Use utility bill payment API for all bill payments
+      paymentResponse = await kwikapi.payUtilityBill({
+        opid: parseInt(opid),
+        number: mobile_number || consumer_number!,
+        amount,
+        order_id: transactionRef,
+        mobile: mobile_number || dbUser.email,
+        refrence_id: ref_id, // CRITICAL: ref_id from bill fetch response (note: typo in KWIKAPI)
+        opt1: opt1,
+        opt2: opt2,
+        opt3: opt3,
+        opt4: opt4,
+        opt5: opt5,
+        opt6: opt6,
+        opt7: opt7,
+        opt8: opt8 || 'Bills',
+        opt9: opt9,
+        opt10: opt10,
+      });
 
       // Determine status from response
-      const responseStatus = rechargeResponse.data?.status || rechargeResponse.data?.STATUS;
+      const responseStatus = paymentResponse.data?.status || paymentResponse.data?.STATUS;
       let status: 'SUCCESS' | 'PENDING' | 'FAILED' = 'PENDING';
 
       if (responseStatus === 'SUCCESS') {
@@ -296,42 +223,48 @@ export async function POST(request: NextRequest) {
         .from('recharge_transactions')
         .update({
           status,
-          kwikapi_transaction_id: rechargeResponse.data?.transaction_id || rechargeResponse.data?.txid,
-          operator_transaction_id: rechargeResponse.data?.operator_txn_id || rechargeResponse.data?.rrn,
-          response_data: rechargeResponse.data,
+          kwikapi_transaction_id: paymentResponse.data?.order_id,
+          operator_transaction_id: paymentResponse.data?.opr_id,
+          response_data: paymentResponse.data,
           completed_at: status === 'SUCCESS' ? new Date().toISOString() : null,
         })
         .eq('id', transaction.id);
 
-      // Update transaction with reward info for successful transactions
-      let actualReward = rewardAmount;
-      if (dbUser.role === 'CUSTOMER' && status === 'SUCCESS' && cashbackEnabled) {
-        // Cashback was already calculated above, update transaction with cashback info
-        const cashbackPercentage = (rewardAmount / amount) * 100;
+      // Calculate cashback for customers (random between min and max)
+      let actualCashback = 0;
+      if (dbUser.role === 'CUSTOMER' && status === 'SUCCESS') {
+        const minCashback = 0.5;
+        const maxCashback = 2.0;
+        const randomCashbackPercentage = (Math.random() * (maxCashback - minCashback) + minCashback).toFixed(2);
+        actualCashback = (amount * parseFloat(randomCashbackPercentage)) / 100;
+
+        // Update transaction with cashback info
         await supabase
           .from('recharge_transactions')
           .update({
-            cashback_percentage: cashbackPercentage,
-            cashback_amount: rewardAmount,
+            cashback_percentage: parseFloat(randomCashbackPercentage),
+            cashback_amount: actualCashback,
           })
           .eq('id', transaction.id);
       }
 
       // If successful, add commission/cashback to user wallet
       if (status === 'SUCCESS') {
-        if (actualReward > 0) {
+        const finalReward = dbUser.role === 'CUSTOMER' ? actualCashback : rewardAmount;
+
+        if (finalReward > 0) {
           await supabase
             .from('wallets')
-            .update({ balance: wallet.balance - totalAmount + actualReward })
+            .update({ balance: wallet.balance - totalAmount + finalReward })
             .eq('user_id', dbUser.id);
 
           await supabase.from('transactions').insert({
             user_id: dbUser.id,
             wallet_id: wallet.id,
             type: dbUser.role === 'CUSTOMER' ? 'REFUND' : 'COMMISSION',
-            amount: actualReward,
+            amount: finalReward,
             status: 'COMPLETED',
-            description: `${rewardLabel} for ${service_type} ${mobile_number || subscriber_id || dth_number || consumer_number}`,
+            description: `${rewardLabel} for ${service_type} Bill Payment ${mobile_number || consumer_number}`,
             reference: transactionRef,
           });
 
@@ -345,10 +278,6 @@ export async function POST(request: NextRequest) {
             .eq('id', transaction.id);
         }
 
-        const successMessage = actualReward > 0 
-          ? `✅ Recharge successful! ${rewardLabel} of ₹${actualReward.toFixed(2)} has been added to your wallet.`
-          : '✅ Recharge successful!';
-
         return NextResponse.json({
           success: true,
           data: {
@@ -356,10 +285,10 @@ export async function POST(request: NextRequest) {
             transaction_ref: transactionRef,
             status: 'SUCCESS',
             amount,
-            reward_amount: actualReward,
+            reward_amount: finalReward,
             reward_label: rewardLabel,
-            message: successMessage,
-            response: rechargeResponse.data,
+            message: `✅ Bill payment successful! ${rewardLabel} of ₹${finalReward.toFixed(2)} has been added to your wallet.`,
+            response: paymentResponse.data,
           },
         });
       } else if (status === 'PENDING') {
@@ -371,7 +300,7 @@ export async function POST(request: NextRequest) {
             transaction_ref: transactionRef,
             status: 'PENDING',
             amount,
-            message: '⏳ Your transaction is being processed. Amount has been debited from your wallet. You will receive confirmation shortly. Please contact admin if not completed within 24 hours.',
+            message: '⏳ Your bill payment is being processed. Amount has been debited from your wallet. You will receive confirmation shortly. Please contact admin if not completed within 24 hours.',
           },
         });
       } else {
@@ -387,7 +316,7 @@ export async function POST(request: NextRequest) {
           type: 'REFUND',
           amount: totalAmount,
           status: 'COMPLETED',
-          description: `Refund for failed ${service_type}`,
+          description: `Refund for failed ${service_type} Bill Payment`,
           reference: transactionRef,
         });
 
@@ -397,7 +326,7 @@ export async function POST(request: NextRequest) {
             transaction_id: transaction.id,
             transaction_ref: transactionRef,
             status: 'FAILED',
-            message: '❌ Recharge failed. Amount has been refunded to your wallet.',
+            message: `❌ Bill payment failed. ${paymentResponse.data?.message || 'Unknown error'}. Amount has been refunded to your wallet.`,
           },
         });
       }
@@ -420,12 +349,12 @@ export async function POST(request: NextRequest) {
           transaction_ref: transactionRef,
           status: 'PENDING',
           amount,
-          message: '⏳ Your transaction is being processed. Amount has been debited from your wallet. You will receive confirmation shortly. Please contact admin if not completed within 24 hours.',
+          message: '⏳ Your bill payment is being processed. Amount has been debited from your wallet. You will receive confirmation shortly. Please contact admin if not completed within 24 hours.',
         },
       });
     }
   } catch (error: any) {
-    console.error('Recharge Process API Error:', error);
+    console.error('Bill Payment API Error:', error);
     return NextResponse.json(
       { success: false, message: error.message || 'Internal server error' },
       { status: 500 }

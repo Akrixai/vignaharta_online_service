@@ -7,7 +7,7 @@ import DashboardLayout from '@/components/dashboard/layout';
 import SearchableSelect from '@/components/SearchableSelect';
 import PlanDetailsModal from '@/components/PlanDetailsModal';
 
-type ServiceType = 'PREPAID' | 'POSTPAID';
+type ServiceType = 'PREPAID';
 
 interface Operator {
   id: string;
@@ -49,7 +49,7 @@ export default function MobileRechargePageEnhanced() {
   const userRole = session?.user?.role;
   const rewardLabel = userRole === 'CUSTOMER' ? 'Cashback' : 'Commission';
 
-  const [serviceType, setServiceType] = useState<ServiceType>('PREPAID');
+  const serviceType = 'PREPAID'; // Fixed to PREPAID only
   const [operators, setOperators] = useState<Operator[]>([]);
   const [circles, setCircles] = useState<Circle[]>([]);
   const [planCategories, setPlanCategories] = useState<PlanCategory[]>([]);
@@ -78,7 +78,7 @@ export default function MobileRechargePageEnhanced() {
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const [loadingBalance, setLoadingBalance] = useState(false);
   
-  // Bill details for POSTPAID
+  // Bill details (not used for prepaid)
   const [billDetails, setBillDetails] = useState<any>(null);
   
   // R-OFFER state
@@ -386,42 +386,18 @@ export default function MobileRechargePageEnhanced() {
     }
   };
 
-  // Auto bill fetch for postpaid when mobile number and operator are selected
+  // Auto-detect and check R-offers for prepaid when mobile number is entered
   useEffect(() => {
-    if (
-      serviceType === 'POSTPAID' && 
-      mobileNumber.length === 10 && 
-      /^[0-9]{10}$/.test(mobileNumber) && 
-      selectedOperator
-    ) {
-      const operator = operators.find(op => op.id === selectedOperator);
-      // Always try auto-fetch for postpaid operators
-      console.log('🔍 [Frontend] Auto-fetching bill for postpaid:', {
-        operator: operator?.operator_name,
-        mobile: mobileNumber
-      });
-      
-      // Auto-fetch bill after a short delay to avoid too many API calls
-      const timeoutId = setTimeout(() => {
-        fetchBill();
-      }, 1500); // Slightly longer delay for better UX
-      
-      return () => clearTimeout(timeoutId);
-    } else if (serviceType === 'POSTPAID') {
-      // Clear any previous bill details when switching operators or clearing mobile
-      setBillDetails(null);
-      setMessage('');
+    if (mobileNumber.length === 10 && /^[0-9]{10}$/.test(mobileNumber) && operators.length > 0) {
+      console.log('🚀 [Frontend] Auto-detecting for mobile:', mobileNumber, 'with', operators.length, 'operators loaded');
+      detectOperator();
+      // Also check for R-OFFERS
+      checkROffers();
     }
-  }, [mobileNumber, selectedOperator, serviceType, operators]);
+  }, [mobileNumber, operators]);
 
   const fetchPlans = async () => {
-    if (serviceType === 'POSTPAID') {
-      setPlanCategories([]);
-      setSelectedCategory('ALL');
-      return;
-    }
-
-    if (!selectedOperator || (serviceType === 'PREPAID' && !selectedCircle)) return;
+    if (!selectedOperator || !selectedCircle) return;
 
     const operator = operators.find(op => op.id === selectedOperator);
     const circle = serviceType === 'PREPAID' ? circles.find(c => c.id === selectedCircle) : null;
@@ -456,10 +432,10 @@ export default function MobileRechargePageEnhanced() {
   };
 
   useEffect(() => {
-    if (selectedOperator && (serviceType === 'POSTPAID' || selectedCircle)) {
+    if (selectedOperator && selectedCircle) {
       fetchPlans();
     }
-  }, [selectedOperator, selectedCircle, serviceType]);
+  }, [selectedOperator, selectedCircle]);
 
   const fetchBill = async () => {
     if (!mobileNumber || !selectedOperator) {
@@ -580,10 +556,9 @@ export default function MobileRechargePageEnhanced() {
       return;
     }
     
-    // For POSTPAID with bill fetch support, try to get bill details first (but allow manual entry)
-    const operator = operators.find(op => op.id === selectedOperator);
-    if (serviceType === 'POSTPAID' && operator?.metadata?.bill_fetch === 'YES' && !billDetails && !amount) {
-      setMessage('⚠️ Please either fetch your bill details or enter the amount manually.');
+    // Prepaid recharge validation
+    if (!selectedOperator || !selectedCircle) {
+      setMessage('⚠️ Please select operator and circle.');
       setMessageType('error');
       return;
     }
@@ -595,10 +570,8 @@ export default function MobileRechargePageEnhanced() {
       const operator = operators.find(op => op.id === selectedOperator);
       const circle = serviceType === 'PREPAID' ? circles.find(c => c.id === selectedCircle) : null;
 
-      // Use KwikAPI endpoints instead of old recharge/process
-      const endpoint = serviceType === 'PREPAID' || serviceType === 'DTH' 
-        ? '/api/kwikapi/recharge' 
-        : '/api/kwikapi/bill-payment';
+      // Use KwikAPI recharge endpoint for prepaid
+      const endpoint = '/api/kwikapi/recharge';
 
       const payload: any = {
         opid: operator?.kwikapi_opid || operator?.operator_code,
@@ -607,20 +580,14 @@ export default function MobileRechargePageEnhanced() {
         mobile: mobileNumber,
       };
 
-      // Add circle for prepaid
-      if (serviceType === 'PREPAID' && circle) {
+      // Add circle for prepaid (required)
+      if (circle) {
         payload.circle_code = circle.circle_code;
       }
 
       // Add plan details if selected
       if (selectedPlan) {
         payload.plan_details = selectedPlan;
-      }
-
-      // Include ref_id from bill fetch for POSTPAID if available
-      if (serviceType === 'POSTPAID' && billDetails?.ref_id) {
-        payload.ref_id = billDetails.ref_id;
-        payload.bill_details = billDetails;
       }
 
       const res = await fetch(endpoint, {
@@ -709,29 +676,11 @@ export default function MobileRechargePageEnhanced() {
         />
         <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-800">📱 Mobile Recharge</h1>
 
-        {/* Service Type Tabs - Responsive */}
-        <div className="flex gap-2 mb-4 sm:mb-6">
-          {(['PREPAID', 'POSTPAID'] as ServiceType[]).map((type) => (
-            <button
-              key={type}
-              onClick={() => {
-                setServiceType(type);
-                setSelectedOperator('');
-                setSelectedCircle('');
-                setPlanCategories([]);
-                setSelectedPlan(null);
-                setBillDetails(null);
-                setAmount('');
-                setMessage('');
-              }}
-              className={`flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition-all text-sm sm:text-base ${serviceType === type
-                ? 'bg-blue-600 text-white shadow-lg'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-            >
-              {type}
-            </button>
-          ))}
+        {/* Header - Mobile Prepaid Only */}
+        <div className="mb-4 sm:mb-6">
+          <div className="bg-blue-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold text-sm sm:text-base text-center">
+            📱 MOBILE PREPAID RECHARGE
+          </div>
         </div>
 
         {/* Wallet Balance Display - Responsive */}
@@ -802,9 +751,7 @@ export default function MobileRechargePageEnhanced() {
                   )}
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
-                  {serviceType === 'PREPAID' 
-                    ? '✨ Operator and circle will be detected automatically after entering 10 digits'
-                    : '📱 For postpaid, please select operator manually after entering mobile number'}
+                  ✨ Operator and circle will be detected automatically after entering 10 digits
                 </p>
               </div>
 
@@ -863,8 +810,8 @@ export default function MobileRechargePageEnhanced() {
                 />
               </div>
 
-              {/* Customer Name - Full width for postpaid, half width for prepaid */}
-              <div className={serviceType === 'PREPAID' ? 'md:col-span-2' : 'md:col-span-2'}>
+              {/* Customer Name */}
+              <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Customer Name (Optional)
                 </label>
@@ -878,120 +825,10 @@ export default function MobileRechargePageEnhanced() {
               </div>
             </div>
 
-            {/* Bill Fetch Section for POSTPAID - Always show for all operators */}
-            {serviceType === 'POSTPAID' && selectedOperator && mobileNumber.length === 10 && (
-              <div className="bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-purple-200 rounded-lg p-4">
-                <div className="flex items-start gap-3 mb-3">
-                  <div className="text-3xl">📋</div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-purple-900 mb-1">Postpaid Bill Management</h3>
-                    <p className="text-sm text-purple-700">
-                      {(() => {
-                        if (fetchingBill) {
-                          return 'Fetching your bill details...';
-                        } else if (billDetails) {
-                          return 'Bill details fetched successfully! You can also enter amount manually if needed.';
-                        } else {
-                          return 'Try automatic bill fetch first, or enter your bill amount manually below.';
-                        }
-                      })()}
-                    </p>
-                  </div>
-                </div>
-                
-                {/* Action buttons - Always show both auto and manual options */}
-                <div className="space-y-3">
-                  {/* Auto-fetch button - always available */}
-                  {!billDetails && (
-                    <button
-                      type="button"
-                      onClick={handleManualBillFetch}
-                      disabled={fetchingBill}
-                      className="w-full py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
-                    >
-                      {fetchingBill ? '⏳ Fetching Your Bill...' : '🔍 Try Auto-Fetch Bill Details'}
-                    </button>
-                  )}
-                  
-                  {/* Re-fetch button if bill already fetched */}
-                  {billDetails && (
-                    <button
-                      type="button"
-                      onClick={handleManualBillFetch}
-                      disabled={fetchingBill}
-                      className="w-full py-2 bg-purple-100 text-purple-700 font-medium rounded-lg hover:bg-purple-200 disabled:bg-gray-100 disabled:cursor-not-allowed transition-all border border-purple-300"
-                    >
-                      {fetchingBill ? '⏳ Re-fetching...' : '🔄 Re-fetch Bill Details'}
-                    </button>
-                  )}
 
-                  {/* Manual entry info - always show */}
-                  <div className="bg-blue-50 border border-blue-300 rounded-lg p-3">
-                    <div className="flex items-center gap-2 text-blue-800">
-                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                      </svg>
-                      <span className="text-sm font-medium">Manual Entry Available</span>
-                    </div>
-                    <p className="text-xs text-blue-700 mt-1">
-                      {billDetails 
-                        ? 'You can modify the amount above if needed before payment.'
-                        : 'If auto-fetch doesn\'t work, enter your bill amount in the form above.'}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Show status when fetching */}
-                {fetchingBill && (
-                  <div className="mt-3 flex items-center gap-2 text-purple-700">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
-                    <span className="text-sm">Connecting to {operators.find(op => op.id === selectedOperator)?.operator_name}...</span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Bill Details Display for POSTPAID */}
-            {billDetails && serviceType === 'POSTPAID' && (
-              <div className="bg-gradient-to-r from-blue-50 to-green-50 border-2 border-blue-300 rounded-lg p-5 shadow-md">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-bold text-blue-900 text-lg">📄 Your Bill Details</h3>
-                  <span className="px-3 py-1 bg-green-500 text-white text-xs font-semibold rounded-full">
-                    ✓ Verified
-                  </span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div className="bg-white rounded-lg p-3">
-                    <span className="text-gray-600 text-xs">Customer Name</span>
-                    <p className="font-semibold text-gray-900">{billDetails.consumer_name || billDetails.customer_name}</p>
-                  </div>
-                  <div className="bg-white rounded-lg p-3">
-                    <span className="text-gray-600 text-xs">Bill Number</span>
-                    <p className="font-semibold text-gray-900">{billDetails.bill_number}</p>
-                  </div>
-                  <div className="bg-white rounded-lg p-3">
-                    <span className="text-gray-600 text-xs">Bill Date</span>
-                    <p className="font-semibold text-gray-900">{billDetails.bill_date}</p>
-                  </div>
-                  <div className="bg-white rounded-lg p-3">
-                    <span className="text-gray-600 text-xs">Due Date</span>
-                    <p className="font-semibold text-red-600">{billDetails.due_date}</p>
-                  </div>
-                  <div className="bg-gradient-to-r from-green-100 to-green-200 rounded-lg p-3 border-2 border-green-400 md:col-span-2">
-                    <span className="text-gray-700 text-xs font-medium">Amount Due</span>
-                    <p className="font-bold text-2xl text-green-700">₹{billDetails.due_amount}</p>
-                  </div>
-                </div>
-                <div className="mt-4 bg-yellow-50 border border-yellow-300 rounded-lg p-3">
-                  <p className="text-xs text-yellow-800">
-                    ⚠️ <strong>Note:</strong> The amount has been auto-filled. Please verify before proceeding with payment.
-                  </p>
-                </div>
-              </div>
-            )}
 
             {/* R-OFFERS Section */}
-            {serviceType === 'PREPAID' && mobileNumber.length === 10 && /^[0-9]{10}$/.test(mobileNumber) && (
+            {mobileNumber.length === 10 && /^[0-9]{10}$/.test(mobileNumber) && (
               <div className="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-200 rounded-lg p-4">
                 <div className="flex items-start gap-3 mb-3">
                   <div className="text-3xl">🎁</div>
@@ -1151,72 +988,14 @@ export default function MobileRechargePageEnhanced() {
               </div>
             )}
 
-            {/* Submit Button - Enhanced for all scenarios */}
-            {(() => {
-              const operator = operators.find(op => op.id === selectedOperator);
-              const supportsBillFetch = operator?.metadata?.bill_fetch === 'YES';
-              const hasAmount = amount && parseFloat(amount) > 0;
-              
-              if (serviceType === 'POSTPAID') {
-                if (supportsBillFetch) {
-                  // Operator supports bill fetch
-                  if (billDetails || hasAmount) {
-                    return (
-                      <button
-                        type="submit"
-                        disabled={loading || !hasAmount}
-                        className="w-full py-4 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all shadow-lg"
-                      >
-                        {loading 
-                          ? '⏳ Processing Payment...' 
-                          : `💳 Pay ₹${amount} - ${billDetails ? 'Auto-Fetched Bill' : 'Manual Entry'}`
-                        }
-                      </button>
-                    );
-                  } else {
-                    return (
-                      <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-                        <p className="text-sm text-blue-800">
-                          💡 Please either fetch your bill details above or enter the amount manually to proceed with payment.
-                        </p>
-                      </div>
-                    );
-                  }
-                } else {
-                  // Operator doesn't support bill fetch - manual entry only
-                  if (hasAmount) {
-                    return (
-                      <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all shadow-lg"
-                      >
-                        {loading ? '⏳ Processing Payment...' : `💳 Pay Bill - ₹${amount}`}
-                      </button>
-                    );
-                  } else {
-                    return (
-                      <div className="bg-orange-50 border-l-4 border-orange-500 p-4 rounded">
-                        <p className="text-sm text-orange-800">
-                          📝 Please enter your bill amount above to proceed with manual payment.
-                        </p>
-                      </div>
-                    );
-                  }
-                }
-              } else {
-                // PREPAID - standard flow
-                return (
-                  <button
-                    type="submit"
-                    disabled={loading || !hasAmount}
-                    className="w-full py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all shadow-lg"
-                  >
-                    {loading ? '⏳ Processing Recharge...' : `🚀 Proceed to Recharge - ₹${amount || '0'}`}
-                  </button>
-                );
-              }
-            })()}
+            {/* Submit Button - Prepaid Only */}
+            <button
+              type="submit"
+              disabled={loading || !amount || parseFloat(amount) <= 0}
+              className="w-full py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all shadow-lg"
+            >
+              {loading ? '⏳ Processing Recharge...' : `🚀 Proceed to Recharge - ₹${amount || '0'}`}
+            </button>
 
             {/* Message */}
             {message && (
@@ -1232,7 +1011,7 @@ export default function MobileRechargePageEnhanced() {
         </div>
 
         {/* Plans Section - Full Width Below Form - Responsive */}
-        {serviceType === 'PREPAID' && (
+        {(
           <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
             <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-gray-800 flex flex-wrap items-center gap-2">
               <span>📋</span>
@@ -1477,15 +1256,7 @@ export default function MobileRechargePageEnhanced() {
           </div>
         )}
 
-        {serviceType === 'POSTPAID' && (
-          <div className="bg-white rounded-xl shadow-lg p-8 text-center">
-            <div className="text-6xl mb-4">📞</div>
-            <h3 className="text-xl font-bold mb-2 text-gray-800">Postpaid Bill Payment</h3>
-            <p className="text-gray-600">
-              Enter the bill amount directly in the form above. No plan selection required for postpaid.
-            </p>
-          </div>
-        )}
+
       </div>
 
       <style jsx>{`

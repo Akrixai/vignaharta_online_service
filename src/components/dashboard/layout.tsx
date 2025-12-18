@@ -48,6 +48,7 @@ const menuItems: MenuItem[] = [
 
   // Recharge & Bill Payment Services (Only for specific retailer)
   { name: 'Mobile Recharge', href: '/dashboard/recharge/mobile', icon: '📱', roles: [UserRole.RETAILER, UserRole.CUSTOMER], requiresEmail: 'AkrixRetailerTest@gmail.com' },
+  { name: 'Mobile Postpaid', href: '/dashboard/recharge/mobile-postpaid', icon: '📞', roles: [UserRole.RETAILER, UserRole.CUSTOMER], requiresEmail: 'AkrixRetailerTest@gmail.com' },
   { name: 'DTH Recharge', href: '/dashboard/recharge/dth', icon: '📺', roles: [UserRole.RETAILER, UserRole.CUSTOMER], requiresEmail: 'AkrixRetailerTest@gmail.com' },
   { name: 'Electricity Bill', href: '/dashboard/recharge/electricity', icon: '⚡', roles: [UserRole.RETAILER, UserRole.CUSTOMER], requiresEmail: 'AkrixRetailerTest@gmail.com' },
   { name: 'Recharge History', href: '/dashboard/recharge/transactions', icon: '📊', roles: [UserRole.RETAILER, UserRole.CUSTOMER], requiresEmail: 'AkrixRetailerTest@gmail.com' },
@@ -342,14 +343,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
               {/* Recharge & Bills Section */}
               {filteredMenuItems.some(item => 
-                ['Mobile Recharge', 'DTH Recharge', 'Electricity Bill', 'Recharge History'].includes(item.name)
+                ['Mobile Recharge', 'Mobile Postpaid', 'DTH Recharge', 'Electricity Bill', 'Recharge History'].includes(item.name)
               ) && (
                 <>
                   <div className="pt-3 pb-1 px-2">
                     <h3 className="text-xs font-semibold text-red-300 uppercase tracking-wider">Recharge & Bills</h3>
                   </div>
                   {filteredMenuItems.filter(item => 
-                    ['Mobile Recharge', 'DTH Recharge', 'Electricity Bill', 'Recharge History'].includes(item.name)
+                    ['Mobile Recharge', 'Mobile Postpaid', 'DTH Recharge', 'Electricity Bill', 'Recharge History'].includes(item.name)
                   ).map((item) => (
                     <Link
                       key={item.name}
