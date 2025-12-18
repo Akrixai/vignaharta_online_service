@@ -15,18 +15,23 @@ export async function GET(request: NextRequest) {
     console.log('🔔 [KwikAPI] GET Callback:', {
       url: request.url,
       params: allParams,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      headers: Object.fromEntries(request.headers.entries())
     });
 
-    // If no parameters, return validation response
+    // If no parameters, return simple validation response
     if (Object.keys(allParams).length === 0) {
+      // Return plain text "OK" for KwikAPI validation
       return new NextResponse('OK', {
         status: 200,
         headers: {
           'Content-Type': 'text/plain',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          'Access-Control-Allow-Headers': '*',
         },
       });
     }
@@ -35,8 +40,8 @@ export async function GET(request: NextRequest) {
     return await processKwikAPIWebhook(allParams);
   } catch (error: any) {
     console.error('❌ [KwikAPI] GET Error:', error);
-    return new NextResponse('ERROR', {
-      status: 500,
+    return new NextResponse('OK', {
+      status: 200,
       headers: {
         'Content-Type': 'text/plain',
         'Access-Control-Allow-Origin': '*',
