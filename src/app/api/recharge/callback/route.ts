@@ -8,28 +8,81 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   try {
-    // Handle both JSON and form-data from KwikAPI
-    let body;
-    const contentType = request.headers.get('content-type');
+    // Handle multiple content types from KwikAPI
+    let body: any = {};
+    const contentType = request.headers.get('content-type') || '';
+    const url = new URL(request.url);
     
-    if (contentType?.includes('application/json')) {
-      body = await request.json();
-    } else if (contentType?.includes('application/x-www-form-urlencoded')) {
-      // Handle URL-encoded form data
-      const text = await request.text();
-      body = Object.fromEntries(new URLSearchParams(text));
-    } else {
-      // Handle multipart form-data from KwikAPI webhook
-      const formData = await request.formData();
-      body = Object.fromEntries(formData.entries());
+    // First, try to get parameters from URL query string
+    const urlParams = Object.fromEntries(url.searchParams.entries());
+    if (Object.keys(urlParams).length > 0) {
+      body = { ...urlParams };
+    }
+    
+    // Then try to get from request body based on content type
+    try {
+      if (contentType.includes('application/json')) {
+        const jsonBody = await request.json();
+        body = { ...body, ...jsonBody };
+      } else if (contentType.includes('application/x-www-form-urlencoded')) {
+        const text = await request.text();
+        const formParams = Object.fromEntries(new URLSearchParams(text));
+        body = { ...body, ...formParams };
+      } else if (contentType.includes('multipart/form-data')) {
+        const formData = await request.formData();
+        const formParams = Object.fromEntries(formData.entries());
+        body = { ...body, ...formParams };
+      } else {
+        // Try to read as text and parse as query string
+        const text = await request.text();
+        if (text) {
+          try {
+            const textParams = Object.fromEntries(new URLSearchParams(text));
+            body = { ...body, ...textParams };
+          } catch {
+            // If parsing fails, try as JSON
+            try {
+              const jsonBody = JSON.parse(text);
+              body = { ...body, ...jsonBody };
+            } catch {
+              console.log('Could not parse request body:', text);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.log('Error parsing request body:', error);
     }
 
     console.log('🔔 [KwikAPI] Webhook received:', {
+      method: request.method,
+      url: request.url,
       contentType,
       headers: Object.fromEntries(request.headers.entries()),
-      body
+      urlParams,
+      body,
+      finalData: body
     });
 
+    return await processWebhook(body, request);
+  } catch (error: any) {
+    console.error('❌ [KwikAPI] Webhook processing error:', error);
+    
+    const response = NextResponse.json(
+      { success: false, message: error.message || 'Internal server error' },
+      { status: 500 }
+    );
+    response.headers.set('Access-Control-Allow-Origin', '*');
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    
+    return response;
+  }
+}
+
+// Main webhook processing function
+async function processWebhook(body: any, request: NextRequest) {
+  try {
     // KwikAPI webhook parameters
     const {
       payid,           // KwikAPI Unique Order Id
@@ -255,7 +308,12 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ [KwikAPI] Webhook processed successfully for transaction:', transaction.id);
     
-    const response = NextResponse.json({ success: true, message: 'Webhook processed successfully' });
+    const response = NextResponse.json({ 
+      success: true, 
+      message: 'Webhook processed successfully',
+      transaction_id: transaction.id,
+      status: transactionStatus
+    });
     response.headers.set('Access-Control-Allow-Origin', '*');
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -288,7 +346,7 @@ export async function OPTIONS(request: NextRequest) {
   });
 }
 
-// Handle GET requests for webhook verification
+// Handle GET requests for webhook verification and callbacks
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -297,34 +355,79 @@ export async function GET(request: NextRequest) {
     const operator_ref = searchParams.get('operator_ref');
     const status = searchParams.get('status');
 
-    console.log('🔔 [KwikAPI] Webhook GET request:', { payid, client_id, operator_ref, status });
-
-    // If this is a webhook verification, return success
-    if (!payid && !client_id) {
-      return NextResponse.json({ 
-        success: true, 
-        message: 'KwikAPI webhook endpoint is active',
-        timestamp: new Date().toISOString()
-      });
-    }
-
-    // Process the webhook data (same logic as POST)
-    const body = { payid, client_id, operator_ref, status };
-    
-    // Reuse the POST logic by calling it internally
-    const postRequest = new NextRequest(request.url, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(body)
+    console.log('🔔 [KwikAPI] Webhook GET request:', { 
+      url: request.url,
+      params: { payid, client_id, operator_ref, status },
+      allParams: Object.fromEntries(searchParams.entries())
     });
 
-    return await POST(postRequest);
+    // If this is just a verification request (no parameters), return success
+    if (!payid && !client_id && !operator_ref && !status) {
+      const response = NextResponse.json({ 
+        success: true, 
+        message: 'KwikAPI webhook endpoint is active and ready to receive callbacks',
+        timestamp: new Date().toISOString(),
+        endpoint: request.url
+      });
+      
+      response.headers.set('Access-Control-Allow-Origin', '*');
+      response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      
+      return response;
+    }
+
+    // If we have webhook parameters, process them
+    if (payid || client_id || status) {
+      // Create body with all available parameters
+      const body: any = {};
+      
+      // Add all search parameters to body
+      for (const [key, value] of searchParams.entries()) {
+        body[key] = value;
+      }
+      
+      console.log('🔔 [KwikAPI] Processing GET webhook with params:', body);
+      
+      // Process the webhook data using the same logic as POST
+      // We'll create a mock request to reuse POST logic
+      const mockRequest = {
+        url: request.url,
+        method: 'GET',
+        headers: request.headers,
+        json: async () => body,
+        text: async () => '',
+        formData: async () => new FormData()
+      } as any;
+      
+      // Call the main webhook processing logic
+      return await processWebhook(body, request);
+    }
+
+    // Default response for other GET requests
+    const response = NextResponse.json({ 
+      success: true, 
+      message: 'KwikAPI webhook endpoint - no parameters provided',
+      timestamp: new Date().toISOString()
+    });
+    
+    response.headers.set('Access-Control-Allow-Origin', '*');
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    
+    return response;
 
   } catch (error: any) {
     console.error('❌ [KwikAPI] GET webhook error:', error);
-    return NextResponse.json(
+    
+    const response = NextResponse.json(
       { success: false, message: error.message || 'Internal server error' },
       { status: 500 }
     );
+    response.headers.set('Access-Control-Allow-Origin', '*');
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    
+    return response;
   }
 }

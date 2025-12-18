@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const allParams = Object.fromEntries(searchParams.entries());
+  
   return NextResponse.json({
     success: true,
     message: 'KwikAPI callback endpoint test - GET method working',
     timestamp: new Date().toISOString(),
     url: request.url,
-    method: 'GET'
+    method: 'GET',
+    parameters: allParams,
+    parameterCount: Object.keys(allParams).length
   });
 }
 
