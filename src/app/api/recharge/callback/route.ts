@@ -163,120 +163,7 @@ async function processWebhook(body: any, request: NextRequest) {
     // If status changed to SUCCESS and commission/cashback not yet credited
     if (transactionStatus === 'SUCCESS' && transaction.status !== 'SUCCESS') {
       console.log('💰 [KwikAPI] Processing rewards for successful transaction:', transaction.id);
-      
-      // Get user details to determine role
-      const { data: user } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', transaction.user_id)
-        .single();
-
-      // Get operator configuration for commission/cashback rates
-      const { data: rechargeOperator } = await supabase
-        .from('recharge_operators')
-        .select('commission_rate, cashback_enabled, cashback_min_percentage, cashback_max_percentage')
-        .eq('service_type', transaction.service_type)
-        .eq('kwikapi_opid', transaction.operator_id)
-        .single();
-
-      const { data: wallet } = await supabase
-        .from('wallets')
-        .select('id, balance')
-        .eq('user_id', transaction.user_id)
-        .single();
-
-      if (wallet && user) {
-        let rewardAmount = 0;
-        let rewardType = '';
-        let rewardDescription = '';
-
-        if (user.role === 'CUSTOMER') {
-          // Customer gets cashback only if enabled
-          if (rechargeOperator?.cashback_enabled && !transaction.cashback_claimed) {
-            // Generate random cashback if not already set
-            if (!transaction.cashback_amount || transaction.cashback_amount === 0) {
-              const minPercentage = rechargeOperator.cashback_min_percentage || 0.5;
-              const maxPercentage = rechargeOperator.cashback_max_percentage || 2.0;
-              const randomPercentage = Math.random() * (maxPercentage - minPercentage) + minPercentage;
-              rewardAmount = (transaction.amount * randomPercentage) / 100;
-
-              // Update transaction with cashback info
-              await supabase
-                .from('recharge_transactions')
-                .update({
-                  cashback_percentage: randomPercentage,
-                  cashback_amount: rewardAmount,
-                })
-                .eq('id', transaction.id);
-            } else {
-              rewardAmount = transaction.cashback_amount;
-            }
-
-            rewardType = 'REFUND';
-            rewardDescription = `Cashback for ${transaction.service_type} recharge`;
-
-            // Mark cashback as claimed
-            await supabase
-              .from('recharge_transactions')
-              .update({
-                cashback_claimed: true,
-                cashback_claimed_at: new Date().toISOString(),
-              })
-              .eq('id', transaction.id);
-          }
-        } else {
-          // Retailer/Employee gets commission if not already paid
-          if (!transaction.commission_paid) {
-            // Calculate commission if not already set
-            if (!transaction.commission_amount || transaction.commission_amount === 0) {
-              const commissionRate = rechargeOperator?.commission_rate || 2.0;
-              rewardAmount = (transaction.amount * commissionRate) / 100;
-
-              // Update transaction with commission info
-              await supabase
-                .from('recharge_transactions')
-                .update({
-                  commission_amount: rewardAmount,
-                })
-                .eq('id', transaction.id);
-            } else {
-              rewardAmount = transaction.commission_amount;
-            }
-
-            rewardType = 'COMMISSION';
-            rewardDescription = `Commission for ${transaction.service_type} recharge`;
-
-            // Mark commission as paid
-            await supabase
-              .from('recharge_transactions')
-              .update({
-                commission_paid: true,
-                commission_paid_at: new Date().toISOString(),
-              })
-              .eq('id', transaction.id);
-          }
-        }
-
-        // Credit reward to wallet if amount > 0
-        if (rewardAmount > 0) {
-          await supabase
-            .from('wallets')
-            .update({ balance: wallet.balance + rewardAmount })
-            .eq('user_id', transaction.user_id);
-
-          await supabase.from('transactions').insert({
-            user_id: transaction.user_id,
-            wallet_id: wallet.id,
-            type: rewardType,
-            amount: rewardAmount,
-            status: 'COMPLETED',
-            description: rewardDescription,
-            reference: transaction.transaction_ref,
-          });
-
-          console.log(`✅ [KwikAPI] ${rewardType} of ₹${rewardAmount} credited for transaction:`, transaction.id);
-        }
-      }
+      await processTransactionRewards(transaction);
     }
 
     // If status changed to FAILED, issue refund
@@ -344,6 +231,151 @@ export async function OPTIONS(request: NextRequest) {
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     },
   });
+}
+
+// Process rewards (commission/cashback) for successful transactions
+// Uses admin-configured rates from recharge_operators table - supports both web and mobile app
+async function processTransactionRewards(transaction: any) {
+  try {
+    // Get user details to determine role
+    const { data: user } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', transaction.user_id)
+      .single();
+
+    if (!user) {
+      console.log('⚠️ [KwikAPI] User not found for transaction:', transaction.id);
+      return;
+    }
+
+    // Get operator configuration for dynamic commission/cashback rates
+    // This works for both web and mobile app transactions
+    const { data: rechargeOperator } = await supabase
+      .from('recharge_operators')
+      .select('commission_rate, cashback_enabled, cashback_min_percentage, cashback_max_percentage')
+      .eq('service_type', transaction.service_type)
+      .eq('id', transaction.operator_id)
+      .single();
+
+    const { data: wallet } = await supabase
+      .from('wallets')
+      .select('id, balance')
+      .eq('user_id', transaction.user_id)
+      .single();
+
+    if (!wallet) {
+      console.log('⚠️ [KwikAPI] Wallet not found for user:', transaction.user_id);
+      return;
+    }
+
+    let rewardAmount = 0;
+    let rewardType = '';
+    let rewardDescription = '';
+
+    if (user.role === 'CUSTOMER') {
+      // Customer gets cashback only if enabled for this operator
+      if (rechargeOperator?.cashback_enabled && !transaction.cashback_claimed) {
+        // Generate random cashback if not already set
+        if (!transaction.cashback_amount || transaction.cashback_amount === 0) {
+          const minPercentage = rechargeOperator.cashback_min_percentage || 0.5;
+          const maxPercentage = rechargeOperator.cashback_max_percentage || 2.0;
+          const randomPercentage = Math.random() * (maxPercentage - minPercentage) + minPercentage;
+          rewardAmount = (transaction.amount * randomPercentage) / 100;
+
+          // Update transaction with cashback info
+          await supabase
+            .from('recharge_transactions')
+            .update({
+              cashback_percentage: randomPercentage,
+              cashback_amount: rewardAmount,
+            })
+            .eq('id', transaction.id);
+        } else {
+          rewardAmount = transaction.cashback_amount;
+        }
+
+        rewardType = 'REFUND';
+        rewardDescription = `Cashback for ${transaction.service_type} recharge`;
+
+        // Mark cashback as claimed
+        await supabase
+          .from('recharge_transactions')
+          .update({
+            cashback_claimed: true,
+            cashback_claimed_at: new Date().toISOString(),
+          })
+          .eq('id', transaction.id);
+
+        console.log(`💰 [KwikAPI] Customer cashback: ${randomPercentage?.toFixed(2)}% = ₹${rewardAmount.toFixed(2)}`);
+      } else if (!rechargeOperator?.cashback_enabled) {
+        console.log('ℹ️ [KwikAPI] Cashback not enabled for this operator');
+      }
+    } else {
+      // Retailer/Employee gets commission if not already paid
+      if (!transaction.commission_paid) {
+        // Calculate commission if not already set
+        if (!transaction.commission_amount || transaction.commission_amount === 0) {
+          const commissionRate = rechargeOperator?.commission_rate || 2.0;
+          rewardAmount = (transaction.amount * commissionRate) / 100;
+
+          // Update transaction with commission info
+          await supabase
+            .from('recharge_transactions')
+            .update({
+              commission_amount: rewardAmount,
+            })
+            .eq('id', transaction.id);
+        } else {
+          rewardAmount = transaction.commission_amount;
+        }
+
+        rewardType = 'COMMISSION';
+        rewardDescription = `Commission for ${transaction.service_type} recharge`;
+
+        // Mark commission as paid
+        await supabase
+          .from('recharge_transactions')
+          .update({
+            commission_paid: true,
+            commission_paid_at: new Date().toISOString(),
+          })
+          .eq('id', transaction.id);
+
+        console.log(`💰 [KwikAPI] Retailer commission: ${rechargeOperator?.commission_rate || 2.0}% = ₹${rewardAmount.toFixed(2)}`);
+      }
+    }
+
+    // Credit reward to wallet if amount > 0
+    if (rewardAmount > 0) {
+      await supabase
+        .from('wallets')
+        .update({ balance: wallet.balance + rewardAmount })
+        .eq('user_id', transaction.user_id);
+
+      await supabase.from('transactions').insert({
+        user_id: transaction.user_id,
+        wallet_id: wallet.id,
+        type: rewardType,
+        amount: rewardAmount,
+        status: 'COMPLETED',
+        description: rewardDescription,
+        reference: transaction.transaction_ref,
+        metadata: {
+          recharge_transaction_id: transaction.id,
+          service_type: transaction.service_type,
+          operator_name: rechargeOperator?.operator_name || 'Unknown',
+          source: 'kwikapi_callback'
+        }
+      });
+
+      console.log(`✅ [KwikAPI] ${rewardType} of ₹${rewardAmount.toFixed(2)} credited for transaction:`, transaction.id);
+    } else {
+      console.log('ℹ️ [KwikAPI] No reward to credit for transaction:', transaction.id);
+    }
+  } catch (error) {
+    console.error('❌ [KwikAPI] Reward processing error:', error);
+  }
 }
 
 // Handle GET requests for webhook verification and callbacks

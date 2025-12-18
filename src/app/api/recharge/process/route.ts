@@ -74,18 +74,27 @@ export async function POST(request: NextRequest) {
     }
 
     // Get commission and cashback configuration from recharge_operators table
+    // This ensures both web and mobile app use the same admin-configured rates
     const { data: rechargeOperator } = await supabase
       .from('recharge_operators')
-      .select('commission_rate, cashback_enabled, cashback_min_percentage, cashback_max_percentage')
+      .select('*')
       .eq('kwikapi_opid', parseInt(operator_code))
       .eq('service_type', service_type.toUpperCase())
+      .eq('is_active', true)
       .single();
 
-    // Use configured rates or fallback to defaults
-    const commissionRate = rechargeOperator?.commission_rate || 2.0;
-    const cashbackEnabled = rechargeOperator?.cashback_enabled || false;
-    const cashbackMinPercentage = rechargeOperator?.cashback_min_percentage || 0.5;
-    const cashbackMaxPercentage = rechargeOperator?.cashback_max_percentage || 2.0;
+    if (!rechargeOperator) {
+      return NextResponse.json(
+        { success: false, message: 'Operator not configured or inactive' },
+        { status: 400 }
+      );
+    }
+
+    // Use admin-configured rates (not hardcoded)
+    const commissionRate = rechargeOperator.commission_rate || 2.0;
+    const cashbackEnabled = rechargeOperator.cashback_enabled || false;
+    const cashbackMinPercentage = rechargeOperator.cashback_min_percentage || 0.5;
+    const cashbackMaxPercentage = rechargeOperator.cashback_max_percentage || 2.0;
 
     // Validate amount range
     if (amount < operator.amount_minimum || amount > operator.amount_maximum) {
@@ -148,12 +157,12 @@ export async function POST(request: NextRequest) {
     // Generate unique transaction reference
     const transactionRef = `TXN_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
-    // Create transaction record
+    // Create transaction record with proper operator reference
     const { data: transaction, error: txnError } = await supabase
       .from('recharge_transactions')
       .insert({
         user_id: dbUser.id,
-        operator_id: operator.id,
+        operator_id: rechargeOperator.id, // Use recharge_operators table ID
         circle_id: circleId,
         service_type: service_type.toUpperCase(),
         mobile_number,
@@ -161,11 +170,15 @@ export async function POST(request: NextRequest) {
         consumer_number,
         account_holder_name: customer_name || dbUser.name,
         amount,
-        commission_amount: rewardAmount,
+        commission_amount: dbUser.role === 'CUSTOMER' ? 0 : rewardAmount,
+        cashback_amount: dbUser.role === 'CUSTOMER' ? rewardAmount : 0,
+        cashback_percentage: dbUser.role === 'CUSTOMER' && cashbackEnabled ? (rewardAmount / amount) * 100 : 0,
         platform_fee: platformFee,
         total_amount: totalAmount,
         status: 'PENDING',
         transaction_ref: transactionRef,
+        bill_fetch_data: bill_details || {},
+        dynamic_parameters: { opt1, opt2, opt3, ref_id },
       })
       .select()
       .single();
@@ -190,8 +203,8 @@ export async function POST(request: NextRequest) {
       metadata: { recharge_transaction_id: transaction.id },
     });
 
-    // Use the operator_id from the kwikapi_billers record
-    const opid = operator.operator_id;
+    // Use the kwikapi_opid from the recharge_operators record
+    const opid = rechargeOperator.kwikapi_opid;
 
     // Check KWIKAPI wallet balance first
     const walletBalanceResponse = await kwikapi.getWalletBalance();
