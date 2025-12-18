@@ -347,16 +347,61 @@ export default function ServiceApplicationPage() {
       return;
     }
 
-    // Calculate fee breakdown and show modal
+    // CRITICAL: Check wallet balance for paid services BEFORE showing payment modal
     const breakdown = calculateFeeBreakdown();
     if (breakdown && breakdown.total_amount > 0) {
       setFeeBreakdown(breakdown);
+      
+      // Check wallet balance first
+      const balanceCheckPassed = await checkWalletBalance(breakdown.total_amount);
+      if (!balanceCheckPassed) {
+        return; // Don't proceed if balance check failed
+      }
+      
       setShowPaymentModal(true);
       return;
     }
 
     // If free service or reapply, submit directly
     await submitApplication();
+  };
+
+  const checkWalletBalance = async (requiredAmount: number): Promise<boolean> => {
+    try {
+      // Fetch current wallet balance
+      const response = await fetch('/api/wallet/balance');
+      const data = await response.json();
+      
+      if (!data.success) {
+        showToast.error('Failed to check wallet balance');
+        return false;
+      }
+      
+      const currentBalance = data.balance || 0;
+      
+      if (currentBalance < requiredAmount) {
+        // Show insufficient balance notification
+        const shortfall = requiredAmount - currentBalance;
+        showToast.error(
+          `Insufficient wallet balance! Required: ₹${requiredAmount.toFixed(2)}, Available: ₹${currentBalance.toFixed(2)}, Shortfall: ₹${shortfall.toFixed(2)}`,
+          {
+            duration: 6000,
+            action: {
+              label: 'Add Money',
+              onClick: () => router.push('/dashboard/wallet')
+            }
+          }
+        );
+        return false;
+      }
+      
+      return true;
+      
+    } catch (error) {
+      console.error('Error checking wallet balance:', error);
+      showToast.error('Failed to check wallet balance');
+      return false;
+    }
   };
 
   const submitApplication = async () => {

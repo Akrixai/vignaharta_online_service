@@ -247,14 +247,213 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
       return;
     }
 
-    // Calculate fee breakdown for paid services
+    // CRITICAL: Check wallet balance for paid services BEFORE submission
     const breakdown = calculateFeeBreakdown();
     if (breakdown && breakdown.total_amount > 0) {
       setFeeBreakdown(breakdown);
+      
+      // Check wallet balance
+      const balanceCheckPassed = await checkWalletBalance(breakdown.total_amount);
+      if (!balanceCheckPassed) {
+        return; // Don't proceed if balance check failed
+      }
     }
 
-    // Submit directly without showing modal
+    // Submit application
     await submitApplication();
+  };
+
+  const checkWalletBalance = async (requiredAmount: number): Promise<boolean> => {
+    try {
+      // Fetch current wallet balance
+      const response = await fetch('/api/wallet/balance');
+      const data = await response.json();
+      
+      if (!data.success) {
+        toast.error('Failed to check wallet balance');
+        return false;
+      }
+      
+      const currentBalance = data.balance || 0;
+      
+      if (currentBalance < requiredAmount) {
+        // Show insufficient balance dialog
+        const shouldAddMoney = await showInsufficientBalanceDialog(requiredAmount, currentBalance);
+        return shouldAddMoney;
+      }
+      
+      // Show balance confirmation dialog
+      return await showBalanceConfirmationDialog(requiredAmount, currentBalance);
+      
+    } catch (error) {
+      console.error('Error checking wallet balance:', error);
+      toast.error('Failed to check wallet balance');
+      return false;
+    }
+  };
+
+  const showInsufficientBalanceDialog = (requiredAmount: number, currentBalance: number): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const shortfall = requiredAmount - currentBalance;
+      
+      // Create and show modal
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100000]';
+      modal.innerHTML = `
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+          <div class="bg-gradient-to-r from-red-500 to-red-600 p-6 text-white">
+            <div class="flex items-center space-x-3">
+              <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                <span class="text-2xl">❌</span>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold">Insufficient Balance</h3>
+                <p class="text-red-100 text-sm">You don't have enough wallet balance</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="p-6">
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+              <div class="space-y-2">
+                <div class="flex justify-between">
+                  <span class="text-gray-700">Required Amount:</span>
+                  <span class="font-bold text-red-600">₹${requiredAmount.toFixed(2)}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-700">Current Balance:</span>
+                  <span class="font-bold">₹${currentBalance.toFixed(2)}</span>
+                </div>
+                <div class="border-t pt-2 flex justify-between">
+                  <span class="text-gray-700 font-medium">Shortfall:</span>
+                  <span class="font-bold text-red-600">₹${shortfall.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
+              <div class="flex items-start space-x-2">
+                <span class="text-orange-500 text-lg">💡</span>
+                <p class="text-sm text-orange-800">
+                  Please add money to your wallet before submitting this application.
+                </p>
+              </div>
+            </div>
+            
+            <div class="flex space-x-3">
+              <button id="cancel-btn" class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium">
+                Cancel
+              </button>
+              <button id="add-money-btn" class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium">
+                Add Money
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      const cancelBtn = modal.querySelector('#cancel-btn');
+      const addMoneyBtn = modal.querySelector('#add-money-btn');
+      
+      const cleanup = () => {
+        document.body.removeChild(modal);
+      };
+      
+      cancelBtn?.addEventListener('click', () => {
+        cleanup();
+        resolve(false);
+      });
+      
+      addMoneyBtn?.addEventListener('click', () => {
+        cleanup();
+        // Navigate to wallet page
+        window.location.href = '/dashboard/wallet';
+        resolve(false);
+      });
+    });
+  };
+
+  const showBalanceConfirmationDialog = (requiredAmount: number, currentBalance: number): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const remainingBalance = currentBalance - requiredAmount;
+      
+      // Create and show modal
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100000]';
+      modal.innerHTML = `
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+          <div class="bg-gradient-to-r from-green-500 to-green-600 p-6 text-white">
+            <div class="flex items-center space-x-3">
+              <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                <span class="text-2xl">💳</span>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold">Payment Confirmation</h3>
+                <p class="text-green-100 text-sm">Confirm wallet payment</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="p-6">
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+              <div class="space-y-2">
+                <div class="flex justify-between">
+                  <span class="text-gray-700">Payment Amount:</span>
+                  <span class="font-bold text-blue-600">₹${requiredAmount.toFixed(2)}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-700">Current Balance:</span>
+                  <span class="font-bold">₹${currentBalance.toFixed(2)}</span>
+                </div>
+                <div class="border-t pt-2 flex justify-between">
+                  <span class="text-gray-700 font-medium">After Payment:</span>
+                  <span class="font-bold text-green-600">₹${remainingBalance.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+              <div class="flex items-start space-x-2">
+                <span class="text-yellow-500 text-lg">⚠️</span>
+                <p class="text-sm text-yellow-800">
+                  The amount will be immediately deducted from your wallet upon submission.
+                </p>
+              </div>
+            </div>
+            
+            <div class="flex space-x-3">
+              <button id="cancel-btn" class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium">
+                Cancel
+              </button>
+              <button id="confirm-btn" class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium">
+                Confirm Payment
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      const cancelBtn = modal.querySelector('#cancel-btn');
+      const confirmBtn = modal.querySelector('#confirm-btn');
+      
+      const cleanup = () => {
+        document.body.removeChild(modal);
+      };
+      
+      cancelBtn?.addEventListener('click', () => {
+        cleanup();
+        resolve(false);
+      });
+      
+      confirmBtn?.addEventListener('click', () => {
+        cleanup();
+        resolve(true);
+      });
+    });
   };
 
   const submitApplication = async () => {

@@ -82,7 +82,53 @@ export default function DraftsPage() {
   const [selectedDraft, setSelectedDraft] = useState<Draft | null>(null);
   const [showModal, setShowModal] = useState(false);
 
-  const handleContinue = (draft: Draft) => {
+  const handleContinue = async (draft: Draft) => {
+    // Check wallet balance first for paid services
+    const servicePrice = draft.schemes.price || 0;
+    const isFree = servicePrice === 0;
+
+    if (!isFree && servicePrice > 0) {
+      // Calculate total amount (matching the fee breakdown logic)
+      const baseAmount = servicePrice;
+      const gstAmount = (baseAmount * 2) / 100; // 2% GST
+      const platformFee = 5; // ₹5 platform fee
+      const totalAmount = baseAmount + gstAmount + platformFee;
+
+      try {
+        // Fetch current wallet balance
+        const response = await fetch('/api/wallet/balance');
+        const data = await response.json();
+        
+        if (!data.success) {
+          alert('Failed to check wallet balance. Please try again.');
+          return;
+        }
+        
+        const currentBalance = data.balance || 0;
+        
+        if (currentBalance < totalAmount) {
+          const shortfall = totalAmount - currentBalance;
+          const shouldAddMoney = confirm(
+            `Insufficient wallet balance!\n\n` +
+            `Required: ₹${totalAmount.toFixed(2)}\n` +
+            `Available: ₹${currentBalance.toFixed(2)}\n` +
+            `Shortfall: ₹${shortfall.toFixed(2)}\n\n` +
+            `Would you like to add money to your wallet?`
+          );
+          
+          if (shouldAddMoney) {
+            router.push('/dashboard/wallet');
+          }
+          return;
+        }
+      } catch (error) {
+        console.error('Error checking wallet balance:', error);
+        alert('Failed to check wallet balance. Please try again.');
+        return;
+      }
+    }
+
+    // Proceed to open the modal if balance is sufficient or service is free
     setSelectedDraft(draft);
     setShowModal(true);
   };
