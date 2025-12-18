@@ -59,20 +59,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get operator details from new kwikapi_billers table
-    const { data: operator } = await supabase
-      .from('kwikapi_billers')
-      .select('*')
-      .eq('operator_id', parseInt(operator_code)) // operator_code now contains the KwikAPI operator_id
-      .single();
-
-    if (!operator) {
-      return NextResponse.json(
-        { success: false, message: 'Invalid operator' },
-        { status: 400 }
-      );
-    }
-
     // Get commission and cashback configuration from recharge_operators table
     // This ensures both web and mobile app use the same admin-configured rates
     const { data: rechargeOperator } = await supabase
@@ -86,6 +72,20 @@ export async function POST(request: NextRequest) {
     if (!rechargeOperator) {
       return NextResponse.json(
         { success: false, message: 'Operator not configured or inactive' },
+        { status: 400 }
+      );
+    }
+
+    // Get operator details from kwikapi_billers table for validation
+    const { data: operator } = await supabase
+      .from('kwikapi_billers')
+      .select('*')
+      .eq('operator_id', parseInt(operator_code)) // operator_code now contains the KwikAPI operator_id
+      .single();
+
+    if (!operator) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid operator in KwikAPI billers' },
         { status: 400 }
       );
     }

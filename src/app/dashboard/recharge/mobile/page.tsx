@@ -845,6 +845,13 @@ export default function MobileRechargePageEnhanced() {
                       }
                     </p>
                   </div>
+                  <button
+                    onClick={checkROffers}
+                    disabled={loadingOffers || mobileNumber.length !== 10}
+                    className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+                  >
+                    {loadingOffers ? '⏳ Checking...' : '🔄 Check R-Offers'}
+                  </button>
                 </div>
 
                 {loadingOffers && (

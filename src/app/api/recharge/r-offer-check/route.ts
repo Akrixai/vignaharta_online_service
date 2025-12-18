@@ -28,7 +28,8 @@ export async function POST(request: NextRequest) {
     }
 
     // First detect the operator to get the opid
-    const detectResponse = await fetch('/api/recharge/detect-operator', {
+    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+    const detectResponse = await fetch(`${baseUrl}/api/recharge/detect-operator`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ mobile_number }),

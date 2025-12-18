@@ -50,7 +50,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get operator details from kwikapi_billers table
+    // Get operator details from recharge_operators table (this is the correct table for foreign key)
+    const { data: rechargeOperator } = await supabase
+      .from('recharge_operators')
+      .select('*')
+      .eq('kwikapi_opid', parseInt(opid))
+      .eq('is_active', true)
+      .single();
+
+    if (!rechargeOperator) {
+      return NextResponse.json(
+        { success: false, message: 'Operator not configured or inactive' },
+        { status: 400 }
+      );
+    }
+
+    // Get operator details from kwikapi_billers table for validation
     const { data: operator } = await supabase
       .from('kwikapi_billers')
       .select('*')
@@ -59,7 +74,7 @@ export async function POST(request: NextRequest) {
 
     if (!operator) {
       return NextResponse.json(
-        { success: false, message: 'Invalid operator' },
+        { success: false, message: 'Invalid operator in KwikAPI billers' },
         { status: 400 }
       );
     }
@@ -75,10 +90,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Calculate commission/cashback based on user role
-    const rewardRate = 2.0; // Default 2% - can be made configurable later
-    const rewardAmount = (amount * rewardRate) / 100;
+    // Use admin-configured rates from recharge_operators table
+    const commissionRate = rechargeOperator.commission_rate || 2.0;
+    const cashbackEnabled = rechargeOperator.cashback_enabled || false;
+    const cashbackMinPercentage = rechargeOperator.cashback_min_percentage || 0.5;
+    const cashbackMaxPercentage = rechargeOperator.cashback_max_percentage || 2.0;
+
+    // Calculate commission/cashback based on user role and admin configuration
+    let rewardAmount = 0;
     const rewardLabel = dbUser.role === 'CUSTOMER' ? 'Cashback' : 'Commission';
+
+    if (dbUser.role === 'CUSTOMER') {
+      // Customer gets cashback only if enabled for this operator
+      if (cashbackEnabled) {
+        // Generate random cashback percentage between min and max
+        const randomCashbackPercentage = (Math.random() * (cashbackMaxPercentage - cashbackMinPercentage) + cashbackMinPercentage);
+        rewardAmount = (amount * randomCashbackPercentage) / 100;
+      }
+    } else {
+      // Retailer/Employee gets commission based on configured rate
+      rewardAmount = (amount * commissionRate) / 100;
+    }
 
     const platformFee = 0; // No platform fee
     const totalAmount = amount;
@@ -114,19 +146,21 @@ export async function POST(request: NextRequest) {
       circleId = circle?.id;
     }
 
-    // Create transaction record
+    // Create transaction record using recharge_operators table ID
     const { data: transaction, error: txnError } = await supabase
       .from('recharge_transactions')
       .insert({
         user_id: dbUser.id,
-        operator_id: operator.id,
+        operator_id: rechargeOperator.id, // Use recharge_operators table ID
         circle_id: circleId,
         service_type: serviceType.toUpperCase(),
         mobile_number: serviceType === 'DTH' ? mobile : number,
         dth_number: serviceType === 'DTH' ? number : null,
         account_holder_name: dbUser.name,
         amount,
-        commission_amount: rewardAmount,
+        commission_amount: dbUser.role === 'CUSTOMER' ? 0 : rewardAmount,
+        cashback_amount: dbUser.role === 'CUSTOMER' ? rewardAmount : 0,
+        cashback_percentage: dbUser.role === 'CUSTOMER' && cashbackEnabled ? (rewardAmount / amount) * 100 : 0,
         platform_fee: platformFee,
         total_amount: totalAmount,
         status: 'PENDING',
@@ -230,27 +264,9 @@ export async function POST(request: NextRequest) {
         })
         .eq('id', transaction.id);
 
-      // Calculate cashback for customers (random between min and max)
-      let actualCashback = 0;
-      if (dbUser.role === 'CUSTOMER' && status === 'SUCCESS') {
-        const minCashback = 0.5;
-        const maxCashback = 2.0;
-        const randomCashbackPercentage = (Math.random() * (maxCashback - minCashback) + minCashback).toFixed(2);
-        actualCashback = (amount * parseFloat(randomCashbackPercentage)) / 100;
-
-        // Update transaction with cashback info
-        await supabase
-          .from('recharge_transactions')
-          .update({
-            cashback_percentage: parseFloat(randomCashbackPercentage),
-            cashback_amount: actualCashback,
-          })
-          .eq('id', transaction.id);
-      }
-
       // If successful, add commission/cashback to user wallet
       if (status === 'SUCCESS') {
-        const finalReward = dbUser.role === 'CUSTOMER' ? actualCashback : rewardAmount;
+        const finalReward = rewardAmount;
 
         if (finalReward > 0) {
           await supabase
