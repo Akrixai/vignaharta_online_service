@@ -25,6 +25,11 @@ export const env = {
   
   // Chaport Live Chat Configuration
   NEXT_PUBLIC_CHAPORT_APP_ID: process.env.NEXT_PUBLIC_CHAPORT_APP_ID || '692894e919eb4879974cd369',
+  
+  // InsPay API Configuration (for PAN services)
+  INSPAY_USERNAME: process.env.INSPAY_USERNAME || '',
+  INSPAY_API_TOKEN: process.env.INSPAY_API_TOKEN || '',
+  INSPAY_BASE_URL: process.env.INSPAY_BASE_URL || '',
 };
 
 // Validation function

@@ -84,9 +84,134 @@ class KwikAPIClient {
   // ==================== BILL FETCH APIs ====================
 
   /**
+   * Bill Validation (for postpaid, DTH, electricity, etc.)
+   * GET /api/v2/bills/validation.php
+   * Use only when bill_fetch = "YES" for the operator
+   * This is the correct endpoint according to KwikAPI documentation
+   */
+  async fetchBillValidation(params: {
+    number: string;
+    amount: string;
+    opid: number;
+    order_id?: string;
+    mobile: string;
+    opt1?: string;
+    opt2?: string;
+    opt3?: string;
+    opt4?: string;
+    opt5?: string;
+    opt6?: string;
+    opt7?: string;
+    opt8?: string;
+    opt9?: string;
+    opt10?: string;
+  }): Promise<KwikAPIResponse> {
+    try {
+      console.log('📋 [KWIKAPI] Bill Validation Request for:', {
+        operator_id: params.opid,
+        account_number: params.number,
+        mobile: params.mobile
+      });
+
+      const queryParams: any = {
+        api_key: KWIKAPI_API_KEY,
+        number: params.number,
+        amount: params.amount || '10',
+        opid: params.opid.toString(),
+        order_id: params.order_id || this.generateOrderId(),
+        opt8: params.opt8 || 'Bills', // Required literal - CRITICAL!
+        mobile: params.mobile,
+      };
+
+      // Add optional parameters only if they have values
+      if (params.opt1) queryParams.opt1 = params.opt1;
+      if (params.opt2) queryParams.opt2 = params.opt2;
+      if (params.opt3) queryParams.opt3 = params.opt3;
+      if (params.opt4) queryParams.opt4 = params.opt4;
+      if (params.opt5) queryParams.opt5 = params.opt5;
+      if (params.opt6) queryParams.opt6 = params.opt6;
+      if (params.opt7) queryParams.opt7 = params.opt7;
+      if (params.opt9) queryParams.opt9 = params.opt9;
+      if (params.opt10) queryParams.opt10 = params.opt10;
+
+      console.log('📡 [KWIKAPI] Bill Validation API Call:', {
+        url: '/api/v2/bills/validation.php',
+        params: { ...queryParams, api_key: '***' }, // Hide API key in logs
+        baseURL: KWIKAPI_BASE_URL
+      });
+
+      const response = await this.client.get('/api/v2/bills/validation.php', {
+        params: queryParams,
+        timeout: 30000, // 30 second timeout for bill validation
+      });
+
+      console.log('📦 [KWIKAPI] Bill Validation Response:', response.data);
+
+      // Check if the response indicates success
+      const isSuccess = response.data.status === 'SUCCESS' || response.data.STATUS === 'SUCCESS';
+      
+      if (isSuccess) {
+        console.log('✅ [KWIKAPI] Bill validation successful:', {
+          customer_name: response.data.customer_name || response.data.customername,
+          due_amount: response.data.due_amount || response.data.dueamount,
+          bill_number: response.data.bill_number || response.data.billnumber
+        });
+      } else {
+        console.warn('⚠️ [KWIKAPI] Bill validation failed:', {
+          status: response.data.status || response.data.STATUS,
+          message: response.data.message || response.data.MESSAGE
+        });
+      }
+
+      return {
+        success: isSuccess,
+        data: response.data,
+        message: response.data.message || response.data.MESSAGE,
+      };
+    } catch (error: any) {
+      console.error('❌ [KWIKAPI] Bill Validation Error:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        code: error.code
+      });
+
+      // Provide more specific error messages
+      let errorMessage = 'Failed to validate bill details';
+      
+      if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
+        errorMessage = 'Network connection failed. Please check your internet connection and try again.';
+      } else if (error.code === 'ETIMEDOUT') {
+        errorMessage = 'Request timed out. Please try again.';
+      } else if (error.response?.status === 401) {
+        errorMessage = 'Invalid API key. Please check KWIKAPI configuration.';
+      } else if (error.response?.status === 403) {
+        errorMessage = 'Access denied. Please check KWIKAPI permissions.';
+      } else if (error.response?.status >= 500) {
+        errorMessage = 'KWIKAPI server error. Please try again later.';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+
+      return {
+        success: false,
+        data: error.response?.data || {},
+        message: errorMessage,
+        debug_info: {
+          error_code: error.code,
+          status: error.response?.status,
+          url: error.config?.url,
+          baseURL: error.config?.baseURL
+        }
+      };
+    }
+  }
+
+  /**
    * Bill Fetch v2 (for postpaid, DTH, electricity, etc.)
    * GET /api/v2/bills/validation.php
    * Use only when bill_fetch = "YES" for the operator
+   * @deprecated Use fetchBillValidation instead
    */
   async fetchBill(params: {
     number: string;
@@ -285,60 +410,104 @@ class KwikAPIClient {
 
   /**
    * Prepaid/DTH Recharge
-   * From "Prepaid/DTH Recharge" collection entry
-   * Endpoint path may vary - check your Postman collection
+   * GET /api/v2/recharge.php
+   * According to KwikAPI documentation
    */
   async rechargePrepaid(params: {
     opid: number;
     number: string;
     amount: number;
-    circle?: string;
+    state_code?: string; // Circle code for prepaid
     order_id?: string;
-    mobile: string;
-    opt1?: string;
-    opt2?: string;
-    opt3?: string;
-    opt4?: string;
-    opt5?: string;
-    opt6?: string;
-    opt7?: string;
-    opt8?: string;
-    opt9?: string;
-    opt10?: string;
+    mobile?: string;
   }): Promise<KwikAPIResponse> {
     try {
-      const queryParams = {
+      console.log('📱 [KWIKAPI] Prepaid Recharge Request:', {
+        operator_id: params.opid,
+        number: params.number,
+        amount: params.amount,
+        state_code: params.state_code
+      });
+
+      const queryParams: any = {
         api_key: KWIKAPI_API_KEY,
         opid: params.opid.toString(),
         number: params.number,
         amount: params.amount.toString(),
+        state_code: params.state_code || '0', // Default state code
         order_id: params.order_id || this.generateOrderId(),
-        mobile: params.mobile,
-        ...(params.circle && { circle: params.circle }),
-        ...(params.opt1 && { opt1: params.opt1 }),
-        ...(params.opt2 && { opt2: params.opt2 }),
-        ...(params.opt3 && { opt3: params.opt3 }),
-        ...(params.opt4 && { opt4: params.opt4 }),
-        ...(params.opt5 && { opt5: params.opt5 }),
-        ...(params.opt6 && { opt6: params.opt6 }),
-        ...(params.opt7 && { opt7: params.opt7 }),
-        ...(params.opt8 && { opt8: params.opt8 }),
-        ...(params.opt9 && { opt9: params.opt9 }),
-        ...(params.opt10 && { opt10: params.opt10 }),
       };
 
-      // Use GET or POST based on your Postman collection
-      const response = await this.client.get('/api/v2/recharge.php', {
-        params: queryParams,
+      console.log('📡 [KWIKAPI] Prepaid Recharge API Call:', {
+        url: '/api/v2/recharge.php',
+        params: { ...queryParams, api_key: '***' }, // Hide API key in logs
+        baseURL: KWIKAPI_BASE_URL
       });
 
+      const response = await this.client.get('/api/v2/recharge.php', {
+        params: queryParams,
+        timeout: 45000, // 45 second timeout for recharge
+      });
+
+      console.log('📦 [KWIKAPI] Prepaid Recharge Response:', response.data);
+
+      const isSuccess = response.data.status === 'SUCCESS' || response.data.STATUS === 'SUCCESS';
+      
+      if (isSuccess) {
+        console.log('✅ [KWIKAPI] Prepaid recharge successful:', {
+          order_id: response.data.order_id,
+          operator_ref: response.data.opr_id || response.data.operator_ref,
+          amount: response.data.amount,
+          balance: response.data.balance
+        });
+      } else {
+        console.warn('⚠️ [KWIKAPI] Prepaid recharge failed:', {
+          status: response.data.status || response.data.STATUS,
+          message: response.data.message || response.data.MESSAGE
+        });
+      }
+
       return {
-        success: response.data.status === 'SUCCESS' || response.data.STATUS === 'SUCCESS',
+        success: isSuccess,
         data: response.data,
+        message: response.data.message || response.data.MESSAGE,
       };
     } catch (error: any) {
-      console.error('KWIKAPI Prepaid Recharge Error:', error.response?.data || error.message);
-      throw error;
+      console.error('❌ [KWIKAPI] Prepaid Recharge Error:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        code: error.code
+      });
+
+      // Provide more specific error messages
+      let errorMessage = 'Failed to process prepaid recharge';
+      
+      if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
+        errorMessage = 'Network connection failed. Please check your internet connection and try again.';
+      } else if (error.code === 'ETIMEDOUT') {
+        errorMessage = 'Recharge request timed out. Please try again.';
+      } else if (error.response?.status === 401) {
+        errorMessage = 'Invalid API key. Please check KWIKAPI configuration.';
+      } else if (error.response?.status === 403) {
+        errorMessage = 'Access denied. Please check KWIKAPI permissions.';
+      } else if (error.response?.status >= 500) {
+        errorMessage = 'KWIKAPI server error. Please try again later.';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+
+      return {
+        success: false,
+        data: error.response?.data || {},
+        message: errorMessage,
+        debug_info: {
+          error_code: error.code,
+          status: error.response?.status,
+          url: error.config?.url,
+          baseURL: error.config?.baseURL
+        }
+      };
     }
   }
 
@@ -398,16 +567,16 @@ class KwikAPIClient {
   }
 
   /**
-   * Utility Payments (Electricity, Gas, Water, Postpaid)
-   * From "Utility Payments" collection entry
-   * GET /api/v2/bills/payments.php (correct endpoint from documentation)
+   * Utility Bill Payments (Electricity, Gas, Water, Postpaid)
+   * GET /api/v2/bills/payments.php
+   * According to KwikAPI documentation
    */
   async payUtilityBill(params: {
     opid: number;
     number: string;
     amount: number;
     order_id?: string;
-    ref_id?: string; // From bill fetch response - CRITICAL for BBPS payments
+    refrence_id?: string; // From bill fetch response - CRITICAL for BBPS payments (note: typo in KWIKAPI)
     mobile: string;
     opt1?: string;
     opt2?: string;
@@ -425,23 +594,24 @@ class KwikAPIClient {
         operator_id: params.opid,
         account_number: params.number,
         amount: params.amount,
-        ref_id: params.ref_id,
+        refrence_id: params.refrence_id,
         mobile: params.mobile
       });
 
       const queryParams: any = {
         api_key: KWIKAPI_API_KEY,
-        opid: params.opid.toString(),
         number: params.number,
         amount: params.amount.toString(),
+        opid: params.opid.toString(),
         order_id: params.order_id || this.generateOrderId(),
+        opt8: params.opt8 || 'Bills', // Required literal for utility payments
         mobile: params.mobile,
-        opt8: 'Bills', // Required literal for utility payments
       };
 
-      // Add ref_id if provided (critical for BBPS payments)
-      if (params.ref_id) {
-        queryParams.refrence_id = params.ref_id; // Note: KWIKAPI uses "refrence_id" (typo in their API)
+      // Add refrence_id if provided (critical for BBPS payments)
+      // Note: KWIKAPI uses "refrence_id" (typo in their API)
+      if (params.refrence_id) {
+        queryParams.refrence_id = params.refrence_id;
       }
 
       // Add optional parameters only if they have values
@@ -461,7 +631,6 @@ class KwikAPIClient {
         baseURL: KWIKAPI_BASE_URL
       });
 
-      // Use correct endpoint from documentation
       const response = await this.client.get('/api/v2/bills/payments.php', {
         params: queryParams,
         timeout: 45000, // 45 second timeout for utility payments
@@ -475,7 +644,8 @@ class KwikAPIClient {
         console.log('✅ [KWIKAPI] Utility payment successful:', {
           order_id: response.data.order_id,
           operator_ref: response.data.opr_id || response.data.operator_ref,
-          amount: response.data.amount
+          amount: response.data.amount,
+          balance: response.data.balance
         });
       } else {
         console.warn('⚠️ [KWIKAPI] Utility payment failed:', {

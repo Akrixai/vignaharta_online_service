@@ -35,6 +35,11 @@ export default function PanCommissionPage() {
     is_active: true
   });
 
+  // InsPay Wallet Balance State
+  const [inspayBalance, setInspayBalance] = useState<number | null>(null);
+  const [fetchingBalance, setFetchingBalance] = useState(false);
+  const [balanceFetchedAt, setBalanceFetchedAt] = useState<string | null>(null);
+
   // Fetch configurations
   const fetchConfigs = async () => {
     setLoading(true);
@@ -150,6 +155,28 @@ export default function PanCommissionPage() {
     });
   };
 
+  // Fetch InsPay Wallet Balance
+  const fetchInspayBalance = async () => {
+    setFetchingBalance(true);
+    try {
+      const response = await fetch('/api/admin/inspay-balance');
+      const data = await response.json();
+
+      if (data.success) {
+        setInspayBalance(data.data.balance);
+        setBalanceFetchedAt(data.data.fetchedAt);
+        toast.success('PAN wallet balance fetched successfully');
+      } else {
+        toast.error(data.message || 'Failed to fetch PAN balance');
+      }
+    } catch (error) {
+      console.error('Error fetching PAN balance:', error);
+      toast.error('Failed to fetch PAN balance');
+    } finally {
+      setFetchingBalance(false);
+    }
+  };
+
   if (session?.user?.role !== UserRole.ADMIN) {
     return (
       <DashboardLayout>
@@ -180,6 +207,67 @@ export default function PanCommissionPage() {
             Configure pricing and commission rates for PAN card services
           </p>
         </div>
+
+        {/* InsPay API Wallet Balance Card */}
+        <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <span className="text-2xl">💰</span>
+              PAN API Wallet Balance
+            </CardTitle>
+            <CardDescription>
+              View your current PAN API wallet balance for PAN services
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Current Balance</p>
+                  {inspayBalance !== null ? (
+                    <div>
+                      <p className="text-4xl font-bold text-blue-600">
+                        ₹{inspayBalance.toFixed(2)}
+                      </p>
+                      {balanceFetchedAt && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          Last fetched: {new Date(balanceFetchedAt).toLocaleString()}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-2xl font-semibold text-gray-400">
+                      Click button to fetch balance
+                    </p>
+                  )}
+                </div>
+                <Button
+                  onClick={fetchInspayBalance}
+                  disabled={fetchingBalance}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  {fetchingBalance ? (
+                    <>
+                      <span className="animate-spin mr-2">⏳</span>
+                      Fetching...
+                    </>
+                  ) : (
+                    <>
+                      <span className="mr-2">🔄</span>
+                      Fetch Balance
+                    </>
+                  )}
+                </Button>
+              </div>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <p className="text-xs text-yellow-800">
+                  <strong>Note:</strong> Balance is fetched manually to avoid rate limiting. 
+                  Click the "Fetch Balance" button to get the latest balance from PAN API.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Configuration Form */}
         <Card>

@@ -244,23 +244,20 @@ export default function DTHRechargePageEnhanced() {
         try {
             const operator = operators.find(op => op.id === selectedOperator);
 
+            // Use KwikAPI recharge endpoint for DTH
             const payload: any = {
-                service_type: 'DTH',
-                operator_code: operator?.operator_code,
-                dth_number: dthNumber,
+                opid: operator?.kwikapi_opid || operator?.operator_code,
+                number: dthNumber,
                 amount: parseFloat(amount),
-                customer_name: customerName,
+                mobile: dthNumber, // For DTH, use DTH number as mobile
+                circle_code: '0', // Default circle for DTH
             };
 
             if (selectedPlan) {
-                payload.plan_details = {
-                    amount: selectedPlan.amount,
-                    validity: selectedPlan.validity,
-                    description: selectedPlan.description,
-                };
+                payload.plan_details = selectedPlan;
             }
 
-            const res = await fetch('/api/recharge/process', {
+            const res = await fetch('/api/kwikapi/recharge', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
@@ -269,19 +266,41 @@ export default function DTHRechargePageEnhanced() {
             const data = await res.json();
 
             if (data.success) {
-                const reward = data.data.reward_amount || 0;
-                setMessage(`✅ DTH Recharge successful! ${data.data.reward_label}: ₹${reward.toFixed(2)} | Transaction ID: ${data.data.transaction_ref}`);
-                setMessageType('success');
+                const responseData = data.data;
+                const status = responseData.status;
+                const message = responseData.message || 'Transaction completed';
+                const operatorRef = responseData.opr_id || responseData.operator_ref || '';
+                const balance = responseData.balance || '';
                 
-                // Refresh wallet balance
-                fetchWalletBalance();
-                
-                setDthNumber('');
-                setAmount('');
-                setCustomerName('');
-                setSelectedPlan(null);
+                // Show real-time KwikAPI status
+                if (status === 'SUCCESS') {
+                    setMessage(
+                        `✅ ${message}${operatorRef ? `\nRef: ${operatorRef}` : ''}${balance ? `\nBalance: ₹${balance}` : ''}`
+                    );
+                    setMessageType('success');
+                    
+                    // Refresh wallet balance on success
+                    fetchWalletBalance();
+                    
+                    // Reset form on success
+                    setDthNumber('');
+                    setAmount('');
+                    setCustomerName('');
+                    setSelectedPlan(null);
+                    setSelectedOperator('');
+                } else if (status === 'PENDING') {
+                    setMessage(
+                        `⏳ ${message}${operatorRef ? `\nRef: ${operatorRef}` : ''}`
+                    );
+                    setMessageType('info');
+                } else {
+                    setMessage(
+                        `❌ ${message}${operatorRef ? `\nRef: ${operatorRef}` : ''}`
+                    );
+                    setMessageType('error');
+                }
             } else {
-                setMessage(`❌ ${data.message}`);
+                setMessage(`❌ ${data.message || 'Transaction failed'}`);
                 setMessageType('error');
             }
         } catch (error: any) {

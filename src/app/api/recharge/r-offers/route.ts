@@ -11,11 +11,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { mobile_number } = await request.json();
+    const { mobile_number, opid } = await request.json();
 
     if (!mobile_number || mobile_number.length !== 10) {
       return NextResponse.json(
         { success: false, message: 'Valid 10-digit mobile number required' },
+        { status: 400 }
+      );
+    }
+
+    if (!opid) {
+      return NextResponse.json(
+        { success: false, message: 'Operator ID (opid) required' },
         { status: 400 }
       );
     }
@@ -27,77 +34,40 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // First, detect operator to get opid
-    const detectFormData = new FormData();
-    detectFormData.append('api_key', KWIKAPI_API_KEY);
-    detectFormData.append('mobile', mobile_number);
-
-    const detectResponse = await fetch(`${KWIKAPI_BASE_URL}/api/v2/operator_fetch_v2.php`, {
-      method: 'POST',
-      body: detectFormData
-    });
-
-    if (!detectResponse.ok) {
-      throw new Error('Failed to detect operator');
-    }
-
-    const detectData = await detectResponse.json();
-
-    if (!detectData.success) {
-      return NextResponse.json({
-        success: false,
-        message: 'Unable to detect operator for this number',
-        data: { supported: false }
-      });
-    }
-
-    const opid = detectData.opid;
-    const operatorName = detectData.operator;
-
     // R-OFFER is only available for Airtel (opid: 1) and VI (opid: 3)
-    const supportedOpids = [1, 3];
+    const supportedOpids = [1, 3]; // Airtel and VI
     if (!supportedOpids.includes(parseInt(opid))) {
       return NextResponse.json({
         success: false,
-        message: `R-OFFER service is only available for Airtel and VI networks. Your operator: ${operatorName}`,
-        data: { 
-          supported: false,
-          operator: operatorName,
-          opid: opid
-        }
+        message: 'R-OFFER service is only available for Airtel and VI networks'
       });
     }
 
     // Fetch R-offers from KwikAPI
-    const offerFormData = new FormData();
-    offerFormData.append('api_key', KWIKAPI_API_KEY);
-    offerFormData.append('opid', opid.toString());
-    offerFormData.append('mobile', mobile_number);
+    const formData = new FormData();
+    formData.append('api_key', KWIKAPI_API_KEY);
+    formData.append('opid', opid.toString());
+    formData.append('mobile', mobile_number);
 
-    const offerResponse = await fetch(`${KWIKAPI_BASE_URL}/api/v2/R-OFFER_check.php`, {
+    const response = await fetch(`${KWIKAPI_BASE_URL}/api/v2/R-OFFER_check.php`, {
       method: 'POST',
-      body: offerFormData
+      body: formData
     });
 
-    if (!offerResponse.ok) {
+    if (!response.ok) {
       throw new Error('Failed to fetch R-offers from KwikAPI');
     }
 
-    const offerData = await offerResponse.json();
+    const data = await response.json();
 
-    if (!offerData.success) {
+    if (!data.success) {
       return NextResponse.json({
         success: false,
-        message: offerData.message || 'No R-offers available',
-        data: { 
-          supported: true,
-          operator: operatorName,
-          offers: []
-        }
+        message: data.message || 'Failed to fetch R-offers'
       });
     }
 
-    const offers = offerData.offers || [];
+    const offers = data.offers || [];
 
     // Transform offers to our format
     const transformedOffers = offers.map((offer: any, index: number) => ({
@@ -114,24 +84,22 @@ export async function POST(request: NextRequest) {
       commission_amount: parseFloat(offer.commissionAmount || '0'),
       type: 'R-OFFER',
       category: 'SPECIAL_OFFER',
-      operator: offerData.operator || operatorName,
-      mobile_number: offerData.mobile_no || mobile_number,
-      original_price: null,
-      discount: null,
+      operator: data.operator || 'Unknown',
+      mobile_number: data.mobile_no || mobile_number,
+      original_price: null, // R-offers don't have original price
+      discount: null, // Calculate if needed
       features: parseFeatures(offer.ofrtext, offer.logdesc)
     }));
 
     return NextResponse.json({
       success: true,
       data: {
-        operator: offerData.operator || operatorName,
-        operator_name: offerData.operator || operatorName,
-        mobile_number: offerData.mobile_no || mobile_number,
-        message: offerData.message,
-        hit_credit: offerData.hit_credit,
+        operator: data.operator,
+        mobile_number: data.mobile_no || mobile_number,
+        message: data.message,
+        hit_credit: data.hit_credit,
         offers: transformedOffers,
-        total_offers: transformedOffers.length,
-        supported: true
+        total_offers: transformedOffers.length
       }
     });
 
@@ -148,6 +116,7 @@ export async function POST(request: NextRequest) {
 function extractValidity(ofrtext: string, logdesc: string): string {
   const text = `${ofrtext} ${logdesc}`.toLowerCase();
   
+  // Look for validity patterns
   const validityPatterns = [
     /(\d+)\s*days?/i,
     /(\d+)\s*d(?:\s|$)/i,
@@ -175,6 +144,7 @@ function extractValidity(ofrtext: string, logdesc: string): string {
 function extractDataBenefit(ofrtext: string, logdesc: string): string {
   const text = `${ofrtext} ${logdesc}`.toLowerCase();
   
+  // Look for data patterns
   const dataPatterns = [
     /(\d+\.?\d*)\s*gb\/day/i,
     /(\d+\.?\d*)\s*gb\/d/i,
@@ -218,6 +188,7 @@ function parseFeatures(ofrtext: string, logdesc: string): string[] {
   const text = `${ofrtext} ${logdesc}`.toLowerCase();
   const features: string[] = [];
 
+  // Common features to look for
   const featurePatterns = [
     { pattern: /jiohotstar|hotstar/i, feature: 'JioHotstar' },
     { pattern: /apple music/i, feature: 'Apple Music' },

@@ -1,4 +1,4 @@
-'use client';
+  'use client';
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
@@ -16,7 +16,14 @@ interface PanService {
   order_id: string;
   amount: number;
   commission_amount: number;
-  status: 'PENDING' | 'SUCCESS' | 'FAILURE' | 'PROCESSING';
+  status: 'PENDING' | 'SUCCESS' | 'FAILURE' | 'PROCESSING' | 'EXPIRED';
+  payment_status: 'PENDING' | 'DEBITED' | 'REFUNDED';
+  payment_debited_at?: string;
+  refund_processed: boolean;
+  refund_processed_at?: string;
+  expires_at?: string;
+  webhook_received_at?: string;
+  completed_at?: string;
   inspay_txid?: string;
   inspay_opid?: string;
   inspay_url?: string;
@@ -29,7 +36,14 @@ const statusColors = {
   PENDING: 'bg-yellow-100 text-yellow-800',
   PROCESSING: 'bg-blue-100 text-blue-800',
   SUCCESS: 'bg-green-100 text-green-800',
-  FAILURE: 'bg-red-100 text-red-800'
+  FAILURE: 'bg-red-100 text-red-800',
+  EXPIRED: 'bg-gray-100 text-gray-800'
+};
+
+const paymentStatusColors = {
+  PENDING: 'bg-gray-100 text-gray-700',
+  DEBITED: 'bg-orange-100 text-orange-700',
+  REFUNDED: 'bg-purple-100 text-purple-700'
 };
 
 const serviceTypeNames = {
@@ -91,6 +105,28 @@ export default function PanServicesHistoryPage() {
       {status}
     </span>
   );
+
+  const getPaymentStatusBadge = (paymentStatus: string) => (
+    <span className={`px-2 py-1 rounded-full text-xs font-medium ${paymentStatusColors[paymentStatus as keyof typeof paymentStatusColors]}`}>
+      {paymentStatus === 'DEBITED' ? '💳 DEBITED' : paymentStatus === 'REFUNDED' ? '💸 REFUNDED' : paymentStatus}
+    </span>
+  );
+
+  const getTimeRemaining = (expiresAt: string) => {
+    const now = new Date();
+    const expiry = new Date(expiresAt);
+    const diff = expiry.getTime() - now.getTime();
+    
+    if (diff <= 0) return 'Expired';
+    
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m remaining`;
+    }
+    return `${minutes}m remaining`;
+  };
 
   if (loading) {
     return (
@@ -186,11 +222,12 @@ export default function PanServicesHistoryPage() {
               <div key={service.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-3">
+                    <div className="flex items-center space-x-3 mb-3 flex-wrap">
                       <h3 className="text-lg font-semibold text-gray-900">
                         {serviceTypeNames[service.service_type]}
                       </h3>
                       {getStatusBadge(service.status)}
+                      {getPaymentStatusBadge(service.payment_status)}
                       <span className="text-sm text-gray-500">
                         Mode: {service.mode}
                       </span>
@@ -199,7 +236,7 @@ export default function PanServicesHistoryPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                       <div>
                         <span className="text-gray-500">Order ID:</span>
-                        <p className="font-medium">{service.order_id}</p>
+                        <p className="font-mono font-medium text-blue-600">{service.order_id}</p>
                       </div>
                       <div>
                         <span className="text-gray-500">Mobile Number:</span>
@@ -214,6 +251,45 @@ export default function PanServicesHistoryPage() {
                         <p className="font-medium text-green-600">₹{service.commission_amount}</p>
                       </div>
                     </div>
+
+                    {/* Payment Status Info */}
+                    {service.payment_status === 'DEBITED' && (service.status === 'PENDING' || service.status === 'PROCESSING') && service.expires_at && (
+                      <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-orange-600">⏳</span>
+                            <p className="text-sm text-orange-700 font-medium">
+                              Payment debited: ₹{service.amount}
+                            </p>
+                          </div>
+                          <p className="text-sm text-orange-600 font-semibold">
+                            {getTimeRemaining(service.expires_at)}
+                          </p>
+                        </div>
+                        <p className="text-xs text-orange-600 mt-1">
+                          Complete your application within 24 hours or amount will be auto-refunded
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Refund Info */}
+                    {service.refund_processed && (
+                      <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-purple-600">💸</span>
+                          <p className="text-sm text-purple-700 font-medium">
+                            Refund processed: ₹{service.amount}
+                          </p>
+                          {service.refund_processed_at && (
+                            <span className="text-xs text-purple-600">
+                              on {new Date(service.refund_processed_at).toLocaleDateString('en-US', { 
+                                month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+                              })}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
                     {service.inspay_txid && (
                       <div className="mt-3 text-sm">

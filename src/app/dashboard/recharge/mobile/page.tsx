@@ -489,14 +489,15 @@ export default function MobileRechargePageEnhanced() {
         service_type: serviceType
       });
       
-      const res = await fetch('/api/recharge/fetch-bill', {
+      // Use KwikAPI bill fetch endpoint
+      const res = await fetch('/api/kwikapi/bill-fetch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          operator_code: operator?.operator_code,
-          consumer_number: mobileNumber, // For postpaid mobile, consumer number is the mobile number
-          mobile_number: mobileNumber, // Pass mobile number separately for proper handling
-          service_type: serviceType, // Use dynamic service type
+          opid: operator?.kwikapi_opid,
+          number: mobileNumber,
+          mobile: mobileNumber,
+          amount: parseFloat(amount) || 10, // Default amount for bill fetch
         }),
       });
 
@@ -505,19 +506,23 @@ export default function MobileRechargePageEnhanced() {
       console.log('📦 [Frontend] Bill fetch response:', data);
       
       if (data.success) {
-        setBillDetails(data.data);
-        setAmount(data.data.due_amount);
-        setCustomerName(data.data.consumer_name);
-        setMessage(`✅ Bill found for ${data.data.consumer_name} - Amount: ₹${data.data.due_amount}`);
+        const billData = data.data;
+        setBillDetails({
+          consumer_name: billData.customer_name || billData.customername || 'N/A',
+          bill_number: billData.bill_number || billData.billnumber || 'N/A',
+          due_amount: billData.due_amount || billData.dueamount || '0',
+          due_date: billData.due_date || billData.duedate || 'N/A',
+          bill_date: billData.bill_date || billData.billdate || 'N/A',
+          bill_period: billData.bill_period || billData.billperiod || 'N/A',
+          ref_id: billData.ref_id || billData.refid,
+        });
+        setAmount((billData.due_amount || billData.dueamount || '0').toString());
+        setCustomerName(billData.customer_name || billData.customername || '');
+        setMessage(`✅ Bill found for ${billData.customer_name || billData.customername || 'customer'} - Amount: ₹${billData.due_amount || billData.dueamount}`);
         setMessageType('success');
       } else {
-        setMessage(data.message);
+        setMessage(data.message || 'Unable to fetch bill');
         setMessageType('error');
-        
-        // If manual entry is allowed, don't block the user
-        if (data.allow_manual) {
-          setMessage(prev => prev + '\n\n✅ You can still enter the amount manually below and proceed with payment.');
-        }
       }
     } catch (error: any) {
       setMessage(`❌ Error fetching bill: ${error.message}`);
@@ -590,25 +595,26 @@ export default function MobileRechargePageEnhanced() {
       const operator = operators.find(op => op.id === selectedOperator);
       const circle = serviceType === 'PREPAID' ? circles.find(c => c.id === selectedCircle) : null;
 
+      // Use KwikAPI endpoints instead of old recharge/process
+      const endpoint = serviceType === 'PREPAID' || serviceType === 'DTH' 
+        ? '/api/kwikapi/recharge' 
+        : '/api/kwikapi/bill-payment';
+
       const payload: any = {
-        service_type: serviceType,
-        operator_code: operator?.operator_code,
-        mobile_number: mobileNumber,
+        opid: operator?.kwikapi_opid || operator?.operator_code,
+        number: mobileNumber,
         amount: parseFloat(amount),
-        customer_name: customerName || billDetails?.consumer_name,
+        mobile: mobileNumber,
       };
 
-      // Only add circle for prepaid
+      // Add circle for prepaid
       if (serviceType === 'PREPAID' && circle) {
         payload.circle_code = circle.circle_code;
       }
 
+      // Add plan details if selected
       if (selectedPlan) {
-        payload.plan_details = {
-          amount: selectedPlan.amount,
-          validity: selectedPlan.validity,
-          description: selectedPlan.description,
-        };
+        payload.plan_details = selectedPlan;
       }
 
       // Include ref_id from bill fetch for POSTPAID if available
@@ -617,7 +623,7 @@ export default function MobileRechargePageEnhanced() {
         payload.bill_details = billDetails;
       }
 
-      const res = await fetch('/api/recharge/process', {
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -626,24 +632,48 @@ export default function MobileRechargePageEnhanced() {
       const data = await res.json();
 
       if (data.success) {
-        const reward = data.data.reward_amount || 0;
-        setMessage(`✅ ${serviceType} successful! ${data.data.reward_label}: ₹${reward.toFixed(2)} | Transaction ID: ${data.data.transaction_ref}`);
-        setMessageType('success');
+        const responseData = data.data;
+        const status = responseData.status;
+        const message = responseData.message || 'Transaction completed';
+        const operatorRef = responseData.opr_id || responseData.operator_ref || '';
+        const balance = responseData.balance || '';
         
-        // Refresh wallet balance
-        fetchWalletBalance();
-        
-        setMobileNumber('');
-        setAmount('');
-        setCustomerName('');
-        setSelectedPlan(null);
-        setBillDetails(null);
+        // Show real-time KwikAPI status
+        if (status === 'SUCCESS') {
+          setMessage(
+            `✅ ${message}${operatorRef ? `\nRef: ${operatorRef}` : ''}${balance ? `\nBalance: ₹${balance}` : ''}`
+          );
+          setMessageType('success');
+          
+          // Refresh wallet balance on success
+          fetchWalletBalance();
+          
+          // Reset form on success
+          setMobileNumber('');
+          setAmount('');
+          setCustomerName('');
+          setSelectedPlan(null);
+          setBillDetails(null);
+          setSelectedOperator('');
+          setSelectedCircle('');
+        } else if (status === 'PENDING') {
+          setMessage(
+            `⏳ ${message}${operatorRef ? `\nRef: ${operatorRef}` : ''}`
+          );
+          setMessageType('info');
+        } else {
+          setMessage(
+            `❌ ${message}${operatorRef ? `\nRef: ${operatorRef}` : ''}`
+          );
+          setMessageType('error');
+        }
       } else {
-        setMessage(`❌ ${data.message}`);
+        setMessage(`❌ ${data.message || 'Transaction failed'}`);
         setMessageType('error');
       }
     } catch (error: any) {
       setMessage(`❌ Error: ${error.message}`);
+      setMessageType('error');
     } finally {
       setLoading(false);
     }

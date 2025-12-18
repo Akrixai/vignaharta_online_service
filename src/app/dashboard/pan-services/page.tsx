@@ -200,16 +200,82 @@ export default function PanServicesPage() {
         </div>
 
         {/* Important Notes */}
-        <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-yellow-800 mb-2">Important Information</h3>
-          <ul className="text-sm text-yellow-700 space-y-1">
-            <li>• Ensure you have sufficient wallet balance before starting any application</li>
-            <li>• Payment will be deducted only after successful completion of your application</li>
-            <li>• EKYC mode provides instant PAN without signature requirement</li>
-            <li>• ESIGN mode requires signature and photo for PAN card</li>
-            <li>• All applications are processed through NSDL official portal</li>
-            <li>• Commission will be credited to your wallet immediately upon successful completion</li>
-          </ul>
+        <div className="mt-8 bg-orange-50 border-2 border-orange-300 rounded-lg p-6">
+          <div className="flex items-start space-x-3 mb-4">
+            <span className="text-3xl">⚠️</span>
+            <div>
+              <h3 className="text-xl font-bold text-orange-900 mb-2">Important: Instant Payment System</h3>
+              <p className="text-sm text-orange-800 mb-3">
+                We follow InsPay's instant deduction model for faster processing and better tracking.
+              </p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-white rounded-lg p-4 border border-orange-200">
+              <h4 className="font-semibold text-orange-900 mb-2 flex items-center">
+                <span className="mr-2">💳</span> Payment Process
+              </h4>
+              <ul className="text-sm text-gray-700 space-y-1">
+                <li>• <strong>Instant deduction</strong> when you start application</li>
+                <li>• Amount debited from wallet immediately</li>
+                <li>• Order ID generated for tracking</li>
+                <li>• Visible in history instantly</li>
+              </ul>
+            </div>
+
+            <div className="bg-white rounded-lg p-4 border border-orange-200">
+              <h4 className="font-semibold text-orange-900 mb-2 flex items-center">
+                <span className="mr-2">⏰</span> 24-Hour Window
+              </h4>
+              <ul className="text-sm text-gray-700 space-y-1">
+                <li>• Complete application within 24 hours</li>
+                <li>• Auto-refund if not completed</li>
+                <li>• Full refund on failure</li>
+                <li>• Real-time status updates</li>
+              </ul>
+            </div>
+
+            <div className="bg-white rounded-lg p-4 border border-orange-200">
+              <h4 className="font-semibold text-orange-900 mb-2 flex items-center">
+                <span className="mr-2">✅</span> On Success
+              </h4>
+              <ul className="text-sm text-gray-700 space-y-1">
+                <li>• Commission credited instantly</li>
+                <li>• Application marked complete</li>
+                <li>• PAN details updated</li>
+                <li>• Receipt generated</li>
+              </ul>
+            </div>
+
+            <div className="bg-white rounded-lg p-4 border border-orange-200">
+              <h4 className="font-semibold text-orange-900 mb-2 flex items-center">
+                <span className="mr-2">💸</span> Refund Policy
+              </h4>
+              <ul className="text-sm text-gray-700 space-y-1">
+                <li>• Automatic refund on failure</li>
+                <li>• Refund if expired (24 hours)</li>
+                <li>• Amount returned to wallet</li>
+                <li>• No manual intervention needed</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h4 className="font-semibold text-blue-900 mb-2">Application Modes:</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-blue-800">
+              <div>
+                <strong>EKYC (Recommended):</strong> Instant PAN without signature requirement. Faster processing.
+              </div>
+              <div>
+                <strong>ESIGN:</strong> PAN with signature and photo. Traditional processing method.
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 text-sm text-orange-800">
+            <strong>Note:</strong> All applications are processed through NSDL official portal. Ensure you have sufficient wallet balance before starting.
+          </div>
         </div>
       </div>
     </DashboardLayout>

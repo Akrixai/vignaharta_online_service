@@ -19,6 +19,12 @@
       "maxDuration": 30
     }
   },
+  "crons": [
+    {
+      "path": "/api/cron/pan-services-expiry",
+      "schedule": "0 * * * *"
+    }
+  ],
   "regions": ["bom1"],
   "framework": "nextjs"
 }

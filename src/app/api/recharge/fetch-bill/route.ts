@@ -66,11 +66,11 @@ export async function POST(request: NextRequest) {
       user_email: user.email
     });
 
-    // Get operator details
+    // Get operator details from kwikapi_billers table
     const { data: operator } = await supabase
-      .from('recharge_operators')
+      .from('kwikapi_billers')
       .select('*')
-      .eq('operator_code', operator_code)
+      .eq('operator_id', parseInt(operator_code)) // operator_code now contains KwikAPI operator_id
       .single();
 
     if (!operator) {
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if operator supports bill fetch in our system
-    const billFetchSupported = operator.metadata?.bill_fetch === 'YES';
+    const billFetchSupported = operator.bill_fetch === 'YES';
 
     if (!billFetchSupported) {
       const serviceTypeUpper = service_type?.toUpperCase() || 'UNKNOWN';
@@ -106,9 +106,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse operator message for required fields
-    const operatorMessage = operator.metadata?.message || '';
+    const operatorMessage = operator.message || '';
     console.log('Operator message:', operatorMessage);
-    console.log('Operator metadata:', operator.metadata);
 
     console.log('🔍 [Bill Fetch] Fetching bill for:', {
       operator: operator.operator_name,
@@ -119,7 +118,7 @@ export async function POST(request: NextRequest) {
 
     // Parse operator message for additional required fields
     const billFetchParams: any = {
-      opid: operator.kwikapi_opid,
+      opid: operator.operator_id,
       number: accountNumber, // Use the account number (consumer number for electricity)
       amount: '10', // Dummy amount for bill fetch
       mobile: mobile_number || dbUser.phone, // Use proper mobile number - no fallback to dummy number
@@ -237,7 +236,8 @@ export async function POST(request: NextRequest) {
       service_type: service_type
     });
 
-    const billResponse = await kwikapi.fetchBill(billFetchParams);
+    // Use correct KwikAPI bill validation endpoint according to documentation
+    const billResponse = await kwikapi.fetchBillValidation(billFetchParams);
 
     console.log('📦 [Bill Fetch] KWIKAPI Response Status:', {
       success: billResponse.success,
@@ -358,9 +358,9 @@ export async function POST(request: NextRequest) {
 
     // Save bill fetch history
     try {
-      await supabase.from('bill_fetch_history').insert({
+      await supabase.from('kwikapi_bill_fetch_history').insert({
         user_id: dbUser.id,
-        operator_id: operator.id,
+        biller_id: operator.id,
         consumer_number: accountNumber,
         consumer_name: billData.customer_name || billData.customername || 'N/A',
         bill_amount: parseFloat(billData.bill_amount || billData.billamount || '0'),

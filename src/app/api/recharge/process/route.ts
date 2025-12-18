@@ -59,11 +59,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get operator details
+    // Get operator details from new kwikapi_billers table
     const { data: operator } = await supabase
-      .from('recharge_operators')
+      .from('kwikapi_billers')
       .select('*')
-      .eq('operator_code', operator_code)
+      .eq('operator_id', parseInt(operator_code)) // operator_code now contains the KwikAPI operator_id
       .single();
 
     if (!operator) {
@@ -74,11 +74,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate amount range
-    if (amount < operator.min_amount || amount > operator.max_amount) {
+    if (amount < operator.amount_minimum || amount > operator.amount_maximum) {
       return NextResponse.json(
         {
           success: false,
-          message: `Amount must be between ₹${operator.min_amount} and ₹${operator.max_amount}`,
+          message: `Amount must be between ₹${operator.amount_minimum} and ₹${operator.amount_maximum}`,
         },
         { status: 400 }
       );
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
     // Calculate commission/cashback based on user role
     // RETAILER gets commission, CUSTOMER gets cashback
     // Note: Actual rates are NOT shown to users in UI
-    const rewardRate = operator.commission_rate;
+    const rewardRate = 2.0; // Default 2% - can be made configurable later
     const rewardAmount = (amount * rewardRate) / 100;
     const rewardLabel = dbUser.role === 'CUSTOMER' ? 'Cashback' : 'Commission';
 
@@ -164,8 +164,8 @@ export async function POST(request: NextRequest) {
       metadata: { recharge_transaction_id: transaction.id },
     });
 
-    // Use the kwikapi_opid from the operator record
-    const opid = operator.kwikapi_opid;
+    // Use the operator_id from the kwikapi_billers record
+    const opid = operator.operator_id;
 
     // Check KWIKAPI wallet balance first
     const walletBalanceResponse = await kwikapi.getWalletBalance();
@@ -280,9 +280,9 @@ export async function POST(request: NextRequest) {
 
       // Calculate cashback for customers (random between min and max)
       let actualCashback = 0;
-      if (dbUser.role === 'CUSTOMER' && operator.cashback_enabled && status === 'SUCCESS') {
-        const minCashback = operator.cashback_min_percentage || 0.5;
-        const maxCashback = operator.cashback_max_percentage || 2.0;
+      if (dbUser.role === 'CUSTOMER' && status === 'SUCCESS') {
+        const minCashback = 0.5;
+        const maxCashback = 2.0;
         const randomCashbackPercentage = (Math.random() * (maxCashback - minCashback) + minCashback).toFixed(2);
         actualCashback = (amount * parseFloat(randomCashbackPercentage)) / 100;
 

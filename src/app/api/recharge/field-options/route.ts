@@ -1,68 +1,50 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 
 export async function GET(request: NextRequest) {
   try {
+    const user = await getAuthenticatedUser(request);
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const fieldType = searchParams.get('field_type');
     const operatorCode = searchParams.get('operator_code');
 
     if (!fieldType) {
       return NextResponse.json(
-        { success: false, message: 'field_type is required' },
+        { success: false, message: 'Field type is required' },
         { status: 400 }
       );
     }
 
+    // Static field options based on field type and operator
     let options: { value: string; label: string }[] = [];
 
-    switch (fieldType) {
+    switch (fieldType.toLowerCase()) {
       case 'city':
-        // Cities for Torrent Power operators - using exact format expected by KWIKAPI
-        if (operatorCode?.includes('TORRENT')) {
-          // Based on operator codes, these are the specific cities for each Torrent Power operator
-          if (operatorCode.includes('SURAT') || operatorCode === 'TORRENT_POWER___SURAT_233') {
-            options = [
-              { value: 'Surat', label: 'Surat' },
-            ];
-          } else if (operatorCode.includes('AHMEDABAD') || operatorCode === 'TORRENT_POWER___AHMEDABAD_172') {
-            options = [
-              { value: 'Ahmedabad', label: 'Ahmedabad' },
-            ];
-          } else if (operatorCode.includes('BHIWANDI') || operatorCode === 'TORRENT_POWER___BHIWANDI_171') {
-            options = [
-              { value: 'Bhiwandi', label: 'Bhiwandi' },
-            ];
-          } else if (operatorCode.includes('AGRA') || operatorCode === 'TORRENT_POWER___AGRA_173') {
-            options = [
-              { value: 'Agra', label: 'Agra' },
-            ];
-          } else if (operatorCode === 'TORRENT_POWER_170') {
-            // Generic Torrent Power - SURAT (operator ID 170 is specifically for Surat)
-            options = [
-              { value: 'Surat', label: 'Surat' },
-            ];
-          } else {
-            // Fallback for any other Torrent Power operators
-            options = [
-              { value: 'Surat', label: 'Surat' },
-              { value: 'Ahmedabad', label: 'Ahmedabad' },
-              { value: 'Bhiwandi', label: 'Bhiwandi' },
-              { value: 'Agra', label: 'Agra' },
-            ];
-          }
-        } else {
-          // Generic city options for other operators
+        // City options for Torrent Power operators
+        if (operatorCode?.includes('TORRENT') || operatorCode?.includes('torrent')) {
           options = [
-            { value: 'Mumbai', label: 'Mumbai' },
-            { value: 'Delhi', label: 'Delhi' },
-            { value: 'Bangalore', label: 'Bangalore' },
-            { value: 'Hyderabad', label: 'Hyderabad' },
-            { value: 'Chennai', label: 'Chennai' },
-            { value: 'Kolkata', label: 'Kolkata' },
-            { value: 'Pune', label: 'Pune' },
-            { value: 'Surat', label: 'Surat' },
-            { value: 'Ahmedabad', label: 'Ahmedabad' },
-            { value: 'Jaipur', label: 'Jaipur' },
+            { value: 'SURAT', label: 'Surat' },
+            { value: 'AHMEDABAD', label: 'Ahmedabad' },
+            { value: 'BHIWANDI', label: 'Bhiwandi' },
+            { value: 'AGRA', label: 'Agra' },
+          ];
+        } else {
+          // Generic city options
+          options = [
+            { value: 'MUMBAI', label: 'Mumbai' },
+            { value: 'DELHI', label: 'Delhi' },
+            { value: 'BANGALORE', label: 'Bangalore' },
+            { value: 'HYDERABAD', label: 'Hyderabad' },
+            { value: 'CHENNAI', label: 'Chennai' },
+            { value: 'KOLKATA', label: 'Kolkata' },
+            { value: 'PUNE', label: 'Pune' },
+            { value: 'SURAT', label: 'Surat' },
+            { value: 'AHMEDABAD', label: 'Ahmedabad' },
+            { value: 'JAIPUR', label: 'Jaipur' },
           ];
         }
         break;
@@ -85,27 +67,35 @@ export async function GET(request: NextRequest) {
 
       case 'billing_unit':
         // Billing units for MSEDC MAHARASHTRA (typically last 2 digits of consumer number)
-        options = Array.from({ length: 100 }, (_, i) => {
-          const value = i.toString().padStart(2, '0');
-          return { value, label: `Billing Unit ${value}` };
-        });
+        options = [
+          { value: '01', label: '01' },
+          { value: '02', label: '02' },
+          { value: '03', label: '03' },
+          { value: '04', label: '04' },
+          { value: '05', label: '05' },
+          { value: '06', label: '06' },
+          { value: '07', label: '07' },
+          { value: '08', label: '08' },
+          { value: '09', label: '09' },
+          { value: '10', label: '10' },
+        ];
         break;
 
       default:
-        return NextResponse.json(
-          { success: false, message: 'Invalid field_type' },
-          { status: 400 }
-        );
+        // No predefined options for this field type
+        options = [];
+        break;
     }
 
     return NextResponse.json({
       success: true,
-      data: options,
+      data: options
     });
+
   } catch (error: any) {
     console.error('Field Options API Error:', error);
     return NextResponse.json(
-      { success: false, message: error.message || 'Failed to get field options' },
+      { success: false, message: error.message || 'Internal server error' },
       { status: 500 }
     );
   }

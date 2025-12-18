@@ -94,17 +94,44 @@ export default function PanCorrectionPage() {
       const data = await response.json();
 
       if (data.success) {
-        toast.success('PAN correction initiated successfully!');
+        // Show success message with payment confirmation
+        toast.success(data.message || 'Payment debited! Redirecting to complete your correction...', {
+          duration: 5000,
+          icon: '💳'
+        });
         
-        // Redirect to InsPay URL
-        if (data.data.inspay_url) {
-          window.open(data.data.inspay_url, '_blank');
+        // Show order ID
+        if (data.data?.order_id) {
+          toast.success(`Order ID: ${data.data.order_id}`, {
+            duration: 8000,
+            icon: '📋'
+          });
         }
         
-        // Redirect to history page
-        router.push('/dashboard/pan-services/history');
+        // Redirect to InsPay URL immediately
+        if (data.data?.inspay_url) {
+          toast.loading('Opening PAN correction portal...', { duration: 2000 });
+          
+          setTimeout(() => {
+            window.location.href = data.data.inspay_url;
+          }, 1500);
+        } else {
+          setTimeout(() => {
+            router.push('/dashboard/pan-services/history');
+          }, 2000);
+        }
       } else {
-        toast.error(data.message || 'Failed to initiate PAN correction');
+        // Show refund message if applicable
+        if (data.refunded) {
+          toast.error(data.message || 'Failed to initiate PAN correction. Amount refunded to your wallet.', {
+            duration: 6000,
+            icon: '💸'
+          });
+          // Refresh wallet balance
+          fetchWalletBalance();
+        } else {
+          toast.error(data.message || 'Failed to initiate PAN correction');
+        }
       }
     } catch (error) {
       console.error('Error submitting PAN correction:', error);
@@ -279,26 +306,44 @@ export default function PanCorrectionPage() {
             )}
 
             {/* Process Info */}
-            <div className="bg-blue-50 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-blue-900 mb-4">Process Information</h3>
-              <div className="space-y-3 text-sm text-blue-800">
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-orange-900 mb-4">⚠️ Important: Instant Payment</h3>
+              <div className="space-y-3 text-sm text-orange-800">
                 <div className="flex items-start space-x-2">
-                  <span className="text-blue-500 mt-1">1.</span>
-                  <span>You'll be redirected to NSDL portal</span>
+                  <span className="text-orange-500 mt-1">💳</span>
+                  <span><strong>Payment will be debited instantly</strong> when you click "Start Correction"</span>
                 </div>
                 <div className="flex items-start space-x-2">
-                  <span className="text-blue-500 mt-1">2.</span>
-                  <span>Complete the correction process</span>
+                  <span className="text-orange-500 mt-1">🔗</span>
+                  <span>You'll be redirected to NSDL portal to complete your correction</span>
                 </div>
                 <div className="flex items-start space-x-2">
-                  <span className="text-blue-500 mt-1">3.</span>
-                  <span>Amount will be deducted after successful completion</span>
+                  <span className="text-orange-500 mt-1">⏰</span>
+                  <span><strong>Complete within 24 hours</strong> or amount will be auto-refunded</span>
                 </div>
                 <div className="flex items-start space-x-2">
-                  <span className="text-blue-500 mt-1">4.</span>
-                  <span>Commission will be credited immediately</span>
+                  <span className="text-orange-500 mt-1">✅</span>
+                  <span>Commission credited on successful completion</span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-orange-500 mt-1">💸</span>
+                  <span>Full refund if correction fails or expires</span>
                 </div>
               </div>
+            </div>
+
+            {/* Track Application */}
+            <div className="bg-blue-50 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-blue-900 mb-3">📋 Track Your Correction</h3>
+              <p className="text-sm text-blue-800 mb-3">
+                Your order ID will be visible immediately in PAN Services History
+              </p>
+              <button
+                onClick={() => router.push('/dashboard/pan-services/history')}
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm"
+              >
+                View History
+              </button>
             </div>
 
             {/* Required Documents */}

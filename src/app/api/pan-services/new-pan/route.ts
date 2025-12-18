@@ -43,10 +43,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'Service configuration not found' }, { status: 404 });
     }
 
-    // Check wallet balance (but don't deduct yet - will deduct on success callback)
+    // Get wallet with full details
     const { data: wallet, error: walletError } = await supabaseAdmin
       .from('wallets')
-      .select('balance')
+      .select('*')
       .eq('user_id', session.user.id)
       .single();
 
@@ -54,17 +54,83 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'Wallet not found' }, { status: 404 });
     }
 
+    // Check wallet balance
     if (wallet.balance < config.price) {
       return NextResponse.json({ 
         success: false, 
-        message: `Insufficient wallet balance. Required: ₹${config.price}. Please add money to your wallet first.` 
+        message: `Insufficient wallet balance. Required: ₹${config.price}, Available: ₹${wallet.balance}. Please add money to your wallet first.` 
       }, { status: 400 });
     }
 
     // Generate order ID
     const orderId = inspayService.generateOrderId();
 
-    // Create PAN service record
+    console.log('💰 Processing instant wallet deduction...');
+
+    // INSTANT WALLET DEDUCTION - Deduct amount immediately
+    const newBalance = wallet.balance - config.price;
+    const { error: deductError } = await supabaseAdmin
+      .from('wallets')
+      .update({
+        balance: newBalance,
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_id', session.user.id);
+
+    if (deductError) {
+      console.error('❌ Error deducting from wallet:', deductError);
+      return NextResponse.json({ 
+        success: false, 
+        message: 'Failed to process payment from wallet' 
+      }, { status: 500 });
+    }
+
+    console.log(`✅ Wallet debited: ₹${config.price}. New balance: ₹${newBalance}`);
+
+    // Create debit transaction immediately
+    const { data: debitTransaction, error: debitTxError } = await supabaseAdmin
+      .from('transactions')
+      .insert({
+        user_id: session.user.id,
+        wallet_id: wallet.id,
+        type: 'WITHDRAWAL',
+        amount: -config.price,
+        status: 'COMPLETED',
+        description: `PAN Service Payment - NEW_PAN (${orderId})`,
+        reference: orderId,
+        metadata: {
+          service_type: 'NEW_PAN',
+          order_id: orderId,
+          payment_type: 'INSTANT_DEBIT',
+          mobile_number,
+          mode
+        }
+      })
+      .select()
+      .single();
+
+    if (debitTxError) {
+      console.error('❌ Error creating debit transaction:', debitTxError);
+      // Rollback wallet deduction
+      await supabaseAdmin
+        .from('wallets')
+        .update({
+          balance: wallet.balance,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', session.user.id);
+      
+      return NextResponse.json({ 
+        success: false, 
+        message: 'Failed to record payment transaction' 
+      }, { status: 500 });
+    }
+
+    console.log('✅ Debit transaction created:', debitTransaction.id);
+
+    // Create PAN service record with payment info
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
+    
     const { data: panService, error: panServiceError } = await supabaseAdmin
       .from('pan_services')
       .insert({
@@ -75,15 +141,39 @@ export async function POST(request: NextRequest) {
         order_id: orderId,
         amount: config.price,
         commission_amount: (config.price * config.commission_rate) / 100,
-        status: 'PENDING'
+        status: 'PENDING',
+        payment_status: 'DEBITED',
+        payment_debited_at: new Date().toISOString(),
+        expires_at: expiresAt.toISOString()
       })
       .select()
       .single();
 
     if (panServiceError) {
-      console.error('Error creating PAN service record:', panServiceError);
-      return NextResponse.json({ success: false, message: 'Failed to create service record' }, { status: 500 });
+      console.error('❌ Error creating PAN service record:', panServiceError);
+      
+      // Rollback: Refund the amount
+      await supabaseAdmin
+        .from('wallets')
+        .update({
+          balance: wallet.balance,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', session.user.id);
+      
+      // Mark debit transaction as cancelled
+      await supabaseAdmin
+        .from('transactions')
+        .update({ status: 'CANCELLED' })
+        .eq('id', debitTransaction.id);
+      
+      return NextResponse.json({ 
+        success: false, 
+        message: 'Failed to create service record. Payment has been refunded.' 
+      }, { status: 500 });
     }
+
+    console.log('✅ PAN service record created:', panService.id);
 
     try {
       console.log('🔄 Calling InsPay API with data:', {
@@ -124,14 +214,16 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
           success: true,
-          message: 'PAN application initiated successfully! You will be redirected to complete the process.',
+          message: 'Payment debited successfully! Redirecting to complete your PAN application. Complete within 24 hours to avoid auto-refund.',
           data: {
             id: panService.id,
             order_id: orderId,
             inspay_txid: inspayResponse.txid,
             inspay_url: inspayResponse.url,
             amount: config.price,
-            commission_amount: (config.price * config.commission_rate) / 100
+            commission_amount: (config.price * config.commission_rate) / 100,
+            payment_debited: true,
+            expires_at: expiresAt.toISOString()
           }
         });
 
@@ -142,18 +234,55 @@ export async function POST(request: NextRequest) {
         let userFriendlyMessage = inspayResponse.message || 'Failed to initiate PAN application';
         
         if (inspayResponse.message?.toLowerCase().includes('low balance')) {
-          userFriendlyMessage = 'Service temporarily unavailable due to provider balance issues. Please try again later or contact support.';
+          userFriendlyMessage = 'Service temporarily unavailable due to provider balance issues. Your payment will be refunded.';
         } else if (inspayResponse.message?.toLowerCase().includes('invalid')) {
-          userFriendlyMessage = 'Invalid request data. Please check your mobile number and try again.';
+          userFriendlyMessage = 'Invalid request data. Your payment will be refunded.';
         } else if (inspayResponse.message?.toLowerCase().includes('duplicate')) {
-          userFriendlyMessage = 'This request already exists. Please use a different mobile number or check your previous applications.';
+          userFriendlyMessage = 'This request already exists. Your payment will be refunded.';
         }
 
-        // Update PAN service with error
+        console.log('💸 Processing refund due to InsPay error...');
+
+        // Process immediate refund
+        const { error: refundWalletError } = await supabaseAdmin
+          .from('wallets')
+          .update({
+            balance: wallet.balance, // Restore original balance
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', session.user.id);
+
+        if (!refundWalletError) {
+          // Create refund transaction
+          await supabaseAdmin
+            .from('transactions')
+            .insert({
+              user_id: session.user.id,
+              wallet_id: wallet.id,
+              type: 'REFUND',
+              amount: config.price,
+              status: 'COMPLETED',
+              description: `PAN Service Refund - InsPay Error (${orderId})`,
+              reference: orderId,
+              metadata: {
+                service_type: 'NEW_PAN',
+                pan_service_id: panService.id,
+                reason: 'InsPay API error',
+                original_error: inspayResponse.message
+              }
+            });
+
+          console.log('✅ Refund processed successfully');
+        }
+
+        // Update PAN service with error and refund info
         await supabaseAdmin
           .from('pan_services')
           .update({
             status: 'FAILURE',
+            payment_status: 'REFUNDED',
+            refund_processed: true,
+            refund_processed_at: new Date().toISOString(),
             error_message: inspayResponse.message,
             updated_at: new Date().toISOString()
           })
@@ -161,7 +290,8 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
           success: false,
-          message: userFriendlyMessage,
+          message: `${userFriendlyMessage} Amount refunded to your wallet.`,
+          refunded: true,
           debug: process.env.NODE_ENV === 'development' ? {
             originalMessage: inspayResponse.message,
             fullResponse: inspayResponse
@@ -173,11 +303,48 @@ export async function POST(request: NextRequest) {
       console.error('💥 InsPay API Exception:', inspayError);
       console.error('Stack trace:', inspayError instanceof Error ? inspayError.stack : 'No stack trace');
       
-      // Update PAN service with error
+      console.log('💸 Processing refund due to API exception...');
+
+      // Process immediate refund
+      const { error: refundWalletError } = await supabaseAdmin
+        .from('wallets')
+        .update({
+          balance: wallet.balance, // Restore original balance
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', session.user.id);
+
+      if (!refundWalletError) {
+        // Create refund transaction
+        await supabaseAdmin
+          .from('transactions')
+          .insert({
+            user_id: session.user.id,
+            wallet_id: wallet.id,
+            type: 'REFUND',
+            amount: config.price,
+            status: 'COMPLETED',
+            description: `PAN Service Refund - API Error (${orderId})`,
+            reference: orderId,
+            metadata: {
+              service_type: 'NEW_PAN',
+              pan_service_id: panService.id,
+              reason: 'API connection error',
+              error: inspayError instanceof Error ? inspayError.message : 'Unknown error'
+            }
+          });
+
+        console.log('✅ Refund processed successfully');
+      }
+      
+      // Update PAN service with error and refund info
       await supabaseAdmin
         .from('pan_services')
         .update({
           status: 'FAILURE',
+          payment_status: 'REFUNDED',
+          refund_processed: true,
+          refund_processed_at: new Date().toISOString(),
           error_message: `API Connection Error: ${inspayError instanceof Error ? inspayError.message : 'Unknown error'}`,
           updated_at: new Date().toISOString()
         })
@@ -185,7 +352,8 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         success: false,
-        message: 'Unable to connect to PAN service provider. Please try again later or contact support if the issue persists.',
+        message: 'Unable to connect to PAN service provider. Your payment has been refunded to your wallet.',
+        refunded: true,
         debug: process.env.NODE_ENV === 'development' ? {
           error: inspayError instanceof Error ? inspayError.message : 'Unknown error',
           stack: inspayError instanceof Error ? inspayError.stack : undefined

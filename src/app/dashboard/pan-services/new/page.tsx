@@ -133,23 +133,40 @@ export default function NewPanPage() {
       console.log('📥 Response data:', data);
 
       if (data.success) {
-        toast.success(data.message || 'PAN application initiated successfully!');
+        // Show success message with payment confirmation
+        toast.success(data.message || 'Payment debited! Redirecting to complete your application...', {
+          duration: 5000,
+          icon: '💳'
+        });
+        
+        // Show order ID
+        if (data.data?.order_id) {
+          toast.success(`Order ID: ${data.data.order_id}`, {
+            duration: 8000,
+            icon: '📋'
+          });
+        }
         
         // Show debug info in development
         if (process.env.NODE_ENV === 'development' && data.debug) {
           console.log('🐛 Debug info:', data.debug);
         }
         
-        // Redirect to InsPay URL
+        // Redirect to InsPay URL immediately
         if (data.data?.inspay_url) {
-          console.log('🔗 Opening InsPay URL:', data.data.inspay_url);
-          window.open(data.data.inspay_url, '_blank');
+          console.log('🔗 Redirecting to InsPay URL:', data.data.inspay_url);
+          toast.loading('Opening PAN application portal...', { duration: 2000 });
+          
+          // Open in same window for better tracking
+          setTimeout(() => {
+            window.location.href = data.data.inspay_url;
+          }, 1500);
+        } else {
+          // If no URL, redirect to history
+          setTimeout(() => {
+            router.push('/dashboard/pan-services/history');
+          }, 2000);
         }
-        
-        // Redirect to history page after a short delay
-        setTimeout(() => {
-          router.push('/dashboard/pan-services/history');
-        }, 2000);
       } else {
         console.error('❌ API Error:', data);
         
@@ -158,7 +175,17 @@ export default function NewPanPage() {
           console.log('🐛 Debug info:', data.debug);
         }
         
-        toast.error(data.message || 'Failed to initiate PAN application');
+        // Show refund message if applicable
+        if (data.refunded) {
+          toast.error(data.message || 'Failed to initiate PAN application. Amount refunded to your wallet.', {
+            duration: 6000,
+            icon: '💸'
+          });
+          // Refresh wallet balance
+          fetchWalletBalance();
+        } else {
+          toast.error(data.message || 'Failed to initiate PAN application');
+        }
       }
     } catch (error) {
       console.error('💥 Network/Parse Error:', error);
@@ -364,26 +391,44 @@ export default function NewPanPage() {
             </div>
 
             {/* Process Info */}
-            <div className="bg-blue-50 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-blue-900 mb-4">Process Information</h3>
-              <div className="space-y-3 text-sm text-blue-800">
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-orange-900 mb-4">⚠️ Important: Instant Payment</h3>
+              <div className="space-y-3 text-sm text-orange-800">
                 <div className="flex items-start space-x-2">
-                  <span className="text-blue-500 mt-1">1.</span>
-                  <span>You'll be redirected to NSDL portal</span>
+                  <span className="text-orange-500 mt-1">💳</span>
+                  <span><strong>Payment will be debited instantly</strong> when you click "Start Application"</span>
                 </div>
                 <div className="flex items-start space-x-2">
-                  <span className="text-blue-500 mt-1">2.</span>
-                  <span>Complete the application process</span>
+                  <span className="text-orange-500 mt-1">🔗</span>
+                  <span>You'll be redirected to NSDL portal to complete your application</span>
                 </div>
                 <div className="flex items-start space-x-2">
-                  <span className="text-blue-500 mt-1">3.</span>
-                  <span>Amount will be deducted after successful completion</span>
+                  <span className="text-orange-500 mt-1">⏰</span>
+                  <span><strong>Complete within 24 hours</strong> or amount will be auto-refunded</span>
                 </div>
                 <div className="flex items-start space-x-2">
-                  <span className="text-blue-500 mt-1">4.</span>
-                  <span>Commission will be credited immediately</span>
+                  <span className="text-orange-500 mt-1">✅</span>
+                  <span>Commission credited on successful completion</span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-orange-500 mt-1">💸</span>
+                  <span>Full refund if application fails or expires</span>
                 </div>
               </div>
+            </div>
+
+            {/* Track Application */}
+            <div className="bg-blue-50 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-blue-900 mb-3">📋 Track Your Application</h3>
+              <p className="text-sm text-blue-800 mb-3">
+                Your order ID will be visible immediately in PAN Services History
+              </p>
+              <button
+                onClick={() => router.push('/dashboard/pan-services/history')}
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm"
+              >
+                View History
+              </button>
             </div>
           </div>
         </div>

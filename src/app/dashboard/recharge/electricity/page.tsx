@@ -169,42 +169,51 @@ export default function ElectricityBillPage() {
     try {
       const operator = operators.find(op => op.id === selectedOperator);
       
-      // Prepare request body with special fields based on operator requirements
-      const requestBody: any = {
-        operator_code: operator?.operator_code,
-        consumer_number: consumerNumber,
-        service_type: 'ELECTRICITY',
-      };
-
-      // Add dynamic fields based on operator requirements
+      // Prepare optional parameters from dynamic fields
+      const optionalParams: any = {};
       const operatorMessage = operator?.metadata?.message?.toUpperCase() || '';
-      
-      // Parse operator message to determine required fields
       const requiredFields = parseOperatorRequirements(operatorMessage);
       
-      // Add dynamic fields to request
+      // Add dynamic fields to optional parameters
       requiredFields.forEach(field => {
         if (field.parameter && dynamicFields[field.key]) {
-          requestBody[field.parameter] = dynamicFields[field.key];
+          optionalParams[field.parameter] = dynamicFields[field.key];
         }
       });
 
-      const res = await fetch('/api/recharge/fetch-bill', {
+      // Use KwikAPI bill fetch endpoint
+      const res = await fetch('/api/kwikapi/bill-fetch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify({
+          opid: operator?.kwikapi_opid,
+          number: consumerNumber,
+          mobile: '9999999999', // Default mobile for electricity bills
+          amount: parseFloat(amount) || 10, // Default amount for bill fetch
+          ...optionalParams, // Include dynamic parameters
+        }),
       });
 
       const data = await res.json();
       
       if (data.success) {
-        setBillDetails(data.data);
-        setAmount(data.data.due_amount);
-        setCustomerName(data.data.consumer_name);
-        setMessage(`✅ Bill found for ${data.data.consumer_name}`);
+        const billData = data.data;
+        setBillDetails({
+          consumer_name: billData.customer_name || billData.customername || 'N/A',
+          bill_number: billData.bill_number || billData.billnumber || 'N/A',
+          bill_date: billData.bill_date || billData.billdate || 'N/A',
+          bill_period: billData.bill_period || billData.billperiod || 'N/A',
+          bill_amount: billData.bill_amount || billData.billamount || '0',
+          due_amount: billData.due_amount || billData.dueamount || '0',
+          due_date: billData.due_date || billData.duedate || 'N/A',
+          ref_id: billData.ref_id || billData.refid || '',
+        });
+        setAmount((billData.due_amount || billData.dueamount || '0').toString());
+        setCustomerName(billData.customer_name || billData.customername || '');
+        setMessage(`✅ Bill found for ${billData.customer_name || billData.customername || 'customer'}`);
         setMessageType('success');
       } else {
-        setMessage(`ℹ️ ${data.message}`);
+        setMessage(`ℹ️ ${data.message || 'Unable to fetch bill'}`);
         setMessageType('info');
       }
     } catch (error: any) {
@@ -242,15 +251,25 @@ export default function ElectricityBillPage() {
     setMessage('');
 
     try {
-      const circle = circles.find(c => c.id === selectedCircle);
+      // Prepare optional parameters from dynamic fields
+      const optionalParams: any = {};
+      const operatorMessage = operator?.metadata?.message?.toUpperCase() || '';
+      const requiredFields = parseOperatorRequirements(operatorMessage);
+      
+      // Add dynamic fields to optional parameters
+      requiredFields.forEach(field => {
+        if (field.parameter && dynamicFields[field.key]) {
+          optionalParams[field.parameter] = dynamicFields[field.key];
+        }
+      });
 
+      // Use KwikAPI bill payment endpoint
       const payload: any = {
-        service_type: 'ELECTRICITY',
-        operator_code: operator?.operator_code,
-        consumer_number: consumerNumber,
-        circle_code: circle?.circle_code,
+        opid: operator?.kwikapi_opid,
+        number: consumerNumber,
         amount: parseFloat(amount),
-        customer_name: customerName || billDetails?.consumer_name,
+        mobile: '9999999999', // Default mobile for electricity bills
+        ...optionalParams, // Include dynamic parameters
       };
 
       // Include ref_id from bill fetch if available
@@ -259,7 +278,7 @@ export default function ElectricityBillPage() {
         payload.bill_details = billDetails;
       }
 
-      const res = await fetch('/api/recharge/process', {
+      const res = await fetch('/api/kwikapi/bill-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -268,22 +287,48 @@ export default function ElectricityBillPage() {
       const data = await res.json();
 
       if (data.success) {
-        const reward = data.data.reward_amount || 0;
-        setMessage(`✅ Electricity bill payment successful! ${data.data.reward_label}: ₹${reward.toFixed(2)} | Transaction ID: ${data.data.transaction_ref}`);
+        const responseData = data.data;
+        const status = responseData.status;
+        const message = responseData.message || 'Transaction completed';
+        const operatorRef = responseData.opr_id || responseData.operator_ref || '';
+        const balance = responseData.balance || '';
         
-        // Refresh wallet balance
-        fetchWalletBalance();
-        
-        setConsumerNumber('');
-        setAmount('');
-        setCustomerName('');
-        setBillDetails(null);
-        setDynamicFields({});
+        // Show real-time KwikAPI status
+        if (status === 'SUCCESS') {
+          setMessage(
+            `✅ ${message}${operatorRef ? `\nRef: ${operatorRef}` : ''}${balance ? `\nBalance: ₹${balance}` : ''}`
+          );
+          setMessageType('success');
+          
+          // Refresh wallet balance on success
+          fetchWalletBalance();
+          
+          // Reset form on success
+          setConsumerNumber('');
+          setAmount('');
+          setCustomerName('');
+          setBillDetails(null);
+          setDynamicFields({});
+          setSelectedOperator('');
+          setSelectedCircle('');
+        } else if (status === 'PENDING') {
+          setMessage(
+            `⏳ ${message}${operatorRef ? `\nRef: ${operatorRef}` : ''}`
+          );
+          setMessageType('info');
+        } else {
+          setMessage(
+            `❌ ${message}${operatorRef ? `\nRef: ${operatorRef}` : ''}`
+          );
+          setMessageType('error');
+        }
       } else {
-        setMessage(`❌ ${data.message}`);
+        setMessage(`❌ ${data.message || 'Payment failed'}`);
+        setMessageType('error');
       }
     } catch (error: any) {
       setMessage(`❌ Error: ${error.message}`);
+      setMessageType('error');
     } finally {
       setLoading(false);
     }

@@ -65,42 +65,50 @@ export default function ChaportChat({ appId }: ChaportChatProps) {
       
       // Wait for Chaport to fully initialize, then apply positioning
       setTimeout(() => {
-        // Additional CSS to ensure right positioning with higher specificity
+        // Additional CSS to ensure right positioning with highest z-index
         const style = document.createElement('style');
         style.innerHTML = `
-          /* Chaport launcher button positioning */
+          /* Chaport launcher button positioning - Fixed z-index */
           #chaport-launcher,
           div[id^="chaport-launcher"],
           .chaport-launcher {
+            position: fixed !important;
             right: 20px !important;
             left: auto !important;
             bottom: 20px !important;
+            z-index: 9999 !important;
           }
           
-          /* Chaport chat window positioning */
+          /* Chaport chat window positioning - Fixed z-index */
           #chaport-container,
           div[id^="chaport-container"],
           .chaport-container,
           #chaport-window,
           div[id^="chaport-window"],
           .chaport-window {
+            position: fixed !important;
             right: 20px !important;
             left: auto !important;
             bottom: 80px !important;
+            z-index: 9999 !important;
           }
           
           /* Chaport iframe positioning */
           iframe[id*="chaport"],
           iframe[src*="chaport"] {
+            position: fixed !important;
             right: 0 !important;
             left: auto !important;
+            z-index: 9999 !important;
           }
           
-          /* Force all Chaport elements to right side */
+          /* Force all Chaport elements to right side with highest z-index */
           [class*="chaport"],
           [id*="chaport"] {
+            position: fixed !important;
             right: 20px !important;
             left: auto !important;
+            z-index: 9999 !important;
           }
         `;
         document.head.appendChild(style);

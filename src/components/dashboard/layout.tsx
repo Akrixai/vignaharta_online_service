@@ -709,9 +709,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <ScreenNotifications />
       )}
 
-      {/* Chaport Live Chat - Only for Retailers */}
+      {/* Chaport Live Chat - Only for Retailers - Fixed z-index positioning */}
       {session?.user?.role === UserRole.RETAILER && (
-        <ChaportChat appId={env.NEXT_PUBLIC_CHAPORT_APP_ID} />
+        <div className="fixed bottom-4 right-4 z-[9999]">
+          <ChaportChat appId={env.NEXT_PUBLIC_CHAPORT_APP_ID} />
+        </div>
       )}
 
       {/* WhatsApp Notification Trigger removed to fix chat initialization errors */}
