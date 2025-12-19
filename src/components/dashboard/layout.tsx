@@ -1,6 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+
+// Extend Window interface for Chaport
+declare global {
+  interface Window {
+    chaportConfig?: {
+      appId: string;
+      alignment?: string;
+    };
+    chaport?: any;
+  }
+}
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import { UserRole } from '@/types';
@@ -12,12 +23,185 @@ import NotificationBell from '@/components/NotificationBell';
 import PopupNotifications from '@/components/notifications/PopupNotifications';
 import ScreenNotifications from '@/components/ScreenNotifications';
 import { Wallet } from 'lucide-react';
-import ChaportChat from '@/components/ChaportChat';
 import { env } from '@/lib/env';
 // Removed WhatsAppNotificationTrigger to fix chat initialization errors
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
+}
+
+// Chat Widget Component with Toggle - Completely Hidden by Default
+function ChatWidget({ showButton, setShowButton }: { showButton: boolean; setShowButton: (show: boolean) => void }) {
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isChatLoaded, setIsChatLoaded] = useState(false);
+
+  // Show chat button only when user hovers over the area or clicks a trigger
+  const handleShowChat = () => {
+    setShowButton(true);
+  };
+
+  useEffect(() => {
+    // Only load chat when user opens it for the first time
+    if (isChatOpen && !isChatLoaded) {
+      loadChaportChat();
+      setIsChatLoaded(true);
+    }
+  }, [isChatOpen, isChatLoaded]);
+
+  const loadChaportChat = () => {
+    const appId = env.NEXT_PUBLIC_CHAPORT_APP_ID;
+    
+    if (!appId || appId === '') {
+      console.error('Chaport: App ID is missing');
+      return;
+    }
+
+    // Check if Chaport is already loaded
+    if ((window as any).chaport) {
+      console.log('Chaport: Already loaded');
+      return;
+    }
+
+    // Set Chaport configuration
+    (window as any).chaportConfig = {
+      appId: appId,
+      alignment: 'right',
+    };
+
+    // Initialize Chaport object
+    const chaport: any = {};
+    chaport._q = [];
+    chaport._l = {};
+    chaport.q = function(...args: any[]) {
+      chaport._q.push(args);
+    };
+    chaport.on = function(e: string, fn: Function) {
+      if (!chaport._l[e]) chaport._l[e] = [];
+      chaport._l[e].push(fn);
+    };
+    (window as any).chaport = chaport;
+
+    // Load Chaport script
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.async = true;
+    script.src = 'https://app.chaport.com/javascripts/insert.js';
+    
+    script.onload = () => {
+      console.log('Chaport: Script loaded successfully');
+      
+      // Hide default Chaport launcher and position chat window
+      setTimeout(() => {
+        const style = document.createElement('style');
+        style.innerHTML = `
+          /* Hide default Chaport launcher */
+          #chaport-launcher,
+          div[id^="chaport-launcher"],
+          .chaport-launcher {
+            display: none !important;
+          }
+          
+          /* Position chat window properly */
+          #chaport-container,
+          div[id^="chaport-container"],
+          .chaport-container,
+          #chaport-window,
+          div[id^="chaport-window"],
+          .chaport-window {
+            position: fixed !important;
+            right: 20px !important;
+            left: auto !important;
+            bottom: 80px !important;
+            z-index: 9998 !important;
+            display: ${isChatOpen ? 'block' : 'none'} !important;
+          }
+          
+          /* Position iframe */
+          iframe[id*="chaport"],
+          iframe[src*="chaport"] {
+            position: fixed !important;
+            right: 0 !important;
+            left: auto !important;
+            z-index: 9998 !important;
+          }
+        `;
+        document.head.appendChild(style);
+      }, 500);
+    };
+
+    document.head.appendChild(script);
+  };
+
+  const toggleChat = () => {
+    if (isChatLoaded && (window as any).chaport) {
+      // Toggle chat visibility
+      const chaportContainer = document.getElementById('chaport-container') || 
+                              document.querySelector('[id^="chaport-container"]') ||
+                              document.querySelector('.chaport-container');
+      
+      if (chaportContainer) {
+        if (isChatOpen) {
+          (chaportContainer as HTMLElement).style.display = 'none';
+        } else {
+          (chaportContainer as HTMLElement).style.display = 'block';
+        }
+      }
+    }
+    setIsChatOpen(!isChatOpen);
+  };
+
+  return (
+    <>
+      {/* Hidden trigger area - only shows when hovered */}
+      <div 
+        className="fixed bottom-4 right-4 w-16 h-16 z-[9999]"
+        onMouseEnter={handleShowChat}
+      >
+        {showButton && (
+          <div className="relative">
+            <button
+              onClick={toggleChat}
+              className={`
+                flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-all duration-300 hover:scale-110
+                ${isChatOpen 
+                  ? 'bg-red-600 hover:bg-red-700' 
+                  : 'bg-blue-600 hover:bg-blue-700'
+                }
+              `}
+              title={isChatOpen ? 'Close Chat' : 'Open Live Chat Support'}
+            >
+              {isChatOpen ? (
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+              )}
+            </button>
+            
+            {/* Tooltip */}
+            {!isChatOpen && (
+              <div className="absolute bottom-16 right-0 bg-gray-800 text-white text-xs px-3 py-2 rounded-lg shadow-lg whitespace-nowrap">
+                Need Help? Click for Live Chat
+                <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
+              </div>
+            )}
+
+            {/* Hide button option */}
+            <button
+              onClick={() => setShowButton(false)}
+              className="absolute -top-2 -right-2 w-6 h-6 bg-gray-600 hover:bg-gray-700 text-white rounded-full flex items-center justify-center text-xs transition-colors"
+              title="Hide Chat Button"
+            >
+              ×
+            </button>
+          </div>
+        )}
+      </div>
+    </>
+  );
 }
 
 interface MenuItem {
@@ -124,6 +308,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const [loadingWallet, setLoadingWallet] = useState(false);
+  const [showChatButton, setShowChatButton] = useState(false);
 
   // Fetch wallet balance for retailers and customers
   useEffect(() => {
@@ -546,6 +731,20 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                       <span className="truncate">{item.name}</span>
                     </Link>
                   ))}
+                  
+                  {/* Live Chat Support - Only for Retailers */}
+                  {session?.user?.role === UserRole.RETAILER && (
+                    <button
+                      onClick={() => {
+                        setShowChatButton(true);
+                        setSidebarOpen(false);
+                      }}
+                      className="w-full group flex items-center px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg text-blue-100 hover:bg-blue-600 hover:text-white transition-all duration-200 hover:shadow-md"
+                    >
+                      <span className="mr-2 sm:mr-3 text-base sm:text-lg flex-shrink-0">💬</span>
+                      <span className="truncate">Live Chat Support</span>
+                    </button>
+                  )}
                 </>
               )}
 
@@ -710,11 +909,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <ScreenNotifications />
       )}
 
-      {/* Chaport Live Chat - Only for Retailers - Fixed z-index positioning */}
+      {/* Chaport Live Chat - Only for Retailers - Controlled with toggle */}
       {session?.user?.role === UserRole.RETAILER && (
-        <div className="fixed bottom-4 right-4 z-[9999]">
-          <ChaportChat appId={env.NEXT_PUBLIC_CHAPORT_APP_ID} />
-        </div>
+        <ChatWidget showButton={showChatButton} setShowButton={setShowChatButton} />
       )}
 
       {/* WhatsApp Notification Trigger removed to fix chat initialization errors */}

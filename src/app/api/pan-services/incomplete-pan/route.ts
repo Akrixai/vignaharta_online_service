@@ -1,18 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { inspayService } from '@/lib/inspay';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    const user = await getAuthenticatedUser(request);
+    if (!user) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if user has access (only for specific retailer)
-    if (session.user.email !== 'AkrixRetailerTest@gmail.com') {
+    // Check if user has access (RETAILER or ADMIN)
+    if (user.role !== 'RETAILER' && user.role !== 'ADMIN') {
       return NextResponse.json({ success: false, message: 'Access denied' }, { status: 403 });
     }
 
@@ -40,7 +39,7 @@ export async function POST(request: NextRequest) {
     const { data: wallet, error: walletError } = await supabaseAdmin
       .from('wallets')
       .select('balance')
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .single();
 
     if (walletError || !wallet) {
@@ -48,9 +47,9 @@ export async function POST(request: NextRequest) {
     }
 
     if (wallet.balance < config.price) {
-      return NextResponse.json({ 
-        success: false, 
-        message: `Insufficient wallet balance. Required: ₹${config.price}. Please add money to your wallet first.` 
+      return NextResponse.json({
+        success: false,
+        message: `Insufficient wallet balance. Required: ₹${config.price}. Please add money to your wallet first.`
       }, { status: 400 });
     }
 
@@ -58,7 +57,7 @@ export async function POST(request: NextRequest) {
     const { data: panService, error: panServiceError } = await supabaseAdmin
       .from('pan_services')
       .insert({
-        user_id: session.user.id,
+        user_id: user.id,
         service_type: 'INCOMPLETE_PAN',
         order_id: order_id,
         amount: config.price,
@@ -131,7 +130,7 @@ export async function POST(request: NextRequest) {
 
     } catch (inspayError) {
       console.error('InsPay API error:', inspayError);
-      
+
       // Update PAN service with error
       await supabaseAdmin
         .from('pan_services')

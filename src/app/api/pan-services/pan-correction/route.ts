@@ -1,18 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import { inspayService } from '@/lib/inspay';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    const user = await getAuthenticatedUser(request);
+    if (!user) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if user has access (only for specific retailer)
-    if (session.user.email !== 'AkrixRetailerTest@gmail.com') {
+    // Check if user has access (RETAILER or ADMIN)
+    if (user.role !== 'RETAILER' && user.role !== 'ADMIN') {
       return NextResponse.json({ success: false, message: 'Access denied' }, { status: 403 });
     }
 
@@ -47,7 +46,7 @@ export async function POST(request: NextRequest) {
     const { data: wallet, error: walletError } = await supabaseAdmin
       .from('wallets')
       .select('*')
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .single();
 
     if (walletError || !wallet) {
@@ -56,9 +55,9 @@ export async function POST(request: NextRequest) {
 
     // Check wallet balance
     if (wallet.balance < config.price) {
-      return NextResponse.json({ 
-        success: false, 
-        message: `Insufficient wallet balance. Required: ₹${config.price}, Available: ₹${wallet.balance}. Please add money to your wallet first.` 
+      return NextResponse.json({
+        success: false,
+        message: `Insufficient wallet balance. Required: ₹${config.price}, Available: ₹${wallet.balance}. Please add money to your wallet first.`
       }, { status: 400 });
     }
 
@@ -75,13 +74,13 @@ export async function POST(request: NextRequest) {
         balance: newBalance,
         updated_at: new Date().toISOString()
       })
-      .eq('user_id', session.user.id);
+      .eq('user_id', user.id);
 
     if (deductError) {
       console.error('❌ Error deducting from wallet:', deductError);
-      return NextResponse.json({ 
-        success: false, 
-        message: 'Failed to process payment from wallet' 
+      return NextResponse.json({
+        success: false,
+        message: 'Failed to process payment from wallet'
       }, { status: 500 });
     }
 
@@ -91,7 +90,7 @@ export async function POST(request: NextRequest) {
     const { data: debitTransaction, error: debitTxError } = await supabaseAdmin
       .from('transactions')
       .insert({
-        user_id: session.user.id,
+        user_id: user.id,
         wallet_id: wallet.id,
         type: 'WITHDRAWAL',
         amount: -config.price,
@@ -118,11 +117,11 @@ export async function POST(request: NextRequest) {
           balance: wallet.balance,
           updated_at: new Date().toISOString()
         })
-        .eq('user_id', session.user.id);
-      
-      return NextResponse.json({ 
-        success: false, 
-        message: 'Failed to record payment transaction' 
+        .eq('user_id', user.id);
+
+      return NextResponse.json({
+        success: false,
+        message: 'Failed to record payment transaction'
       }, { status: 500 });
     }
 
@@ -130,11 +129,11 @@ export async function POST(request: NextRequest) {
 
     // Create PAN service record with payment info
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
-    
+
     const { data: panService, error: panServiceError } = await supabaseAdmin
       .from('pan_services')
       .insert({
-        user_id: session.user.id,
+        user_id: user.id,
         service_type: 'PAN_CORRECTION',
         mobile_number,
         mode,
@@ -151,7 +150,7 @@ export async function POST(request: NextRequest) {
 
     if (panServiceError) {
       console.error('❌ Error creating PAN service record:', panServiceError);
-      
+
       // Rollback: Refund the amount
       await supabaseAdmin
         .from('wallets')
@@ -159,17 +158,17 @@ export async function POST(request: NextRequest) {
           balance: wallet.balance,
           updated_at: new Date().toISOString()
         })
-        .eq('user_id', session.user.id);
-      
+        .eq('user_id', user.id);
+
       // Mark debit transaction as cancelled
       await supabaseAdmin
         .from('transactions')
         .update({ status: 'CANCELLED' })
         .eq('id', debitTransaction.id);
-      
-      return NextResponse.json({ 
-        success: false, 
-        message: 'Failed to create service record. Payment has been refunded.' 
+
+      return NextResponse.json({
+        success: false,
+        message: 'Failed to create service record. Payment has been refunded.'
       }, { status: 500 });
     }
 
@@ -189,7 +188,7 @@ export async function POST(request: NextRequest) {
 
       if (inspayResponse.status === 'Success') {
         console.log('✅ InsPay Success - Updating PAN service record');
-        
+
         // Update PAN service with InsPay response
         const { error: updateError } = await supabaseAdmin
           .from('pan_services')
@@ -225,7 +224,7 @@ export async function POST(request: NextRequest) {
 
       } else {
         console.log('❌ InsPay Error Response:', inspayResponse);
-        
+
         console.log('💸 Processing refund due to InsPay error...');
 
         // Process immediate refund
@@ -235,14 +234,14 @@ export async function POST(request: NextRequest) {
             balance: wallet.balance, // Restore original balance
             updated_at: new Date().toISOString()
           })
-          .eq('user_id', session.user.id);
+          .eq('user_id', user.id);
 
         if (!refundWalletError) {
           // Create refund transaction
           await supabaseAdmin
             .from('transactions')
             .insert({
-              user_id: session.user.id,
+              user_id: user.id,
               wallet_id: wallet.id,
               type: 'REFUND',
               amount: config.price,
@@ -282,7 +281,7 @@ export async function POST(request: NextRequest) {
 
     } catch (inspayError) {
       console.error('💥 InsPay API Exception:', inspayError);
-      
+
       console.log('💸 Processing refund due to API exception...');
 
       // Process immediate refund
@@ -292,14 +291,14 @@ export async function POST(request: NextRequest) {
           balance: wallet.balance, // Restore original balance
           updated_at: new Date().toISOString()
         })
-        .eq('user_id', session.user.id);
+        .eq('user_id', user.id);
 
       if (!refundWalletError) {
         // Create refund transaction
         await supabaseAdmin
           .from('transactions')
           .insert({
-            user_id: session.user.id,
+            user_id: user.id,
             wallet_id: wallet.id,
             type: 'REFUND',
             amount: config.price,
@@ -316,7 +315,7 @@ export async function POST(request: NextRequest) {
 
         console.log('✅ Refund processed successfully');
       }
-      
+
       // Update PAN service with error and refund info
       await supabaseAdmin
         .from('pan_services')

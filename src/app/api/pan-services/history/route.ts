@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    const user = await getAuthenticatedUser(request);
+    if (!user) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if user has access (only for specific retailer or admin)
-    if (session.user.email !== 'AkrixRetailerTest@gmail.com' && session.user.role !== 'ADMIN') {
+    // Check if user has access (RETAILER or ADMIN)
+    if (user.role !== 'RETAILER' && user.role !== 'ADMIN') {
       return NextResponse.json({ success: false, message: 'Access denied' }, { status: 403 });
     }
 
@@ -29,8 +28,8 @@ export async function GET(request: NextRequest) {
       .range(offset, offset + limit - 1);
 
     // If not admin, filter by user_id
-    if (session.user.role !== 'ADMIN') {
-      query = query.eq('user_id', session.user.id);
+    if (user.role !== 'ADMIN') {
+      query = query.eq('user_id', user.id);
     }
 
     // Apply filters
@@ -54,8 +53,8 @@ export async function GET(request: NextRequest) {
       .from('pan_services')
       .select('*', { count: 'exact', head: true });
 
-    if (session.user.role !== 'ADMIN') {
-      countQuery = countQuery.eq('user_id', session.user.id);
+    if (user.role !== 'ADMIN') {
+      countQuery = countQuery.eq('user_id', user.id);
     }
 
     if (status) {
@@ -84,8 +83,8 @@ export async function GET(request: NextRequest) {
     };
 
     if (services) {
-      services.forEach(service => {
-        stats[service.status.toLowerCase() as keyof typeof stats] = 
+      services.forEach((service: any) => {
+        stats[service.status.toLowerCase() as keyof typeof stats] =
           (stats[service.status.toLowerCase() as keyof typeof stats] as number) + 1;
         stats.total_amount += parseFloat(service.amount || '0');
         stats.total_commission += parseFloat(service.commission_amount || '0');
