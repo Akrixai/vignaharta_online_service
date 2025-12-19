@@ -2,25 +2,35 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { inspayService } from '@/lib/inspay';
 import { getAuthenticatedUser } from '@/lib/auth-helper';
+import { withCors, corsJsonResponse } from '@/lib/cors';
 
-export async function POST(request: NextRequest) {
+async function handler(request: NextRequest) {
   try {
     const user = await getAuthenticatedUser(request);
     if (!user) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+      return corsJsonResponse({ success: false, message: 'Unauthorized' }, 401);
     }
+
+    console.log(`👤 User ${user.email} (Role: ${user.role}) is resuming INCOMPLETE_PAN`);
 
     // Check if user has access (RETAILER or ADMIN)
     if (user.role !== 'RETAILER' && user.role !== 'ADMIN') {
-      return NextResponse.json({ success: false, message: 'Access denied' }, { status: 403 });
+      return corsJsonResponse({ success: false, message: 'Access denied. Only Retailers and Admins can use this service.' }, 403);
     }
 
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch (e) {
+      return corsJsonResponse({ success: false, message: 'Invalid JSON body' }, 400);
+    }
+
     const { existing_order_id } = body;
     const order_id = existing_order_id;
+    console.log('📦 Request body:', body);
 
     if (!order_id) {
-      return NextResponse.json({ success: false, message: 'Existing order ID is required' }, { status: 400 });
+      return corsJsonResponse({ success: false, message: 'Existing order ID is required' }, 400);
     }
 
     // Get configuration for incomplete PAN (usually free or minimal cost)
@@ -47,10 +57,10 @@ export async function POST(request: NextRequest) {
     }
 
     if (wallet.balance < config.price) {
-      return NextResponse.json({
+      return corsJsonResponse({
         success: false,
         message: `Insufficient wallet balance. Required: ₹${config.price}. Please add money to your wallet first.`
-      }, { status: 400 });
+      }, 400);
     }
 
     // Create PAN service record
@@ -122,10 +132,10 @@ export async function POST(request: NextRequest) {
           })
           .eq('id', panService.id);
 
-        return NextResponse.json({
+        return corsJsonResponse({
           success: false,
           message: inspayResponse.message || 'Failed to resume incomplete PAN application'
-        }, { status: 400 });
+        }, 400);
       }
 
     } catch (inspayError) {
@@ -141,14 +151,16 @@ export async function POST(request: NextRequest) {
         })
         .eq('id', panService.id);
 
-      return NextResponse.json({
+      return corsJsonResponse({
         success: false,
         message: 'Failed to connect to PAN service provider'
-      }, { status: 500 });
+      }, 500);
     }
 
   } catch (error) {
     console.error('Error in incomplete PAN API:', error);
-    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
+    return corsJsonResponse({ success: false, message: 'Internal server error' }, 500);
   }
 }
+
+export const POST = withCors(handler);
