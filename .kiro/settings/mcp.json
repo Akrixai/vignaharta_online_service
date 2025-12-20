@@ -11,11 +11,7 @@
       "env": {
         "SUPABASE_ACCESS_TOKEN": "sbp_be059955ea35c2099baf3af894f79f1fceae771e"
       },
-      "disabled": false,
-      "autoApprove": [
-        "execute_sql",
-        "apply_migration"
-      ]
+      "disabled": false
     }
   }
 }

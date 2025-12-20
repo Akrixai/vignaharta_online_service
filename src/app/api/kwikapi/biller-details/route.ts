@@ -5,14 +5,30 @@ const KWIKAPI_BASE_URL = 'https://www.kwikapi.com';
 const KWIKAPI_API_KEY = process.env.KWIKAPI_API_KEY;
 
 export async function GET(request: NextRequest) {
+  return handleBillerDetailsRequest(request);
+}
+
+export async function POST(request: NextRequest) {
+  return handleBillerDetailsRequest(request);
+}
+
+async function handleBillerDetailsRequest(request: NextRequest) {
   try {
     const user = await getAuthenticatedUser(request);
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { searchParams } = new URL(request.url);
-    const opid = searchParams.get('opid');
+    let opid;
+    
+    if (request.method === 'GET') {
+      const { searchParams } = new URL(request.url);
+      opid = searchParams.get('opid');
+    } else {
+      // POST request
+      const body = await request.json();
+      opid = body.opid;
+    }
 
     if (!opid) {
       return NextResponse.json(
@@ -43,6 +59,8 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json();
+    
+    console.log('🔧 [Biller Details API] Raw KwikAPI response:', JSON.stringify(data, null, 2));
 
     if (!data.success) {
       return NextResponse.json({
@@ -54,28 +72,50 @@ export async function GET(request: NextRequest) {
     // Parse parameters from KwikAPI response format
     const parameters = [];
     if (data.parameters && Array.isArray(data.parameters)) {
+      console.log('🔧 [Biller Details API] Processing parameters:', data.parameters);
+      
       data.parameters.forEach((param: any, index: number) => {
         // KwikAPI returns parameters as objects like {"opt1/param1": "Mobile Number"}
         Object.keys(param).forEach(key => {
           const value = param[key];
-          if (value && value !== null && value !== '') {
+          console.log(`🔧 [Biller Details API] Parameter ${key}:`, value);
+          
+          // Only add non-null, non-empty values
+          if (value && value !== null && value !== '' && value.trim() !== '') {
             const paramNumber = key.split('/')[0]; // Extract opt1, opt2, etc.
-            parameters.push({
+            
+            // Special handling for Torrent Power parameter mapping
+            let finalParamNumber = paramNumber;
+            if (value.trim().toLowerCase() === 'city' && paramNumber === 'opt2') {
+              // For Torrent Power, City should be opt1, not opt2
+              finalParamNumber = 'opt1';
+            } else if (value.trim().toLowerCase() === 'service number' && paramNumber === 'opt1') {
+              // Service Number goes to the main 'number' parameter, not opt1
+              finalParamNumber = 'number';
+            }
+            
+            const paramField = {
               key: `param_${index + 1}`,
-              name: value,
-              label: value,
-              placeholder: `Enter ${value.toLowerCase()}`,
+              name: value.trim(),
+              label: value.trim(),
+              placeholder: `Enter ${value.toLowerCase().trim()}`,
               required: true,
               order: index + 1,
               type: 'text',
-              kwikapi_param: paramNumber, // opt1, opt2, etc.
-              description: `Required parameter: ${value}`,
+              kwikapi_param: finalParamNumber, // Use corrected parameter
+              description: `Required parameter: ${value.trim()}`,
               options: []
-            });
+            };
+            console.log('🔧 [Biller Details API] Adding parameter field:', paramField);
+            parameters.push(paramField);
           }
         });
       });
     }
+    
+    console.log('🔧 [Biller Details API] Total parameters processed:', parameters.length);
+    
+    console.log('🔧 [Biller Details API] Final parameters array:', parameters);
 
     // Transform the response to match our expected format
     const billerInfo = {

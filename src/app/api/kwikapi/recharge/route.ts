@@ -129,8 +129,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate unique transaction reference
+    // Generate unique transaction reference for internal use
     const transactionRef = `TXN_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
+    // Generate KwikAPI-compatible order ID (4-14 digits only)
+    const timestamp = Date.now().toString().slice(-10); // Last 10 digits of timestamp
+    const randomSuffix = Math.floor(Math.random() * 9999).toString().padStart(4, '0');
+    const kwikApiOrderId = timestamp + randomSuffix; // 14 digits total
 
     // Determine service type based on operator
     const serviceType = operator.service_type || 'PREPAID';
@@ -190,33 +195,7 @@ export async function POST(request: NextRequest) {
       metadata: { recharge_transaction_id: transaction.id },
     });
 
-    // Check KWIKAPI wallet balance first
-    const walletBalanceResponse = await kwikapi.getWalletBalance();
-    const kwikApiBalance = parseFloat(walletBalanceResponse.data?.balance || '0');
-
-    if (kwikApiBalance < amount) {
-      // Insufficient KWIKAPI balance - mark as pending and notify admin
-      await supabase
-        .from('recharge_transactions')
-        .update({
-          status: 'PENDING',
-          error_message: 'Insufficient KWIKAPI wallet balance. Transaction is being processed.',
-          response_data: { kwikapi_balance: kwikApiBalance, required: amount },
-        })
-        .eq('id', transaction.id);
-
-      return NextResponse.json({
-        success: true, // Still success from user perspective
-        pending: true,
-        data: {
-          transaction_id: transaction.id,
-          transaction_ref: transactionRef,
-          status: 'PENDING',
-          amount,
-          message: '⏳ Your transaction is being processed. Amount has been debited from your wallet. You will receive confirmation shortly. Please contact admin if not completed within 24 hours.',
-        },
-      });
-    }
+    console.log('✅ [RECHARGE] Proceeding with recharge...');
 
     // Process recharge with KWIKAPI
     let rechargeResponse;
@@ -227,7 +206,7 @@ export async function POST(request: NextRequest) {
           opid: parseInt(opid),
           number: number,
           amount,
-          order_id: transactionRef,
+          order_id: kwikApiOrderId, // Use KwikAPI-compatible order ID
           mobile: mobile || dbUser.email,
         });
       } else {
@@ -237,7 +216,7 @@ export async function POST(request: NextRequest) {
           number: number,
           amount,
           state_code: circle_code || '0',
-          order_id: transactionRef,
+          order_id: kwikApiOrderId, // Use KwikAPI-compatible order ID
           mobile: mobile || number,
         });
       }
@@ -303,7 +282,7 @@ export async function POST(request: NextRequest) {
             amount,
             reward_amount: finalReward,
             reward_label: rewardLabel,
-            message: `✅ Recharge successful! ${rewardLabel} of ₹${finalReward.toFixed(2)} has been added to your wallet.`,
+            message: `✅ ${rechargeResponse.data?.message || 'Recharge successful!'} ${finalReward > 0 ? `${rewardLabel} of ₹${finalReward.toFixed(2)} has been added to your wallet.` : ''}`,
             response: rechargeResponse.data,
             // Return KwikAPI response fields for frontend display
             opr_id: rechargeResponse.data?.opr_id,
@@ -320,40 +299,45 @@ export async function POST(request: NextRequest) {
             transaction_ref: transactionRef,
             status: 'PENDING',
             amount,
-            message: '⏳ Your transaction is being processed. Amount has been debited from your wallet. You will receive confirmation shortly. Please contact admin if not completed within 24 hours.',
+            message: `⏳ ${rechargeResponse.data?.message || 'Your transaction is being processed. Amount has been debited from your wallet. You will receive confirmation shortly. Please contact admin if not completed within 24 hours.'}`,
             response: rechargeResponse.data,
           },
         });
       } else {
-        // Failed - refund
+        // Failed - do not store transaction and refund wallet
         await supabase
           .from('wallets')
           .update({ balance: wallet.balance })
           .eq('user_id', dbUser.id);
 
-        await supabase.from('transactions').insert({
-          user_id: dbUser.id,
-          wallet_id: wallet.id,
-          type: 'REFUND',
-          amount: totalAmount,
-          status: 'COMPLETED',
-          description: `Refund for failed ${serviceType} Recharge`,
-          reference: transactionRef,
-        });
+        // Delete the recharge transaction record (do not store failed)
+        await supabase
+          .from('recharge_transactions')
+          .delete()
+          .eq('id', transaction.id);
+
+        // Delete the withdrawal transaction record to keep wallet history clean
+        await supabase
+          .from('transactions')
+          .delete()
+          .eq('reference', transactionRef)
+          .eq('type', 'WITHDRAWAL');
 
         return NextResponse.json({
           success: false,
           data: {
-            transaction_id: transaction.id,
             transaction_ref: transactionRef,
             status: 'FAILED',
-            message: `❌ Recharge failed. ${rechargeResponse.data?.message || 'Unknown error'}. Amount has been refunded to your wallet.`,
+            message: rechargeResponse.data?.message || '❌ Recharge failed. Amount has been refunded to your wallet.',
             response: rechargeResponse.data,
+            technical_message: rechargeResponse.data?.message,
           },
         });
       }
     } catch (apiError: any) {
-      // API call failed - mark as pending instead of failed
+      console.error('Recharge API Error:', apiError);
+
+      // API call failed - mark as pending instead of failed and provide user-friendly message
       await supabase
         .from('recharge_transactions')
         .update({
@@ -363,6 +347,17 @@ export async function POST(request: NextRequest) {
         })
         .eq('id', transaction.id);
 
+      // Generate user-friendly error message
+      let userFriendlyMessage = '⏳ Recharge is being processed manually due to a technical issue. You will be notified once completed within 24 hours.';
+
+      if (apiError.code === 'ENOTFOUND' || apiError.code === 'ECONNREFUSED') {
+        userFriendlyMessage = '⚠️ Network connection issue. Your recharge is being processed manually and will be completed within 24 hours.';
+      } else if (apiError.code === 'ETIMEDOUT') {
+        userFriendlyMessage = '⏳ Recharge request timed out. Your recharge is being processed and will be completed within 24 hours.';
+      } else if (apiError.message?.includes('INSUFFICIENT BALANCE') || apiError.message?.includes('INSUFICIENT BALANCE')) {
+        userFriendlyMessage = '⚠️ Service temporarily unavailable due to provider maintenance. Your recharge will be processed within 24 hours.';
+      }
+
       return NextResponse.json({
         success: true,
         pending: true,
@@ -371,7 +366,7 @@ export async function POST(request: NextRequest) {
           transaction_ref: transactionRef,
           status: 'PENDING',
           amount,
-          message: '⏳ Your transaction is being processed. Amount has been debited from your wallet. You will receive confirmation shortly. Please contact admin if not completed within 24 hours.',
+          message: userFriendlyMessage,
         },
       });
     }

@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     } else {
       // Fallback to recharge_operators table
       console.log('kwikapi_billers is empty, falling back to recharge_operators table');
-      
+
       let fallbackQuery = supabase
         .from('recharge_operators')
         .select('*')
@@ -103,14 +103,13 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // For POSTPAID, only show FAP operators (bill fetch enabled)
+    // For POSTPAID, maintain active filter or specific working operators if needed,
+    // but don't restrict to just FAP if others are available in the DB
     if (serviceType && serviceType.toUpperCase() === 'POSTPAID') {
-      filteredOperators = (data || []).filter((op: any) => {
-        return op.operator_name.includes('FAP') && 
-               (op.operator_name.includes('Jio') || 
-                op.operator_name.includes('Airtel') || 
-                op.operator_name.includes('Vodafone Idea'));
-      });
+      // If we have specific known working IDs, we can use them, but let's allow all active for now
+      // filteredOperators = (data || []).filter((op: any) => {
+      //   return [48, 36, 115, 195, 196, 29, 281, 282, 283].includes(op.operator_id || op.kwikapi_opid);
+      // });
     }
 
     // Remove sensitive data from response and handle both table formats
@@ -163,7 +162,7 @@ export async function GET(request: NextRequest) {
         'BSNL': 4,
         'MTNL': 14,
       };
-      
+
       return opidMap[operatorCode] || 1; // Default to 1 if not found
     }
 
@@ -218,7 +217,7 @@ export async function POST(request: NextRequest) {
     } else {
       // Fallback to recharge_operators table
       console.log('kwikapi_billers is empty, falling back to recharge_operators table');
-      
+
       let fallbackQuery = supabase
         .from('recharge_operators')
         .select('*')
@@ -261,16 +260,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (serviceTypes?.includes('Postpaid')) {
-      filteredOperators = filteredOperators.filter((op: any) => {
-        // Check both KwikAPI format ('Postpaid') and legacy format ('POSTPAID')
-        if (op.service_type === 'Postpaid' || op.service_type === 'POSTPAID') {
-          return op.operator_name.includes('FAP') && 
-                 (op.operator_name.includes('Jio') || 
-                  op.operator_name.includes('Airtel') || 
-                  op.operator_name.includes('Vodafone Idea'));
-        }
-        return true;
-      });
+      // Relaxed filter for postpaid
     }
 
     const sanitizedOperators = filteredOperators.map(op => {
@@ -321,7 +311,7 @@ export async function POST(request: NextRequest) {
         'BSNL': 4,
         'MTNL': 14,
       };
-      
+
       return opidMap[operatorCode] || 1;
     }
 

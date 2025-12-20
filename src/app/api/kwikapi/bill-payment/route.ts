@@ -109,31 +109,46 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate unique transaction reference
+    // Generate unique transaction reference for internal use
     const transactionRef = `TXN_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
+    // Generate KwikAPI-compatible order ID (4-14 digits only)
+    const timestamp = Date.now().toString().slice(-10); // Last 10 digits of timestamp
+    const randomSuffix = Math.floor(Math.random() * 9999).toString().padStart(4, '0');
+    const kwikApiOrderId = timestamp + randomSuffix; // 14 digits total
 
     // Create transaction record
     const { data: transaction, error: txnError } = await supabase
       .from('recharge_transactions')
       .insert({
         user_id: dbUser.id,
-        operator_id: operator.id,
+        operator_id: null, // We'll use kwikapi_opid instead
         service_type: service_type.toUpperCase(),
         mobile_number,
         consumer_number,
         account_holder_name: customer_name || dbUser.name,
         amount,
-        commission_amount: rewardAmount,
+        commission_amount: dbUser.role === 'CUSTOMER' ? 0 : rewardAmount,
+        cashback_amount: dbUser.role === 'CUSTOMER' ? rewardAmount : 0,
+        cashback_percentage: dbUser.role === 'CUSTOMER' ? rewardRate : 0,
         platform_fee: platformFee,
         total_amount: totalAmount,
         status: 'PENDING',
         transaction_ref: transactionRef,
-        bill_details: bill_details ? JSON.stringify(bill_details) : null,
+        bill_details: bill_details || {},
+        dynamic_fields: { opt1, opt2, opt3, opt4, opt5, opt6, opt7, opt8, opt9, opt10 },
+        kwikapi_provider: operator.operator_name, // Store operator name for display
       })
       .select()
       .single();
 
-    if (txnError) throw txnError;
+    if (txnError) {
+      console.error('Transaction creation error:', txnError);
+      return NextResponse.json(
+        { success: false, message: 'Failed to create transaction' },
+        { status: 500 }
+      );
+    }
 
     // Deduct from wallet immediately
     await supabase
@@ -141,61 +156,44 @@ export async function POST(request: NextRequest) {
       .update({ balance: wallet.balance - totalAmount })
       .eq('user_id', dbUser.id);
 
-    // Record wallet transaction (deduction)
+    // Record wallet transaction
     await supabase.from('transactions').insert({
       user_id: dbUser.id,
       wallet_id: wallet.id,
       type: 'WITHDRAWAL',
       amount: totalAmount,
       status: 'COMPLETED',
-      description: `${service_type} Bill Payment ${mobile_number || consumer_number}`,
-      reference: transactionRef,
+      description: `Bill payment for ${service_type}`,
+      reference_id: transactionRef,
       metadata: { recharge_transaction_id: transaction.id },
     });
 
     // Use the operator_id from the kwikapi_billers record
     const opid = operator.operator_id;
 
-    // Check KWIKAPI wallet balance first
-    const walletBalanceResponse = await kwikapi.getWalletBalance();
-    const kwikApiBalance = parseFloat(walletBalanceResponse.data?.balance || '0');
+    console.log('💳 [BILL-PAYMENT] Processing payment:', {
+      opid,
+      amount,
+      service_type,
+      operator_name: operator.operator_name,
+      kwikApiOrderId,
+      kwikApiOrderIdLength: kwikApiOrderId.length
+    });
 
-    if (kwikApiBalance < amount) {
-      // Insufficient KWIKAPI balance - mark as pending and notify admin
-      await supabase
-        .from('recharge_transactions')
-        .update({
-          status: 'PENDING',
-          error_message: 'Insufficient KWIKAPI wallet balance. Transaction is being processed.',
-          response_data: { kwikapi_balance: kwikApiBalance, required: amount },
-        })
-        .eq('id', transaction.id);
+    console.log('✅ [BILL-PAYMENT] Proceeding with payment...');
 
-      return NextResponse.json({
-        success: true, // Still success from user perspective
-        pending: true,
-        data: {
-          transaction_id: transaction.id,
-          transaction_ref: transactionRef,
-          status: 'PENDING',
-          amount,
-          message: '⏳ Your transaction is being processed. Amount has been debited from your wallet. You will receive confirmation shortly. Please contact admin if not completed within 24 hours.',
-        },
-      });
-    }
-
-    // Process bill payment with KWIKAPI
+    // Process payment using KwikAPI
     let paymentResponse;
 
     try {
-      // Use utility bill payment API for all bill payments
+      // Use utility bill payment API for all bills
       paymentResponse = await kwikapi.payUtilityBill({
         opid: parseInt(opid),
-        number: mobile_number || consumer_number!,
+        number: mobile_number || consumer_number,
         amount,
-        order_id: transactionRef,
+        order_id: kwikApiOrderId, // Use KwikAPI-compatible order ID
         mobile: mobile_number || dbUser.email,
-        refrence_id: ref_id, // CRITICAL: ref_id from bill fetch response (note: typo in KWIKAPI)
+        refrence_id: ref_id,
         opt1: opt1,
         opt2: opt2,
         opt3: opt3,
@@ -208,25 +206,42 @@ export async function POST(request: NextRequest) {
         opt10: opt10,
       });
 
-      // Determine status from response
-      const responseStatus = paymentResponse.data?.status || paymentResponse.data?.STATUS;
-      let status: 'SUCCESS' | 'PENDING' | 'FAILED' = 'PENDING';
+      console.log('📦 [BILL-PAYMENT] KwikAPI Response:', paymentResponse);
+      console.log('📦 [BILL-PAYMENT] KwikAPI Response Data:', JSON.stringify(paymentResponse.data, null, 2));
+      console.log('📦 [BILL-PAYMENT] KwikAPI Response Status:', paymentResponse.data?.status);
+      console.log('📦 [BILL-PAYMENT] KwikAPI Response Message:', paymentResponse.data?.message);
 
+      // Map KwikAPI status to our status
+      const responseStatus = (paymentResponse.data?.status || '').toUpperCase();
+      let status: 'SUCCESS' | 'FAILED' | 'PENDING';
+
+      // Map all possible KwikAPI status values
       if (responseStatus === 'SUCCESS') {
         status = 'SUCCESS';
-      } else if (responseStatus === 'FAILED') {
+      } else if (responseStatus === 'FAILURE' || responseStatus === 'FAILED') {
         status = 'FAILED';
+      } else {
+        // Default to PENDING for unknown statuses
+        status = 'PENDING';
       }
 
-      // Update transaction with response
+      console.log(`📊 [BILL-PAYMENT] Status mapping: ${responseStatus} → ${status}`);
+
+      // Update transaction with KwikAPI response
       await supabase
         .from('recharge_transactions')
         .update({
           status,
-          kwikapi_transaction_id: paymentResponse.data?.order_id,
+          kwikapi_order_id: paymentResponse.data?.order_id,
+          kwikapi_transaction_id: paymentResponse.data?.transaction_id,
           operator_transaction_id: paymentResponse.data?.opr_id,
+          kwikapi_opr_id: paymentResponse.data?.opr_id,
+          kwikapi_balance: paymentResponse.data?.balance,
+          kwikapi_status: responseStatus,
+          kwikapi_message: paymentResponse.data?.message,
+          kwikapi_provider: paymentResponse.data?.provider,
           response_data: paymentResponse.data,
-          completed_at: status === 'SUCCESS' ? new Date().toISOString() : null,
+          completed_at: new Date().toISOString(),
         })
         .eq('id', transaction.id);
 
@@ -235,14 +250,14 @@ export async function POST(request: NextRequest) {
       if (dbUser.role === 'CUSTOMER' && status === 'SUCCESS') {
         const minCashback = 0.5;
         const maxCashback = 2.0;
-        const randomCashbackPercentage = (Math.random() * (maxCashback - minCashback) + minCashback).toFixed(2);
-        actualCashback = (amount * parseFloat(randomCashbackPercentage)) / 100;
+        const randomCashbackPercentage = (Math.random() * (maxCashback - minCashback) + minCashback);
+        actualCashback = (amount * randomCashbackPercentage) / 100;
 
-        // Update transaction with cashback info
+        // Update transaction with actual cashback
         await supabase
           .from('recharge_transactions')
           .update({
-            cashback_percentage: parseFloat(randomCashbackPercentage),
+            cashback_percentage: randomCashbackPercentage,
             cashback_amount: actualCashback,
           })
           .eq('id', transaction.id);
@@ -261,11 +276,11 @@ export async function POST(request: NextRequest) {
           await supabase.from('transactions').insert({
             user_id: dbUser.id,
             wallet_id: wallet.id,
-            type: dbUser.role === 'CUSTOMER' ? 'REFUND' : 'COMMISSION',
+            type: dbUser.role === 'CUSTOMER' ? 'CASHBACK' : 'COMMISSION',
             amount: finalReward,
             status: 'COMPLETED',
-            description: `${rewardLabel} for ${service_type} Bill Payment ${mobile_number || consumer_number}`,
-            reference: transactionRef,
+            description: `${rewardLabel} for ${service_type} bill payment`,
+            reference_id: transactionRef,
           });
 
           // Mark as claimed
@@ -287,8 +302,10 @@ export async function POST(request: NextRequest) {
             amount,
             reward_amount: finalReward,
             reward_label: rewardLabel,
-            message: `✅ Bill payment successful! ${rewardLabel} of ₹${finalReward.toFixed(2)} has been added to your wallet.`,
-            response: paymentResponse.data,
+            message: `✅ Bill payment successful!`,
+            kwikapi_status: responseStatus,
+            operator_ref: paymentResponse.data?.opr_id,
+            balance: paymentResponse.data?.balance,
           },
         });
       } else if (status === 'PENDING') {
@@ -300,46 +317,64 @@ export async function POST(request: NextRequest) {
             transaction_ref: transactionRef,
             status: 'PENDING',
             amount,
-            message: '⏳ Your bill payment is being processed. Amount has been debited from your wallet. You will receive confirmation shortly. Please contact admin if not completed within 24 hours.',
+            message: `⏳ ${paymentResponse.data?.message || 'Your bill payment is being processed. You will receive confirmation within 24 hours.'}`,
+            kwikapi_status: responseStatus,
+            operator_ref: paymentResponse.data?.opr_id,
           },
         });
       } else {
-        // Failed - refund
+        // Failed - do not store transaction and refund wallet
         await supabase
           .from('wallets')
           .update({ balance: wallet.balance })
           .eq('user_id', dbUser.id);
 
-        await supabase.from('transactions').insert({
-          user_id: dbUser.id,
-          wallet_id: wallet.id,
-          type: 'REFUND',
-          amount: totalAmount,
-          status: 'COMPLETED',
-          description: `Refund for failed ${service_type} Bill Payment`,
-          reference: transactionRef,
-        });
+        // Delete the recharge transaction record (do not store failed)
+        await supabase
+          .from('recharge_transactions')
+          .delete()
+          .eq('id', transaction.id);
+
+        // Delete the withdrawal transaction record to keep wallet history clean
+        await supabase
+          .from('transactions')
+          .delete()
+          .eq('reference_id', transactionRef)
+          .eq('type', 'WITHDRAWAL');
 
         return NextResponse.json({
           success: false,
           data: {
-            transaction_id: transaction.id,
             transaction_ref: transactionRef,
             status: 'FAILED',
-            message: `❌ Bill payment failed. ${paymentResponse.data?.message || 'Unknown error'}. Amount has been refunded to your wallet.`,
+            message: paymentResponse.data?.message || '❌ Bill payment failed. Amount has been refunded to your wallet.',
+            response: paymentResponse.data,
+            technical_message: paymentResponse.data?.message,
           },
         });
       }
     } catch (apiError: any) {
-      // API call failed - mark as pending instead of failed
+      console.error('Bill Payment API Error:', apiError);
+
+      // API call failed - mark as pending for manual processing and provide user-friendly message
       await supabase
         .from('recharge_transactions')
         .update({
           status: 'PENDING',
-          error_message: apiError.message || 'API error - transaction pending',
-          response_data: apiError.response?.data || {},
+          error_message: apiError.message || 'API error - pending manual processing',
         })
         .eq('id', transaction.id);
+
+      // Generate user-friendly error message
+      let userFriendlyMessage = '⏳ Payment is being processed manually due to a technical issue. You will be notified once completed within 24 hours.';
+
+      if (apiError.code === 'ENOTFOUND' || apiError.code === 'ECONNREFUSED') {
+        userFriendlyMessage = '⚠️ Network connection issue. Your payment is being processed manually and will be completed within 24 hours.';
+      } else if (apiError.code === 'ETIMEDOUT') {
+        userFriendlyMessage = '⏳ Payment request timed out. Your payment is being processed and will be completed within 24 hours.';
+      } else if (apiError.message?.includes('INSUFFICIENT BALANCE') || apiError.message?.includes('INSUFICIENT BALANCE')) {
+        userFriendlyMessage = '⚠️ Service temporarily unavailable due to provider maintenance. Your payment will be processed within 24 hours.';
+      }
 
       return NextResponse.json({
         success: true,
@@ -349,7 +384,7 @@ export async function POST(request: NextRequest) {
           transaction_ref: transactionRef,
           status: 'PENDING',
           amount,
-          message: '⏳ Your bill payment is being processed. Amount has been debited from your wallet. You will receive confirmation shortly. Please contact admin if not completed within 24 hours.',
+          message: userFriendlyMessage,
         },
       });
     }

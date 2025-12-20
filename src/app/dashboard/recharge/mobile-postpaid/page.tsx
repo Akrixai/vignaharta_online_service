@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-hot-toast';
 import DashboardLayout from '@/components/dashboard/layout';
 
 interface BillDetails {
@@ -41,15 +40,13 @@ interface Operator {
   };
 }
 
-
-
 export default function MobilePostpaidPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  
+
   const userRole = session?.user?.role;
   const rewardLabel = userRole === 'CUSTOMER' ? 'Cashback' : 'Commission';
-  
+
   const [loading, setLoading] = useState(false);
   const [operators, setOperators] = useState<Operator[]>([]);
   const [selectedOperator, setSelectedOperator] = useState<Operator | null>(null);
@@ -61,7 +58,6 @@ export default function MobilePostpaidPage() {
   const [processing, setProcessing] = useState(false);
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const [loadingBalance, setLoadingBalance] = useState(false);
-
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -90,18 +86,41 @@ export default function MobilePostpaidPage() {
     }
   };
 
-
-
   const fetchOperators = async () => {
     setLoading(true);
     try {
+      // Use standard recharge operators API for consistency and better fallback
       const response = await fetch('/api/recharge/operators?service_type=POSTPAID');
       const data = await response.json();
       if (data.success) {
         console.log('Postpaid operators loaded:', data.data);
-        setOperators(data.data);
-        if (data.data.length === 0) {
-          setMessage('⚠️ No postpaid operators found. Please contact support.');
+
+        // Map operators for UI consistency
+        const activeOperators = data.data.map((op: any) => ({
+          id: op.kwikapi_opid || op.id,
+          operator_id: op.kwikapi_opid || op.id,
+          kwikapi_opid: op.kwikapi_opid || op.id,
+          operator_name: op.operator_name,
+          operator_code: (op.kwikapi_opid || op.id).toString(),
+          service_type: op.service_type || 'POSTPAID',
+          min_amount: op.min_amount || 10,
+          max_amount: op.max_amount || 50000,
+          bill_fetch: op.metadata?.bill_fetch || 'YES',
+          bbps_enabled: op.metadata?.bbps_enabled || 'YES',
+          commission_rate: 2.0, // Default commission rate
+          metadata: {
+            bill_fetch: op.metadata?.bill_fetch || 'YES',
+            message: op.metadata?.message || '',
+            bbps_enabled: op.metadata?.bbps_enabled || 'YES',
+            supports_agt: true
+          }
+        }));
+
+        setOperators(activeOperators);
+        if (activeOperators.length === 0) {
+          setMessage('⚠️ No postpaid operators available. Please contact support.');
+        } else {
+          console.log(`✅ Loaded ${activeOperators.length} postpaid operators`);
         }
       } else {
         console.error('Failed to fetch operators:', data.message);
@@ -126,39 +145,33 @@ export default function MobilePostpaidPage() {
       return;
     }
 
-    console.log('🔍 Selected Operator:', selectedOperator);
-    console.log('🔍 Mobile Number:', mobileNumber);
-    console.log('🔍 Operator ID:', selectedOperator.operator_id);
-
     setBillFetching(true);
     setMessage('🔍 Fetching bill details from operator...');
-    setBillDetails(null); // Clear previous bill details
-    
+    setBillDetails(null);
+
     try {
       const requestBody = {
-        opid: selectedOperator.kwikapi_opid || selectedOperator.operator_id,
-        number: mobileNumber,
-        mobile: mobileNumber,
-        amount: 10, // Dummy amount for bill fetch validation
-        opt8: 'Bills'
+        operator_code: selectedOperator.operator_id || selectedOperator.kwikapi_opid,
+        consumer_number: mobileNumber,
+        mobile_number: mobileNumber,
+        service_type: 'POSTPAID'
       };
-      
+
       console.log('📤 Sending bill fetch request:', requestBody);
-      console.log('📤 Request body stringified:', JSON.stringify(requestBody));
-      
-      const response = await fetch('/api/kwikapi/bill-fetch', {
+
+      const response = await fetch('/api/recharge/fetch-bill', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
       });
 
       const data = await response.json();
-      
-      console.log('Bill fetch response:', data); // Debug log
-      
+
+      console.log('Bill fetch response:', data);
+
       if (data.success && data.data) {
         setBillDetails(data.data);
-        
+
         // Auto-fill form fields from bill details
         if (data.data.due_amount) {
           setAmount(data.data.due_amount);
@@ -166,32 +179,31 @@ export default function MobilePostpaidPage() {
         if (data.data.customer_name) {
           setCustomerName(data.data.customer_name);
         }
-        
+
         setMessage(`✅ Bill details fetched successfully! Due amount: ₹${data.data.due_amount || 'N/A'}`);
       } else {
         // Handle different types of errors with user-friendly messages
         let errorMessage = data.message || 'Failed to fetch bill details';
-        
+
         if (data.error === 'OPERATOR_UNAVAILABLE') {
           errorMessage = '⚠️ This operator is temporarily unavailable for bill fetch. Please enter the amount manually.';
         } else if (data.error === 'INVALID_DETAILS') {
           errorMessage = '❌ Invalid mobile number for this operator. Please check and try again.';
-        } else if (data.kwikapi_message?.includes('Invalid Account Number')) {
+        } else if (data.message?.includes('Invalid Account Number')) {
           errorMessage = '❌ Invalid mobile number. Please check your number and try again.';
-        } else if (data.kwikapi_message?.includes('Payment channel')) {
+        } else if (data.message?.includes('Payment channel')) {
           errorMessage = '⚠️ Bill fetch service is temporarily unavailable. Please enter the amount manually.';
         } else if (data.error === 'PARSE_ERROR') {
           errorMessage = '⚠️ Invalid response from operator. Please try again or enter amount manually.';
         }
-        
+
         setMessage(errorMessage);
-        
+
         // Log the full error for debugging
         console.error('Bill fetch failed:', {
           error: data.error,
           message: data.message,
-          kwikapi_message: data.kwikapi_message,
-          kwikapi_response: data.kwikapi_response
+          response: data
         });
       }
     } catch (error) {
@@ -210,7 +222,7 @@ export default function MobilePostpaidPage() {
 
     const minAmount = selectedOperator.min_amount || selectedOperator.amount_minimum || 10;
     const maxAmount = selectedOperator.max_amount || selectedOperator.amount_maximum || 50000;
-    
+
     if (parseFloat(amount) < minAmount || parseFloat(amount) > maxAmount) {
       setMessage(`❌ Amount must be between ₹${minAmount} and ₹${maxAmount}`);
       return;
@@ -227,20 +239,19 @@ export default function MobilePostpaidPage() {
 
     setProcessing(true);
     setMessage('');
-    
+
     try {
       const response = await fetch('/api/kwikapi/bill-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           service_type: 'POSTPAID',
-          opid: selectedOperator.kwikapi_opid || selectedOperator.operator_id,
-          number: mobileNumber,
+          operator_code: selectedOperator.operator_id || selectedOperator.kwikapi_opid,
+          mobile_number: mobileNumber,
           amount: totalAmount,
-          mobile: mobileNumber,
-          refrence_id: billDetails?.refrence_id || billDetails?.reference_id || billDetails?.ref_id,
-          opt8: 'Bills',
+          ref_id: billDetails?.ref_id || billDetails?.refrence_id || billDetails?.reference_id,
           customer_name: customerName || billDetails?.customer_name || '',
+          bill_details: billDetails,
         }),
       });
 
@@ -249,16 +260,17 @@ export default function MobilePostpaidPage() {
         const responseData = data.data;
         const status = responseData.status;
         const msg = responseData.message || 'Transaction completed';
-        const operatorRef = responseData.opr_id || responseData.operator_ref || '';
+        const operatorRef = responseData.operator_ref || '';
         const balance = responseData.balance || '';
         const reward = responseData.reward_amount || 0;
-        
+        const kwikApiStatus = responseData.kwikapi_status || status;
+
         // Show real-time KwikAPI status
         if (status === 'SUCCESS') {
           setMessage(
-            `✅ ${msg}${operatorRef ? `\nRef: ${operatorRef}` : ''}${balance ? `\nBalance: ₹${balance}` : ''}${reward > 0 ? `\n${rewardLabel}: ₹${reward.toFixed(2)}` : ''}`
+            `✅ ${msg}${operatorRef ? `\nRef: ${operatorRef}` : ''}${balance ? `\nBalance: ₹${balance}` : ''}${reward > 0 ? `\n${rewardLabel}: ₹${reward.toFixed(2)}` : ''}\nKwikAPI Status: ${kwikApiStatus}`
           );
-          
+
           // Reset form on success
           setTimeout(() => {
             setMobileNumber('');
@@ -266,17 +278,16 @@ export default function MobilePostpaidPage() {
             setCustomerName('');
             setBillDetails(null);
             setSelectedOperator(null);
-
             setMessage('');
             fetchWalletBalance();
-          }, 3000);
+          }, 5000);
         } else if (status === 'PENDING') {
           setMessage(
-            `⏳ ${msg}${operatorRef ? `\nRef: ${operatorRef}` : ''}\nTransaction is being processed. You will be notified once completed.`
+            `⏳ ${msg}${operatorRef ? `\nRef: ${operatorRef}` : ''}\nKwikAPI Status: ${kwikApiStatus}\nTransaction is being processed. You will be notified once completed.`
           );
         } else {
           setMessage(
-            `❌ ${msg}${operatorRef ? `\nRef: ${operatorRef}` : ''}`
+            `❌ ${msg}${operatorRef ? `\nRef: ${operatorRef}` : ''}\nKwikAPI Status: ${kwikApiStatus}`
           );
         }
       } else {
@@ -399,7 +410,7 @@ export default function MobilePostpaidPage() {
                     </option>
                     {operators.map((operator) => (
                       <option key={operator.id} value={operator.id?.toString()}>
-                        {operator.operator_name} ({rewardLabel}: {operator.commission_rate || 0}%)
+                        {operator.operator_name}
                       </option>
                     ))}
                   </select>
@@ -426,14 +437,14 @@ export default function MobilePostpaidPage() {
                         </span>
                       )}
                     </div>
-                    
+
                     <p className="text-sm text-blue-700 mb-3">
                       {(selectedOperator.bill_fetch === 'YES' || selectedOperator.metadata?.bill_fetch === 'YES')
                         ? 'This operator supports automatic bill fetching. Click below to fetch your bill details.'
                         : 'Try fetching bill details for this operator. Some operators may support it even if not explicitly marked.'
                       }
                     </p>
-                    
+
                     <button
                       onClick={fetchBillDetails}
                       disabled={billFetching}
@@ -448,7 +459,7 @@ export default function MobilePostpaidPage() {
                         '🔍 Fetch Bill Details'
                       )}
                     </button>
-                    
+
                     {(selectedOperator.bill_fetch !== 'YES' && selectedOperator.metadata?.bill_fetch !== 'YES') && (
                       <div className="mt-3 bg-orange-100 border border-orange-300 rounded p-3">
                         <p className="text-xs text-orange-800">
@@ -520,11 +531,10 @@ export default function MobilePostpaidPage() {
 
                 {/* Message */}
                 {message && (
-                  <div className={`p-4 rounded-lg whitespace-pre-line ${
-                    message.includes('✅') ? 'bg-green-50 text-green-800 border border-green-200' : 
+                  <div className={`p-4 rounded-lg whitespace-pre-line ${message.includes('✅') ? 'bg-green-50 text-green-800 border border-green-200' :
                     message.includes('⏳') ? 'bg-yellow-50 text-yellow-800 border border-yellow-200' :
-                    'bg-red-50 text-red-800 border border-red-200'
-                  }`}>
+                      'bg-red-50 text-red-800 border border-red-200'
+                    }`}>
                     {message}
                   </div>
                 )}
@@ -550,7 +560,7 @@ export default function MobilePostpaidPage() {
                       VERIFIED
                     </div>
                   </div>
-                  
+
                   <div className="bg-white rounded-lg p-4 space-y-3">
                     {billDetails.customer_name && (
                       <div className="flex justify-between py-2 border-b border-gray-200">
@@ -607,7 +617,7 @@ export default function MobilePostpaidPage() {
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="mt-4 bg-blue-100 border border-blue-300 rounded-lg p-3">
                     <p className="text-xs text-blue-800">
                       ℹ️ <strong>Note:</strong> The amount shown above will be automatically filled in the payment form. You can proceed to pay this bill.
@@ -623,8 +633,8 @@ export default function MobilePostpaidPage() {
                   <div className="flex items-start gap-3">
                     <div className="text-2xl">⚡</div>
                     <div>
-                      <h4 className="font-semibold text-gray-900">Instant Bill Payment</h4>
-                      <p className="text-sm text-gray-600">Real-time processing with immediate confirmation</p>
+                      <h4 className="font-semibold text-gray-900">Real-time Status Updates</h4>
+                      <p className="text-sm text-gray-600">Get instant confirmation with actual KWIKAPI status</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">

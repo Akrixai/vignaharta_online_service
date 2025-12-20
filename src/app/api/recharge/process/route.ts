@@ -358,7 +358,7 @@ export async function POST(request: NextRequest) {
             .eq('id', transaction.id);
         }
 
-        const successMessage = actualReward > 0 
+        const successMessage = actualReward > 0
           ? `✅ Recharge successful! ${rewardLabel} of ₹${actualReward.toFixed(2)} has been added to your wallet.`
           : '✅ Recharge successful!';
 
@@ -388,26 +388,28 @@ export async function POST(request: NextRequest) {
           },
         });
       } else {
-        // Failed - refund
+        // Failed - do not store transaction and refund wallet
         await supabase
           .from('wallets')
           .update({ balance: wallet.balance })
           .eq('user_id', dbUser.id);
 
-        await supabase.from('transactions').insert({
-          user_id: dbUser.id,
-          wallet_id: wallet.id,
-          type: 'REFUND',
-          amount: totalAmount,
-          status: 'COMPLETED',
-          description: `Refund for failed ${service_type}`,
-          reference: transactionRef,
-        });
+        // Delete the recharge transaction record (do not store failed)
+        await supabase
+          .from('recharge_transactions')
+          .delete()
+          .eq('id', transaction.id);
+
+        // Delete the withdrawal transaction record to keep wallet history clean
+        await supabase
+          .from('transactions')
+          .delete()
+          .eq('reference', transactionRef)
+          .eq('type', 'WITHDRAWAL');
 
         return NextResponse.json({
           success: false,
           data: {
-            transaction_id: transaction.id,
             transaction_ref: transactionRef,
             status: 'FAILED',
             message: '❌ Recharge failed. Amount has been refunded to your wallet.',

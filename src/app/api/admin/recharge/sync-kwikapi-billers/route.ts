@@ -74,20 +74,17 @@ export async function POST(request: NextRequest) {
       if (biller.service_type === 'Prepaid' || biller.service_type === 'DTH') {
         return true;
       }
-      
-      // Include only FAP postpaid operators (Jio, Airtel, Vodafone Idea)
+
+      // Include all postpaid operators
       if (biller.service_type === 'Postpaid') {
-        return biller.operator_name.includes('FAP') && 
-               (biller.operator_name.includes('Jio') || 
-                biller.operator_name.includes('Airtel') || 
-                biller.operator_name.includes('Vodafone Idea'));
+        return true;
       }
-      
+
       // Include electricity billers
       if (biller.service_type === 'ELC') {
         return true;
       }
-      
+
       return false;
     });
 

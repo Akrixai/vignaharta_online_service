@@ -270,15 +270,21 @@ export async function POST(request: NextRequest) {
           throw new Error('Invalid service type');
       }
 
-      // Determine status from response
-      const responseStatus = rechargeResponse.data?.status || rechargeResponse.data?.STATUS;
+      // Determine status from response - handle all possible status values
+      const responseStatus = (rechargeResponse.data?.status || rechargeResponse.data?.STATUS || '').toUpperCase();
       let status: 'SUCCESS' | 'PENDING' | 'FAILED' = 'PENDING';
 
+      // Map all possible status values from KWIKAPI
       if (responseStatus === 'SUCCESS') {
         status = 'SUCCESS';
-      } else if (responseStatus === 'FAILED') {
+      } else if (responseStatus === 'FAILED' || responseStatus === 'FAILURE') {
         status = 'FAILED';
+      } else {
+        // Default to PENDING for any other status (PENDING, PROCESSING, etc.)
+        status = 'PENDING';
       }
+
+      console.log(`📊 [RECHARGE] Status mapping: ${responseStatus} → ${status}`);
 
       // Update transaction with response
       await supabase
@@ -337,6 +343,9 @@ export async function POST(request: NextRequest) {
             reward_label: rewardLabel,
             message: successMessage,
             response: rechargeResponse.data,
+            kwikapi_status: responseStatus, // Include original KWIKAPI status
+            operator_ref: rechargeResponse.data?.opr_id,
+            balance: rechargeResponse.data?.balance,
           },
         });
       } else if (status === 'PENDING') {
@@ -349,32 +358,40 @@ export async function POST(request: NextRequest) {
             status: 'PENDING',
             amount,
             message: '⏳ Your transaction is being processed. You will receive confirmation shortly.',
+            response: rechargeResponse.data,
+            kwikapi_status: responseStatus, // Include original KWIKAPI status
+            operator_ref: rechargeResponse.data?.opr_id,
           },
         });
       } else {
-        // Failed - refund
+        // Failed - do not store transaction and refund wallet
         await supabase
           .from('wallets')
           .update({ balance: wallet.balance })
           .eq('user_id', dbUser.id);
 
-        await supabase.from('transactions').insert({
-          user_id: dbUser.id,
-          wallet_id: wallet.id,
-          type: 'REFUND',
-          amount: totalAmount,
-          status: 'COMPLETED',
-          description: `Refund for failed ${service_type}`,
-          reference: transactionRef,
-        });
+        // Delete the recharge transaction record (do not store failed)
+        await supabase
+          .from('recharge_transactions')
+          .delete()
+          .eq('id', transaction.id);
+
+        // Delete the withdrawal transaction record to keep wallet history clean
+        await supabase
+          .from('transactions')
+          .delete()
+          .eq('reference', transactionRef)
+          .eq('type', 'WITHDRAWAL');
 
         return NextResponse.json({
           success: false,
           data: {
-            transaction_id: transaction.id,
             transaction_ref: transactionRef,
             status: 'FAILED',
-            message: '❌ Recharge failed. Amount has been refunded to your wallet.',
+            message: `❌ Recharge failed. ${rechargeResponse.data?.message || 'Unknown error'}. Amount has been refunded to your wallet.`,
+            response: rechargeResponse.data,
+            kwikapi_status: responseStatus,
+            operator_ref: rechargeResponse.data?.opr_id,
           },
         });
       }

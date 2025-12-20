@@ -35,7 +35,7 @@ interface Transaction {
 export default function RechargeTransactionsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  
+
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<string | null>(null);
@@ -63,7 +63,7 @@ export default function RechargeTransactionsPage() {
 
       const res = await fetch(`/api/recharge/transactions?${params}`);
       const data = await res.json();
-      
+
       if (data.success) {
         setTransactions(data.data);
       }
@@ -126,8 +126,6 @@ export default function RechargeTransactionsPage() {
                 <option value="">All Status</option>
                 <option value="SUCCESS">Success</option>
                 <option value="PENDING">Pending</option>
-                <option value="FAILED">Failed</option>
-                <option value="REFUNDED">Refunded</option>
               </select>
             </div>
             <div>
@@ -189,7 +187,7 @@ export default function RechargeTransactionsPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900">
-                        {txn.operator.operator_name}
+                        {txn.operator?.operator_name || 'N/A'}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900">
                         {txn.mobile_number || txn.dth_number || txn.consumer_number}

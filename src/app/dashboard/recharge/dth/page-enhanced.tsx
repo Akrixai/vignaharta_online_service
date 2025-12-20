@@ -225,7 +225,7 @@ export default function DTHRechargePageEnhanced() {
                                     <option value="">Choose DTH operator...</option>
                                     {operators.map((op) => (
                                         <option key={op.id} value={op.id}>
-                                            {op.operator_name} ({rewardLabel}: {op.commission_rate}%)
+                                            {op.operator_name}
                                         </option>
                                     ))}
                                 </select>
@@ -344,8 +344,8 @@ export default function DTHRechargePageEnhanced() {
                                             <button
                                                 onClick={() => setSelectedCategory('ALL')}
                                                 className={`px-5 py-4 rounded-2xl font-semibold transition-all whitespace-nowrap ${selectedCategory === 'ALL'
-                                                        ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-xl transform scale-105'
-                                                        : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-purple-300 hover:shadow-md'
+                                                    ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-xl transform scale-105'
+                                                    : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-purple-300 hover:shadow-md'
                                                     }`}
                                             >
                                                 <div className="flex items-center gap-3">
@@ -365,8 +365,8 @@ export default function DTHRechargePageEnhanced() {
                                                     key={category.code}
                                                     onClick={() => setSelectedCategory(category.code)}
                                                     className={`px-5 py-4 rounded-2xl font-semibold transition-all whitespace-nowrap ${selectedCategory === category.code
-                                                            ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-xl transform scale-105'
-                                                            : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-purple-300 hover:shadow-md'
+                                                        ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-xl transform scale-105'
+                                                        : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-purple-300 hover:shadow-md'
                                                         }`}
                                                 >
                                                     <div className="flex items-center gap-3">
@@ -392,9 +392,9 @@ export default function DTHRechargePageEnhanced() {
                                         key={`${plan.amount}-${index}`}
                                         onClick={() => handlePlanSelect(plan)}
                                         className={`relative p-5 border-2 rounded-xl cursor-pointer transition-all hover:shadow-lg group ${selectedPlan?.amount === plan.amount &&
-                                                selectedPlan?.validity === plan.validity
-                                                ? 'border-purple-600 bg-purple-50 shadow-md ring-2 ring-purple-200'
-                                                : 'border-gray-200 hover:border-purple-300'
+                                            selectedPlan?.validity === plan.validity
+                                            ? 'border-purple-600 bg-purple-50 shadow-md ring-2 ring-purple-200'
+                                            : 'border-gray-200 hover:border-purple-300'
                                             }`}
                                     >
                                         {/* Popular badge for common amounts */}

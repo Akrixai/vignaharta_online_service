@@ -54,6 +54,9 @@ export async function GET(request: NextRequest) {
 
     if (status) {
       query = query.eq('status', status.toUpperCase());
+    } else {
+      // By default, only show SUCCESS and PENDING transactions in history
+      query = query.in('status', ['SUCCESS', 'PENDING']);
     }
 
     if (serviceType) {
@@ -64,9 +67,33 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error;
 
+    // For transactions without operator (bill payments), try to get operator name from kwikapi_billers
+    const processedData = await Promise.all((data || []).map(async (txn: any) => {
+      if (!txn.operator && txn.service_type && ['ELECTRICITY', 'POSTPAID'].includes(txn.service_type)) {
+        // Try to get operator name from response_data or kwikapi_provider
+        let operatorName = 'Unknown Operator';
+
+        if (txn.kwikapi_provider) {
+          operatorName = txn.kwikapi_provider;
+        } else if (txn.response_data?.provider) {
+          operatorName = txn.response_data.provider;
+        } else if (txn.response_data?.operator_name) {
+          operatorName = txn.response_data.operator_name;
+        }
+
+        // Create a mock operator object for consistency
+        txn.operator = {
+          operator_name: operatorName,
+          operator_code: 'N/A',
+          logo_url: null
+        };
+      }
+      return txn;
+    }));
+
     return NextResponse.json({
       success: true,
-      data: data || [],
+      data: processedData,
       pagination: {
         total: count || 0,
         limit,

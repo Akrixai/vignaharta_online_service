@@ -276,8 +276,8 @@ export default function MobileRechargePageEnhanced() {
                                 setSelectedPlan(null);
                             }}
                             className={`px-6 py-3 rounded-lg font-semibold transition-all ${serviceType === type
-                                    ? 'bg-blue-600 text-white shadow-lg'
-                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                ? 'bg-blue-600 text-white shadow-lg'
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                                 }`}
                         >
                             {type}
@@ -328,7 +328,7 @@ export default function MobileRechargePageEnhanced() {
                                     <option value="">Choose operator...</option>
                                     {operators.map((op) => (
                                         <option key={op.id} value={op.id}>
-                                            {op.operator_name} ({rewardLabel}: {op.commission_rate}%)
+                                            {op.operator_name}
                                         </option>
                                     ))}
                                 </select>
@@ -468,8 +468,8 @@ export default function MobileRechargePageEnhanced() {
                                                 <button
                                                     onClick={() => setSelectedCategory('ALL')}
                                                     className={`px-5 py-4 rounded-2xl font-semibold transition-all whitespace-nowrap ${selectedCategory === 'ALL'
-                                                            ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-xl transform scale-105'
-                                                            : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-blue-300 hover:shadow-md'
+                                                        ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-xl transform scale-105'
+                                                        : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-blue-300 hover:shadow-md'
                                                         }`}
                                                 >
                                                     <div className="flex items-center gap-3">
@@ -489,8 +489,8 @@ export default function MobileRechargePageEnhanced() {
                                                         key={category.code}
                                                         onClick={() => setSelectedCategory(category.code)}
                                                         className={`px-5 py-4 rounded-2xl font-semibold transition-all whitespace-nowrap ${selectedCategory === category.code
-                                                                ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-xl transform scale-105'
-                                                                : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-blue-300 hover:shadow-md'
+                                                            ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-xl transform scale-105'
+                                                            : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-blue-300 hover:shadow-md'
                                                             }`}
                                                     >
                                                         <div className="flex items-center gap-3">
@@ -516,9 +516,9 @@ export default function MobileRechargePageEnhanced() {
                                             key={`${plan.amount}-${index}`}
                                             onClick={() => handlePlanSelect(plan)}
                                             className={`relative p-5 border-2 rounded-xl cursor-pointer transition-all hover:shadow-lg group ${selectedPlan?.amount === plan.amount &&
-                                                    selectedPlan?.validity === plan.validity
-                                                    ? 'border-blue-600 bg-blue-50 shadow-md ring-2 ring-blue-200'
-                                                    : 'border-gray-200 hover:border-blue-300'
+                                                selectedPlan?.validity === plan.validity
+                                                ? 'border-blue-600 bg-blue-50 shadow-md ring-2 ring-blue-200'
+                                                : 'border-gray-200 hover:border-blue-300'
                                                 }`}
                                         >
                                             {/* Popular badge for common amounts */}

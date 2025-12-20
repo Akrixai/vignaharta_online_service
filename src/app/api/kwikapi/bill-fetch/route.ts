@@ -37,14 +37,36 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     console.log('📥 [Bill Fetch] Received request body:', body);
     
-    const { opid, number, amount = 10, mobile, opt1, opt2, opt3, opt4, opt5, opt6, opt7, opt8, opt9, opt10 } = body;
+    const { 
+      opid, 
+      number, 
+      account_number, 
+      consumer_number, 
+      mobile_number,
+      amount = 10, 
+      mobile, 
+      opt1, 
+      opt2, 
+      opt3, 
+      opt4, 
+      opt5, 
+      opt6, 
+      opt7, 
+      opt8, 
+      opt9, 
+      opt10,
+      optional_params = {}
+    } = body;
 
-    console.log('📥 [Bill Fetch] Extracted parameters:', { opid, number, amount, mobile });
+    // Extract the account number from various possible field names
+    const accountNumber = number || account_number || consumer_number || mobile_number;
 
-    if (!opid || !number) {
-      console.error('❌ [Bill Fetch] Missing parameters:', { opid, number, hasOpid: !!opid, hasNumber: !!number });
+    console.log('📥 [Bill Fetch] Extracted parameters:', { opid, accountNumber, amount, mobile });
+
+    if (!opid || !accountNumber) {
+      console.error('❌ [Bill Fetch] Missing parameters:', { opid, accountNumber, hasOpid: !!opid, hasAccountNumber: !!accountNumber });
       return NextResponse.json(
-        { error: 'Missing required parameters: opid and number', received: { opid, number } },
+        { error: 'Missing required parameters: opid and account number', received: { opid, accountNumber } },
         { status: 400 }
       );
     }
@@ -57,11 +79,11 @@ export async function POST(request: NextRequest) {
     // Build KwikAPI bill validation URL with all required parameters
     const params = new URLSearchParams({
       api_key: KWIKAPI_API_KEY,
-      number: number.toString(),
+      number: accountNumber.toString(),
       amount: amount.toString(),
       opid: opid.toString(),
       order_id: orderId,
-      opt1: opt1 || number.toString(), // Often the mobile number itself
+      opt1: opt1 || '', // For Torrent Power, this should be City
       opt2: opt2 || '',
       opt3: opt3 || '',
       opt4: opt4 || '',
@@ -71,18 +93,18 @@ export async function POST(request: NextRequest) {
       opt8: opt8 || 'Bills', // Required for bill fetch
       opt9: opt9 || '',
       opt10: opt10 || '',
-      mobile: mobile || number.toString(), // Customer mobile number
+      mobile: mobile || mobile_number || '9999999999', // Default mobile for electricity bills
     });
 
     const kwikApiUrl = `${KWIKAPI_BASE_URL}/bills/validation.php?${params.toString()}`;
 
     console.log('🔍 [KwikAPI] Bill fetch request:', {
       opid,
-      number,
+      accountNumber,
       amount,
       orderId,
       orderIdLength: orderId.length,
-      mobile: mobile || number,
+      mobile: mobile || mobile_number || accountNumber,
       url: kwikApiUrl.replace(KWIKAPI_API_KEY, 'HIDDEN')
     });
 

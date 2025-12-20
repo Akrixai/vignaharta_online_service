@@ -32,6 +32,10 @@ interface Plan {
   validity: string;
   description: string;
   type: string;
+  planName?: string;
+  discount?: number;
+  original_price?: number;
+  offer_text?: string;
 }
 
 interface PlanCategory {
@@ -69,18 +73,18 @@ export default function MobileRechargePageEnhanced() {
   const [fetchingBill, setFetchingBill] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error' | 'info'>('info');
-  
+
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalPlan, setModalPlan] = useState<Plan | null>(null);
-  
+
   // Wallet balance state
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const [loadingBalance, setLoadingBalance] = useState(false);
-  
+
   // Bill details (not used for prepaid)
   const [billDetails, setBillDetails] = useState<any>(null);
-  
+
   // R-OFFER state
   const [rOffers, setROffers] = useState<any[]>([]);
   const [loadingOffers, setLoadingOffers] = useState(false);
@@ -122,7 +126,7 @@ export default function MobileRechargePageEnhanced() {
       const data = await res.json();
       if (data.success) {
         console.log('📋 [Frontend] Loaded operators for', serviceType, ':', data.data.length, 'operators');
-        console.log('📋 [Frontend] Sample operators:', data.data.slice(0, 3).map(op => ({
+        console.log('📋 [Frontend] Sample operators:', data.data.slice(0, 3).map((op: any) => ({
           id: op.id,
           name: op.operator_name,
           kwikapi_opid: op.kwikapi_opid,
@@ -181,7 +185,7 @@ export default function MobileRechargePageEnhanced() {
 
         // Find operator by kwikapi_opid first (most reliable), then by operator_code
         let operator = null;
-        
+
         console.log('🔍 [Frontend] Looking for operator with kwikapi_opid:', data.data.kwikapi_opid);
         console.log('🔍 [Frontend] Available operators:', operators.map(op => ({
           id: op.id,
@@ -189,28 +193,28 @@ export default function MobileRechargePageEnhanced() {
           kwikapi_opid: op.kwikapi_opid,
           operator_code: op.operator_code
         })));
-        
+
         if (data.data.kwikapi_opid) {
           // Try both string and number comparison for kwikapi_opid
-          operator = operators.find(op => 
+          operator = operators.find(op =>
             op.kwikapi_opid === data.data.kwikapi_opid.toString() ||
             op.kwikapi_opid === data.data.kwikapi_opid ||
             op.kwikapi_opid?.toString() === data.data.kwikapi_opid?.toString()
           );
           console.log('🔍 [Frontend] Operator found by kwikapi_opid:', operator ? operator.operator_name : 'Not found');
         }
-        
+
         if (!operator && data.data.operator_code) {
           // Try exact match first
-          operator = operators.find(op => 
+          operator = operators.find(op =>
             op.operator_code === data.data.operator_code ||
             op.operator_code?.toLowerCase() === data.data.operator_code?.toLowerCase()
           );
           console.log('🔍 [Frontend] Operator found by exact operator_code:', operator ? operator.operator_name : 'Not found');
-          
+
           // If not found, try pattern matching
           if (!operator) {
-            operator = operators.find(op => 
+            operator = operators.find(op =>
               op.operator_code?.toLowerCase().includes(data.data.operator_code?.toLowerCase()) ||
               data.data.operator_code?.toLowerCase().includes(op.operator_code?.toLowerCase())
             );
@@ -220,7 +224,7 @@ export default function MobileRechargePageEnhanced() {
 
         // If still not found, try matching by operator name (case-insensitive)
         if (!operator && data.data.operator_name) {
-          operator = operators.find(op => 
+          operator = operators.find(op =>
             op.operator_name.toLowerCase().includes(data.data.operator_name.toLowerCase()) ||
             data.data.operator_name.toLowerCase().includes(op.operator_name.toLowerCase())
           );
@@ -289,10 +293,21 @@ export default function MobileRechargePageEnhanced() {
     if (mobileNumber.length === 10 && /^[0-9]{10}$/.test(mobileNumber) && serviceType === 'PREPAID' && operators.length > 0) {
       console.log('🚀 [Frontend] Auto-detecting for mobile:', mobileNumber, 'with', operators.length, 'operators loaded');
       detectOperator();
-      // Also check for R-OFFERS
-      checkROffers();
     }
   }, [mobileNumber, operators]);
+
+  // Auto-check R-OFFERS when operator is selected (after detection or manual selection)
+  useEffect(() => {
+    if (mobileNumber.length === 10 && /^[0-9]{10}$/.test(mobileNumber) && selectedOperator && operators.length > 0) {
+      const operator = operators.find(op => op.id === selectedOperator);
+      // Support R-OFFERS for Airtel, VI and Jio
+      const supportedROfferOpids = ['1', '21', '3', '177', '178', '8', '181'];
+      if (operator && supportedROfferOpids.includes(operator.kwikapi_opid?.toString())) {
+        console.log('🎁 [Frontend] Auto-checking R-OFFERS for', operator.operator_name);
+        checkROffers();
+      }
+    }
+  }, [selectedOperator, mobileNumber, operators]);
 
   // Function to parse R-OFFER benefits from description
   const parseOfferBenefits = (description: string) => {
@@ -301,7 +316,7 @@ export default function MobileRechargePageEnhanced() {
       validity: '',
       talktime: '',
       sms: '',
-      other: []
+      other: [] as string[]
     };
 
     if (!description) return benefits;
@@ -333,9 +348,9 @@ export default function MobileRechargePageEnhanced() {
     }
 
     // Extract other benefits
-    if (desc.includes('unlimited')) benefits.other.push('Unlimited Calls');
-    if (desc.includes('roaming')) benefits.other.push('Roaming');
-    if (desc.includes('free')) benefits.other.push('Free Benefits');
+    if (desc.includes('unlimited')) (benefits.other as string[]).push('Unlimited Calls');
+    if (desc.includes('roaming')) (benefits.other as string[]).push('Roaming');
+    if (desc.includes('free')) (benefits.other as string[]).push('Free Benefits');
 
     return benefits;
   };
@@ -345,17 +360,32 @@ export default function MobileRechargePageEnhanced() {
       return;
     }
 
+    // Need operator to be selected for R-OFFER check
+    if (!selectedOperator) {
+      console.log('ℹ️ [Frontend] No operator selected for R-OFFER check');
+      return;
+    }
+
+    const operator = operators.find(op => op.id === selectedOperator);
+    if (!operator) {
+      console.log('ℹ️ [Frontend] Operator not found for R-OFFER check');
+      return;
+    }
+
     setLoadingOffers(true);
     setROffers([]);
     setShowOffers(false);
 
     try {
-      console.log('🔍 [Frontend] Checking R-OFFERS for:', mobileNumber);
+      console.log('🔍 [Frontend] Checking R-OFFERS for:', mobileNumber, 'with operator:', operator.operator_name);
 
       const res = await fetch('/api/recharge/r-offer-check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mobile_number: mobileNumber }),
+        body: JSON.stringify({
+          mobile_number: mobileNumber,
+          opid: operator.kwikapi_opid
+        }),
       });
 
       const data = await res.json();
@@ -370,7 +400,7 @@ export default function MobileRechargePageEnhanced() {
         console.log('ℹ️ [Frontend] No R-OFFERS found:', data.message);
         setROffers([]);
         setShowOffers(false);
-        
+
         // Show info message if operator doesn't support R-OFFER
         if (data.data?.supported === false) {
           setMessage(`ℹ️ ${data.message}`);
@@ -386,15 +416,7 @@ export default function MobileRechargePageEnhanced() {
     }
   };
 
-  // Auto-detect and check R-offers for prepaid when mobile number is entered
-  useEffect(() => {
-    if (mobileNumber.length === 10 && /^[0-9]{10}$/.test(mobileNumber) && operators.length > 0) {
-      console.log('🚀 [Frontend] Auto-detecting for mobile:', mobileNumber, 'with', operators.length, 'operators loaded');
-      detectOperator();
-      // Also check for R-OFFERS
-      checkROffers();
-    }
-  }, [mobileNumber, operators]);
+
 
   const fetchPlans = async () => {
     if (!selectedOperator || !selectedCircle) return;
@@ -445,7 +467,7 @@ export default function MobileRechargePageEnhanced() {
     }
 
     const operator = operators.find(op => op.id === selectedOperator);
-    
+
     // Check if operator supports bill fetch
     if (operator?.metadata?.bill_fetch !== 'YES') {
       setMessage('⚠️ Bill fetch not supported for this operator. Please enter the amount manually.');
@@ -464,7 +486,7 @@ export default function MobileRechargePageEnhanced() {
         mobile: mobileNumber,
         service_type: serviceType
       });
-      
+
       // Use KwikAPI bill fetch endpoint
       const res = await fetch('/api/kwikapi/bill-fetch', {
         method: 'POST',
@@ -478,9 +500,9 @@ export default function MobileRechargePageEnhanced() {
       });
 
       const data = await res.json();
-      
+
       console.log('📦 [Frontend] Bill fetch response:', data);
-      
+
       if (data.success) {
         const billData = data.data;
         setBillDetails({
@@ -528,13 +550,13 @@ export default function MobileRechargePageEnhanced() {
     setSelectedPlan(plan);
     setAmount(plan.amount.toString());
     setIsModalOpen(false);
-    
+
     // Show success message for R-OFFERS
     if (plan.type === 'R-OFFER') {
       setMessage(`✅ R-OFFER selected: ₹${plan.amount} - ${plan.validity}`);
       setMessageType('success');
     }
-    
+
     // Scroll to form on mobile
     if (window.innerWidth < 768) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -543,10 +565,10 @@ export default function MobileRechargePageEnhanced() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Calculate total amount
     const totalAmount = parseFloat(amount);
-    
+
     // CRITICAL: Check wallet balance BEFORE processing
     if (walletBalance < totalAmount) {
       setMessage(
@@ -555,14 +577,14 @@ export default function MobileRechargePageEnhanced() {
       setMessageType('error');
       return;
     }
-    
+
     // Prepaid recharge validation
     if (!selectedOperator || !selectedCircle) {
       setMessage('⚠️ Please select operator and circle.');
       setMessageType('error');
       return;
     }
-    
+
     setLoading(true);
     setMessage('');
 
@@ -604,17 +626,17 @@ export default function MobileRechargePageEnhanced() {
         const message = responseData.message || 'Transaction completed';
         const operatorRef = responseData.opr_id || responseData.operator_ref || '';
         const balance = responseData.balance || '';
-        
+
         // Show real-time KwikAPI status
         if (status === 'SUCCESS') {
           setMessage(
             `✅ ${message}${operatorRef ? `\nRef: ${operatorRef}` : ''}${balance ? `\nBalance: ₹${balance}` : ''}`
           );
           setMessageType('success');
-          
+
           // Refresh wallet balance on success
           fetchWalletBalance();
-          
+
           // Reset form on success
           setMobileNumber('');
           setAmount('');
@@ -731,8 +753,8 @@ export default function MobileRechargePageEnhanced() {
                     type="tel"
                     value={mobileNumber}
                     onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                    placeholder={serviceType === 'PREPAID' 
-                      ? "Enter 10-digit mobile number (auto-detects operator)" 
+                    placeholder={serviceType === 'PREPAID'
+                      ? "Enter 10-digit mobile number (auto-detects operator)"
                       : "Enter 10-digit mobile number"}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-24"
                     required
@@ -835,13 +857,13 @@ export default function MobileRechargePageEnhanced() {
                   <div className="flex-1">
                     <h3 className="font-bold text-orange-900 mb-1">Special Offers for Your Number</h3>
                     <p className="text-sm text-orange-700">
-                      {loadingOffers 
+                      {loadingOffers
                         ? 'Checking for exclusive offers...'
                         : showOffers && rOffers.length > 0
-                        ? `Found ${rOffers.length} special offer${rOffers.length > 1 ? 's' : ''} for your number!`
-                        : message.includes('No special offers available')
-                        ? 'No special offers available for this number right now. Check back later!'
-                        : 'R-OFFER service is only available for Airtel and VI networks.'
+                          ? `Found ${rOffers.length} special offer${rOffers.length > 1 ? 's' : ''} for your number!`
+                          : message.includes('No special offers available')
+                            ? 'No special offers available for this number right now. Check back later!'
+                            : 'R-OFFER service is available for Airtel, VI, and Jio.'
                       }
                     </p>
                   </div>
@@ -869,7 +891,7 @@ export default function MobileRechargePageEnhanced() {
                         {rOffers.length} offers
                       </span>
                     </div>
-                    
+
                     <div className="space-y-2">
                       {rOffers.map((offer, index) => (
                         <div
@@ -877,20 +899,20 @@ export default function MobileRechargePageEnhanced() {
                           onClick={() => {
                             // Parse benefits from description
                             const benefits = parseOfferBenefits(offer.description || offer.offer_text || '');
-                            
+
                             // Create enhanced description with structured benefits
                             let enhancedDescription = offer.description || offer.offer_text || 'Special offer for your number';
-                            
+
                             if (benefits.data || benefits.talktime || benefits.sms || benefits.other.length > 0) {
                               const benefitsList = [];
                               if (benefits.data) benefitsList.push(`📶 Data: ${benefits.data}`);
                               if (benefits.talktime) benefitsList.push(`📞 Talktime: ${benefits.talktime}`);
                               if (benefits.sms) benefitsList.push(`💬 SMS: ${benefits.sms}`);
                               if (benefits.other.length > 0) benefitsList.push(`⭐ ${benefits.other.join(', ')}`);
-                              
+
                               enhancedDescription = `🎁 SPECIAL R-OFFER BENEFITS:\n\n${benefitsList.join('\n')}\n\n📋 Original Description:\n${enhancedDescription}`;
                             }
-                            
+
                             // Show R-OFFER details in modal
                             setModalPlan({
                               amount: offer.amount,
@@ -904,11 +926,10 @@ export default function MobileRechargePageEnhanced() {
                             });
                             setIsModalOpen(true);
                           }}
-                          className={`relative bg-white border-2 rounded-lg p-3 cursor-pointer transition-all duration-200 ${
-                            selectedPlan?.amount === offer.amount && selectedPlan?.type === 'R-OFFER'
-                              ? 'border-orange-400 bg-orange-50 shadow-lg'
-                              : 'border-orange-200 hover:border-orange-300 hover:bg-orange-50'
-                          }`}
+                          className={`relative bg-white border-2 rounded-lg p-3 cursor-pointer transition-all duration-200 ${selectedPlan?.amount === offer.amount && selectedPlan?.type === 'R-OFFER'
+                            ? 'border-orange-400 bg-orange-50 shadow-lg'
+                            : 'border-orange-200 hover:border-orange-300 hover:bg-orange-50'
+                            }`}
                         >
                           <div className="flex items-center justify-between">
                             {/* Left side - Offer info */}
@@ -928,11 +949,11 @@ export default function MobileRechargePageEnhanced() {
                                   </span>
                                 )}
                               </div>
-                              
+
                               <p className="text-sm text-gray-700 mb-2 line-clamp-2">
                                 {offer.description || offer.offer_text || 'Special offer for your number'}
                               </p>
-                              
+
                               <div className="flex items-center gap-4 text-xs text-gray-600">
                                 {offer.validity && (
                                   <span className="flex items-center gap-1">
@@ -983,8 +1004,8 @@ export default function MobileRechargePageEnhanced() {
                   <div className="text-2xl mr-3">💰</div>
                   <div>
                     <p className="text-sm font-medium text-green-800">
-                      {userRole === 'CUSTOMER' 
-                        ? '🎉 You will earn cashback on this recharge!' 
+                      {userRole === 'CUSTOMER'
+                        ? '🎉 You will earn cashback on this recharge!'
                         : '💼 You will earn commission on this recharge!'}
                     </p>
                     <p className="text-xs text-green-700 mt-1">
@@ -1006,11 +1027,10 @@ export default function MobileRechargePageEnhanced() {
 
             {/* Message */}
             {message && (
-              <div className={`p-4 rounded-lg ${
-                messageType === 'success' ? 'bg-green-50 text-green-800 border border-green-200' :
+              <div className={`p-4 rounded-lg ${messageType === 'success' ? 'bg-green-50 text-green-800 border border-green-200' :
                 messageType === 'error' ? 'bg-red-50 text-red-800 border border-red-200' :
-                'bg-blue-50 text-blue-800 border border-blue-200'
-              }`}>
+                  'bg-blue-50 text-blue-800 border border-blue-200'
+                }`}>
                 {message}
               </div>
             )}
