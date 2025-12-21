@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useApi } from '@/hooks/useApi';
-import { toast } from '@/lib/toast';
+import { toast } from 'react-hot-toast';
 import { UserRole } from '@/types';
 
 interface PanCommissionConfig {
@@ -46,7 +46,7 @@ export default function PanCommissionPage() {
     try {
       const response = await fetch('/api/admin/pan-commission');
       const data = await response.json();
-      
+
       if (data.success) {
         setConfigs(data.data);
       } else {
@@ -73,7 +73,7 @@ export default function PanCommissionPage() {
 
     try {
       const method = editingConfig ? 'PUT' : 'POST';
-      const body = editingConfig 
+      const body = editingConfig
         ? { ...formData, id: editingConfig.id }
         : formData;
 
@@ -261,7 +261,7 @@ export default function PanCommissionPage() {
               </div>
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                 <p className="text-xs text-yellow-800">
-                  <strong>Note:</strong> Balance is fetched manually to avoid rate limiting. 
+                  <strong>Note:</strong> Balance is fetched manually to avoid rate limiting.
                   Click the "Fetch Balance" button to get the latest balance from PAN API.
                 </p>
               </div>
@@ -397,11 +397,10 @@ export default function PanCommissionPage() {
                           ₹{((config.price * config.commission_rate) / 100).toFixed(2)}
                         </td>
                         <td className="border border-gray-300 px-4 py-2">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            config.is_active 
-                              ? 'bg-green-100 text-green-800' 
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.is_active
+                              ? 'bg-green-100 text-green-800'
                               : 'bg-red-100 text-red-800'
-                          }`}>
+                            }`}>
                             {config.is_active ? 'Active' : 'Inactive'}
                           </span>
                         </td>

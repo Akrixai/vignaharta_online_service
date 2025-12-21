@@ -167,10 +167,9 @@ export default function RootLayout({
         )}
       </head>
       <body className="antialiased">
-        <GoogleTranslate />
-        {/* Google Analytics removed to avoid CSP/script loading issues */}
         <NextAuthSessionProvider>
           <LanguageProvider>
+            <GoogleTranslate />
             <NotificationManager>
               <ErrorBoundary>
                 {children}

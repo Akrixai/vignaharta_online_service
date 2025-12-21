@@ -180,8 +180,8 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Recharge & Bill Payment Services - Only for specific retailer */}
-        {(user.role === UserRole.RETAILER || user.role === UserRole.CUSTOMER) && user.email === 'AkrixRetailerTest@gmail.com' && (
+        {/* Recharge & Bill Payment Services */}
+        {(user.role === UserRole.RETAILER || user.role === UserRole.CUSTOMER) && (
           <div className="my-8">
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-gray-800 mb-2">💳 Recharge & Bill Payments</h2>
@@ -190,10 +190,10 @@ export default function DashboardPage() {
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
               {/* Mobile Prepaid */}
-              <Link href={user.email === 'AkrixRetailerTest@gmail.com' ? "/dashboard/recharge/mobile" : "/dashboard/coming-soon"}>
+              <Link href="/dashboard/recharge/mobile">
                 <div className="group bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
-                  <div className={`absolute top-2 right-2 ${user.email === 'AkrixRetailerTest@gmail.com' ? 'bg-green-500' : 'bg-white text-blue-600'} text-white text-[8px] font-bold px-2 py-1 rounded-full`}>
-                    {user.email === 'AkrixRetailerTest@gmail.com' ? 'LIVE' : 'SOON'}
+                  <div className="absolute top-2 right-2 bg-green-500 text-white text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
                   </div>
                   <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">📱</div>
                   <h3 className="text-white font-bold text-sm mb-1">Mobile</h3>
@@ -202,10 +202,10 @@ export default function DashboardPage() {
               </Link>
 
               {/* DTH Recharge */}
-              <Link href={user.email === 'AkrixRetailerTest@gmail.com' ? "/dashboard/recharge/dth" : "/dashboard/coming-soon"}>
+              <Link href="/dashboard/recharge/dth">
                 <div className="group bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
-                  <div className={`absolute top-2 right-2 ${user.email === 'AkrixRetailerTest@gmail.com' ? 'bg-green-500' : 'bg-white text-purple-600'} text-white text-[8px] font-bold px-2 py-1 rounded-full`}>
-                    {user.email === 'AkrixRetailerTest@gmail.com' ? 'LIVE' : 'SOON'}
+                  <div className="absolute top-2 right-2 bg-green-500 text-white text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
                   </div>
                   <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">📺</div>
                   <h3 className="text-white font-bold text-sm mb-1">DTH</h3>
@@ -214,10 +214,10 @@ export default function DashboardPage() {
               </Link>
 
               {/* Electricity Bill */}
-              <Link href={user.email === 'AkrixRetailerTest@gmail.com' ? "/dashboard/recharge/electricity" : "/dashboard/coming-soon"}>
+              <Link href="/dashboard/recharge/electricity">
                 <div className="group bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
-                  <div className={`absolute top-2 right-2 ${user.email === 'AkrixRetailerTest@gmail.com' ? 'bg-green-500' : 'bg-white text-yellow-600'} text-white text-[8px] font-bold px-2 py-1 rounded-full`}>
-                    {user.email === 'AkrixRetailerTest@gmail.com' ? 'LIVE' : 'SOON'}
+                  <div className="absolute top-2 right-2 bg-green-500 text-white text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
                   </div>
                   <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">⚡</div>
                   <h3 className="text-white font-bold text-sm mb-1">Electricity</h3>
@@ -226,10 +226,10 @@ export default function DashboardPage() {
               </Link>
 
               {/* Recharge History */}
-              <Link href={user.email === 'AkrixRetailerTest@gmail.com' ? "/dashboard/recharge/transactions" : "/dashboard/coming-soon"}>
+              <Link href="/dashboard/recharge/transactions">
                 <div className="group bg-gradient-to-br from-gray-500 to-gray-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
-                  <div className={`absolute top-2 right-2 ${user.email === 'AkrixRetailerTest@gmail.com' ? 'bg-green-500' : 'bg-white text-gray-600'} text-white text-[8px] font-bold px-2 py-1 rounded-full`}>
-                    {user.email === 'AkrixRetailerTest@gmail.com' ? 'LIVE' : 'SOON'}
+                  <div className="absolute top-2 right-2 bg-green-500 text-white text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
                   </div>
                   <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">📊</div>
                   <h3 className="text-white font-bold text-sm mb-1">Recharge History</h3>

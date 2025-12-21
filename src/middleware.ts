@@ -287,11 +287,10 @@ export default withAuth(
         }
       }
 
-      // Recharge & Bills access (Only for specific retailer email)
+      // Recharge & Bills access (Retailer and Customer access)
       if (pathname.startsWith('/dashboard/recharge/')) {
-        const userEmail = token.email as string;
-        if (userEmail !== 'AkrixRetailerTest@gmail.com') {
-          return NextResponse.redirect(new URL('/dashboard/coming-soon', req.url));
+        if (userRole !== UserRole.RETAILER && userRole !== UserRole.CUSTOMER) {
+          return NextResponse.redirect(new URL('/dashboard', req.url));
         }
       }
     }

@@ -24,8 +24,7 @@ export default function PanCorrectionPage() {
   });
 
   // Check if user has access
-  const hasAccess = session?.user?.email === 'AkrixRetailerTest@gmail.com' && 
-    (session?.user?.role === UserRole.RETAILER || session?.user?.role === UserRole.CUSTOMER);
+  const hasAccess = session?.user?.role === UserRole.RETAILER || session?.user?.role === UserRole.CUSTOMER;
 
   useEffect(() => {
     if (hasAccess) {
@@ -64,7 +63,7 @@ export default function PanCorrectionPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!config) {
       toast.error('Configuration not loaded');
       return;
@@ -99,7 +98,7 @@ export default function PanCorrectionPage() {
           duration: 5000,
           icon: '💳'
         });
-        
+
         // Show order ID
         if (data.data?.order_id) {
           toast.success(`Order ID: ${data.data.order_id}`, {
@@ -107,11 +106,11 @@ export default function PanCorrectionPage() {
             icon: '📋'
           });
         }
-        
+
         // Redirect to InsPay URL immediately
         if (data.data?.inspay_url) {
           toast.loading('Opening PAN correction portal...', { duration: 2000 });
-          
+
           setTimeout(() => {
             window.location.href = data.data.inspay_url;
           }, 1500);
@@ -246,7 +245,7 @@ export default function PanCorrectionPage() {
                   >
                     ← Back
                   </button>
-                  
+
                   <button
                     type="submit"
                     disabled={loading || !config || walletBalance < (config?.price || 0)}

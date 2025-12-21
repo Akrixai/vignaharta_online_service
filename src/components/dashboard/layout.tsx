@@ -50,7 +50,7 @@ function ChatWidget({ showButton, setShowButton }: { showButton: boolean; setSho
 
   const loadChaportChat = () => {
     const appId = env.NEXT_PUBLIC_CHAPORT_APP_ID;
-    
+
     if (!appId || appId === '') {
       console.error('Chaport: App ID is missing');
       return;
@@ -72,10 +72,10 @@ function ChatWidget({ showButton, setShowButton }: { showButton: boolean; setSho
     const chaport: any = {};
     chaport._q = [];
     chaport._l = {};
-    chaport.q = function(...args: any[]) {
+    chaport.q = function (...args: any[]) {
       chaport._q.push(args);
     };
-    chaport.on = function(e: string, fn: Function) {
+    chaport.on = function (e: string, fn: Function) {
       if (!chaport._l[e]) chaport._l[e] = [];
       chaport._l[e].push(fn);
     };
@@ -86,10 +86,10 @@ function ChatWidget({ showButton, setShowButton }: { showButton: boolean; setSho
     script.type = 'text/javascript';
     script.async = true;
     script.src = 'https://app.chaport.com/javascripts/insert.js';
-    
+
     script.onload = () => {
       console.log('Chaport: Script loaded successfully');
-      
+
       // Hide default Chaport launcher and position chat window
       setTimeout(() => {
         const style = document.createElement('style');
@@ -135,10 +135,10 @@ function ChatWidget({ showButton, setShowButton }: { showButton: boolean; setSho
   const toggleChat = () => {
     if (isChatLoaded && (window as any).chaport) {
       // Toggle chat visibility
-      const chaportContainer = document.getElementById('chaport-container') || 
-                              document.querySelector('[id^="chaport-container"]') ||
-                              document.querySelector('.chaport-container');
-      
+      const chaportContainer = document.getElementById('chaport-container') ||
+        document.querySelector('[id^="chaport-container"]') ||
+        document.querySelector('.chaport-container');
+
       if (chaportContainer) {
         if (isChatOpen) {
           (chaportContainer as HTMLElement).style.display = 'none';
@@ -153,7 +153,7 @@ function ChatWidget({ showButton, setShowButton }: { showButton: boolean; setSho
   return (
     <>
       {/* Hidden trigger area - only shows when hovered */}
-      <div 
+      <div
         className="fixed bottom-4 right-4 w-16 h-16 z-[9999]"
         onMouseEnter={handleShowChat}
       >
@@ -163,8 +163,8 @@ function ChatWidget({ showButton, setShowButton }: { showButton: boolean; setSho
               onClick={toggleChat}
               className={`
                 flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-all duration-300 hover:scale-110
-                ${isChatOpen 
-                  ? 'bg-red-600 hover:bg-red-700' 
+                ${isChatOpen
+                  ? 'bg-red-600 hover:bg-red-700'
                   : 'bg-blue-600 hover:bg-blue-700'
                 }
               `}
@@ -180,7 +180,7 @@ function ChatWidget({ showButton, setShowButton }: { showButton: boolean; setSho
                 </svg>
               )}
             </button>
-            
+
             {/* Tooltip */}
             {!isChatOpen && (
               <div className="absolute bottom-16 right-0 bg-gray-800 text-white text-xs px-3 py-2 rounded-lg shadow-lg whitespace-nowrap">
@@ -209,7 +209,6 @@ interface MenuItem {
   href: string;
   icon: string;
   roles: UserRole[];
-  requiresEmail?: string; // Optional: Only show to specific email
 }
 
 const menuItems: MenuItem[] = [
@@ -230,20 +229,20 @@ const menuItems: MenuItem[] = [
   { name: 'Free Services', href: '/dashboard/employee/free-services', icon: '🆓', roles: [UserRole.EMPLOYEE] },
   { name: 'Training Videos', href: '/dashboard/training-videos', icon: '🎥', roles: [UserRole.RETAILER, UserRole.EMPLOYEE] },
 
-  // Recharge & Bill Payment Services (Only for specific retailer)
-  { name: 'Mobile Recharge', href: '/dashboard/recharge/mobile', icon: '📱', roles: [UserRole.RETAILER, UserRole.CUSTOMER], requiresEmail: 'AkrixRetailerTest@gmail.com' },
-  { name: 'Mobile Postpaid', href: '/dashboard/recharge/mobile-postpaid', icon: '📞', roles: [UserRole.RETAILER, UserRole.CUSTOMER], requiresEmail: 'AkrixRetailerTest@gmail.com' },
-  { name: 'DTH Recharge', href: '/dashboard/recharge/dth', icon: '📺', roles: [UserRole.RETAILER, UserRole.CUSTOMER], requiresEmail: 'AkrixRetailerTest@gmail.com' },
-  { name: 'Electricity Bill', href: '/dashboard/recharge/electricity', icon: '⚡', roles: [UserRole.RETAILER, UserRole.CUSTOMER], requiresEmail: 'AkrixRetailerTest@gmail.com' },
-  { name: 'Recharge History', href: '/dashboard/recharge/transactions', icon: '📊', roles: [UserRole.RETAILER, UserRole.CUSTOMER], requiresEmail: 'AkrixRetailerTest@gmail.com' },
+  // Recharge & Bill Payment Services
+  { name: 'Mobile Recharge', href: '/dashboard/recharge/mobile', icon: '📱', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'Mobile Postpaid', href: '/dashboard/recharge/mobile-postpaid', icon: '📞', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'DTH Recharge', href: '/dashboard/recharge/dth', icon: '📺', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'Electricity Bill', href: '/dashboard/recharge/electricity', icon: '⚡', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'Recharge History', href: '/dashboard/recharge/transactions', icon: '📊', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
 
-  // PAN Services (Only for specific retailer)
-  { name: 'PAN Services', href: '/dashboard/pan-services', icon: '🆔', roles: [UserRole.RETAILER, UserRole.CUSTOMER], requiresEmail: 'AkrixRetailerTest@gmail.com' },
-  { name: 'New PAN Application', href: '/dashboard/pan-services/new', icon: '🆔', roles: [UserRole.RETAILER, UserRole.CUSTOMER], requiresEmail: 'AkrixRetailerTest@gmail.com' },
-  { name: 'PAN Correction', href: '/dashboard/pan-services/correction', icon: '✏️', roles: [UserRole.RETAILER, UserRole.CUSTOMER], requiresEmail: 'AkrixRetailerTest@gmail.com' },
-  { name: 'Incomplete PAN', href: '/dashboard/pan-services/incomplete', icon: '📋', roles: [UserRole.RETAILER, UserRole.CUSTOMER], requiresEmail: 'AkrixRetailerTest@gmail.com' },
-  { name: 'PAN Services History', href: '/dashboard/pan-services/history', icon: '📊', roles: [UserRole.RETAILER, UserRole.CUSTOMER], requiresEmail: 'AkrixRetailerTest@gmail.com' },
-  
+  // PAN Services
+  { name: 'PAN Services', href: '/dashboard/pan-services', icon: '🆔', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'New PAN Application', href: '/dashboard/pan-services/new', icon: '🆔', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'PAN Correction', href: '/dashboard/pan-services/correction', icon: '✏️', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'Incomplete PAN', href: '/dashboard/pan-services/incomplete', icon: '📋', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'PAN Services History', href: '/dashboard/pan-services/history', icon: '📊', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+
   // Coming Soon Services
   { name: 'Gas Bill', href: '/dashboard/coming-soon', icon: '🔥', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
   { name: 'Water Bill', href: '/dashboard/coming-soon', icon: '💧', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
@@ -359,13 +358,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   // Filter menu items based on role and designation
   const filteredMenuItems = menuItems.filter(item => {
-    // First check if user's role is allowed
+    // Check if user's role is allowed
     if (!item.roles.includes(userRole)) return false;
-
-    // Check if item requires specific email
-    if (item.requiresEmail && session.user.email !== item.requiresEmail) {
-      return false;
-    }
 
     // Special handling for Wallet - Admin, Retailer, and Customer
     if (item.name === 'Wallet') {
@@ -464,7 +458,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <nav className="flex-1">
             <div className="space-y-0.5 sm:space-y-1">
               {/* Main Menu Items */}
-              {filteredMenuItems.filter(item => 
+              {filteredMenuItems.filter(item =>
                 ['Dashboard', 'Wallet', 'Wallet Transactions', 'My Profile', 'Change Password'].includes(item.name)
               ).map((item) => (
                 <Link
@@ -479,220 +473,220 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               ))}
 
               {/* Services Section */}
-              {filteredMenuItems.some(item => 
+              {filteredMenuItems.some(item =>
                 ['Apply Services', 'Draft Applications', 'My Applications', 'Service Receipts', 'Cashback Earnings', 'Commission Earnings'].includes(item.name)
               ) && (
-                <>
-                  <div className="pt-3 pb-1 px-2">
-                    <h3 className="text-xs font-semibold text-red-300 uppercase tracking-wider">Services</h3>
-                  </div>
-                  {filteredMenuItems.filter(item => 
-                    ['Apply Services', 'Draft Applications', 'My Applications', 'Service Receipts', 'Cashback Earnings', 'Commission Earnings'].includes(item.name)
-                  ).map((item) => (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className="group flex items-center px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg text-red-100 hover:bg-red-700 hover:text-white transition-all duration-200 hover:shadow-md"
-                      onClick={() => setSidebarOpen(false)}
-                    >
-                      <span className="mr-2 sm:mr-3 text-base sm:text-lg flex-shrink-0">{item.icon}</span>
-                      <span className="truncate">{item.name}</span>
-                    </Link>
-                  ))}
-                </>
-              )}
+                  <>
+                    <div className="pt-3 pb-1 px-2">
+                      <h3 className="text-xs font-semibold text-red-300 uppercase tracking-wider">Services</h3>
+                    </div>
+                    {filteredMenuItems.filter(item =>
+                      ['Apply Services', 'Draft Applications', 'My Applications', 'Service Receipts', 'Cashback Earnings', 'Commission Earnings'].includes(item.name)
+                    ).map((item) => (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className="group flex items-center px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg text-red-100 hover:bg-red-700 hover:text-white transition-all duration-200 hover:shadow-md"
+                        onClick={() => setSidebarOpen(false)}
+                      >
+                        <span className="mr-2 sm:mr-3 text-base sm:text-lg flex-shrink-0">{item.icon}</span>
+                        <span className="truncate">{item.name}</span>
+                      </Link>
+                    ))}
+                  </>
+                )}
 
               {/* Products & Orders Section */}
-              {filteredMenuItems.some(item => 
+              {filteredMenuItems.some(item =>
                 ['My Store', 'My Orders', 'Refunds'].includes(item.name)
               ) && (
-                <>
-                  <div className="pt-3 pb-1 px-2">
-                    <h3 className="text-xs font-semibold text-red-300 uppercase tracking-wider">Products</h3>
-                  </div>
-                  {filteredMenuItems.filter(item => 
-                    ['My Store', 'My Orders', 'Refunds'].includes(item.name)
-                  ).map((item) => (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className="group flex items-center px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg text-red-100 hover:bg-red-700 hover:text-white transition-all duration-200 hover:shadow-md"
-                      onClick={() => setSidebarOpen(false)}
-                    >
-                      <span className="mr-2 sm:mr-3 text-base sm:text-lg flex-shrink-0">{item.icon}</span>
-                      <span className="truncate">{item.name}</span>
-                    </Link>
-                  ))}
-                </>
-              )}
+                  <>
+                    <div className="pt-3 pb-1 px-2">
+                      <h3 className="text-xs font-semibold text-red-300 uppercase tracking-wider">Products</h3>
+                    </div>
+                    {filteredMenuItems.filter(item =>
+                      ['My Store', 'My Orders', 'Refunds'].includes(item.name)
+                    ).map((item) => (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className="group flex items-center px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg text-red-100 hover:bg-red-700 hover:text-white transition-all duration-200 hover:shadow-md"
+                        onClick={() => setSidebarOpen(false)}
+                      >
+                        <span className="mr-2 sm:mr-3 text-base sm:text-lg flex-shrink-0">{item.icon}</span>
+                        <span className="truncate">{item.name}</span>
+                      </Link>
+                    ))}
+                  </>
+                )}
 
               {/* Recharge & Bills Section */}
-              {filteredMenuItems.some(item => 
+              {filteredMenuItems.some(item =>
                 ['Mobile Recharge', 'Mobile Postpaid', 'DTH Recharge', 'Electricity Bill', 'Recharge History'].includes(item.name)
               ) && (
-                <>
-                  <div className="pt-3 pb-1 px-2">
-                    <h3 className="text-xs font-semibold text-red-300 uppercase tracking-wider">Recharge & Bills</h3>
-                  </div>
-                  {filteredMenuItems.filter(item => 
-                    ['Mobile Recharge', 'Mobile Postpaid', 'DTH Recharge', 'Electricity Bill', 'Recharge History'].includes(item.name)
-                  ).map((item) => (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className="group flex items-center px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg text-red-100 hover:bg-red-700 hover:text-white transition-all duration-200 hover:shadow-md"
-                      onClick={() => setSidebarOpen(false)}
-                    >
-                      <span className="mr-2 sm:mr-3 text-base sm:text-lg flex-shrink-0">{item.icon}</span>
-                      <span className="truncate">{item.name}</span>
-                    </Link>
-                  ))}
-                </>
-              )}
+                  <>
+                    <div className="pt-3 pb-1 px-2">
+                      <h3 className="text-xs font-semibold text-red-300 uppercase tracking-wider">Recharge & Bills</h3>
+                    </div>
+                    {filteredMenuItems.filter(item =>
+                      ['Mobile Recharge', 'Mobile Postpaid', 'DTH Recharge', 'Electricity Bill', 'Recharge History'].includes(item.name)
+                    ).map((item) => (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className="group flex items-center px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg text-red-100 hover:bg-red-700 hover:text-white transition-all duration-200 hover:shadow-md"
+                        onClick={() => setSidebarOpen(false)}
+                      >
+                        <span className="mr-2 sm:mr-3 text-base sm:text-lg flex-shrink-0">{item.icon}</span>
+                        <span className="truncate">{item.name}</span>
+                      </Link>
+                    ))}
+                  </>
+                )}
 
               {/* PAN Services Section */}
-              {filteredMenuItems.some(item => 
+              {filteredMenuItems.some(item =>
                 ['PAN Services', 'New PAN Application', 'PAN Correction', 'Incomplete PAN', 'PAN Services History'].includes(item.name)
               ) && (
-                <>
-                  <div className="pt-3 pb-1 px-2">
-                    <h3 className="text-xs font-semibold text-red-300 uppercase tracking-wider">PAN Services</h3>
-                  </div>
-                  {filteredMenuItems.filter(item => 
-                    ['PAN Services', 'New PAN Application', 'PAN Correction', 'Incomplete PAN', 'PAN Services History'].includes(item.name)
-                  ).map((item) => (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className="group flex items-center px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg text-red-100 hover:bg-red-700 hover:text-white transition-all duration-200 hover:shadow-md"
-                      onClick={() => setSidebarOpen(false)}
-                    >
-                      <span className="mr-2 sm:mr-3 text-base sm:text-lg flex-shrink-0">{item.icon}</span>
-                      <span className="truncate">{item.name}</span>
-                    </Link>
-                  ))}
-                </>
-              )}
+                  <>
+                    <div className="pt-3 pb-1 px-2">
+                      <h3 className="text-xs font-semibold text-red-300 uppercase tracking-wider">PAN Services</h3>
+                    </div>
+                    {filteredMenuItems.filter(item =>
+                      ['PAN Services', 'New PAN Application', 'PAN Correction', 'Incomplete PAN', 'PAN Services History'].includes(item.name)
+                    ).map((item) => (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className="group flex items-center px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg text-red-100 hover:bg-red-700 hover:text-white transition-all duration-200 hover:shadow-md"
+                        onClick={() => setSidebarOpen(false)}
+                      >
+                        <span className="mr-2 sm:mr-3 text-base sm:text-lg flex-shrink-0">{item.icon}</span>
+                        <span className="truncate">{item.name}</span>
+                      </Link>
+                    ))}
+                  </>
+                )}
 
               {/* Employee Section */}
-              {filteredMenuItems.some(item => 
+              {filteredMenuItems.some(item =>
                 ['Employee Management', 'All Employees & Documents', 'Employee Certificate', 'Free Services', 'My Referrals', 'Organization Hierarchy', 'Training Videos'].includes(item.name)
               ) && (
-                <>
-                  <div className="pt-3 pb-1 px-2">
-                    <h3 className="text-xs font-semibold text-red-300 uppercase tracking-wider">Employee</h3>
-                  </div>
-                  {filteredMenuItems.filter(item => 
-                    ['Employee Management', 'All Employees & Documents', 'Employee Certificate', 'Free Services', 'My Referrals', 'Organization Hierarchy', 'Training Videos'].includes(item.name)
-                  ).map((item) => (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className="group flex items-center px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg text-red-100 hover:bg-red-700 hover:text-white transition-all duration-200 hover:shadow-md"
-                      onClick={() => setSidebarOpen(false)}
-                    >
-                      <span className="mr-2 sm:mr-3 text-base sm:text-lg flex-shrink-0">{item.icon}</span>
-                      <span className="truncate">{item.name}</span>
-                    </Link>
-                  ))}
-                </>
-              )}
+                  <>
+                    <div className="pt-3 pb-1 px-2">
+                      <h3 className="text-xs font-semibold text-red-300 uppercase tracking-wider">Employee</h3>
+                    </div>
+                    {filteredMenuItems.filter(item =>
+                      ['Employee Management', 'All Employees & Documents', 'Employee Certificate', 'Free Services', 'My Referrals', 'Organization Hierarchy', 'Training Videos'].includes(item.name)
+                    ).map((item) => (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className="group flex items-center px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg text-red-100 hover:bg-red-700 hover:text-white transition-all duration-200 hover:shadow-md"
+                        onClick={() => setSidebarOpen(false)}
+                      >
+                        <span className="mr-2 sm:mr-3 text-base sm:text-lg flex-shrink-0">{item.icon}</span>
+                        <span className="truncate">{item.name}</span>
+                      </Link>
+                    ))}
+                  </>
+                )}
 
               {/* Admin Management Section */}
-              {(userRole === UserRole.ADMIN || userRole === UserRole.EMPLOYEE) && filteredMenuItems.some(item => 
+              {(userRole === UserRole.ADMIN || userRole === UserRole.EMPLOYEE) && filteredMenuItems.some(item =>
                 ['Blog Management', 'Manage Products', 'Manage Training', 'Manage Recruitments', 'Manage Applications', 'Order Management', 'Manage Services', 'User Management', 'All Certificates', 'Transactions', 'Wallet Approvals', 'Refund Management'].includes(item.name)
               ) && (
-                <>
-                  <div className="pt-3 pb-1 px-2">
-                    <h3 className="text-xs font-semibold text-yellow-300 uppercase tracking-wider">Admin - Management</h3>
-                  </div>
-                  {filteredMenuItems.filter(item => 
-                    ['Blog Management', 'Manage Products', 'Manage Training', 'Manage Recruitments', 'Manage Applications', 'Order Management', 'Manage Services', 'Manage Free Services', 'User Management', 'All Certificates', 'Transactions', 'Wallet Approvals', 'Refund Management'].includes(item.name)
-                  ).map((item) => (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className="group flex items-center px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg text-yellow-100 hover:bg-yellow-600 hover:text-white transition-all duration-200 hover:shadow-md"
-                      onClick={() => setSidebarOpen(false)}
-                    >
-                      <span className="mr-2 sm:mr-3 text-base sm:text-lg flex-shrink-0">{item.icon}</span>
-                      <span className="truncate">{item.name}</span>
-                    </Link>
-                  ))}
-                </>
-              )}
+                  <>
+                    <div className="pt-3 pb-1 px-2">
+                      <h3 className="text-xs font-semibold text-yellow-300 uppercase tracking-wider">Admin - Management</h3>
+                    </div>
+                    {filteredMenuItems.filter(item =>
+                      ['Blog Management', 'Manage Products', 'Manage Training', 'Manage Recruitments', 'Manage Applications', 'Order Management', 'Manage Services', 'Manage Free Services', 'User Management', 'All Certificates', 'Transactions', 'Wallet Approvals', 'Refund Management'].includes(item.name)
+                    ).map((item) => (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className="group flex items-center px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg text-yellow-100 hover:bg-yellow-600 hover:text-white transition-all duration-200 hover:shadow-md"
+                        onClick={() => setSidebarOpen(false)}
+                      >
+                        <span className="mr-2 sm:mr-3 text-base sm:text-lg flex-shrink-0">{item.icon}</span>
+                        <span className="truncate">{item.name}</span>
+                      </Link>
+                    ))}
+                  </>
+                )}
 
               {/* Admin Configuration Section */}
-              {userRole === UserRole.ADMIN && filteredMenuItems.some(item => 
+              {userRole === UserRole.ADMIN && filteredMenuItems.some(item =>
                 ['KWIKAPI Wallet', 'Recharge Configuration', 'PAN Commission Config', 'Referral Configuration', 'Contact Configuration', 'Registration Fee', 'Platform & Yearly Fees', 'Penalty Management', 'Leaderboard Emails', 'Shareable Service Forms'].includes(item.name)
               ) && (
-                <>
-                  <div className="pt-3 pb-1 px-2">
-                    <h3 className="text-xs font-semibold text-yellow-300 uppercase tracking-wider">Admin - Configuration</h3>
-                  </div>
-                  {filteredMenuItems.filter(item => 
-                    ['KWIKAPI Wallet', 'Recharge Configuration', 'PAN Commission Config', 'Referral Configuration', 'Contact Configuration', 'Registration Fee', 'Platform & Yearly Fees', 'Penalty Management', 'Leaderboard Emails', 'Shareable Service Forms'].includes(item.name)
-                  ).map((item) => (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className="group flex items-center px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg text-yellow-100 hover:bg-yellow-600 hover:text-white transition-all duration-200 hover:shadow-md"
-                      onClick={() => setSidebarOpen(false)}
-                    >
-                      <span className="mr-2 sm:mr-3 text-base sm:text-lg flex-shrink-0">{item.icon}</span>
-                      <span className="truncate">{item.name}</span>
-                    </Link>
-                  ))}
-                </>
-              )}
+                  <>
+                    <div className="pt-3 pb-1 px-2">
+                      <h3 className="text-xs font-semibold text-yellow-300 uppercase tracking-wider">Admin - Configuration</h3>
+                    </div>
+                    {filteredMenuItems.filter(item =>
+                      ['KWIKAPI Wallet', 'Recharge Configuration', 'PAN Commission Config', 'Referral Configuration', 'Contact Configuration', 'Registration Fee', 'Platform & Yearly Fees', 'Penalty Management', 'Leaderboard Emails', 'Shareable Service Forms'].includes(item.name)
+                    ).map((item) => (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className="group flex items-center px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg text-yellow-100 hover:bg-yellow-600 hover:text-white transition-all duration-200 hover:shadow-md"
+                        onClick={() => setSidebarOpen(false)}
+                      >
+                        <span className="mr-2 sm:mr-3 text-base sm:text-lg flex-shrink-0">{item.icon}</span>
+                        <span className="truncate">{item.name}</span>
+                      </Link>
+                    ))}
+                  </>
+                )}
 
               {/* Admin Analytics & Ads Section */}
-              {userRole === UserRole.ADMIN && filteredMenuItems.some(item => 
+              {userRole === UserRole.ADMIN && filteredMenuItems.some(item =>
                 ['Website Analytics', 'Free Services Analytics', 'Manage Advertisements', 'Login Advertisements'].includes(item.name)
               ) && (
-                <>
-                  <div className="pt-3 pb-1 px-2">
-                    <h3 className="text-xs font-semibold text-yellow-300 uppercase tracking-wider">Admin - Analytics</h3>
-                  </div>
-                  {filteredMenuItems.filter(item => 
-                    ['Website Analytics', 'Free Services Analytics', 'Manage Advertisements', 'Login Advertisements'].includes(item.name)
-                  ).map((item) => (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className="group flex items-center px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg text-yellow-100 hover:bg-yellow-600 hover:text-white transition-all duration-200 hover:shadow-md"
-                      onClick={() => setSidebarOpen(false)}
-                    >
-                      <span className="mr-2 sm:mr-3 text-base sm:text-lg flex-shrink-0">{item.icon}</span>
-                      <span className="truncate">{item.name}</span>
-                    </Link>
-                  ))}
-                </>
-              )}
+                  <>
+                    <div className="pt-3 pb-1 px-2">
+                      <h3 className="text-xs font-semibold text-yellow-300 uppercase tracking-wider">Admin - Analytics</h3>
+                    </div>
+                    {filteredMenuItems.filter(item =>
+                      ['Website Analytics', 'Free Services Analytics', 'Manage Advertisements', 'Login Advertisements'].includes(item.name)
+                    ).map((item) => (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className="group flex items-center px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg text-yellow-100 hover:bg-yellow-600 hover:text-white transition-all duration-200 hover:shadow-md"
+                        onClick={() => setSidebarOpen(false)}
+                      >
+                        <span className="mr-2 sm:mr-3 text-base sm:text-lg flex-shrink-0">{item.icon}</span>
+                        <span className="truncate">{item.name}</span>
+                      </Link>
+                    ))}
+                  </>
+                )}
 
               {/* Admin System Section */}
-              {userRole === UserRole.ADMIN && filteredMenuItems.some(item => 
+              {userRole === UserRole.ADMIN && filteredMenuItems.some(item =>
                 ['Registration Requests', 'Database Cleanup'].includes(item.name)
               ) && (
-                <>
-                  <div className="pt-3 pb-1 px-2">
-                    <h3 className="text-xs font-semibold text-yellow-300 uppercase tracking-wider">Admin - System</h3>
-                  </div>
-                  {filteredMenuItems.filter(item => 
-                    ['Registration Requests', 'Database Cleanup'].includes(item.name)
-                  ).map((item) => (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className="group flex items-center px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg text-yellow-100 hover:bg-yellow-600 hover:text-white transition-all duration-200 hover:shadow-md"
-                      onClick={() => setSidebarOpen(false)}
-                    >
-                      <span className="mr-2 sm:mr-3 text-base sm:text-lg flex-shrink-0">{item.icon}</span>
-                      <span className="truncate">{item.name}</span>
-                    </Link>
-                  ))}
-                </>
-              )}
+                  <>
+                    <div className="pt-3 pb-1 px-2">
+                      <h3 className="text-xs font-semibold text-yellow-300 uppercase tracking-wider">Admin - System</h3>
+                    </div>
+                    {filteredMenuItems.filter(item =>
+                      ['Registration Requests', 'Database Cleanup'].includes(item.name)
+                    ).map((item) => (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className="group flex items-center px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg text-yellow-100 hover:bg-yellow-600 hover:text-white transition-all duration-200 hover:shadow-md"
+                        onClick={() => setSidebarOpen(false)}
+                      >
+                        <span className="mr-2 sm:mr-3 text-base sm:text-lg flex-shrink-0">{item.icon}</span>
+                        <span className="truncate">{item.name}</span>
+                      </Link>
+                    ))}
+                  </>
+                )}
 
               {/* Coming Soon Services */}
               {filteredMenuItems.some(item => item.href === '/dashboard/coming-soon') && (
@@ -731,7 +725,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                       <span className="truncate">{item.name}</span>
                     </Link>
                   ))}
-                  
+
                   {/* Live Chat Support - Only for Retailers */}
                   {session?.user?.role === UserRole.RETAILER && (
                     <button

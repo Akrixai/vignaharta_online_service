@@ -1,4 +1,4 @@
-  'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
@@ -82,21 +82,21 @@ export default function PanServicesHistoryPage() {
   };
 
   // Check access
-  if (session?.user?.email !== 'AkrixRetailerTest@gmail.com') {
+  if (session?.user?.role !== UserRole.RETAILER && session?.user?.role !== UserRole.CUSTOMER && session?.user?.role !== UserRole.ADMIN) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <div className="text-6xl mb-4">🔒</div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Restricted</h1>
-            <p className="text-gray-600">PAN services are currently available for selected retailers only.</p>
+            <p className="text-gray-600">Only authorized users can access PAN services history.</p>
           </div>
         </div>
       </DashboardLayout>
     );
   }
 
-  const filteredServices = services.filter(service => 
+  const filteredServices = services.filter(service =>
     filter === 'ALL' || service.status === filter
   );
 
@@ -116,12 +116,12 @@ export default function PanServicesHistoryPage() {
     const now = new Date();
     const expiry = new Date(expiresAt);
     const diff = expiry.getTime() - now.getTime();
-    
+
     if (diff <= 0) return 'Expired';
-    
+
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    
+
     if (hours > 0) {
       return `${hours}h ${minutes}m remaining`;
     }
@@ -173,11 +173,10 @@ export default function PanServicesHistoryPage() {
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setFilter('ALL')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                filter === 'ALL' 
-                  ? 'bg-red-600 text-white' 
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'ALL'
+                  ? 'bg-red-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+                }`}
             >
               All ({services.length})
             </button>
@@ -185,11 +184,10 @@ export default function PanServicesHistoryPage() {
               <button
                 key={status}
                 onClick={() => setFilter(status)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  filter === status 
-                    ? 'bg-red-600 text-white' 
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === status
+                    ? 'bg-red-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                  }`}
               >
                 {status} ({services.filter(s => s.status === status).length})
               </button>
@@ -203,8 +201,8 @@ export default function PanServicesHistoryPage() {
             <div className="text-6xl mb-4">📋</div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">No PAN Services Found</h3>
             <p className="text-gray-600 mb-6">
-              {filter === 'ALL' 
-                ? "You haven't applied for any PAN services yet." 
+              {filter === 'ALL'
+                ? "You haven't applied for any PAN services yet."
                 : `No PAN services with ${filter} status found.`
               }
             </p>
@@ -232,7 +230,7 @@ export default function PanServicesHistoryPage() {
                         Mode: {service.mode}
                       </span>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                       <div>
                         <span className="text-gray-500">Order ID:</span>
@@ -282,8 +280,8 @@ export default function PanServicesHistoryPage() {
                           </p>
                           {service.refund_processed_at && (
                             <span className="text-xs text-purple-600">
-                              on {new Date(service.refund_processed_at).toLocaleDateString('en-US', { 
-                                month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+                              on {new Date(service.refund_processed_at).toLocaleDateString('en-US', {
+                                month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                               })}
                             </span>
                           )}
@@ -305,13 +303,13 @@ export default function PanServicesHistoryPage() {
                     )}
 
                     <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
-                      <span>Applied: {new Date(service.created_at).toLocaleDateString('en-US', { 
-                        year: 'numeric', month: 'short', day: 'numeric', 
-                        hour: '2-digit', minute: '2-digit' 
+                      <span>Applied: {new Date(service.created_at).toLocaleDateString('en-US', {
+                        year: 'numeric', month: 'short', day: 'numeric',
+                        hour: '2-digit', minute: '2-digit'
                       })}</span>
-                      <span>Updated: {new Date(service.updated_at).toLocaleDateString('en-US', { 
-                        year: 'numeric', month: 'short', day: 'numeric', 
-                        hour: '2-digit', minute: '2-digit' 
+                      <span>Updated: {new Date(service.updated_at).toLocaleDateString('en-US', {
+                        year: 'numeric', month: 'short', day: 'numeric',
+                        hour: '2-digit', minute: '2-digit'
                       })}</span>
                     </div>
                   </div>
@@ -327,7 +325,7 @@ export default function PanServicesHistoryPage() {
                         Continue Application
                       </a>
                     )}
-                    
+
                     {service.status === 'SUCCESS' && (
                       <button
                         onClick={() => toast.success('PAN application completed successfully!')}

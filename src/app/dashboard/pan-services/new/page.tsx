@@ -26,8 +26,7 @@ export default function NewPanPage() {
   });
 
   // Check if user has access
-  const hasAccess = session?.user?.email === 'AkrixRetailerTest@gmail.com' && 
-    (session?.user?.role === UserRole.RETAILER || session?.user?.role === UserRole.CUSTOMER);
+  const hasAccess = session?.user?.role === UserRole.RETAILER || session?.user?.role === UserRole.CUSTOMER;
 
   useEffect(() => {
     if (hasAccess) {
@@ -42,11 +41,11 @@ export default function NewPanPage() {
       console.log('💰 Fetching wallet balance...');
       const response = await fetch('/api/wallet');
       console.log('📊 Wallet response status:', response.status);
-      
+
       if (response.ok) {
         const data = await response.json();
         console.log('📥 Wallet data:', data);
-        
+
         if (data.success) {
           setWalletBalance(data.data.balance || 0);
           console.log('✅ Wallet balance loaded:', data.data.balance);
@@ -72,11 +71,11 @@ export default function NewPanPage() {
       console.log('🔧 Fetching PAN config...');
       const response = await fetch('/api/pan-services/config?type=NEW_PAN');
       console.log('📊 Config response status:', response.status);
-      
+
       if (response.ok) {
         const data = await response.json();
         console.log('📥 Config data:', data);
-        
+
         if (data.success) {
           setConfig(data.data);
           console.log('✅ Config loaded successfully');
@@ -98,7 +97,7 @@ export default function NewPanPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!config) {
       toast.error('Configuration not loaded. Please refresh the page.');
       return;
@@ -118,7 +117,7 @@ export default function NewPanPage() {
 
     try {
       console.log('🚀 Submitting PAN application:', formData);
-      
+
       const response = await fetch('/api/pan-services/new-pan', {
         method: 'POST',
         headers: {
@@ -128,7 +127,7 @@ export default function NewPanPage() {
       });
 
       console.log('📊 Response status:', response.status);
-      
+
       const data = await response.json();
       console.log('📥 Response data:', data);
 
@@ -138,7 +137,7 @@ export default function NewPanPage() {
           duration: 5000,
           icon: '💳'
         });
-        
+
         // Show order ID
         if (data.data?.order_id) {
           toast.success(`Order ID: ${data.data.order_id}`, {
@@ -146,17 +145,17 @@ export default function NewPanPage() {
             icon: '📋'
           });
         }
-        
+
         // Show debug info in development
         if (process.env.NODE_ENV === 'development' && data.debug) {
           console.log('🐛 Debug info:', data.debug);
         }
-        
+
         // Redirect to InsPay URL immediately
         if (data.data?.inspay_url) {
           console.log('🔗 Redirecting to InsPay URL:', data.data.inspay_url);
           toast.loading('Opening PAN application portal...', { duration: 2000 });
-          
+
           // Open in same window for better tracking
           setTimeout(() => {
             window.location.href = data.data.inspay_url;
@@ -169,12 +168,12 @@ export default function NewPanPage() {
         }
       } else {
         console.error('❌ API Error:', data);
-        
+
         // Show debug info in development
         if (process.env.NODE_ENV === 'development' && data.debug) {
           console.log('🐛 Debug info:', data.debug);
         }
-        
+
         // Show refund message if applicable
         if (data.refunded) {
           toast.error(data.message || 'Failed to initiate PAN application. Amount refunded to your wallet.', {
@@ -288,7 +287,7 @@ export default function NewPanPage() {
                   >
                     ← Back
                   </button>
-                  
+
                   <button
                     type="submit"
                     disabled={loading || configLoading || walletLoading || !config || walletBalance < (config?.price || 0)}

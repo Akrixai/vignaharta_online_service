@@ -17,8 +17,7 @@ export default function IncompletePanPage() {
   });
 
   // Check if user has access
-  const hasAccess = session?.user?.email === 'AkrixRetailerTest@gmail.com' && 
-    (session?.user?.role === UserRole.RETAILER || session?.user?.role === UserRole.CUSTOMER);
+  const hasAccess = session?.user?.role === UserRole.RETAILER || session?.user?.role === UserRole.CUSTOMER;
 
   useEffect(() => {
     if (hasAccess) {
@@ -42,7 +41,7 @@ export default function IncompletePanPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.existing_order_id.trim()) {
       toast.error('Please enter your existing order ID');
       return;
@@ -63,12 +62,12 @@ export default function IncompletePanPage() {
 
       if (data.success) {
         toast.success('Incomplete PAN application resumed successfully!');
-        
+
         // Redirect to InsPay URL
         if (data.data.inspay_url) {
           window.open(data.data.inspay_url, '_blank');
         }
-        
+
         // Redirect to history page
         router.push('/dashboard/pan-services/history');
       } else {
@@ -158,7 +157,7 @@ export default function IncompletePanPage() {
                   >
                     ← Back
                   </button>
-                  
+
                   <button
                     type="submit"
                     disabled={loading}
@@ -232,7 +231,7 @@ export default function IncompletePanPage() {
                   <div className="font-medium text-gray-900">View History</div>
                   <div className="text-sm text-gray-600">Check your previous applications</div>
                 </button>
-                
+
                 <button
                   onClick={() => router.push('/dashboard/pan-services/new')}
                   className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200"

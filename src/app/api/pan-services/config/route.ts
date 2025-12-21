@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
+import { UserRole } from '@/types';
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,8 +11,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if user has access (only for specific retailer)
-    if (session.user.email !== 'AkrixRetailerTest@gmail.com') {
+    // Check if user has access
+    if (session.user.role !== UserRole.RETAILER && session.user.role !== UserRole.CUSTOMER && session.user.role !== UserRole.ADMIN) {
       return NextResponse.json({ success: false, message: 'Access denied' }, { status: 403 });
     }
 

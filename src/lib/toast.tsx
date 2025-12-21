@@ -1,4 +1,5 @@
 import toast from 'react-hot-toast';
+export { toast };
 
 // Professional toast notification system
 export const showToast = {
