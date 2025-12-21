@@ -58,23 +58,23 @@ export default function Footer() {
         >
           {/* Brand Column */}
           <motion.div variants={itemVariants} className="space-y-6">
-            <Logo size="lg" showText={true} animated={true} className="justify-start opacity-90 hover:opacity-100 transition-opacity" />
-            <p className="text-white/80 text-sm leading-relaxed max-w-sm">
+            <Logo size="lg" showText={true} animated={true} className="justify-start transition-opacity" />
+            <p className="text-white font-medium text-sm leading-relaxed max-w-sm">
               {clean(t.empoweringCitizens)}
             </p>
             <div className="flex gap-4">
               <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-red-600/20 transition-all border border-white/10 group">
-                <Globe className="w-5 h-5 text-white/70 group-hover:text-red-500 transition-colors" />
+                <Globe className="w-5 h-5 text-white group-hover:text-red-500 transition-colors" />
               </a>
               <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-red-600/20 transition-all border border-white/10 group">
-                <Layers className="w-5 h-5 text-white/70 group-hover:text-red-500 transition-colors" />
+                <Layers className="w-5 h-5 text-white group-hover:text-red-500 transition-colors" />
               </a>
             </div>
           </motion.div>
 
           {/* Quick Links */}
           <motion.div variants={itemVariants} className="space-y-6">
-            <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-red-500 flex items-center gap-2">
+            <h4 className="text-xs font-black uppercase tracking-[0.2em] text-red-500 flex items-center gap-2">
               <span className="w-2 h-px bg-red-600"></span>
               {clean(t.quickLinks)}
             </h4>
@@ -86,8 +86,8 @@ export default function Footer() {
                 { label: 'Service Centers', href: '/service-centers' }
               ].map((link, i) => (
                 <li key={i}>
-                  <Link href={link.href} className="text-white/90 hover:text-red-500 flex items-center gap-2 group transition-all text-sm font-medium">
-                    <ChevronRight className="w-3 h-3 text-red-600 opacity-0 group-hover:opacity-100 -ml-4 group-hover:ml-0 transition-all" />
+                  <Link href={link.href} className="text-white hover:text-red-500 flex items-center gap-2 group transition-all text-sm font-bold">
+                    <ChevronRight className="w-3 h-3 text-red-500 opacity-0 group-hover:opacity-100 -ml-4 group-hover:ml-0 transition-all" />
                     {link.label}
                   </Link>
                 </li>
@@ -97,7 +97,7 @@ export default function Footer() {
 
           {/* Support */}
           <motion.div variants={itemVariants} className="space-y-6">
-            <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-red-500 flex items-center gap-2">
+            <h4 className="text-xs font-black uppercase tracking-[0.2em] text-red-500 flex items-center gap-2">
               <span className="w-2 h-px bg-red-600"></span>
               {clean(t.support)}
             </h4>
@@ -109,8 +109,8 @@ export default function Footer() {
                 { label: 'Why Trust Us', href: '/trust' }
               ].map((link, i) => (
                 <li key={i}>
-                  <Link href={link.href} className="text-gray-400 hover:text-white flex items-center gap-2 group transition-all text-sm font-medium">
-                    <ChevronRight className="w-3 h-3 text-red-600 opacity-0 group-hover:opacity-100 -ml-4 group-hover:ml-0 transition-all" />
+                  <Link href={link.href} className="text-white hover:text-red-500 flex items-center gap-2 group transition-all text-sm font-bold">
+                    <ChevronRight className="w-3 h-3 text-red-500 opacity-0 group-hover:opacity-100 -ml-4 group-hover:ml-0 transition-all" />
                     {link.label}
                   </Link>
                 </li>
@@ -120,7 +120,7 @@ export default function Footer() {
 
           {/* Legal */}
           <motion.div variants={itemVariants} className="space-y-6">
-            <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-red-500 flex items-center gap-2">
+            <h4 className="text-xs font-black uppercase tracking-[0.2em] text-red-500 flex items-center gap-2">
               <span className="w-2 h-px bg-red-600"></span>
               {clean(t.legal)}
             </h4>
@@ -132,8 +132,8 @@ export default function Footer() {
                 { label: clean(t.becomeRetailer), href: '/register' }
               ].map((link, i) => (
                 <li key={i}>
-                  <Link href={link.href} className="text-gray-400 hover:text-white flex items-center gap-2 group transition-all text-sm font-medium">
-                    <ChevronRight className="w-3 h-3 text-red-600 opacity-0 group-hover:opacity-100 -ml-4 group-hover:ml-0 transition-all" />
+                  <Link href={link.href} className="text-white hover:text-red-500 flex items-center gap-2 group transition-all text-sm font-bold">
+                    <ChevronRight className="w-3 h-3 text-red-500 opacity-0 group-hover:opacity-100 -ml-4 group-hover:ml-0 transition-all" />
                     {link.label}
                   </Link>
                 </li>
@@ -162,7 +162,7 @@ export default function Footer() {
                   Official Registration
                 </div>
                 <div>
-                  <p className="text-red-500/90 text-[10px] font-bold mb-2 uppercase tracking-[0.2em]">Corporate Identity Number</p>
+                  <p className="text-red-500 text-[11px] font-black mb-2 uppercase tracking-[0.2em]">Corporate Identity Number</p>
                   <p className="text-xl sm:text-2xl font-mono font-bold text-white tracking-wider flex items-center gap-3">
                     U74909PN2025PTC249261
                     <span className="h-px w-8 bg-white/20 hidden sm:block"></span>
@@ -178,10 +178,10 @@ export default function Footer() {
                   </div>
                   <div>
                     <h5 className="text-white font-bold mb-2 text-sm uppercase tracking-wider">Registered Office</h5>
-                    <div className="text-white/90 text-sm leading-relaxed">
-                      <p className="text-white font-semibold mb-1">VIGHNAHARTA ONLINE SERVICES PVT LTD</p>
-                      <p>G NO 199/5, KUPWAD, MIRAJ</p>
-                      <p>Sangli, Maharashtra - 416416</p>
+                    <div className="text-white text-sm leading-relaxed">
+                      <p className="text-white font-bold mb-1">VIGHNAHARTA ONLINE SERVICES PVT LTD</p>
+                      <p className="font-medium">G NO 199/5, KUPWAD, MIRAJ</p>
+                      <p className="font-medium">Sangli, Maharashtra - 416416</p>
                     </div>
                   </div>
                 </div>
@@ -189,11 +189,11 @@ export default function Footer() {
 
               {/* Incorporation Column */}
               <div className="flex flex-col items-start lg:items-end justify-center space-y-4">
-                <div className="flex items-center gap-3 text-white/90 text-sm">
-                  <Calendar className="w-5 h-5 text-amber-500" />
-                  <span className="font-medium">Incorporated: <span className="text-red-500 font-bold">12 Dec 2025</span></span>
+                <div className="flex items-center gap-3 text-white text-sm">
+                  <Calendar className="w-5 h-5 text-red-500" />
+                  <span className="font-bold">Incorporated: <span className="text-red-500 font-black">12 Dec 2025</span></span>
                 </div>
-                <div className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold text-white/60 uppercase tracking-widest leading-none">
+                <div className="px-4 py-2 rounded-xl bg-white/10 border border-white/20 text-[10px] font-black text-white uppercase tracking-widest leading-none">
                   Registered under the Companies Act, 2013
                 </div>
               </div>
@@ -204,14 +204,14 @@ export default function Footer() {
         {/* Footer Bottom */}
         <div className="mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
-            <p className="text-white/80 text-sm font-medium">
+            <p className="text-white text-sm font-bold">
               {t.copyright}
             </p>
           </div>
 
           <div className="flex items-center gap-8">
             <div className="flex items-center gap-2.5 group cursor-pointer bg-white/5 px-4 py-2 rounded-full border border-white/5 hover:border-red-500/30 transition-all">
-              <span className="text-white/70 text-xs font-medium uppercase tracking-wider">{clean(t.developedWith)}</span>
+              <span className="text-white text-xs font-bold uppercase tracking-wider">{clean(t.developedWith)}</span>
               <a
                 href="https://akrixsolutions.in/"
                 target="_blank"
