@@ -163,23 +163,8 @@ export async function POST(request: NextRequest) {
 
     if (txnError) throw txnError;
 
-    // Deduct from wallet
-    await supabase
-      .from('wallets')
-      .update({ balance: wallet.balance - totalAmount })
-      .eq('user_id', dbUser.id);
-
-    // Record wallet transaction (deduction)
-    await supabase.from('transactions').insert({
-      user_id: dbUser.id,
-      wallet_id: wallet.id,
-      type: 'WITHDRAWAL',
-      amount: totalAmount,
-      status: 'COMPLETED',
-      description: `${service_type} ${mobile_number || subscriber_id || dth_number || consumer_number}`,
-      reference: transactionRef,
-      metadata: { recharge_transaction_id: transaction.id },
-    });
+    // NO UPFRONT DEDUCTION ANYMORE - Deduct only on SUCCESS (initial or callback)
+    console.log('✅ [RECHARGE] Proceeding with recharge...');
 
     // Use the kwikapi_opid from the operator record
     const opid = operator.kwikapi_opid;
@@ -207,7 +192,7 @@ export async function POST(request: NextRequest) {
           transaction_ref: transactionRef,
           status: 'PENDING',
           amount,
-          message: '⏳ Your transaction is being processed. Amount has been debited from your wallet. You will receive confirmation shortly.',
+          message: '⏳ Your transaction is being processed. No amount was debited initially. You will receive confirmation shortly.',
         },
       });
     }
@@ -304,33 +289,52 @@ export async function POST(request: NextRequest) {
         })
         .eq('id', transaction.id);
 
-      // If successful, add commission/cashback to user wallet immediately
-      if (status === 'SUCCESS' && rewardAmount > 0) {
+      // If successful, deduct from wallet and add commission/cashback
+      if (status === 'SUCCESS') {
+        // Deduct total amount AND Add reward (effectively net deduction)
+        const finalBalanceChange = -totalAmount + rewardAmount;
+
         await supabase
           .from('wallets')
-          .update({ balance: wallet.balance - totalAmount + rewardAmount })
+          .update({ balance: wallet.balance + finalBalanceChange })
           .eq('user_id', dbUser.id);
 
+        // Record Withdrawal in ledger
         await supabase.from('transactions').insert({
           user_id: dbUser.id,
           wallet_id: wallet.id,
-          type: dbUser.role === 'CUSTOMER' ? 'REFUND' : 'COMMISSION',
-          amount: rewardAmount,
+          type: 'WITHDRAWAL',
+          amount: totalAmount,
           status: 'COMPLETED',
-          description: `${rewardLabel} for ${service_type} ${mobile_number || subscriber_id || dth_number || consumer_number}`,
+          description: `${service_type} ${mobile_number || subscriber_id || dth_number || consumer_number}`,
           reference: transactionRef,
+          metadata: { recharge_transaction_id: transaction.id },
         });
 
-        // Mark as claimed/paid
-        await supabase
-          .from('recharge_transactions')
-          .update({
-            [dbUser.role === 'CUSTOMER' ? 'cashback_claimed' : 'commission_paid']: true,
-            [dbUser.role === 'CUSTOMER' ? 'cashback_claimed_at' : 'commission_paid_at']: new Date().toISOString(),
-          })
-          .eq('id', transaction.id);
+        if (rewardAmount > 0) {
+          // Record Reward in ledger
+          await supabase.from('transactions').insert({
+            user_id: dbUser.id,
+            wallet_id: wallet.id,
+            type: dbUser.role === 'CUSTOMER' ? 'REFUND' : 'COMMISSION',
+            amount: rewardAmount,
+            status: 'COMPLETED',
+            description: `${rewardLabel} for ${service_type} ${mobile_number || subscriber_id || dth_number || consumer_number}`,
+            reference: transactionRef,
+            metadata: { recharge_transaction_id: transaction.id },
+          });
 
-        const successMessage = `✅ Recharge successful! ${rewardLabel} of ₹${rewardAmount.toFixed(2)} has been added to your wallet.`;
+          // Mark as claimed/paid
+          await supabase
+            .from('recharge_transactions')
+            .update({
+              [dbUser.role === 'CUSTOMER' ? 'cashback_claimed' : 'commission_paid']: true,
+              [dbUser.role === 'CUSTOMER' ? 'cashback_claimed_at' : 'commission_paid_at']: new Date().toISOString(),
+            })
+            .eq('id', transaction.id);
+        }
+
+        const successMessage = `✅ Recharge successful! ${rewardAmount > 0 ? `${rewardLabel} of ₹${rewardAmount.toFixed(2)} has been added to your wallet.` : ''}`;
 
         return NextResponse.json({
           success: true,
@@ -357,38 +361,26 @@ export async function POST(request: NextRequest) {
             transaction_ref: transactionRef,
             status: 'PENDING',
             amount,
-            message: '⏳ Your transaction is being processed. You will receive confirmation shortly.',
+            message: '⏳ Your transaction is being processed. No amount was debited initially. You will receive confirmation shortly.',
             response: rechargeResponse.data,
             kwikapi_status: responseStatus, // Include original KWIKAPI status
             operator_ref: rechargeResponse.data?.opr_id,
           },
         });
       } else {
-        // Failed - do not store transaction and refund wallet
-        await supabase
-          .from('wallets')
-          .update({ balance: wallet.balance })
-          .eq('user_id', dbUser.id);
-
+        // Failed - do not store transaction and DO NOT deduct anything
         // Delete the recharge transaction record (do not store failed)
         await supabase
           .from('recharge_transactions')
           .delete()
           .eq('id', transaction.id);
 
-        // Delete the withdrawal transaction record to keep wallet history clean
-        await supabase
-          .from('transactions')
-          .delete()
-          .eq('reference', transactionRef)
-          .eq('type', 'WITHDRAWAL');
-
         return NextResponse.json({
           success: false,
           data: {
             transaction_ref: transactionRef,
             status: 'FAILED',
-            message: `❌ Recharge failed. ${rechargeResponse.data?.message || 'Unknown error'}. Amount has been refunded to your wallet.`,
+            message: `❌ Recharge failed. ${rechargeResponse.data?.message || 'Unknown error'}. No amount was deducted.`,
             response: rechargeResponse.data,
             kwikapi_status: responseStatus,
             operator_ref: rechargeResponse.data?.opr_id,
@@ -414,7 +406,7 @@ export async function POST(request: NextRequest) {
           transaction_ref: transactionRef,
           status: 'PENDING',
           amount,
-          message: '⏳ Your transaction is being processed. You will receive confirmation shortly.',
+          message: '⏳ Your transaction is being processed. No amount was debited initially. You will receive confirmation shortly.',
         },
       });
     }

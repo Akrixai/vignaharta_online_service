@@ -96,7 +96,33 @@ export async function GET(request: NextRequest) {
           })
           .eq('id', transaction.id);
 
-        // Fetch updated transaction with relations
+        // Handle SUCCESS/FAILED status changes for Deduct on Success model
+        if (newStatus === 'SUCCESS') {
+          // Re-fetch with user context for settlement
+          const { data: fullTransaction } = await supabase
+            .from('recharge_transactions')
+            .select('*, user:users(id, email, name, role)')
+            .eq('id', transaction.id)
+            .single();
+
+          if (fullTransaction) {
+            await processTransactionSuccess(fullTransaction);
+          }
+        } else if (newStatus === 'FAILED') {
+          // Delete from history
+          await supabase
+            .from('recharge_transactions')
+            .delete()
+            .eq('id', transaction.id);
+
+          return NextResponse.json({
+            success: true,
+            data: { ...transaction, status: 'FAILED' },
+            message: 'Transaction failed and removed from history'
+          });
+        }
+
+        // Fetch updated transaction with relations if not deleted
         const { data: updatedTransaction } = await supabase
           .from('recharge_transactions')
           .select(`
@@ -109,7 +135,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({
           success: true,
-          data: updatedTransaction,
+          data: updatedTransaction || { ...transaction, status: newStatus },
         });
       }
     } catch (apiError) {
@@ -128,5 +154,121 @@ export async function GET(request: NextRequest) {
       { success: false, message: error.message || 'Internal server error' },
       { status: 500 }
     );
+  }
+}
+
+// Process successful transaction: Deduct money AND give rewards
+async function processTransactionSuccess(transaction: any) {
+  try {
+    const user = transaction.user;
+    if (!user) return;
+
+    // 1. Get current wallet balance
+    const { data: wallet } = await supabase
+      .from('wallets')
+      .select('id, balance')
+      .eq('user_id', transaction.user_id)
+      .single();
+
+    if (!wallet) return;
+
+    // 2. Get operator configuration for reward calculation
+    const { data: rechargeOperator } = await supabase
+      .from('recharge_operators')
+      .select('*')
+      .eq('id', transaction.operator_id)
+      .single();
+
+    const amountToDeduct = transaction.amount;
+    let rewardAmount = 0;
+    let rewardType = '';
+    let rewardDescription = '';
+
+    // 3. Calculate reward if not already set
+    if (user.role === 'CUSTOMER') {
+      if (rechargeOperator?.cashback_enabled && !transaction.cashback_claimed) {
+        if (!transaction.cashback_amount || transaction.cashback_amount === 0) {
+          const minPercentage = rechargeOperator.cashback_min_percentage || 0.5;
+          const maxPercentage = rechargeOperator.cashback_max_percentage || 2.0;
+          const randomPercentage = Math.random() * (maxPercentage - minPercentage) + minPercentage;
+          rewardAmount = (transaction.amount * randomPercentage) / 100;
+
+          await supabase
+            .from('recharge_transactions')
+            .update({
+              cashback_percentage: randomPercentage,
+              cashback_amount: rewardAmount,
+            })
+            .eq('id', transaction.id);
+        } else {
+          rewardAmount = transaction.cashback_amount;
+        }
+        rewardType = 'REFUND';
+        rewardDescription = `Cashback for ${transaction.service_type} recharge`;
+      }
+    } else {
+      if (!transaction.commission_paid) {
+        if (!transaction.commission_amount || transaction.commission_amount === 0) {
+          const commissionRate = rechargeOperator?.commission_rate || 2.0;
+          rewardAmount = (transaction.amount * commissionRate) / 100;
+
+          await supabase
+            .from('recharge_transactions')
+            .update({ commission_amount: rewardAmount })
+            .eq('id', transaction.id);
+        } else {
+          rewardAmount = transaction.commission_amount;
+        }
+        rewardType = 'COMMISSION';
+        rewardDescription = `Commission for ${transaction.service_type} recharge`;
+      }
+    }
+
+    // 4. Update wallet atomically: Deduct amount AND Add reward
+    const finalBalanceChange = -amountToDeduct + rewardAmount;
+
+    await supabase
+      .from('wallets')
+      .update({ balance: wallet.balance + finalBalanceChange })
+      .eq('user_id', transaction.user_id);
+
+    // 5. Record transactions in ledger
+    // Record Withdrawal
+    await supabase.from('transactions').insert({
+      user_id: transaction.user_id,
+      wallet_id: wallet.id,
+      type: 'WITHDRAWAL',
+      amount: amountToDeduct,
+      status: 'COMPLETED',
+      description: `${transaction.service_type} Recharge ${transaction.mobile_number || transaction.dth_number || transaction.consumer_number}`,
+      reference: transaction.transaction_ref,
+      metadata: { recharge_transaction_id: transaction.id },
+    });
+
+    // Record Reward if any
+    if (rewardAmount > 0) {
+      await supabase.from('transactions').insert({
+        user_id: transaction.user_id,
+        wallet_id: wallet.id,
+        type: rewardType,
+        amount: rewardAmount,
+        status: 'COMPLETED',
+        description: rewardDescription,
+        reference: transaction.transaction_ref,
+        metadata: { recharge_transaction_id: transaction.id },
+      });
+
+      // Mark reward as paid/claimed
+      await supabase
+        .from('recharge_transactions')
+        .update({
+          [user.role === 'CUSTOMER' ? 'cashback_claimed' : 'commission_paid']: true,
+          [user.role === 'CUSTOMER' ? 'cashback_claimed_at' : 'commission_paid_at']: new Date().toISOString(),
+        })
+        .eq('id', transaction.id);
+    }
+    console.log(`✅ [StatusPoll] Settlement completed for ${transaction.id}`);
+  } catch (error) {
+    console.error('❌ [StatusPoll] Success settlement error:', error);
   }
 }

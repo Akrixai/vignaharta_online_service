@@ -177,23 +177,7 @@ export async function POST(request: NextRequest) {
 
     if (txnError) throw txnError;
 
-    // Deduct from wallet immediately
-    await supabase
-      .from('wallets')
-      .update({ balance: wallet.balance - totalAmount })
-      .eq('user_id', dbUser.id);
-
-    // Record wallet transaction (deduction)
-    await supabase.from('transactions').insert({
-      user_id: dbUser.id,
-      wallet_id: wallet.id,
-      type: 'WITHDRAWAL',
-      amount: totalAmount,
-      status: 'COMPLETED',
-      description: `${serviceType} Recharge ${number}`,
-      reference: transactionRef,
-      metadata: { recharge_transaction_id: transaction.id },
-    });
+    // NO UPFRONT DEDUCTION ANYMORE - Deduct only on SUCCESS (initial or callback)
 
     console.log('✅ [RECHARGE] Proceeding with recharge...');
 
@@ -243,16 +227,32 @@ export async function POST(request: NextRequest) {
         })
         .eq('id', transaction.id);
 
-      // If successful, add commission/cashback to user wallet
+      // If successful, deduct from wallet and add commission/cashback
       if (status === 'SUCCESS') {
         const finalReward = rewardAmount;
 
-        if (finalReward > 0) {
-          await supabase
-            .from('wallets')
-            .update({ balance: wallet.balance - totalAmount + finalReward })
-            .eq('user_id', dbUser.id);
+        // Perform settlement: Deduct amount AND Add reward
+        const finalBalanceChange = -totalAmount + finalReward;
 
+        await supabase
+          .from('wallets')
+          .update({ balance: wallet.balance + finalBalanceChange })
+          .eq('user_id', dbUser.id);
+
+        // Record Withdrawal in ledger
+        await supabase.from('transactions').insert({
+          user_id: dbUser.id,
+          wallet_id: wallet.id,
+          type: 'WITHDRAWAL',
+          amount: totalAmount,
+          status: 'COMPLETED',
+          description: `${serviceType} Recharge ${number}`,
+          reference: transactionRef,
+          metadata: { recharge_transaction_id: transaction.id },
+        });
+
+        if (finalReward > 0) {
+          // Record Reward in ledger
           await supabase.from('transactions').insert({
             user_id: dbUser.id,
             wallet_id: wallet.id,
@@ -261,6 +261,7 @@ export async function POST(request: NextRequest) {
             status: 'COMPLETED',
             description: `${rewardLabel} for ${serviceType} Recharge ${number}`,
             reference: transactionRef,
+            metadata: { recharge_transaction_id: transaction.id },
           });
 
           // Mark as claimed
@@ -284,7 +285,6 @@ export async function POST(request: NextRequest) {
             reward_label: rewardLabel,
             message: `✅ ${rechargeResponse.data?.message || 'Recharge successful!'} ${finalReward > 0 ? `${rewardLabel} of ₹${finalReward.toFixed(2)} has been added to your wallet.` : ''}`,
             response: rechargeResponse.data,
-            // Return KwikAPI response fields for frontend display
             opr_id: rechargeResponse.data?.opr_id,
             balance: rechargeResponse.data?.balance,
             operator_ref: rechargeResponse.data?.opr_id,
@@ -299,36 +299,24 @@ export async function POST(request: NextRequest) {
             transaction_ref: transactionRef,
             status: 'PENDING',
             amount,
-            message: `⏳ ${rechargeResponse.data?.message || 'Your transaction is being processed. Amount has been debited from your wallet. You will receive confirmation shortly. Please contact admin if not completed within 24 hours.'}`,
+            message: `⏳ ${rechargeResponse.data?.message || 'Your transaction is being processed. You will receive confirmation shortly. Please contact admin if not completed within 24 hours.'}`,
             response: rechargeResponse.data,
           },
         });
       } else {
-        // Failed - do not store transaction and refund wallet
-        await supabase
-          .from('wallets')
-          .update({ balance: wallet.balance })
-          .eq('user_id', dbUser.id);
-
+        // Failed - do not store transaction and DO NOT deduct anything
         // Delete the recharge transaction record (do not store failed)
         await supabase
           .from('recharge_transactions')
           .delete()
           .eq('id', transaction.id);
 
-        // Delete the withdrawal transaction record to keep wallet history clean
-        await supabase
-          .from('transactions')
-          .delete()
-          .eq('reference', transactionRef)
-          .eq('type', 'WITHDRAWAL');
-
         return NextResponse.json({
           success: false,
           data: {
             transaction_ref: transactionRef,
             status: 'FAILED',
-            message: rechargeResponse.data?.message || '❌ Recharge failed. Amount has been refunded to your wallet.',
+            message: rechargeResponse.data?.message || '❌ Recharge failed. No amount was deducted.',
             response: rechargeResponse.data,
             technical_message: rechargeResponse.data?.message,
           },
@@ -338,6 +326,7 @@ export async function POST(request: NextRequest) {
       console.error('Recharge API Error:', apiError);
 
       // API call failed - mark as pending instead of failed and provide user-friendly message
+      // No deduction happened yet, so it stays pending
       await supabase
         .from('recharge_transactions')
         .update({
@@ -354,8 +343,6 @@ export async function POST(request: NextRequest) {
         userFriendlyMessage = '⚠️ Network connection issue. Your recharge is being processed manually and will be completed within 24 hours.';
       } else if (apiError.code === 'ETIMEDOUT') {
         userFriendlyMessage = '⏳ Recharge request timed out. Your recharge is being processed and will be completed within 24 hours.';
-      } else if (apiError.message?.includes('INSUFFICIENT BALANCE') || apiError.message?.includes('INSUFICIENT BALANCE')) {
-        userFriendlyMessage = '⚠️ Service temporarily unavailable due to provider maintenance. Your recharge will be processed within 24 hours.';
       }
 
       return NextResponse.json({

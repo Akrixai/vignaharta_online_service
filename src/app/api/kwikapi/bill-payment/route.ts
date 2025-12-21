@@ -87,12 +87,42 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Calculate commission/cashback based on user role
-    const rewardRate = 2.0; // Default 2% - can be made configurable later
-    const rewardAmount = (amount * rewardRate) / 100;
-    const rewardLabel = dbUser.role === 'CUSTOMER' ? 'Cashback' : 'Commission';
+    // Get operator configuration from recharge_operators table
+    const { data: rechargeOperator } = await supabase
+      .from('recharge_operators')
+      .select('*')
+      .eq('kwikapi_opid', parseInt(operator_code))
+      .eq('service_type', service_type.toUpperCase())
+      .eq('is_active', true)
+      .single();
 
-    const platformFee = 0; // No platform fee
+    if (!rechargeOperator) {
+      return NextResponse.json(
+        { success: false, message: 'Operator not configured or inactive in admin settings' },
+        { status: 400 }
+      );
+    }
+
+    // Use admin-configured rates from recharge_operators table
+    const commissionRate = rechargeOperator.commission_rate || 2.0;
+    const cashbackEnabled = rechargeOperator.cashback_enabled || false;
+    const cashbackMinPercentage = rechargeOperator.cashback_min_percentage || 0.5;
+    const cashbackMaxPercentage = rechargeOperator.cashback_max_percentage || 2.0;
+
+    // Calculate initial reward amount (will be randomized for customers if successful)
+    let rewardAmount = 0;
+    if (dbUser.role === 'CUSTOMER') {
+      if (cashbackEnabled) {
+        // Generate random cashback percentage between min and max
+        const randomCashbackPercentage = (Math.random() * (cashbackMaxPercentage - cashbackMinPercentage) + cashbackMinPercentage);
+        rewardAmount = (amount * randomCashbackPercentage) / 100;
+      }
+    } else {
+      rewardAmount = (amount * commissionRate) / 100;
+    }
+
+    const rewardLabel = dbUser.role === 'CUSTOMER' ? 'Cashback' : 'Commission';
+    const platformFee = 0;
     const totalAmount = amount;
 
     // Check user wallet balance
@@ -122,7 +152,7 @@ export async function POST(request: NextRequest) {
       .from('recharge_transactions')
       .insert({
         user_id: dbUser.id,
-        operator_id: null, // We'll use kwikapi_opid instead
+        operator_id: rechargeOperator.id, // Use the correct ID from recharge_operators
         service_type: service_type.toUpperCase(),
         mobile_number,
         consumer_number,
@@ -130,14 +160,14 @@ export async function POST(request: NextRequest) {
         amount,
         commission_amount: dbUser.role === 'CUSTOMER' ? 0 : rewardAmount,
         cashback_amount: dbUser.role === 'CUSTOMER' ? rewardAmount : 0,
-        cashback_percentage: dbUser.role === 'CUSTOMER' ? rewardRate : 0,
+        cashback_percentage: dbUser.role === 'CUSTOMER' && cashbackEnabled ? (rewardAmount / amount) * 100 : 0,
         platform_fee: platformFee,
         total_amount: totalAmount,
         status: 'PENDING',
         transaction_ref: transactionRef,
         bill_details: bill_details || {},
         dynamic_fields: { opt1, opt2, opt3, opt4, opt5, opt6, opt7, opt8, opt9, opt10 },
-        kwikapi_provider: operator.operator_name, // Store operator name for display
+        kwikapi_provider: operator.operator_name,
       })
       .select()
       .single();
@@ -150,23 +180,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Deduct from wallet immediately
-    await supabase
-      .from('wallets')
-      .update({ balance: wallet.balance - totalAmount })
-      .eq('user_id', dbUser.id);
-
-    // Record wallet transaction
-    await supabase.from('transactions').insert({
-      user_id: dbUser.id,
-      wallet_id: wallet.id,
-      type: 'WITHDRAWAL',
-      amount: totalAmount,
-      status: 'COMPLETED',
-      description: `Bill payment for ${service_type}`,
-      reference_id: transactionRef,
-      metadata: { recharge_transaction_id: transaction.id },
-    });
+    // NO UPFRONT DEDUCTION ANYMORE - Deduct only on SUCCESS (initial or callback)
 
     // Use the operator_id from the kwikapi_billers record
     const opid = operator.operator_id;
@@ -206,11 +220,6 @@ export async function POST(request: NextRequest) {
         opt10: opt10,
       });
 
-      console.log('📦 [BILL-PAYMENT] KwikAPI Response:', paymentResponse);
-      console.log('📦 [BILL-PAYMENT] KwikAPI Response Data:', JSON.stringify(paymentResponse.data, null, 2));
-      console.log('📦 [BILL-PAYMENT] KwikAPI Response Status:', paymentResponse.data?.status);
-      console.log('📦 [BILL-PAYMENT] KwikAPI Response Message:', paymentResponse.data?.message);
-
       // Map KwikAPI status to our status
       const responseStatus = (paymentResponse.data?.status || '').toUpperCase();
       let status: 'SUCCESS' | 'FAILED' | 'PENDING';
@@ -224,8 +233,6 @@ export async function POST(request: NextRequest) {
         // Default to PENDING for unknown statuses
         status = 'PENDING';
       }
-
-      console.log(`📊 [BILL-PAYMENT] Status mapping: ${responseStatus} → ${status}`);
 
       // Update transaction with KwikAPI response
       await supabase
@@ -245,42 +252,41 @@ export async function POST(request: NextRequest) {
         })
         .eq('id', transaction.id);
 
-      // Calculate cashback for customers (random between min and max)
-      let actualCashback = 0;
-      if (dbUser.role === 'CUSTOMER' && status === 'SUCCESS') {
-        const minCashback = 0.5;
-        const maxCashback = 2.0;
-        const randomCashbackPercentage = (Math.random() * (maxCashback - minCashback) + minCashback);
-        actualCashback = (amount * randomCashbackPercentage) / 100;
-
-        // Update transaction with actual cashback
-        await supabase
-          .from('recharge_transactions')
-          .update({
-            cashback_percentage: randomCashbackPercentage,
-            cashback_amount: actualCashback,
-          })
-          .eq('id', transaction.id);
-      }
-
-      // If successful, add commission/cashback to user wallet
+      // If successful, deduct from wallet and add commission/cashback
       if (status === 'SUCCESS') {
-        const finalReward = dbUser.role === 'CUSTOMER' ? actualCashback : rewardAmount;
+        const finalReward = rewardAmount;
+
+        // Perform settlement: Deduct amount AND Add reward
+        const finalBalanceChange = -totalAmount + finalReward;
+
+        await supabase
+          .from('wallets')
+          .update({ balance: wallet.balance + finalBalanceChange })
+          .eq('user_id', dbUser.id);
+
+        // Record Withdrawal in ledger
+        await supabase.from('transactions').insert({
+          user_id: dbUser.id,
+          wallet_id: wallet.id,
+          type: 'WITHDRAWAL',
+          amount: totalAmount,
+          status: 'COMPLETED',
+          description: `Bill payment for ${service_type} ${consumer_number}`,
+          reference: transactionRef,
+          metadata: { recharge_transaction_id: transaction.id },
+        });
 
         if (finalReward > 0) {
-          await supabase
-            .from('wallets')
-            .update({ balance: wallet.balance - totalAmount + finalReward })
-            .eq('user_id', dbUser.id);
-
+          // Record Reward in ledger
           await supabase.from('transactions').insert({
             user_id: dbUser.id,
             wallet_id: wallet.id,
-            type: dbUser.role === 'CUSTOMER' ? 'CASHBACK' : 'COMMISSION',
+            type: dbUser.role === 'CUSTOMER' ? 'REFUND' : 'COMMISSION',
             amount: finalReward,
             status: 'COMPLETED',
             description: `${rewardLabel} for ${service_type} bill payment`,
-            reference_id: transactionRef,
+            reference: transactionRef,
+            metadata: { recharge_transaction_id: transaction.id },
           });
 
           // Mark as claimed
@@ -323,31 +329,19 @@ export async function POST(request: NextRequest) {
           },
         });
       } else {
-        // Failed - do not store transaction and refund wallet
-        await supabase
-          .from('wallets')
-          .update({ balance: wallet.balance })
-          .eq('user_id', dbUser.id);
-
+        // Failed - do not store transaction and DO NOT deduct anything
         // Delete the recharge transaction record (do not store failed)
         await supabase
           .from('recharge_transactions')
           .delete()
           .eq('id', transaction.id);
 
-        // Delete the withdrawal transaction record to keep wallet history clean
-        await supabase
-          .from('transactions')
-          .delete()
-          .eq('reference_id', transactionRef)
-          .eq('type', 'WITHDRAWAL');
-
         return NextResponse.json({
           success: false,
           data: {
             transaction_ref: transactionRef,
             status: 'FAILED',
-            message: paymentResponse.data?.message || '❌ Bill payment failed. Amount has been refunded to your wallet.',
+            message: paymentResponse.data?.message || '❌ Bill payment failed. No amount was deducted.',
             response: paymentResponse.data,
             technical_message: paymentResponse.data?.message,
           },
@@ -357,6 +351,7 @@ export async function POST(request: NextRequest) {
       console.error('Bill Payment API Error:', apiError);
 
       // API call failed - mark as pending for manual processing and provide user-friendly message
+      // No deduction happened yet
       await supabase
         .from('recharge_transactions')
         .update({
@@ -372,8 +367,6 @@ export async function POST(request: NextRequest) {
         userFriendlyMessage = '⚠️ Network connection issue. Your payment is being processed manually and will be completed within 24 hours.';
       } else if (apiError.code === 'ETIMEDOUT') {
         userFriendlyMessage = '⏳ Payment request timed out. Your payment is being processed and will be completed within 24 hours.';
-      } else if (apiError.message?.includes('INSUFFICIENT BALANCE') || apiError.message?.includes('INSUFICIENT BALANCE')) {
-        userFriendlyMessage = '⚠️ Service temporarily unavailable due to provider maintenance. Your payment will be processed within 24 hours.';
       }
 
       return NextResponse.json({
