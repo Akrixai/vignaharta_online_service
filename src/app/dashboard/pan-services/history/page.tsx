@@ -128,6 +128,33 @@ export default function PanServicesHistoryPage() {
     return `${minutes}m remaining`;
   };
 
+  const [resuming, setResuming] = useState<string | null>(null);
+
+  const handleResume = async (orderId: string) => {
+    try {
+      setResuming(orderId);
+      const res = await fetch('/api/pan-services/incomplete-pan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ existing_order_id: orderId })
+      });
+
+      const data = await res.json();
+      if (data.success && data.data?.inspay_url) {
+        window.open(data.data.inspay_url, '_blank');
+        toast.success('Resuming application...');
+        fetchServices(); // Refresh to see updated status
+      } else {
+        toast.error(data.message || 'Failed to resume application');
+      }
+    } catch (err) {
+      console.error('Resume error:', err);
+      toast.error('Failed to connect to service');
+    } finally {
+      setResuming(null);
+    }
+  };
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -174,8 +201,8 @@ export default function PanServicesHistoryPage() {
             <button
               onClick={() => setFilter('ALL')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'ALL'
-                  ? 'bg-red-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-red-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
             >
               All ({services.length})
@@ -185,8 +212,8 @@ export default function PanServicesHistoryPage() {
                 key={status}
                 onClick={() => setFilter(status)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === status
-                    ? 'bg-red-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-red-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
               >
                 {status} ({services.filter(s => s.status === status).length})
@@ -249,6 +276,16 @@ export default function PanServicesHistoryPage() {
                         <p className="font-medium text-green-600">₹{service.commission_amount}</p>
                       </div>
                     </div>
+
+                    {/* Pending/Incomplete Info */}
+                    {service.status === 'PENDING' && (
+                      <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <p className="text-sm text-yellow-700">
+                          <strong>Incomplete Session:</strong> This application was left in the middle. You can resume it using the button on the right.
+                          <br /><span className="text-xs font-bold text-red-600 uppercase">Attention: This will expire in 24 hours.</span>
+                        </p>
+                      </div>
+                    )}
 
                     {/* Payment Status Info */}
                     {service.payment_status === 'DEBITED' && (service.status === 'PENDING' || service.status === 'PROCESSING') && service.expires_at && (
@@ -315,6 +352,16 @@ export default function PanServicesHistoryPage() {
                   </div>
 
                   <div className="ml-6 flex flex-col space-y-2">
+                    {service.status === 'PENDING' && (
+                      <button
+                        onClick={() => handleResume(service.order_id)}
+                        disabled={resuming === service.order_id}
+                        className="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors text-sm text-center disabled:opacity-50"
+                      >
+                        {resuming === service.order_id ? 'Resuming...' : 'Resume Application'}
+                      </button>
+                    )}
+
                     {service.inspay_url && service.status === 'PROCESSING' && (
                       <a
                         href={service.inspay_url}

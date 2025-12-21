@@ -20,6 +20,20 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
 
+    // AUTO-CLEANUP: Remove PENDING records older than 24 hours
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    try {
+      const { error: cleanupError } = await supabase
+        .from('pan_services')
+        .delete()
+        .eq('status', 'PENDING')
+        .lt('created_at', oneDayAgo);
+
+      if (cleanupError) console.error('Cleanup error:', cleanupError);
+    } catch (err) {
+      console.error('Cleanup exception:', err);
+    }
+
     // Build query
     let query = supabase
       .from('pan_services')

@@ -12,9 +12,9 @@ export async function GET(request: NextRequest) {
 
     if (!txid || !status) {
       console.error('❌ Missing required webhook parameters');
-      return NextResponse.json({ 
-        success: false, 
-        message: 'Missing required parameters' 
+      return NextResponse.json({
+        success: false,
+        message: 'Missing required parameters'
       }, { status: 400 });
     }
 
@@ -27,9 +27,9 @@ export async function GET(request: NextRequest) {
 
     if (findError || !panService) {
       console.error('❌ PAN service not found for txid:', txid, findError);
-      return NextResponse.json({ 
-        success: false, 
-        message: 'PAN service record not found' 
+      return NextResponse.json({
+        success: false,
+        message: 'PAN service record not found'
       }, { status: 404 });
     }
 
@@ -44,8 +44,8 @@ export async function GET(request: NextRequest) {
     // Prevent duplicate webhook processing
     if (panService.status !== 'PENDING' && panService.status !== 'PROCESSING') {
       console.log('⚠️ Webhook already processed for txid:', txid, 'Current status:', panService.status);
-      return NextResponse.json({ 
-        success: true, 
+      return NextResponse.json({
+        success: true,
         message: 'Webhook already processed',
         data: {
           order_id: panService.order_id,
@@ -56,11 +56,11 @@ export async function GET(request: NextRequest) {
 
     const updateData: any = {
       webhook_received_at: new Date().toISOString(),
-      callback_data: { 
-        txid, 
-        status, 
-        opid, 
-        received_at: new Date().toISOString() 
+      callback_data: {
+        txid,
+        status,
+        opid,
+        received_at: new Date().toISOString()
       },
       updated_at: new Date().toISOString()
     };
@@ -72,14 +72,14 @@ export async function GET(request: NextRequest) {
     // Handle SUCCESS
     if (status.toLowerCase() === 'success') {
       console.log('✅ Processing SUCCESS webhook');
-      
+
       updateData.status = 'SUCCESS';
       updateData.completed_at = new Date().toISOString();
-      
+
       // Add commission to wallet
       if (panService.commission_amount > 0) {
         console.log(`💰 Adding commission: ₹${panService.commission_amount}`);
-        
+
         const { data: wallet } = await supabaseAdmin
           .from('wallets')
           .select('*')
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
 
         if (wallet) {
           const newBalance = wallet.balance + panService.commission_amount;
-          
+
           const { error: walletUpdateError } = await supabaseAdmin
             .from('wallets')
             .update({
@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
 
           if (!walletUpdateError) {
             console.log(`✅ Commission added. New balance: ₹${newBalance}`);
-            
+
             // Create commission transaction
             await supabaseAdmin
               .from('transactions')
@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
                   inspay_opid: opid
                 }
               });
-            
+
             console.log('✅ Commission transaction created');
           } else {
             console.error('❌ Error updating wallet for commission:', walletUpdateError);
@@ -127,19 +127,25 @@ export async function GET(request: NextRequest) {
           console.error('❌ Wallet not found for user:', panService.user_id);
         }
       }
-    } 
+    }
+    // Handle PENDING
+    else if (status.toLowerCase() === 'pending') {
+      console.log('⏳ Processing PENDING webhook');
+      updateData.status = 'PENDING';
+      // No refund or commission for pending
+    }
     // Handle FAILURE
     else {
       console.log('❌ Processing FAILURE webhook - Initiating refund');
-      
+
       updateData.status = 'FAILURE';
       updateData.completed_at = new Date().toISOString();
       updateData.error_message = `Transaction failed with status: ${status}`;
-      
+
       // Process refund only if payment was debited
       if (panService.payment_status === 'DEBITED' && !panService.refund_processed) {
         console.log(`💸 Processing refund: ₹${panService.amount}`);
-        
+
         const { data: wallet } = await supabaseAdmin
           .from('wallets')
           .select('*')
@@ -148,7 +154,7 @@ export async function GET(request: NextRequest) {
 
         if (wallet) {
           const newBalance = wallet.balance + panService.amount;
-          
+
           // Refund the amount
           const { error: refundWalletError } = await supabaseAdmin
             .from('wallets')
@@ -160,7 +166,7 @@ export async function GET(request: NextRequest) {
 
           if (!refundWalletError) {
             console.log(`✅ Refund processed. New balance: ₹${newBalance}`);
-            
+
             // Create refund transaction
             const { data: refundTransaction } = await supabaseAdmin
               .from('transactions')
@@ -188,7 +194,7 @@ export async function GET(request: NextRequest) {
             updateData.refund_processed = true;
             updateData.refund_processed_at = new Date().toISOString();
             updateData.refund_transaction_id = refundTransaction?.id;
-            
+
             console.log('✅ Refund transaction created:', refundTransaction?.id);
           } else {
             console.error('❌ Error processing refund:', refundWalletError);
@@ -209,9 +215,9 @@ export async function GET(request: NextRequest) {
 
     if (updateError) {
       console.error('❌ Error updating PAN service:', updateError);
-      return NextResponse.json({ 
-        success: false, 
-        message: 'Failed to update PAN service' 
+      return NextResponse.json({
+        success: false,
+        message: 'Failed to update PAN service'
       }, { status: 500 });
     }
 
@@ -236,8 +242,8 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('💥 Error in PAN webhook:', error);
-    return NextResponse.json({ 
-      success: false, 
+    return NextResponse.json({
+      success: false,
       message: 'Internal server error',
       error: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
