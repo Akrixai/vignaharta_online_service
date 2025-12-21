@@ -8,6 +8,7 @@ import { Toaster } from "react-hot-toast";
 import NotificationManager from "@/components/NotificationManager";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { defaultSEO, structuredData } from "@/lib/seo";
+import GoogleTranslate from "@/components/GoogleTranslate";
 // removed google analytics Script import to disable GA
 
 const inter = Inter({
@@ -166,6 +167,7 @@ export default function RootLayout({
         )}
       </head>
       <body className="antialiased">
+        <GoogleTranslate />
         {/* Google Analytics removed to avoid CSP/script loading issues */}
         <NextAuthSessionProvider>
           <LanguageProvider>

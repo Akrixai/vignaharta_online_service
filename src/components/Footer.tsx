@@ -18,7 +18,7 @@ import { footerTranslations } from '@/translations/footer';
 
 export default function Footer() {
   const { language } = useLanguage();
-  const t = footerTranslations[language];
+  const t = (footerTranslations as any)[language] || footerTranslations['en'];
 
   const containerVariants = {
     hidden: { opacity: 0, y: 30 },
@@ -41,13 +41,7 @@ export default function Footer() {
   const clean = (text: string) => text.replace(/[\u{1F300}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').trim();
 
   return (
-    <footer className="relative bg-[#0a0a0b] text-white pt-20 pb-10 overflow-hidden border-t border-white/5">
-      {/* Abstract Background Effects */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-20">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-red-900/40 rounded-full blur-[120px] animate-pulse"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-900/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }}></div>
-      </div>
-
+    <footer className="relative bg-white text-gray-900 pt-20 pb-10 overflow-hidden border-t border-gray-100">
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <motion.div
           variants={containerVariants}
@@ -59,22 +53,22 @@ export default function Footer() {
           {/* Brand Column */}
           <motion.div variants={itemVariants} className="space-y-6">
             <Logo size="lg" showText={true} animated={true} className="justify-start transition-opacity" />
-            <p className="text-white font-medium text-sm leading-relaxed max-w-sm">
+            <p className="text-gray-600 font-medium text-sm leading-relaxed max-w-sm">
               {clean(t.empoweringCitizens)}
             </p>
             <div className="flex gap-4">
-              <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-red-600/20 transition-all border border-white/10 group">
-                <Globe className="w-5 h-5 text-white group-hover:text-red-500 transition-colors" />
+              <a href="#" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center hover:bg-red-50 transition-all border border-gray-200 group">
+                <Globe className="w-5 h-5 text-gray-600 group-hover:text-red-600 transition-colors" />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-red-600/20 transition-all border border-white/10 group">
-                <Layers className="w-5 h-5 text-white group-hover:text-red-500 transition-colors" />
+              <a href="#" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center hover:bg-red-50 transition-all border border-gray-200 group">
+                <Layers className="w-5 h-5 text-gray-600 group-hover:text-red-600 transition-colors" />
               </a>
             </div>
           </motion.div>
 
           {/* Quick Links */}
           <motion.div variants={itemVariants} className="space-y-6">
-            <h4 className="text-xs font-black uppercase tracking-[0.2em] text-red-500 flex items-center gap-2">
+            <h4 className="text-xs font-black uppercase tracking-[0.2em] text-red-600 flex items-center gap-2">
               <span className="w-2 h-px bg-red-600"></span>
               {clean(t.quickLinks)}
             </h4>
@@ -86,8 +80,8 @@ export default function Footer() {
                 { label: 'Service Centers', href: '/service-centers' }
               ].map((link, i) => (
                 <li key={i}>
-                  <Link href={link.href} className="text-white hover:text-red-500 flex items-center gap-2 group transition-all text-sm font-bold">
-                    <ChevronRight className="w-3 h-3 text-red-500 opacity-0 group-hover:opacity-100 -ml-4 group-hover:ml-0 transition-all" />
+                  <Link href={link.href} className="text-gray-700 hover:text-red-600 flex items-center gap-2 group transition-all text-sm font-bold">
+                    <ChevronRight className="w-3 h-3 text-red-600 opacity-0 group-hover:opacity-100 -ml-4 group-hover:ml-0 transition-all" />
                     {link.label}
                   </Link>
                 </li>
@@ -97,7 +91,7 @@ export default function Footer() {
 
           {/* Support */}
           <motion.div variants={itemVariants} className="space-y-6">
-            <h4 className="text-xs font-black uppercase tracking-[0.2em] text-red-500 flex items-center gap-2">
+            <h4 className="text-xs font-black uppercase tracking-[0.2em] text-red-600 flex items-center gap-2">
               <span className="w-2 h-px bg-red-600"></span>
               {clean(t.support)}
             </h4>
@@ -109,8 +103,8 @@ export default function Footer() {
                 { label: 'Why Trust Us', href: '/trust' }
               ].map((link, i) => (
                 <li key={i}>
-                  <Link href={link.href} className="text-white hover:text-red-500 flex items-center gap-2 group transition-all text-sm font-bold">
-                    <ChevronRight className="w-3 h-3 text-red-500 opacity-0 group-hover:opacity-100 -ml-4 group-hover:ml-0 transition-all" />
+                  <Link href={link.href} className="text-gray-700 hover:text-red-600 flex items-center gap-2 group transition-all text-sm font-bold">
+                    <ChevronRight className="w-3 h-3 text-red-600 opacity-0 group-hover:opacity-100 -ml-4 group-hover:ml-0 transition-all" />
                     {link.label}
                   </Link>
                 </li>
@@ -120,7 +114,7 @@ export default function Footer() {
 
           {/* Legal */}
           <motion.div variants={itemVariants} className="space-y-6">
-            <h4 className="text-xs font-black uppercase tracking-[0.2em] text-red-500 flex items-center gap-2">
+            <h4 className="text-xs font-black uppercase tracking-[0.2em] text-red-600 flex items-center gap-2">
               <span className="w-2 h-px bg-red-600"></span>
               {clean(t.legal)}
             </h4>
@@ -132,8 +126,8 @@ export default function Footer() {
                 { label: clean(t.becomeRetailer), href: '/register' }
               ].map((link, i) => (
                 <li key={i}>
-                  <Link href={link.href} className="text-white hover:text-red-500 flex items-center gap-2 group transition-all text-sm font-bold">
-                    <ChevronRight className="w-3 h-3 text-red-500 opacity-0 group-hover:opacity-100 -ml-4 group-hover:ml-0 transition-all" />
+                  <Link href={link.href} className="text-gray-700 hover:text-red-600 flex items-center gap-2 group transition-all text-sm font-bold">
+                    <ChevronRight className="w-3 h-3 text-red-600 opacity-0 group-hover:opacity-100 -ml-4 group-hover:ml-0 transition-all" />
                     {link.label}
                   </Link>
                 </li>
@@ -142,30 +136,27 @@ export default function Footer() {
           </motion.div>
         </motion.div>
 
-        {/* Corporate Info Section - Redesigned */}
+        {/* Corporate Info Section - Light Theme */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="relative group lg:mb-20"
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-red-600/10 via-amber-600/5 to-red-600/10 rounded-3xl blur-xl group-hover:blur-2xl transition-all opacity-50"></div>
-          <div className="relative bg-[#111113] border border-white/5 rounded-3xl p-8 sm:p-10 overflow-hidden">
-            {/* Subtle light effect */}
-            <div className="absolute -top-24 -right-24 w-48 h-48 bg-red-600/10 rounded-full blur-[80px]"></div>
-
+          <div className="absolute inset-0 bg-red-600/5 rounded-3xl blur-xl transition-all opacity-50"></div>
+          <div className="relative bg-gray-50 border border-gray-200 rounded-3xl p-8 sm:p-10 overflow-hidden">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-center">
               {/* CIN Column */}
               <div className="space-y-4">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-600/10 border border-red-600/20 text-red-500 text-[10px] font-bold uppercase tracking-wider">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-600/10 border border-red-200 text-red-600 text-[10px] font-bold uppercase tracking-wider">
                   <ShieldCheck className="w-3 h-3" />
                   Official Registration
                 </div>
                 <div>
-                  <p className="text-red-500 text-[11px] font-black mb-2 uppercase tracking-[0.2em]">Corporate Identity Number</p>
-                  <p className="text-xl sm:text-2xl font-mono font-bold text-white tracking-wider flex items-center gap-3">
+                  <p className="text-red-600 text-[11px] font-black mb-2 uppercase tracking-[0.2em]">Corporate Identity Number</p>
+                  <p className="text-xl sm:text-2xl font-mono font-bold text-gray-900 tracking-wider flex items-center gap-3">
                     U74909PN2025PTC249261
-                    <span className="h-px w-8 bg-white/20 hidden sm:block"></span>
+                    <span className="h-px w-8 bg-gray-300 hidden sm:block"></span>
                   </p>
                 </div>
               </div>
@@ -173,13 +164,13 @@ export default function Footer() {
               {/* Address Column */}
               <div className="lg:col-span-1 space-y-4">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10 shrink-0">
-                    <MapPin className="w-6 h-6 text-red-500" />
+                  <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center border border-gray-200 shrink-0">
+                    <MapPin className="w-6 h-6 text-red-600" />
                   </div>
                   <div>
-                    <h5 className="text-white font-bold mb-2 text-sm uppercase tracking-wider">Registered Office</h5>
-                    <div className="text-white text-sm leading-relaxed">
-                      <p className="text-white font-bold mb-1">VIGHNAHARTA ONLINE SERVICES PVT LTD</p>
+                    <h5 className="text-gray-900 font-bold mb-2 text-sm uppercase tracking-wider">Registered Office</h5>
+                    <div className="text-gray-700 text-sm leading-relaxed">
+                      <p className="text-gray-900 font-bold mb-1">VIGHNAHARTA ONLINE SERVICES PVT LTD</p>
                       <p className="font-medium">G NO 199/5, KUPWAD, MIRAJ</p>
                       <p className="font-medium">Sangli, Maharashtra - 416416</p>
                     </div>
@@ -189,11 +180,11 @@ export default function Footer() {
 
               {/* Incorporation Column */}
               <div className="flex flex-col items-start lg:items-end justify-center space-y-4">
-                <div className="flex items-center gap-3 text-white text-sm">
-                  <Calendar className="w-5 h-5 text-red-500" />
-                  <span className="font-bold">Incorporated: <span className="text-red-500 font-black">12 Dec 2025</span></span>
+                <div className="flex items-center gap-3 text-gray-700 text-sm">
+                  <Calendar className="w-5 h-5 text-red-600" />
+                  <span className="font-bold">Incorporated: <span className="text-red-600 font-black">12 Dec 2025</span></span>
                 </div>
-                <div className="px-4 py-2 rounded-xl bg-white/10 border border-white/20 text-[10px] font-black text-white uppercase tracking-widest leading-none">
+                <div className="px-4 py-2 rounded-xl bg-white border border-gray-200 text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none shadow-sm">
                   Registered under the Companies Act, 2013
                 </div>
               </div>
@@ -202,26 +193,26 @@ export default function Footer() {
         </motion.div>
 
         {/* Footer Bottom */}
-        <div className="mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8">
+        <div className="mt-12 pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
-            <p className="text-white text-sm font-bold">
+            <p className="text-gray-500 text-sm font-bold">
               {t.copyright}
             </p>
           </div>
 
           <div className="flex items-center gap-8">
-            <div className="flex items-center gap-2.5 group cursor-pointer bg-white/5 px-4 py-2 rounded-full border border-white/5 hover:border-red-500/30 transition-all">
-              <span className="text-white text-xs font-bold uppercase tracking-wider">{clean(t.developedWith)}</span>
+            <div className="flex items-center gap-2.5 group cursor-pointer bg-gray-50 px-4 py-2 rounded-full border border-gray-200 hover:border-red-200 transition-all">
+              <span className="text-gray-600 text-xs font-bold uppercase tracking-wider">{clean(t.developedWith)}</span>
               <a
                 href="https://akrixsolutions.in/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="relative flex items-center gap-1.5"
               >
-                <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-amber-500 hover:from-amber-500 hover:to-red-500 transition-all duration-500 text-sm">
+                <span className="font-bold text-gray-900 hover:text-red-600 transition-all duration-300 text-sm">
                   Akrix Solutions
                 </span>
-                <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500 animate-pulse" />
+                <Heart className="w-3.5 h-3.5 text-red-600 fill-red-600 animate-pulse" />
               </a>
             </div>
           </div>
@@ -230,4 +221,3 @@ export default function Footer() {
     </footer>
   );
 }
-

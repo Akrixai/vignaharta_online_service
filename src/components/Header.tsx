@@ -17,7 +17,7 @@ export default function Header() {
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showNotification, setShowNotification] = useState(true);
-  const t = headerTranslations[language];
+  const t = (headerTranslations as any)[language] || headerTranslations['en'];
 
   const handleLogin = () => {
     if (!session) {
@@ -130,7 +130,7 @@ export default function Header() {
                     onClick={() => setShowLanguageMenu(false)}
                   />
                   <div
-                    className="language-selector-dropdown absolute right-0 mt-2 w-44 sm:w-48 bg-gradient-to-br from-red-600 to-red-700 rounded-lg shadow-2xl overflow-hidden border-2 border-white animate-fade-in"
+                    className="language-selector-dropdown absolute right-0 mt-2 w-44 sm:w-48 max-h-[70vh] overflow-y-auto bg-gradient-to-br from-red-600 to-red-700 rounded-lg shadow-2xl border-2 border-white animate-fade-in scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent"
                     style={{ zIndex: 10002 }}
                   >
                     {languages.map((lang) => (
