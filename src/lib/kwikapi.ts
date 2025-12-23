@@ -2,7 +2,7 @@
 // Handles all recharge and bill payment operations
 // Based on KWIKAPI v2 API Documentation
 
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance } from '@/lib/axios-wrapper';
 
 const KWIKAPI_BASE_URL = process.env.KWIKAPI_BASE_URL || 'https://www.kwikapi.com';
 const KWIKAPI_API_KEY = process.env.KWIKAPI_API_KEY || '';

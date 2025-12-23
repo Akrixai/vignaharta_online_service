@@ -1,3 +1,16 @@
+// Suppress Node.js deprecation warnings globally
+const originalEmitWarning = process.emitWarning;
+process.emitWarning = function(warning, type, code, ...args) {
+  if (
+    code === 'DEP0169' || 
+    (typeof warning === 'string' && warning.includes('url.parse')) ||
+    (typeof warning === 'string' && warning.includes('behavior is not standardized'))
+  ) {
+    return; // Suppress this warning
+  }
+  return originalEmitWarning.call(this, warning, type, code, ...args);
+};
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Production optimizations

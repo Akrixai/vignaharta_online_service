@@ -11,10 +11,7 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
-    "clean": "rm -rf .next out",
-    "dev:no-warnings": "NODE_OPTIONS='--no-deprecation' next dev",
-    "build:no-warnings": "NODE_OPTIONS='--no-deprecation' next build",
-    "start:no-warnings": "NODE_OPTIONS='--no-deprecation' next start"
+    "clean": "rm -rf .next out"
   },
   "dependencies": {
     "@cashfreepayments/cashfree-js": "^1.0.5",

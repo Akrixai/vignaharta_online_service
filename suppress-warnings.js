@@ -1,9 +1,8 @@
 /**
- * Suppress Node.js deprecation warnings
- * This handles the url.parse() deprecation warning from dependencies
+ * Global Node.js deprecation warning suppression
+ * This file should be loaded before any other modules
  */
 
-// Suppress warnings in both development and production for API routes
 if (typeof process !== 'undefined') {
   const originalEmitWarning = process.emitWarning;
   
@@ -21,5 +20,3 @@ if (typeof process !== 'undefined') {
     return originalEmitWarning.call(this, warning, type, code, ...args);
   };
 }
-
-export {};
