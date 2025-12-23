@@ -337,13 +337,14 @@ export async function POST(request: NextRequest) {
           .eq('id', transaction.id);
 
         return NextResponse.json({
-          success: false,
+          success: true, // API call succeeded, but transaction failed
           data: {
             transaction_ref: transactionRef,
             status: 'FAILED',
             message: paymentResponse.data?.message || '❌ Bill payment failed. No amount was deducted.',
             response: paymentResponse.data,
             technical_message: paymentResponse.data?.message,
+            kwikapi_status: responseStatus,
           },
         });
       }
