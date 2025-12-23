@@ -15,6 +15,11 @@ const nextConfig = {
   // Netlify compatibility
   trailingSlash: false,
 
+  // Node.js configuration to handle deprecation warnings
+  env: {
+    NODE_OPTIONS: '--no-deprecation',
+  },
+
   // Image optimization settings
   images: {
     // Use remotePatterns for more control

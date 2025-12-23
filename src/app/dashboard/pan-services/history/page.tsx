@@ -57,6 +57,7 @@ export default function PanServicesHistoryPage() {
   const [services, setServices] = useState<PanService[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('ALL');
+  const [resuming, setResuming] = useState<string | null>(null);
 
   useEffect(() => {
     if (session?.user?.id) {
@@ -128,7 +129,6 @@ export default function PanServicesHistoryPage() {
     return `${minutes}m remaining`;
   };
 
-  const [resuming, setResuming] = useState<string | null>(null);
 
   const handleResume = async (orderId: string) => {
     try {
