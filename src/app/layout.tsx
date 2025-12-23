@@ -9,6 +9,8 @@ import NotificationManager from "@/components/NotificationManager";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { defaultSEO, structuredData } from "@/lib/seo";
 import GoogleTranslate from "@/components/GoogleTranslate";
+// Suppress Node.js deprecation warnings
+import "@/lib/suppress-warnings";
 // removed google analytics Script import to disable GA
 
 const inter = Inter({

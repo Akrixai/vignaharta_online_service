@@ -15,10 +15,7 @@ const nextConfig = {
   // Netlify compatibility
   trailingSlash: false,
 
-  // Node.js configuration to handle deprecation warnings
-  env: {
-    NODE_OPTIONS: '--no-deprecation',
-  },
+  // Remove NODE_OPTIONS from env as it's not allowed in Vercel
 
   // Image optimization settings
   images: {
@@ -76,7 +73,14 @@ const nextConfig = {
 
 
   // Webpack configuration for better asset handling
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, dev }) => {
+    // Suppress deprecation warnings during build
+    if (!dev) {
+      config.infrastructureLogging = {
+        level: 'error',
+      };
+    }
+
     // Optimize asset loading
     config.module.rules.push({
       test: /\.(png|jpe?g|gif|svg)$/,
@@ -95,8 +99,6 @@ const nextConfig = {
     if (process.env.NODE_ENV === 'production') {
       config.optimization.minimize = true;
     }
-
-
 
     return config;
   },

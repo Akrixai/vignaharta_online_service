@@ -6,15 +6,15 @@
   "author": "RajNakti",
   "license": "MIT",
   "scripts": {
-    "dev": "NODE_OPTIONS='--no-deprecation' next dev",
-    "build": "NODE_OPTIONS='--no-deprecation' next build",
-    "start": "NODE_OPTIONS='--no-deprecation' next start",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "clean": "rm -rf .next out",
-    "dev:verbose": "next dev",
-    "build:verbose": "next build",
-    "start:verbose": "next start"
+    "dev:no-warnings": "NODE_OPTIONS='--no-deprecation' next dev",
+    "build:no-warnings": "NODE_OPTIONS='--no-deprecation' next build",
+    "start:no-warnings": "NODE_OPTIONS='--no-deprecation' next start"
   },
   "dependencies": {
     "@cashfreepayments/cashfree-js": "^1.0.5",
