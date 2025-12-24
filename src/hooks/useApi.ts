@@ -70,20 +70,6 @@ export function useApi() {
     return apiCall('/api/wallet');
   }, [apiCall]);
 
-  const addMoney = useCallback((amount: number) => {
-    return apiCall('/api/wallet/create-order', {
-      method: 'POST',
-      body: JSON.stringify({ amount }),
-    });
-  }, [apiCall]);
-
-  const verifyPayment = useCallback((paymentData: any) => {
-    return apiCall('/api/wallet/verify-payment', {
-      method: 'POST',
-      body: JSON.stringify(paymentData),
-    });
-  }, [apiCall]);
-
   // Transaction operations
   const getTransactions = useCallback((params: Record<string, any> = {}) => {
     const searchParams = new URLSearchParams(params);
@@ -173,8 +159,6 @@ export function useApi() {
     error,
     // Wallet
     getWallet,
-    addMoney,
-    verifyPayment,
     // Transactions
     getTransactions,
     createTransaction,

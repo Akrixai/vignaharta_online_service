@@ -298,22 +298,25 @@ export async function POST(request: NextRequest) {
         return await handleRegistrationPaymentSuccess(registrationPayment, order, data);
       }
 
-      // Check if payment is already processed to avoid double processing
-      if (paymentRecord.status === 'PAID') {
-        console.log('Payment already processed, skipping:', order.order_id);
-        return addCorsHeaders(NextResponse.json({ success: true, message: 'Payment already processed' }));
-      }
-
-      // Update payment status
-      await supabaseAdmin
+      // ATOMIC CHECK: Use database-level locking to prevent race conditions
+      const { data: updateResult, error: updateError } = await supabaseAdmin
         .from('cashfree_payments')
         .update({
           status: 'PAID',
           payment_method: order.payment_method,
           payment_time: new Date().toISOString(),
           webhook_data: data,
+          webhook_processed_at: new Date().toISOString(),
         })
-        .eq('order_id', order.order_id);
+        .eq('order_id', order.order_id)
+        .eq('status', 'CREATED') // Only update if status is still CREATED
+        .select();
+
+      // If no rows were updated, payment was already processed
+      if (!updateResult || updateResult.length === 0) {
+        console.log('Payment already processed by another webhook, skipping:', order.order_id);
+        return addCorsHeaders(NextResponse.json({ success: true, message: 'Payment already processed by another webhook' }));
+      }
 
       // Get user's wallet
       const { data: wallet, error: walletError } = await supabaseAdmin
@@ -343,8 +346,8 @@ export async function POST(request: NextRequest) {
         .update({ balance: newBalance })
         .eq('user_id', paymentRecord.user_id);
 
-      // Create transaction record
-      const { data: transaction } = await supabaseAdmin
+      // Create transaction record with duplicate prevention
+      const { data: transaction, error: transactionError } = await supabaseAdmin
         .from('transactions')
         .insert({
           user_id: paymentRecord.user_id,
@@ -366,6 +369,16 @@ export async function POST(request: NextRequest) {
         })
         .select()
         .single();
+
+      if (transactionError) {
+        // Check if it's a duplicate constraint violation
+        if (transactionError.code === '23505' && transactionError.message.includes('unique_deposit_reference_per_user')) {
+          console.log('Duplicate transaction prevented by database constraint:', order.order_id);
+          return addCorsHeaders(NextResponse.json({ success: true, message: 'Transaction already processed (duplicate prevented)' }));
+        }
+        console.error('Failed to create transaction:', transactionError);
+        throw new Error('Failed to create transaction record');
+      }
 
       // Update cashfree_payments with transaction_id
       if (transaction) {

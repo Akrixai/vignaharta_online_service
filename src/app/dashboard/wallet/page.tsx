@@ -218,6 +218,12 @@ export default function WalletPage() {
 
   const handleAddMoney = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Prevent multiple submissions
+    if (isAddingMoney || paymentLoading) {
+      return;
+    }
+
     const amount = parseFloat(addMoneyAmount);
     const maxAmount = 50000;
 
@@ -255,47 +261,61 @@ export default function WalletPage() {
     setIsAddingMoney(true);
     setPaymentStatusMessage('Initiating payment...');
 
-    // Send base amount to backend (backend will calculate GST)
-    console.log('Payment Debug:', {
-      inputAmount: amount,
-      baseAmount: breakdown.recharge_amount,
-      gstAmount: breakdown.gst_amount,
-      totalPayable: breakdown.total_payable,
-      sendingToBackend: breakdown.recharge_amount
-    });
-    
-    await initiatePayment(
-      breakdown.recharge_amount,
-      (data) => {
-        // Payment successful
-        setAddMoneyAmount('');
-        setGstBreakdown(null);
-        setShowAddMoney(false);
-        setIsAddingMoney(false);
-        setPaymentStatusMessage('');
+    try {
+      // Send base amount to backend (backend will calculate GST)
+      console.log('Payment Debug:', {
+        inputAmount: amount,
+        baseAmount: breakdown.recharge_amount,
+        gstAmount: breakdown.gst_amount,
+        totalPayable: breakdown.total_payable,
+        sendingToBackend: breakdown.recharge_amount
+      });
+      
+      await initiatePayment(
+        breakdown.recharge_amount,
+        (data) => {
+          // Payment successful
+          setAddMoneyAmount('');
+          setGstBreakdown(null);
+          setShowAddMoney(false);
+          setIsAddingMoney(false);
+          setPaymentStatusMessage('');
 
-        showToast.success('Payment Successful!', {
-          description: `₹${breakdown.wallet_credit} will be added to your wallet shortly. (Total paid: ₹${breakdown.total_payable} including GST)`
-        });
+          showToast.success('Payment Successful!', {
+            description: `₹${breakdown.wallet_credit} will be added to your wallet shortly. (Total paid: ₹${breakdown.total_payable} including GST)`
+          });
 
-        // Refresh wallet and transactions after a delay to allow webhook processing
-        setTimeout(() => {
-          refreshWalletAndTransactions();
-        }, 3000);
-      },
-      (error) => {
-        // Payment failed
-        setIsAddingMoney(false);
-        setPaymentStatusMessage(error || 'Payment failed');
-        showToast.error('Payment failed', {
-          description: `${error}`
-        });
-      }
-    );
+          // Refresh wallet and transactions after a delay to allow webhook processing
+          setTimeout(() => {
+            refreshWalletAndTransactions();
+          }, 3000);
+        },
+        (error) => {
+          // Payment failed
+          setIsAddingMoney(false);
+          setPaymentStatusMessage(error || 'Payment failed');
+          showToast.error('Payment failed', {
+            description: `${error}`
+          });
+        }
+      );
+    } catch (error) {
+      setIsAddingMoney(false);
+      setPaymentStatusMessage('');
+      showToast.error('Payment Error', {
+        description: 'Failed to initiate payment'
+      });
+    }
   };
 
   const handleManualQRRecharge = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Prevent multiple submissions
+    if (isSubmittingManualRecharge) {
+      return;
+    }
+
     const amount = parseFloat(manualRechargeAmount);
 
     if (!amount || amount <= 0) {
