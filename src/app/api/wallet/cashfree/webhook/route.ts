@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { validatePaymentSecurity, logSecurityIncident } from '@/lib/payment-security';
-import crypto from 'crypto';
-import bcrypt from 'bcryptjs';
 
 // Add CORS headers for cross-origin requests (Flutter app)
 function addCorsHeaders(response: NextResponse) {
