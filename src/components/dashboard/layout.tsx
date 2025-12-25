@@ -243,6 +243,9 @@ const menuItems: MenuItem[] = [
   { name: 'Incomplete PAN', href: '/dashboard/pan-services/incomplete', icon: '📋', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
   { name: 'PAN Services History', href: '/dashboard/pan-services/history', icon: '📊', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
 
+  // Direct Links Services
+  { name: 'Quick Service Links', href: '/dashboard/direct-links', icon: '🔗', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+
   // Coming Soon Services
   { name: 'Gas Bill', href: '/dashboard/coming-soon', icon: '🔥', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
   { name: 'Water Bill', href: '/dashboard/coming-soon', icon: '💧', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
@@ -265,6 +268,7 @@ const menuItems: MenuItem[] = [
   { name: 'KWIKAPI Wallet', href: '/dashboard/admin/kwikapi-wallet', icon: '💰', roles: [UserRole.ADMIN] },
   { name: 'Recharge Configuration', href: '/dashboard/admin/recharge-config', icon: '⚙️', roles: [UserRole.ADMIN] },
   { name: 'PAN Commission Config', href: '/dashboard/admin/pan-commission', icon: '🆔', roles: [UserRole.ADMIN] },
+  { name: 'Direct Links Management', href: '/dashboard/admin/direct-links', icon: '🔗', roles: [UserRole.ADMIN, UserRole.EMPLOYEE] },
   { name: 'Blog Management', href: '/dashboard/admin/blog', icon: '📝', roles: [UserRole.ADMIN, UserRole.EMPLOYEE] },
   { name: 'Manage Products', href: '/dashboard/admin/products', icon: '📦', roles: [UserRole.ADMIN] },
   { name: 'Manage Training', href: '/dashboard/admin/training', icon: '🎬', roles: [UserRole.ADMIN] },
@@ -554,6 +558,30 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     </div>
                     {filteredMenuItems.filter(item =>
                       ['PAN Services', 'New PAN Application', 'PAN Correction', 'Incomplete PAN', 'PAN Services History'].includes(item.name)
+                    ).map((item) => (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className="group flex items-center px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium rounded-lg text-red-100 hover:bg-red-700 hover:text-white transition-all duration-200 hover:shadow-md"
+                        onClick={() => setSidebarOpen(false)}
+                      >
+                        <span className="mr-2 sm:mr-3 text-base sm:text-lg flex-shrink-0">{item.icon}</span>
+                        <span className="truncate">{item.name}</span>
+                      </Link>
+                    ))}
+                  </>
+                )}
+
+              {/* Digital Services Section */}
+              {filteredMenuItems.some(item =>
+                ['Quick Service Links'].includes(item.name)
+              ) && (
+                  <>
+                    <div className="pt-3 pb-1 px-2">
+                      <h3 className="text-xs font-semibold text-red-300 uppercase tracking-wider">Digital Services</h3>
+                    </div>
+                    {filteredMenuItems.filter(item =>
+                      ['Quick Service Links'].includes(item.name)
                     ).map((item) => (
                       <Link
                         key={item.name}
