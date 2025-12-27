@@ -382,3 +382,93 @@ export function useRealTimeTrainingVideos(enabled = true) {
     refresh: fetchTrainingVideos
   };
 }
+
+export function useRealTimeDirectLinks(category?: string, featured?: boolean, enabled = true) {
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchDirectLinks = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const params = new URLSearchParams();
+      if (category) params.append('category', category);
+      if (featured) params.append('featured', 'true');
+
+      const response = await fetch(`/api/direct-links?${params}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch direct links');
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        setData(result.data || []);
+      } else {
+        throw new Error(result.error || 'Failed to fetch direct links');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
+      setData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (enabled) {
+      fetchDirectLinks();
+    }
+  }, [enabled, category, featured]);
+
+  return {
+    data,
+    loading,
+    error,
+    refresh: fetchDirectLinks
+  };
+}
+
+export function useRealTimeDirectLinkCategories(enabled = true) {
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchCategories = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await fetch('/api/direct-links/categories');
+      if (!response.ok) {
+        throw new Error('Failed to fetch categories');
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        setData(result.data || []);
+      } else {
+        throw new Error(result.error || 'Failed to fetch categories');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
+      setData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (enabled) {
+      fetchCategories();
+    }
+  }, [enabled]);
+
+  return {
+    data,
+    loading,
+    error,
+    refresh: fetchCategories
+  };
+}
