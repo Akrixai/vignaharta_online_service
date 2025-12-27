@@ -284,9 +284,7 @@ export async function POST(request: NextRequest) {
             reward_amount: finalReward,
             reward_label: rewardLabel,
             message: `✅ ${rechargeResponse.data?.message || 'Recharge successful!'} ${finalReward > 0 ? `${rewardLabel} of ₹${finalReward.toFixed(2)} has been added to your wallet.` : ''}`,
-            response: rechargeResponse.data,
             opr_id: rechargeResponse.data?.opr_id,
-            balance: rechargeResponse.data?.balance,
             operator_ref: rechargeResponse.data?.opr_id,
           },
         });
@@ -317,8 +315,6 @@ export async function POST(request: NextRequest) {
             transaction_ref: transactionRef,
             status: 'FAILED',
             message: rechargeResponse.data?.message || '❌ Recharge failed. No amount was deducted.',
-            response: rechargeResponse.data,
-            technical_message: rechargeResponse.data?.message,
           },
         });
       }

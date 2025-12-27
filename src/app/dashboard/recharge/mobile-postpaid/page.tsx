@@ -267,9 +267,13 @@ export default function MobilePostpaidPage() {
 
         // Show real-time KwikAPI status
         if (status === 'SUCCESS') {
-          setMessage(
-            `✅ ${msg}${operatorRef ? `\nRef: ${operatorRef}` : ''}${balance ? `\nBalance: ₹${balance}` : ''}${reward > 0 ? `\n${rewardLabel}: ₹${reward.toFixed(2)}` : ''}\nKwikAPI Status: ${kwikApiStatus}`
-          );
+          // Clean up message - remove KwikAPI balance if present in the message string
+          let cleanMessage = msg.replace(/Your Balance is.*$/i, '').trim();
+          if (cleanMessage.endsWith('.')) cleanMessage = cleanMessage.slice(0, -1);
+
+          const finalSuccessMsg = `✅ ${cleanMessage}! Your bill payment for ${mobileNumber} was successful.${operatorRef ? `\nRef: ${operatorRef}` : ''}${reward > 0 ? `\n${rewardLabel} earned: ₹${reward.toFixed(2)}` : ''}`;
+
+          setMessage(finalSuccessMsg);
 
           // Reset form on success
           setTimeout(() => {

@@ -46,7 +46,9 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from('recharge_transactions')
       .select(`
-        *,
+        id, transaction_ref, service_type, mobile_number, dth_number, consumer_number, 
+        account_holder_name, amount, commission_amount, cashback_amount, platform_fee, 
+        total_amount, status, created_at, completed_at, error_message,
         operator:recharge_operators(operator_name, operator_code, logo_url),
         circle:recharge_circles(circle_name, circle_code)
       `)
@@ -126,7 +128,9 @@ export async function GET(request: NextRequest) {
         const { data: updatedTransaction } = await supabase
           .from('recharge_transactions')
           .select(`
-            *,
+            id, transaction_ref, service_type, mobile_number, dth_number, consumer_number, 
+            account_holder_name, amount, commission_amount, cashback_amount, platform_fee, 
+            total_amount, status, created_at, completed_at, error_message,
             operator:recharge_operators(operator_name, operator_code, logo_url),
             circle:recharge_circles(circle_name, circle_code)
           `)

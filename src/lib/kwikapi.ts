@@ -7,10 +7,6 @@ import axios, { AxiosInstance } from '@/lib/axios-wrapper';
 const KWIKAPI_BASE_URL = process.env.KWIKAPI_BASE_URL || 'https://www.kwikapi.com';
 const KWIKAPI_API_KEY = process.env.KWIKAPI_API_KEY || '';
 
-// Proxy Configuration for Vercel/Serverless fixed IP issues
-const KWIKAPI_PROXY_URL = 'https://api.akrixsolutions.in/vighnaharta';
-const USE_PROXY = true; // Enable proxy for recharge and bill payment
-
 interface KwikAPIResponse<T = any> {
   success?: boolean;
   status?: string;
@@ -153,7 +149,7 @@ class KwikAPIClient {
 
       // Check if the response indicates success
       const isSuccess = response.data.status === 'SUCCESS' || response.data.STATUS === 'SUCCESS';
-
+      
       if (isSuccess) {
         console.log('✅ [KWIKAPI] Bill validation successful:', {
           customer_name: response.data.customer_name || response.data.customername,
@@ -182,7 +178,7 @@ class KwikAPIClient {
 
       // Provide more specific error messages
       let errorMessage = 'Failed to validate bill details';
-
+      
       if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
         errorMessage = 'Network connection failed. Please check your internet connection and try again.';
       } else if (error.code === 'ETIMEDOUT') {
@@ -277,7 +273,7 @@ class KwikAPIClient {
 
       // Check if the response indicates success
       const isSuccess = response.data.status === 'SUCCESS' || response.data.STATUS === 'SUCCESS';
-
+      
       if (isSuccess) {
         console.log('✅ [KWIKAPI] Bill fetch successful:', {
           customer_name: response.data.customer_name || response.data.customername,
@@ -306,7 +302,7 @@ class KwikAPIClient {
 
       // Provide more specific error messages
       let errorMessage = 'Failed to fetch bill details';
-
+      
       if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
         errorMessage = 'Network connection failed. Please check your internet connection and try again.';
       } else if (error.code === 'ETIMEDOUT') {
@@ -442,34 +438,21 @@ class KwikAPIClient {
         order_id: params.order_id || this.generateOrderId(),
       };
 
-      let finalUrl = '/api/v2/recharge.php';
-      let finalParams = queryParams;
-
-      if (USE_PROXY) {
-        finalUrl = KWIKAPI_PROXY_URL;
-        finalParams = {
-          ...queryParams,
-          endpoint: '/api/v2/recharge.php'
-        };
-        console.log('🛡️ [KWIKAPI] Using Proxy for Prepaid Recharge');
-      }
-
       console.log('📡 [KWIKAPI] Prepaid Recharge API Call:', {
-        url: finalUrl,
-        params: { ...finalParams, api_key: '***' }, // Hide API key in logs
-        baseURL: USE_PROXY ? '' : KWIKAPI_BASE_URL
+        url: '/api/v2/recharge.php',
+        params: { ...queryParams, api_key: '***' }, // Hide API key in logs
+        baseURL: KWIKAPI_BASE_URL
       });
 
-      const response = await this.client.get(finalUrl, {
-        params: finalParams,
-        ...(USE_PROXY && { baseURL: '' }), // Override baseURL if using absolute proxy URL
+      const response = await this.client.get('/api/v2/recharge.php', {
+        params: queryParams,
         timeout: 45000, // 45 second timeout for recharge
       });
 
       console.log('📦 [KWIKAPI] Prepaid Recharge Response:', response.data);
 
       const isSuccess = response.data.status === 'SUCCESS' || response.data.STATUS === 'SUCCESS';
-
+      
       if (isSuccess) {
         console.log('✅ [KWIKAPI] Prepaid recharge successful:', {
           order_id: response.data.order_id,
@@ -499,7 +482,7 @@ class KwikAPIClient {
 
       // Provide more specific error messages
       let errorMessage = 'Failed to process prepaid recharge';
-
+      
       if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
         errorMessage = 'Network connection failed. Please check your internet connection and try again.';
       } else if (error.code === 'ETIMEDOUT') {
@@ -569,21 +552,8 @@ class KwikAPIClient {
         ...(params.opt10 && { opt10: params.opt10 }),
       };
 
-      let finalUrl = '/api/v2/recharge.php';
-      let finalParams: any = queryParams;
-
-      if (USE_PROXY) {
-        finalUrl = KWIKAPI_PROXY_URL;
-        finalParams = {
-          ...queryParams,
-          endpoint: '/api/v2/recharge.php'
-        };
-        console.log('🛡️ [KWIKAPI] Using Proxy for DTH Recharge');
-      }
-
-      const response = await this.client.get(finalUrl, {
-        params: finalParams,
-        ...(USE_PROXY && { baseURL: '' }),
+      const response = await this.client.get('/api/v2/recharge.php', {
+        params: queryParams,
       });
 
       return {
@@ -655,34 +625,21 @@ class KwikAPIClient {
       if (params.opt9) queryParams.opt9 = params.opt9;
       if (params.opt10) queryParams.opt10 = params.opt10;
 
-      let finalUrl = '/api/v2/bills/payments.php';
-      let finalParams = queryParams;
-
-      if (USE_PROXY) {
-        finalUrl = KWIKAPI_PROXY_URL;
-        finalParams = {
-          ...queryParams,
-          endpoint: '/api/v2/bills/payments.php'
-        };
-        console.log('🛡️ [KWIKAPI] Using Proxy for Utility Payment');
-      }
-
       console.log('📡 [KWIKAPI] Utility Payment API Call:', {
-        url: finalUrl,
-        params: { ...finalParams, api_key: '***' }, // Hide API key in logs
-        baseURL: USE_PROXY ? '' : KWIKAPI_BASE_URL
+        url: '/api/v2/bills/payments.php',
+        params: { ...queryParams, api_key: '***' }, // Hide API key in logs
+        baseURL: KWIKAPI_BASE_URL
       });
 
-      const response = await this.client.get(finalUrl, {
-        params: finalParams,
-        ...(USE_PROXY && { baseURL: '' }),
+      const response = await this.client.get('/api/v2/bills/payments.php', {
+        params: queryParams,
         timeout: 45000, // 45 second timeout for utility payments
       });
 
       console.log('📦 [KWIKAPI] Utility Payment Response:', response.data);
 
       const isSuccess = response.data.status === 'SUCCESS' || response.data.STATUS === 'SUCCESS';
-
+      
       if (isSuccess) {
         console.log('✅ [KWIKAPI] Utility payment successful:', {
           order_id: response.data.order_id,
@@ -712,7 +669,7 @@ class KwikAPIClient {
 
       // Provide more specific error messages
       let errorMessage = 'Failed to process utility bill payment';
-
+      
       if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
         errorMessage = 'Network connection failed. Please check your internet connection and try again.';
       } else if (error.code === 'ETIMEDOUT') {
@@ -766,7 +723,7 @@ class KwikAPIClient {
       amount: params.amount,
       order_id: params.order_id,
       mobile: params.mobile,
-      refrence_id: params.ref_id,
+      ref_id: params.ref_id,
     });
   }
 
@@ -790,7 +747,7 @@ class KwikAPIClient {
       number: params.consumer_number,
       amount: params.amount,
       order_id: params.order_id,
-      refrence_id: params.ref_id,
+      ref_id: params.ref_id,
       mobile: params.mobile,
       opt1: params.opt1 || params.circle,
       opt2: params.opt2,

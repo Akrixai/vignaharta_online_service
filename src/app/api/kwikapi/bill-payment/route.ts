@@ -342,8 +342,6 @@ export async function POST(request: NextRequest) {
             transaction_ref: transactionRef,
             status: 'FAILED',
             message: paymentResponse.data?.message || '❌ Bill payment failed. No amount was deducted.',
-            response: paymentResponse.data,
-            technical_message: paymentResponse.data?.message,
             kwikapi_status: responseStatus,
           },
         });

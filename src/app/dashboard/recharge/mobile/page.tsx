@@ -629,9 +629,13 @@ export default function MobileRechargePageEnhanced() {
 
         // Show real-time KwikAPI status
         if (status === 'SUCCESS') {
-          setMessage(
-            `✅ ${message}${operatorRef ? `\nRef: ${operatorRef}` : ''}${balance ? `\nBalance: ₹${balance}` : ''}`
-          );
+          // Clean up message - remove KwikAPI balance if present in the message string
+          let cleanMessage = message.replace(/Your Balance is.*$/i, '').trim();
+          if (cleanMessage.endsWith('.')) cleanMessage = cleanMessage.slice(0, -1);
+
+          const finalSuccessMsg = `✅ ${cleanMessage}! Your recharge for ${mobileNumber} was successful.${operatorRef ? `\nRef: ${operatorRef}` : ''}`;
+
+          setMessage(finalSuccessMsg);
           setMessageType('success');
 
           // Refresh wallet balance on success

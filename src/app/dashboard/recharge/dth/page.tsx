@@ -62,11 +62,11 @@ export default function DTHRechargePageEnhanced() {
     const [detecting, setDetecting] = useState(false);
     const [message, setMessage] = useState('');
     const [messageType, setMessageType] = useState<'success' | 'error' | 'info'>('info');
-    
+
     // Wallet balance state
     const [walletBalance, setWalletBalance] = useState<number>(0);
     const [loadingBalance, setLoadingBalance] = useState(false);
-    
+
     // Modal state
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalPlan, setModalPlan] = useState<Plan | null>(null);
@@ -225,10 +225,10 @@ export default function DTHRechargePageEnhanced() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         // Calculate total amount
         const totalAmount = parseFloat(amount);
-        
+
         // CRITICAL: Check wallet balance BEFORE processing
         if (walletBalance < totalAmount) {
             setMessage(
@@ -237,7 +237,7 @@ export default function DTHRechargePageEnhanced() {
             setMessageType('error');
             return;
         }
-        
+
         setLoading(true);
         setMessage('');
 
@@ -271,17 +271,21 @@ export default function DTHRechargePageEnhanced() {
                 const message = responseData.message || 'Transaction completed';
                 const operatorRef = responseData.opr_id || responseData.operator_ref || '';
                 const balance = responseData.balance || '';
-                
+
                 // Show real-time KwikAPI status
                 if (status === 'SUCCESS') {
-                    setMessage(
-                        `✅ ${message}${operatorRef ? `\nRef: ${operatorRef}` : ''}${balance ? `\nBalance: ₹${balance}` : ''}`
-                    );
+                    // Clean up message - remove KwikAPI balance if present in the message string
+                    let cleanMessage = message.replace(/Your Balance is.*$/i, '').trim();
+                    if (cleanMessage.endsWith('.')) cleanMessage = cleanMessage.slice(0, -1);
+
+                    const finalSuccessMsg = `✅ ${cleanMessage}! Your DTH recharge for ${dthNumber} was successful.${operatorRef ? `\nRef: ${operatorRef}` : ''}`;
+
+                    setMessage(finalSuccessMsg);
                     setMessageType('success');
-                    
+
                     // Refresh wallet balance on success
                     fetchWalletBalance();
-                    
+
                     // Reset form on success
                     setDthNumber('');
                     setAmount('');
@@ -339,7 +343,7 @@ export default function DTHRechargePageEnhanced() {
                     onSelect={handlePlanSelect}
                     serviceType="DTH"
                 />
-                
+
                 <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-800">📺 DTH Recharge</h1>
 
                 {/* Wallet Balance Display - Responsive */}
@@ -469,8 +473,8 @@ export default function DTHRechargePageEnhanced() {
                                     <div className="text-2xl mr-3">💰</div>
                                     <div>
                                         <p className="text-sm font-medium text-green-800">
-                                            {userRole === 'CUSTOMER' 
-                                                ? '🎉 You will earn cashback on this recharge!' 
+                                            {userRole === 'CUSTOMER'
+                                                ? '🎉 You will earn cashback on this recharge!'
                                                 : '💼 You will earn commission on this recharge!'}
                                         </p>
                                         <p className="text-xs text-green-700 mt-1">
@@ -492,11 +496,10 @@ export default function DTHRechargePageEnhanced() {
 
                         {/* Message */}
                         {message && (
-                            <div className={`p-4 rounded-lg ${
-                                messageType === 'success' ? 'bg-green-50 text-green-800 border border-green-200' :
-                                messageType === 'error' ? 'bg-red-50 text-red-800 border border-red-200' :
-                                'bg-blue-50 text-blue-800 border border-blue-200'
-                            }`}>
+                            <div className={`p-4 rounded-lg ${messageType === 'success' ? 'bg-green-50 text-green-800 border border-green-200' :
+                                    messageType === 'error' ? 'bg-red-50 text-red-800 border border-red-200' :
+                                        'bg-blue-50 text-blue-800 border border-blue-200'
+                                }`}>
                                 {message}
                             </div>
                         )}

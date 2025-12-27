@@ -333,7 +333,6 @@ export async function POST(request: NextRequest) {
             reward_amount: finalReward,
             reward_label: rewardLabel,
             message: successMessage,
-            response: rechargeResponse.data,
           },
         });
       } else if (status === 'PENDING') {
