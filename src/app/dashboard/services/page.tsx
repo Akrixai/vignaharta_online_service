@@ -263,7 +263,7 @@ export default function ServicesPage() {
                   className="whitespace-nowrap text-base font-black"
                   style={{ color: '#ffffff' }}
                 >
-                  Direct Links
+                  Authorized Service Links
                 </span>
               </button>
             </div>

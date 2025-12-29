@@ -387,33 +387,39 @@ export default function DashboardPage() {
                 </div>
               </Link>
 
-              {/* PAN Card Creation - Coming Soon */}
-              <Link href="/dashboard/coming-soon">
-                <div className="group bg-gradient-to-br from-stone-500 to-stone-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
-                  <div className="absolute top-2 right-2 bg-white text-stone-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
+              {/* Apply New PAN - Live Service */}
+              <Link href="/dashboard/pan-services/new">
+                <div className="group bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-green-500 text-white text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
+                  </div>
                   <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🆔</div>
-                  <h3 className="text-white font-bold text-sm mb-1">PAN Creation</h3>
-                  <p className="text-stone-100 text-xs">New PAN Card</p>
+                  <h3 className="text-white font-bold text-sm mb-1">Apply New PAN</h3>
+                  <p className="text-emerald-100 text-xs">New PAN Card</p>
                 </div>
               </Link>
 
-              {/* PAN Card Update - Coming Soon */}
-              <Link href="/dashboard/coming-soon">
-                <div className="group bg-gradient-to-br from-zinc-500 to-zinc-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
-                  <div className="absolute top-2 right-2 bg-white text-zinc-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
-                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🔄</div>
-                  <h3 className="text-white font-bold text-sm mb-1">PAN Update</h3>
-                  <p className="text-zinc-100 text-xs">Update Details</p>
+              {/* PAN Correction - Live Service */}
+              <Link href="/dashboard/pan-services/correction">
+                <div className="group bg-gradient-to-br from-amber-600 to-amber-700 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-green-500 text-white text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
+                  </div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">✏️</div>
+                  <h3 className="text-white font-bold text-sm mb-1">PAN Correction</h3>
+                  <p className="text-amber-100 text-xs">Update Details</p>
                 </div>
               </Link>
 
-              {/* Find PAN - Coming Soon */}
-              <Link href="/dashboard/coming-soon">
-                <div className="group bg-gradient-to-br from-neutral-500 to-neutral-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
-                  <div className="absolute top-2 right-2 bg-white text-neutral-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
-                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🔍</div>
-                  <h3 className="text-white font-bold text-sm mb-1">Find PAN</h3>
-                  <p className="text-neutral-100 text-xs">Search PAN</p>
+              {/* Incomplete PAN - Live Service */}
+              <Link href="/dashboard/pan-services/incomplete">
+                <div className="group bg-gradient-to-br from-orange-600 to-orange-700 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-green-500 text-white text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
+                  </div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">📋</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Incomplete PAN</h3>
+                  <p className="text-orange-100 text-xs">Complete Application</p>
                 </div>
               </Link>
             </div>

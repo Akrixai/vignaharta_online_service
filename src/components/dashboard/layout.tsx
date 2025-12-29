@@ -265,7 +265,7 @@ const menuItems: MenuItem[] = [
   { name: 'KWIKAPI Wallet', href: '/dashboard/admin/kwikapi-wallet', icon: '💰', roles: [UserRole.ADMIN] },
   { name: 'Recharge Configuration', href: '/dashboard/admin/recharge-config', icon: '⚙️', roles: [UserRole.ADMIN] },
   { name: 'PAN Commission Config', href: '/dashboard/admin/pan-commission', icon: '🆔', roles: [UserRole.ADMIN] },
-  { name: 'Direct Links Management', href: '/dashboard/admin/direct-links', icon: '🔗', roles: [UserRole.ADMIN, UserRole.EMPLOYEE] },
+  { name: 'Manage Direct Links', href: '/dashboard/admin/directs-links', icon: '🔗', roles: [UserRole.ADMIN, UserRole.EMPLOYEE] },
   { name: 'Blog Management', href: '/dashboard/admin/blog', icon: '📝', roles: [UserRole.ADMIN, UserRole.EMPLOYEE] },
   { name: 'Manage Products', href: '/dashboard/admin/products', icon: '📦', roles: [UserRole.ADMIN] },
   { name: 'Manage Training', href: '/dashboard/admin/training', icon: '🎬', roles: [UserRole.ADMIN] },

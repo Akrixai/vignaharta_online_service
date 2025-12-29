@@ -116,17 +116,37 @@ export default function ShareableLinksPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="bg-gradient-to-r from-purple-600 to-purple-700 rounded-xl p-8 text-white shadow-xl">
-          <h1 className="text-4xl font-bold mb-3">Shareable Application Links</h1>
-          <p className="text-purple-100 text-xl">Create and manage shareable application links</p>
+        <div className="bg-gradient-to-r from-blue-800 to-indigo-900 rounded-xl p-8 text-white shadow-xl">
+          <h1 className="text-4xl font-bold mb-3">Government Service Portal Links</h1>
+          <p className="text-blue-100 text-xl">Manage Official Direct Access Links for Government Services</p>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+              <button className="border-transparent text-blue-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-blue-500">
+                📋 Digital Service Registry
+              </button>
+              <button className="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                🏛️ Government Portal Access
+              </button>
+              <button className="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                🔐 Authorized Service Links
+              </button>
+              <button className="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                📊 Link Analytics Dashboard
+              </button>
+            </nav>
+          </div>
         </div>
 
         <div className="flex justify-end">
           <Button
             onClick={() => setShowCreateModal(true)}
-            className="bg-purple-600 hover:bg-purple-700 text-white"
+            className="bg-blue-700 hover:bg-blue-800 text-white shadow-lg"
           >
-            ➕ Create New Link
+            🔗 Create Official Service Link
           </Button>
         </div>
 
