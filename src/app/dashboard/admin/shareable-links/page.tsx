@@ -23,7 +23,7 @@ export default function ShareableLinksPage() {
   });
 
   useEffect(() => {
-    if (session?.user.role === UserRole.ADMIN) {
+    if (session?.user.role === UserRole.ADMIN || session?.user.role === UserRole.EMPLOYEE) {
       fetchLinks();
       fetchSchemes();
     }
@@ -102,12 +102,12 @@ export default function ShareableLinksPage() {
     }
   };
 
-  if (!session || session.user.role !== UserRole.ADMIN) {
+  if (!session || (session.user.role !== UserRole.ADMIN && session.user.role !== UserRole.EMPLOYEE)) {
     return (
       <DashboardLayout>
         <div className="text-center py-12">
           <h1 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h1>
-          <p className="text-gray-600">Only administrators can access this page.</p>
+          <p className="text-gray-600">Only administrators and employees can access this page.</p>
         </div>
       </DashboardLayout>
     );

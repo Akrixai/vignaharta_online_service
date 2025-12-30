@@ -11,13 +11,11 @@ CREATE TABLE pan_commission_config (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     service_type pan_service_type NOT NULL UNIQUE,
     price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-    commission_rate DECIMAL(5,2) NOT NULL DEFAULT 0.00, -- Commission percentage
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     
-    CONSTRAINT valid_price CHECK (price >= 0),
-    CONSTRAINT valid_commission_rate CHECK (commission_rate >= 0 AND commission_rate <= 100)
+    CONSTRAINT valid_price CHECK (price >= 0)
 );
 
 -- PAN Services table (for tracking PAN applications)
@@ -69,11 +67,11 @@ CREATE TRIGGER update_pan_services_updated_at
     BEFORE UPDATE ON pan_services 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- Insert default PAN commission configurations
-INSERT INTO pan_commission_config (service_type, price, commission_rate, is_active) VALUES
-('NEW_PAN', 107.00, 5.00, true),
-('PAN_CORRECTION', 107.00, 5.00, true),
-('INCOMPLETE_PAN', 0.00, 0.00, true);
+-- Insert default PAN configurations
+INSERT INTO pan_commission_config (service_type, price, is_active) VALUES
+('NEW_PAN', 107.00, true),
+('PAN_CORRECTION', 107.00, true),
+('INCOMPLETE_PAN', 0.00, true);
 
 -- Add comment for documentation
 COMMENT ON TABLE pan_commission_config IS 'Configuration table for PAN service pricing and commission rates';

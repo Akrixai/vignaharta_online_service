@@ -263,7 +263,7 @@ export default function ServicesPage() {
                   className="whitespace-nowrap text-base font-black"
                   style={{ color: '#ffffff' }}
                 >
-                  Authorized Service Links
+                  Authorized Service
                 </span>
               </button>
             </div>
@@ -439,8 +439,8 @@ export default function ServicesPage() {
                             )
                           ) : (
                             <div className="flex justify-between text-sm">
-                              <span className="text-gray-500">Commission</span>
-                              <span className="font-bold text-red-600">{item.commission_rate}%</span>
+                              <span className="text-gray-500">Price</span>
+                              <span className="font-bold text-red-600">₹{item.price}</span>
                             </div>
                           )}
                         </div>

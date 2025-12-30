@@ -75,58 +75,6 @@ export async function GET(request: NextRequest) {
 
       updateData.status = 'SUCCESS';
       updateData.completed_at = new Date().toISOString();
-
-      // Add commission to wallet
-      if (panService.commission_amount > 0) {
-        console.log(`💰 Adding commission: ₹${panService.commission_amount}`);
-
-        const { data: wallet } = await supabaseAdmin
-          .from('wallets')
-          .select('*')
-          .eq('user_id', panService.user_id)
-          .single();
-
-        if (wallet) {
-          const newBalance = wallet.balance + panService.commission_amount;
-
-          const { error: walletUpdateError } = await supabaseAdmin
-            .from('wallets')
-            .update({
-              balance: newBalance,
-              updated_at: new Date().toISOString()
-            })
-            .eq('user_id', panService.user_id);
-
-          if (!walletUpdateError) {
-            console.log(`✅ Commission added. New balance: ₹${newBalance}`);
-
-            // Create commission transaction
-            await supabaseAdmin
-              .from('transactions')
-              .insert({
-                user_id: panService.user_id,
-                wallet_id: wallet.id,
-                type: 'COMMISSION',
-                amount: panService.commission_amount,
-                status: 'COMPLETED',
-                description: `PAN Service Commission - ${panService.service_type} (${panService.order_id})`,
-                reference: panService.order_id,
-                metadata: {
-                  service_type: panService.service_type,
-                  pan_service_id: panService.id,
-                  inspay_txid: txid,
-                  inspay_opid: opid
-                }
-              });
-
-            console.log('✅ Commission transaction created');
-          } else {
-            console.error('❌ Error updating wallet for commission:', walletUpdateError);
-          }
-        } else {
-          console.error('❌ Wallet not found for user:', panService.user_id);
-        }
-      }
     }
     // Handle PENDING
     else if (status.toLowerCase() === 'pending') {
@@ -235,8 +183,7 @@ export async function GET(request: NextRequest) {
         status: updateData.status,
         order_id: panService.order_id,
         service_type: panService.service_type,
-        refund_processed: updateData.refund_processed || false,
-        commission_added: status.toLowerCase() === 'success' && panService.commission_amount > 0
+        refund_processed: updateData.refund_processed || false
       }
     });
 

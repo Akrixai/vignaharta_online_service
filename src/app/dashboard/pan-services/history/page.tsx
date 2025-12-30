@@ -15,7 +15,6 @@ interface PanService {
   mode: 'EKYC' | 'ESIGN';
   order_id: string;
   amount: number;
-  commission_amount: number;
   status: 'PENDING' | 'SUCCESS' | 'FAILURE' | 'PROCESSING' | 'EXPIRED';
   payment_status: 'PENDING' | 'DEBITED' | 'REFUNDED';
   payment_debited_at?: string;
@@ -270,10 +269,6 @@ export default function PanServicesHistoryPage() {
                       <div>
                         <span className="text-gray-500">Amount:</span>
                         <p className="font-medium">₹{service.amount}</p>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Commission:</span>
-                        <p className="font-medium text-green-600">₹{service.commission_amount}</p>
                       </div>
                     </div>
 

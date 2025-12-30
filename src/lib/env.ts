@@ -23,9 +23,6 @@ export const env = {
   NEXT_PUBLIC_CASHFREE_ENVIRONMENT: process.env.NEXT_PUBLIC_CASHFREE_ENVIRONMENT || 'TEST',
   CASHFREE_ENVIRONMENT: process.env.CASHFREE_ENVIRONMENT || 'TEST',
   
-  // Chaport Live Chat Configuration
-  NEXT_PUBLIC_CHAPORT_APP_ID: process.env.NEXT_PUBLIC_CHAPORT_APP_ID || '692894e919eb4879974cd369',
-  
   // InsPay API Configuration (for PAN services)
   INSPAY_USERNAME: process.env.INSPAY_USERNAME || '',
   INSPAY_API_TOKEN: process.env.INSPAY_API_TOKEN || '',

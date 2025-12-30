@@ -153,7 +153,6 @@ async function handler(request: NextRequest) {
             inspay_opid: inspayResponse.opid,
             inspay_url: inspayResponse.url,
             amount: config.price,
-            commission_amount: (config.price * config.commission_rate) / 100,
             status: 'PROCESSING',
             payment_status: 'DEBITED',
             payment_debited_at: new Date().toISOString(),

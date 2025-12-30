@@ -26,7 +26,6 @@ CREATE TABLE pan_commission_config (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     service_type pan_service_type NOT NULL UNIQUE,
     price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-    commission_rate DECIMAL(5,2) NOT NULL DEFAULT 0.00,
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

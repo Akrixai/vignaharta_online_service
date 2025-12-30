@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { useApi } from '@/hooks/useApi';
 import { toast } from 'react-hot-toast';
 import { UserRole } from '@/types';
 
@@ -16,7 +15,6 @@ interface PanCommissionConfig {
   id: string;
   service_type: 'NEW_PAN' | 'PAN_CORRECTION' | 'INCOMPLETE_PAN';
   price: number;
-  commission_rate: number;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -29,9 +27,8 @@ export default function PanCommissionPage() {
   const [saving, setSaving] = useState(false);
   const [editingConfig, setEditingConfig] = useState<PanCommissionConfig | null>(null);
   const [formData, setFormData] = useState({
-    service_type: 'NEW_PAN' as const,
+    service_type: 'NEW_PAN' as 'NEW_PAN' | 'PAN_CORRECTION' | 'INCOMPLETE_PAN',
     price: 0,
-    commission_rate: 0,
     is_active: true
   });
 
@@ -93,7 +90,6 @@ export default function PanCommissionPage() {
         setFormData({
           service_type: 'NEW_PAN',
           price: 0,
-          commission_rate: 0,
           is_active: true
         });
         fetchConfigs();
@@ -114,7 +110,6 @@ export default function PanCommissionPage() {
     setFormData({
       service_type: config.service_type,
       price: config.price,
-      commission_rate: config.commission_rate,
       is_active: config.is_active
     });
   };
@@ -150,7 +145,6 @@ export default function PanCommissionPage() {
     setFormData({
       service_type: 'NEW_PAN',
       price: 0,
-      commission_rate: 0,
       is_active: true
     });
   };
@@ -202,9 +196,9 @@ export default function PanCommissionPage() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">PAN Commission Configuration</h1>
+          <h1 className="text-3xl font-bold text-gray-900">PAN Service Configuration</h1>
           <p className="text-gray-600 mt-2">
-            Configure pricing and commission rates for PAN card services
+            Configure pricing for PAN card services
           </p>
         </div>
 
@@ -276,7 +270,7 @@ export default function PanCommissionPage() {
               {editingConfig ? 'Edit Configuration' : 'Add New Configuration'}
             </CardTitle>
             <CardDescription>
-              Set the price and commission rate for PAN services
+              Set the price for PAN services
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -307,21 +301,6 @@ export default function PanCommissionPage() {
                     value={formData.price}
                     onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
                     placeholder="Enter service price"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="commission_rate">Commission Rate (%)</Label>
-                  <Input
-                    id="commission_rate"
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.01"
-                    value={formData.commission_rate}
-                    onChange={(e) => setFormData({ ...formData, commission_rate: parseFloat(e.target.value) || 0 })}
-                    placeholder="Enter commission percentage"
                     required
                   />
                 </div>
@@ -375,8 +354,6 @@ export default function PanCommissionPage() {
                     <tr className="bg-gray-50">
                       <th className="border border-gray-300 px-4 py-2 text-left">Service Type</th>
                       <th className="border border-gray-300 px-4 py-2 text-left">Price (₹)</th>
-                      <th className="border border-gray-300 px-4 py-2 text-left">Commission Rate</th>
-                      <th className="border border-gray-300 px-4 py-2 text-left">Commission Amount</th>
                       <th className="border border-gray-300 px-4 py-2 text-left">Status</th>
                       <th className="border border-gray-300 px-4 py-2 text-left">Actions</th>
                     </tr>
@@ -389,12 +366,6 @@ export default function PanCommissionPage() {
                         </td>
                         <td className="border border-gray-300 px-4 py-2">
                           ₹{config.price.toFixed(2)}
-                        </td>
-                        <td className="border border-gray-300 px-4 py-2">
-                          {config.commission_rate}%
-                        </td>
-                        <td className="border border-gray-300 px-4 py-2">
-                          ₹{((config.price * config.commission_rate) / 100).toFixed(2)}
                         </td>
                         <td className="border border-gray-300 px-4 py-2">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.is_active
@@ -448,9 +419,6 @@ export default function PanCommissionPage() {
               </div>
               <div>
                 <strong>Pricing:</strong> Set the amount charged to customers for each service type.
-              </div>
-              <div>
-                <strong>Commission Rate:</strong> Percentage of the price that will be credited to the retailer's wallet upon successful completion.
               </div>
               <div>
                 <strong>Status:</strong> Only active configurations will be available for use in the system.

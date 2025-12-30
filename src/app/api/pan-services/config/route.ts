@@ -46,8 +46,7 @@ export async function GET(request: NextRequest) {
       success: true,
       data: {
         service_type: config.service_type,
-        price: parseFloat(config.price),
-        commission_rate: parseFloat(config.commission_rate)
+        price: parseFloat(config.price)
       }
     });
 

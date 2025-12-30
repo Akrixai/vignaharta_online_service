@@ -92,8 +92,7 @@ export async function GET(request: NextRequest) {
       processing: 0,
       success: 0,
       failure: 0,
-      total_amount: 0,
-      total_commission: 0
+      total_amount: 0
     };
 
     if (services) {
@@ -101,7 +100,6 @@ export async function GET(request: NextRequest) {
         stats[service.status.toLowerCase() as keyof typeof stats] =
           (stats[service.status.toLowerCase() as keyof typeof stats] as number) + 1;
         stats.total_amount += parseFloat(service.amount || '0');
-        stats.total_commission += parseFloat(service.commission_amount || '0');
       });
     }
 

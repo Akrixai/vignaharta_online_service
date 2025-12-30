@@ -49,9 +49,9 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { service_type, price, commission_rate, is_active } = body;
+    const { service_type, price, is_active } = body;
 
-    if (!service_type || price === undefined || commission_rate === undefined) {
+    if (!service_type || price === undefined) {
       return NextResponse.json({ success: false, message: 'Missing required fields' }, { status: 400 });
     }
 
@@ -59,8 +59,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'Invalid service type' }, { status: 400 });
     }
 
-    if (price < 0 || commission_rate < 0 || commission_rate > 100) {
-      return NextResponse.json({ success: false, message: 'Invalid price or commission rate' }, { status: 400 });
+    if (price < 0) {
+      return NextResponse.json({ success: false, message: 'Invalid price' }, { status: 400 });
     }
 
     // Check if config already exists
@@ -76,7 +76,6 @@ export async function POST(request: NextRequest) {
         .from('pan_commission_config')
         .update({
           price,
-          commission_rate,
           is_active: is_active !== undefined ? is_active : true,
           updated_at: new Date().toISOString()
         })
@@ -101,7 +100,6 @@ export async function POST(request: NextRequest) {
         .insert({
           service_type,
           price,
-          commission_rate,
           is_active: is_active !== undefined ? is_active : true
         })
         .select()
@@ -138,9 +136,9 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { id, service_type, price, commission_rate, is_active } = body;
+    const { id, service_type, price, is_active } = body;
 
-    if (!id || !service_type || price === undefined || commission_rate === undefined) {
+    if (!id || !service_type || price === undefined) {
       return NextResponse.json({ success: false, message: 'Missing required fields' }, { status: 400 });
     }
 
@@ -148,8 +146,8 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'Invalid service type' }, { status: 400 });
     }
 
-    if (price < 0 || commission_rate < 0 || commission_rate > 100) {
-      return NextResponse.json({ success: false, message: 'Invalid price or commission rate' }, { status: 400 });
+    if (price < 0) {
+      return NextResponse.json({ success: false, message: 'Invalid price' }, { status: 400 });
     }
 
     const { data: updatedConfig, error } = await supabase
@@ -157,7 +155,6 @@ export async function PUT(request: NextRequest) {
       .update({
         service_type,
         price,
-        commission_rate,
         is_active: is_active !== undefined ? is_active : true,
         updated_at: new Date().toISOString()
       })

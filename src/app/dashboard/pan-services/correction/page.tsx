@@ -9,7 +9,6 @@ import DashboardLayout from '@/components/dashboard/layout';
 
 interface PanConfig {
   price: number;
-  commission_rate: number;
 }
 
 export default function PanCorrectionPage() {
@@ -288,12 +287,6 @@ export default function PanCorrectionPage() {
                     <span className="text-gray-600">Service Fee:</span>
                     <span className="font-semibold">₹{config.price}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Your Commission:</span>
-                    <span className="font-semibold text-green-600">
-                      ₹{((config.price * config.commission_rate) / 100).toFixed(2)}
-                    </span>
-                  </div>
                   <div className="border-t border-gray-200 pt-2">
                     <div className="flex justify-between font-semibold">
                       <span>Total Deduction:</span>
@@ -322,10 +315,6 @@ export default function PanCorrectionPage() {
                 </div>
                 <div className="flex items-start space-x-2">
                   <span className="text-orange-500 mt-1">✅</span>
-                  <span>Commission credited on successful completion</span>
-                </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-orange-500 mt-1">💸</span>
                   <span>Full refund if correction fails or expires</span>
                 </div>
               </div>
