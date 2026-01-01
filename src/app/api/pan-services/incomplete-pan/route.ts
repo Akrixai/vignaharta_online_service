@@ -66,7 +66,30 @@ async function handler(request: NextRequest) {
     try {
       console.log('🔄 Calling InsPay API (Balance Reserved - No Deduction Yet) for Incomplete PAN...');
 
-      // Call InsPay API FIRST
+      // First, try to find existing PAN service record
+      const { data: existingService, error: findError } = await supabaseAdmin
+        .from('pan_services')
+        .select('*')
+        .eq('order_id', order_id)
+        .eq('user_id', user.id)
+        .single();
+
+      if (findError || !existingService) {
+        console.error('❌ Existing PAN service not found for order_id:', order_id);
+        return corsJsonResponse({
+          success: false,
+          message: 'Original PAN application not found. Please check your order ID.'
+        }, 404);
+      }
+
+      console.log('📋 Found existing service:', {
+        id: existingService.id,
+        service_type: existingService.service_type,
+        status: existingService.status,
+        mobile_number: existingService.mobile_number
+      });
+
+      // Call InsPay API
       const inspayResponse = await inspayService.incompletePanRequest({
         orderid: order_id
       });
@@ -74,29 +97,33 @@ async function handler(request: NextRequest) {
       console.log('📥 InsPay API Response:', JSON.stringify(inspayResponse, null, 2));
 
       if (inspayResponse.status === 'Success') {
-        console.log('✅ InsPay Success - Creating record with RESERVED payment status (NO MONEY DEDUCTED YET)');
+        console.log('✅ InsPay Success - Updating existing record with new InsPay details');
 
-        // Create PAN service record with RESERVED payment status (NO DEDUCTION)
-        const { data: panService, error: panServiceError } = await supabaseAdmin
+        // Update the existing record instead of creating a new one
+        const { data: updatedService, error: updateError } = await supabaseAdmin
           .from('pan_services')
-          .insert({
-            user_id: user.id,
-            service_type: 'INCOMPLETE_PAN',
-            order_id: order_id,
-            inspay_txid: inspayResponse.txid,
-            inspay_opid: inspayResponse.opid,
-            inspay_url: inspayResponse.url,
-            amount: config.price,
-            status: 'PROCESSING',
-            payment_status: config.price > 0 ? 'RESERVED' : 'COMPLETED', // RESERVED if there's a fee
+          .update({
+            service_type: 'INCOMPLETE_PAN', // Update service type
+            inspay_txid: inspayResponse.txid, // New txid from InsPay
+            inspay_opid: inspayResponse.opid, // New opid
+            inspay_url: inspayResponse.url, // New URL
+            amount: config.price, // Update amount if different
+            status: 'PROCESSING', // Reset to processing
+            payment_status: config.price > 0 ? 'RESERVED' : 'COMPLETED',
             payment_reserved_at: config.price > 0 ? new Date().toISOString() : null,
-            wallet_balance_at_time: wallet.balance
+            wallet_balance_at_time: wallet.balance,
+            updated_at: new Date().toISOString()
           })
+          .eq('id', existingService.id)
           .select()
           .single();
 
-        if (panServiceError) {
-          console.error('❌ Error creating PAN service record after success:', panServiceError);
+        if (updateError) {
+          console.error('❌ Error updating PAN service record:', updateError);
+          return corsJsonResponse({
+            success: false,
+            message: 'Failed to update PAN service record. Please try again.'
+          }, 500);
         }
 
         return NextResponse.json({
@@ -105,7 +132,7 @@ async function handler(request: NextRequest) {
             ? 'Incomplete PAN application resumed successfully. Complete your application to proceed with payment.'
             : 'Incomplete PAN application resumed successfully.',
           data: {
-            id: panService?.id,
+            id: updatedService?.id,
             order_id: order_id,
             inspay_url: inspayResponse.url,
             amount: config.price,
