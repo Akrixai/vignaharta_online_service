@@ -1,5 +1,3 @@
-import { env } from './env';
-
 export interface InspayNewPanRequest {
   number: string;
   mode: 'EKYC' | 'ESIGN';
@@ -34,7 +32,7 @@ export interface InspayCallbackData {
 }
 
 class InspayService {
-  private baseUrl = process.env.INSPAY_BASE_URL || 'https://connect.inspay.in/v4/nsdl';
+  private baseUrl = process.env.INSPAY_PROXY_URL || 'https://api.akrixsolutions.in';
   private username = process.env.INSPAY_USERNAME;
   private token = process.env.INSPAY_API_TOKEN;
 
@@ -45,7 +43,7 @@ class InspayService {
   }
 
   private buildUrl(endpoint: string, params: Record<string, string>): string {
-    const url = new URL(`${this.baseUrl}/${endpoint}`);
+    const url = new URL(`${this.baseUrl}/${endpoint}.php`);
     url.searchParams.append('username', this.username!);
     url.searchParams.append('token', this.token!);
     
