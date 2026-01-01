@@ -64,7 +64,7 @@ async function handler(request: NextRequest) {
     }
 
     try {
-      console.log('🔄 Calling InsPay API (Pre-deduction) for Incomplete PAN...');
+      console.log('🔄 Calling InsPay API (Balance Reserved - No Deduction Yet) for Incomplete PAN...');
 
       // Call InsPay API FIRST
       const inspayResponse = await inspayService.incompletePanRequest({
@@ -74,61 +74,9 @@ async function handler(request: NextRequest) {
       console.log('📥 InsPay API Response:', JSON.stringify(inspayResponse, null, 2));
 
       if (inspayResponse.status === 'Success') {
-        console.log('✅ InsPay Success - Processing wallet deduction and record creation...');
+        console.log('✅ InsPay Success - Creating record with RESERVED payment status (NO MONEY DEDUCTED YET)');
 
-        // NOW DEDUCT FROM WALLET ONLY IF PRICE > 0
-        if (config.price > 0) {
-          const { data: currentWallet } = await supabaseAdmin
-            .from('wallets')
-            .select('balance, id')
-            .eq('user_id', user.id)
-            .single();
-
-          if (!currentWallet || currentWallet.balance < config.price) {
-            return corsJsonResponse({
-              success: false,
-              message: 'Insufficient balance to resume application.'
-            }, 400);
-          }
-
-          const newBalance = currentWallet.balance - config.price;
-          const { error: deductError } = await supabaseAdmin
-            .from('wallets')
-            .update({
-              balance: newBalance,
-              updated_at: new Date().toISOString()
-            })
-            .eq('user_id', user.id);
-
-          if (deductError) {
-            console.error('❌ Critical Error deducting from wallet after InsPay success:', deductError);
-            return NextResponse.json({
-              success: false,
-              message: 'Failed to process payment. Please contact support.'
-            }, { status: 500 });
-          }
-
-          console.log(`✅ Wallet debited: ₹${config.price}. New balance: ₹${newBalance}`);
-
-          // Create transaction history record
-          await supabaseAdmin
-            .from('transactions')
-            .insert({
-              user_id: user.id,
-              wallet_id: currentWallet.id,
-              type: 'WITHDRAWAL',
-              amount: -config.price,
-              status: 'COMPLETED',
-              description: `PAN Service Payment - INCOMPLETE_PAN (${order_id})`,
-              reference: order_id,
-              metadata: {
-                service_type: 'INCOMPLETE_PAN',
-                order_id: order_id
-              }
-            });
-        }
-
-        // Create PAN service record with status PROCESSING immediately
+        // Create PAN service record with RESERVED payment status (NO DEDUCTION)
         const { data: panService, error: panServiceError } = await supabaseAdmin
           .from('pan_services')
           .insert({
@@ -140,8 +88,9 @@ async function handler(request: NextRequest) {
             inspay_url: inspayResponse.url,
             amount: config.price,
             status: 'PROCESSING',
-            payment_status: config.price > 0 ? 'DEBITED' : 'COMPLETED',
-            payment_debited_at: config.price > 0 ? new Date().toISOString() : null
+            payment_status: config.price > 0 ? 'RESERVED' : 'COMPLETED', // RESERVED if there's a fee
+            payment_reserved_at: config.price > 0 ? new Date().toISOString() : null,
+            wallet_balance_at_time: wallet.balance
           })
           .select()
           .single();
@@ -152,12 +101,17 @@ async function handler(request: NextRequest) {
 
         return NextResponse.json({
           success: true,
-          message: 'Incomplete PAN application resumed successfully',
+          message: config.price > 0 
+            ? 'Incomplete PAN application resumed successfully. Complete your application to proceed with payment.'
+            : 'Incomplete PAN application resumed successfully.',
           data: {
             id: panService?.id,
             order_id: order_id,
             inspay_url: inspayResponse.url,
-            amount: config.price
+            amount: config.price,
+            payment_note: config.price > 0 
+              ? 'Payment will be deducted only after successful completion of your PAN application.'
+              : 'No additional payment required.'
           }
         });
 

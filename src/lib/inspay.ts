@@ -15,13 +15,13 @@ export interface InspayIncompletePanRequest {
 }
 
 export interface InspayResponse {
-  txid?: string;
+  txid?: string | number; // InsPay returns number, but we convert to string
   status: 'Success' | 'Failure';
   opid?: string;
   message: string;
   url?: string;
   number?: string;
-  amount?: string;
+  amount?: string | number; // InsPay returns string, but could be number
   orderid?: string;
 }
 
@@ -83,7 +83,20 @@ class InspayService {
       const result = await response.json();
       console.log('📥 Raw API Response:', JSON.stringify(result, null, 2));
       
-      return result as InspayResponse;
+      // Validate InsPay response format
+      if (!this.validateInspayResponse(result)) {
+        throw new Error('Invalid response format from InsPay API');
+      }
+      
+      // Normalize the response to ensure consistent types
+      const normalizedResult: InspayResponse = {
+        ...result,
+        txid: result.txid ? String(result.txid) : undefined, // Convert to string
+        amount: result.amount ? String(result.amount) : undefined, // Convert to string
+        message: this.getErrorMessage(result.message) // Get user-friendly error message
+      };
+      
+      return normalizedResult;
     } catch (error) {
       console.error('💥 InsPay New PAN API Error:', error);
       if (error instanceof Error) {
@@ -113,7 +126,21 @@ class InspayService {
       }
 
       const result = await response.json();
-      return result as InspayResponse;
+      
+      // Validate InsPay response format
+      if (!this.validateInspayResponse(result)) {
+        throw new Error('Invalid response format from InsPay API');
+      }
+      
+      // Normalize the response to ensure consistent types
+      const normalizedResult: InspayResponse = {
+        ...result,
+        txid: result.txid ? String(result.txid) : undefined,
+        amount: result.amount ? String(result.amount) : undefined,
+        message: this.getErrorMessage(result.message)
+      };
+      
+      return normalizedResult;
     } catch (error) {
       console.error('InsPay PAN Correction API Error:', error);
       throw new Error('Failed to process PAN correction request');
@@ -138,7 +165,21 @@ class InspayService {
       }
 
       const result = await response.json();
-      return result as InspayResponse;
+      
+      // Validate InsPay response format
+      if (!this.validateInspayResponse(result)) {
+        throw new Error('Invalid response format from InsPay API');
+      }
+      
+      // Normalize the response to ensure consistent types
+      const normalizedResult: InspayResponse = {
+        ...result,
+        txid: result.txid ? String(result.txid) : undefined,
+        amount: result.amount ? String(result.amount) : undefined,
+        message: this.getErrorMessage(result.message)
+      };
+      
+      return normalizedResult;
     } catch (error) {
       console.error('InsPay Incomplete PAN API Error:', error);
       throw new Error('Failed to process incomplete PAN request');
@@ -157,10 +198,62 @@ class InspayService {
     }
 
     return {
-      txid: data.txid,
+      txid: String(data.txid), // Ensure txid is string
       status: data.status,
       opid: data.opid
     };
+  }
+
+  /**
+   * Validates InsPay API response format
+   */
+  validateInspayResponse(response: any): boolean {
+    // Must have status field
+    if (!response.status) {
+      console.error('❌ InsPay response missing status field');
+      return false;
+    }
+
+    // Status must be Success or Failure
+    if (!['Success', 'Failure'].includes(response.status)) {
+      console.error('❌ InsPay response has invalid status:', response.status);
+      return false;
+    }
+
+    // Must have message field
+    if (!response.message) {
+      console.error('❌ InsPay response missing message field');
+      return false;
+    }
+
+    // For Success responses, must have txid and url
+    if (response.status === 'Success') {
+      if (!response.txid) {
+        console.error('❌ InsPay Success response missing txid');
+        return false;
+      }
+      if (!response.url) {
+        console.error('❌ InsPay Success response missing url');
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Handles common InsPay error messages
+   */
+  getErrorMessage(inspayMessage: string): string {
+    const errorMappings: Record<string, string> = {
+      'Please enter correct Mobile number, it must be 10 digit': 'Invalid mobile number. Please enter a valid 10-digit mobile number.',
+      'Low balance in API': 'Service temporarily unavailable. Please try again later.',
+      'URL Expired, please try again with a new request': 'This application has expired. Please start a new application.',
+      'Invalid username or token': 'Service configuration error. Please contact support.',
+      'Order ID already exists': 'This order ID already exists. Please try with a different order ID.'
+    };
+
+    return errorMappings[inspayMessage] || inspayMessage;
   }
 }
 

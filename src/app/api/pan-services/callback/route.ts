@@ -69,30 +69,106 @@ export async function GET(request: NextRequest) {
       updateData.inspay_opid = opid;
     }
 
-    // Handle SUCCESS
+    // Handle SUCCESS (case-insensitive)
     if (status.toLowerCase() === 'success') {
-      console.log('✅ Processing SUCCESS webhook');
+      console.log('✅ Processing SUCCESS webhook - Deducting payment now');
 
       updateData.status = 'SUCCESS';
       updateData.completed_at = new Date().toISOString();
+
+      // DEDUCT MONEY ONLY NOW (on success)
+      if (panService.payment_status === 'RESERVED' && !panService.commission_processed) {
+        console.log(`💳 Processing payment deduction: ₹${panService.amount}`);
+
+        // Get current wallet
+        const { data: wallet } = await supabaseAdmin
+          .from('wallets')
+          .select('*')
+          .eq('user_id', panService.user_id)
+          .single();
+
+        if (wallet && wallet.balance >= panService.amount) {
+          const newBalance = wallet.balance - panService.amount;
+
+          // Deduct the amount
+          const { error: deductError } = await supabaseAdmin
+            .from('wallets')
+            .update({
+              balance: newBalance,
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', panService.user_id);
+
+          if (!deductError) {
+            console.log(`✅ Payment deducted successfully. New balance: ₹${newBalance}`);
+
+            // Create transaction record
+            const { data: transaction } = await supabaseAdmin
+              .from('transactions')
+              .insert({
+                user_id: panService.user_id,
+                wallet_id: wallet.id,
+                type: 'WITHDRAWAL',
+                amount: -panService.amount,
+                status: 'COMPLETED',
+                description: `PAN Service Payment - ${panService.service_type} Completed (${panService.order_id})`,
+                reference: panService.order_id,
+                metadata: {
+                  service_type: panService.service_type,
+                  pan_service_id: panService.id,
+                  inspay_txid: txid,
+                  inspay_opid: opid,
+                  mobile_number: panService.mobile_number,
+                  mode: panService.mode,
+                  payment_type: 'post_success_deduction'
+                }
+              })
+              .select()
+              .single();
+
+            updateData.payment_status = 'CHARGED';
+            updateData.payment_charged_at = new Date().toISOString();
+            updateData.commission_processed = true;
+            updateData.commission_processed_at = new Date().toISOString();
+
+            console.log('✅ Payment transaction created:', transaction?.id);
+          } else {
+            console.error('❌ Error deducting payment on success:', deductError);
+            updateData.error_message = 'Payment deduction failed after success. Please contact support.';
+          }
+        } else {
+          console.error('❌ Insufficient balance for payment deduction:', {
+            required: panService.amount,
+            available: wallet?.balance || 0
+          });
+          updateData.error_message = 'Insufficient balance for payment deduction. Please contact support.';
+        }
+      } else {
+        console.log('ℹ️ Payment already processed or not in RESERVED status');
+      }
     }
-    // Handle PENDING
+    // Handle PENDING (case-insensitive)
     else if (status.toLowerCase() === 'pending') {
-      console.log('⏳ Processing PENDING webhook');
+      console.log('⏳ Processing PENDING webhook - No payment action needed');
       updateData.status = 'PENDING';
-      // No refund or commission for pending
+      // Keep payment_status as RESERVED - no money deducted yet
     }
-    // Handle FAILURE
+    // Handle FAILURE (case-insensitive) - includes any status that's not Success or Pending
     else {
-      console.log('❌ Processing FAILURE webhook - Initiating refund');
+      console.log(`❌ Processing ${status.toUpperCase()} webhook - No payment deduction needed`);
 
       updateData.status = 'FAILURE';
       updateData.completed_at = new Date().toISOString();
       updateData.error_message = `Transaction failed with status: ${status}`;
 
-      // Process refund only if payment was debited
-      if (panService.payment_status === 'DEBITED' && !panService.refund_processed) {
-        console.log(`💸 Processing refund: ₹${panService.amount}`);
+      // For RESERVED payments, no refund needed since money was never deducted
+      if (panService.payment_status === 'RESERVED') {
+        console.log('ℹ️ No refund needed - payment was only reserved, never deducted');
+        updateData.payment_status = 'CANCELLED'; // New status for cancelled reservations
+      }
+      // Handle legacy DEBITED payments (old flow) - still need refund
+      else if (panService.payment_status === 'DEBITED' && !panService.refund_processed) {
+        console.log(`💸 Processing refund for legacy payment: ₹${panService.amount}`);
 
         const { data: wallet } = await supabaseAdmin
           .from('wallets')
@@ -151,7 +227,7 @@ export async function GET(request: NextRequest) {
           console.error('❌ Wallet not found for refund:', panService.user_id);
         }
       } else {
-        console.log('ℹ️ Refund not needed - payment_status:', panService.payment_status, 'refund_processed:', panService.refund_processed);
+        console.log('ℹ️ No refund needed - payment_status:', panService.payment_status, 'refund_processed:', panService.refund_processed);
       }
     }
 

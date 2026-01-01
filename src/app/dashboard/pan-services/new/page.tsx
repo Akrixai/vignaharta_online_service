@@ -131,10 +131,10 @@ export default function NewPanPage() {
       console.log('📥 Response data:', data);
 
       if (data.success) {
-        // Show success message with payment confirmation
-        toast.success(data.message || 'Payment debited! Redirecting to complete your application...', {
+        // Show success message with new payment flow
+        toast.success(data.message || 'Application initiated successfully! Complete it to proceed with payment.', {
           duration: 5000,
-          icon: '💳'
+          icon: '🚀'
         });
 
         // Show order ID
@@ -142,6 +142,14 @@ export default function NewPanPage() {
           toast.success(`Order ID: ${data.data.order_id}`, {
             duration: 8000,
             icon: '📋'
+          });
+        }
+
+        // Show payment note
+        if (data.data?.payment_note) {
+          toast.info(data.data.payment_note, {
+            duration: 6000,
+            icon: '💡'
           });
         }
 
@@ -173,17 +181,7 @@ export default function NewPanPage() {
           console.log('🐛 Debug info:', data.debug);
         }
 
-        // Show refund message if applicable
-        if (data.refunded) {
-          toast.error(data.message || 'Failed to initiate PAN application. Amount refunded to your wallet.', {
-            duration: 6000,
-            icon: '💸'
-          });
-          // Refresh wallet balance
-          fetchWalletBalance();
-        } else {
-          toast.error(data.message || 'Failed to initiate PAN application');
-        }
+        toast.error(data.message || 'Failed to initiate PAN application');
       }
     } catch (error) {
       console.error('💥 Network/Parse Error:', error);
@@ -383,24 +381,24 @@ export default function NewPanPage() {
             </div>
 
             {/* Process Info */}
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-orange-900 mb-4">⚠️ Important: Instant Payment</h3>
-              <div className="space-y-3 text-sm text-orange-800">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-blue-900 mb-4">💳 New Payment Flow</h3>
+              <div className="space-y-3 text-sm text-blue-800">
                 <div className="flex items-start space-x-2">
-                  <span className="text-orange-500 mt-1">💳</span>
-                  <span><strong>Payment will be debited instantly</strong> when you click "Start Application"</span>
+                  <span className="text-blue-500 mt-1">✅</span>
+                  <span><strong>No upfront payment!</strong> Money will be deducted only after successful completion</span>
                 </div>
                 <div className="flex items-start space-x-2">
-                  <span className="text-orange-500 mt-1">🔗</span>
+                  <span className="text-blue-500 mt-1">🔗</span>
                   <span>You'll be redirected to NSDL portal to complete your application</span>
                 </div>
                 <div className="flex items-start space-x-2">
-                  <span className="text-orange-500 mt-1">⏰</span>
-                  <span><strong>Complete within 24 hours</strong> or amount will be auto-refunded</span>
+                  <span className="text-blue-500 mt-1">💰</span>
+                  <span><strong>Payment charged only on success</strong> - No risk of losing money</span>
                 </div>
                 <div className="flex items-start space-x-2">
-                  <span className="text-orange-500 mt-1">✅</span>
-                  <span>Full refund if application fails or expires</span>
+                  <span className="text-blue-500 mt-1">❌</span>
+                  <span>If application fails, no money will be deducted</span>
                 </div>
               </div>
             </div>

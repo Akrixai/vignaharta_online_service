@@ -92,10 +92,10 @@ export default function PanCorrectionPage() {
       const data = await response.json();
 
       if (data.success) {
-        // Show success message with payment confirmation
-        toast.success(data.message || 'Payment debited! Redirecting to complete your correction...', {
+        // Show success message with new payment flow
+        toast.success(data.message || 'PAN correction initiated successfully! Complete it to proceed with payment.', {
           duration: 5000,
-          icon: '💳'
+          icon: '🚀'
         });
 
         // Show order ID
@@ -103,6 +103,14 @@ export default function PanCorrectionPage() {
           toast.success(`Order ID: ${data.data.order_id}`, {
             duration: 8000,
             icon: '📋'
+          });
+        }
+
+        // Show payment note
+        if (data.data?.payment_note) {
+          toast.info(data.data.payment_note, {
+            duration: 6000,
+            icon: '💡'
           });
         }
 
@@ -119,17 +127,7 @@ export default function PanCorrectionPage() {
           }, 2000);
         }
       } else {
-        // Show refund message if applicable
-        if (data.refunded) {
-          toast.error(data.message || 'Failed to initiate PAN correction. Amount refunded to your wallet.', {
-            duration: 6000,
-            icon: '💸'
-          });
-          // Refresh wallet balance
-          fetchWalletBalance();
-        } else {
-          toast.error(data.message || 'Failed to initiate PAN correction');
-        }
+        toast.error(data.message || 'Failed to initiate PAN correction');
       }
     } catch (error) {
       console.error('Error submitting PAN correction:', error);
@@ -298,24 +296,24 @@ export default function PanCorrectionPage() {
             )}
 
             {/* Process Info */}
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-orange-900 mb-4">⚠️ Important: Instant Payment</h3>
-              <div className="space-y-3 text-sm text-orange-800">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-blue-900 mb-4">💳 New Payment Flow</h3>
+              <div className="space-y-3 text-sm text-blue-800">
                 <div className="flex items-start space-x-2">
-                  <span className="text-orange-500 mt-1">💳</span>
-                  <span><strong>Payment will be debited instantly</strong> when you click "Start Correction"</span>
+                  <span className="text-blue-500 mt-1">✅</span>
+                  <span><strong>No upfront payment!</strong> Money will be deducted only after successful completion</span>
                 </div>
                 <div className="flex items-start space-x-2">
-                  <span className="text-orange-500 mt-1">🔗</span>
+                  <span className="text-blue-500 mt-1">🔗</span>
                   <span>You'll be redirected to NSDL portal to complete your correction</span>
                 </div>
                 <div className="flex items-start space-x-2">
-                  <span className="text-orange-500 mt-1">⏰</span>
-                  <span><strong>Complete within 24 hours</strong> or amount will be auto-refunded</span>
+                  <span className="text-blue-500 mt-1">💰</span>
+                  <span><strong>Payment charged only on success</strong> - No risk of losing money</span>
                 </div>
                 <div className="flex items-start space-x-2">
-                  <span className="text-orange-500 mt-1">✅</span>
-                  <span>Full refund if correction fails or expires</span>
+                  <span className="text-blue-500 mt-1">❌</span>
+                  <span>If correction fails, no money will be deducted</span>
                 </div>
               </div>
             </div>

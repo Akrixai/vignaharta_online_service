@@ -20,11 +20,13 @@ const panServices: PanService[] = [
   {
     id: 'new-pan',
     title: 'New PAN Application',
-    description: 'Apply for a new PAN card with instant processing',
+    description: 'Apply for a new PAN card with our secure payment-after-success system',
     icon: '🆔',
     href: '/dashboard/pan-services/new',
     price: 107,
     features: [
+      '💳 No upfront payment required',
+      '✅ Pay only after successful completion',
       'EKYC (Instant PAN without signature)',
       'ESIGN (PAN with signature and photo)',
       'Instant processing',
@@ -34,11 +36,13 @@ const panServices: PanService[] = [
   {
     id: 'pan-correction',
     title: 'PAN Correction',
-    description: 'Correct errors in your existing PAN card',
+    description: 'Correct errors in your existing PAN card - risk-free payment',
     icon: '✏️',
     href: '/dashboard/pan-services/correction',
     price: 107,
     features: [
+      '💳 No upfront payment required',
+      '✅ Pay only after successful completion',
       'Name correction',
       'Date of birth correction',
       'Address update',
@@ -48,13 +52,14 @@ const panServices: PanService[] = [
   {
     id: 'incomplete-pan',
     title: 'Incomplete PAN',
-    description: 'Complete your pending PAN application',
+    description: 'Complete your pending PAN application with secure payment',
     icon: '📋',
     href: '/dashboard/pan-services/incomplete',
     price: 107,
     features: [
+      '💳 No upfront payment required',
+      '✅ Pay only after successful completion',
       'Resume incomplete application',
-      'Same fee as new application',
       'Quick completion',
       'Status tracking'
     ]

@@ -41,8 +41,11 @@ const statusColors = {
 
 const paymentStatusColors = {
   PENDING: 'bg-gray-100 text-gray-700',
+  RESERVED: 'bg-yellow-100 text-yellow-700',
   DEBITED: 'bg-orange-100 text-orange-700',
-  REFUNDED: 'bg-purple-100 text-purple-700'
+  CHARGED: 'bg-green-100 text-green-700',
+  REFUNDED: 'bg-purple-100 text-purple-700',
+  CANCELLED: 'bg-red-100 text-red-700'
 };
 
 const serviceTypeNames = {
@@ -145,7 +148,11 @@ export default function PanServicesHistoryPage() {
 
   const getPaymentStatusBadge = (paymentStatus: string) => (
     <span className={`px-2 py-1 rounded-full text-xs font-medium ${paymentStatusColors[paymentStatus as keyof typeof paymentStatusColors]}`}>
-      {paymentStatus === 'DEBITED' ? '💳 DEBITED' : paymentStatus === 'REFUNDED' ? '💸 REFUNDED' : paymentStatus}
+      {paymentStatus === 'RESERVED' ? '🔒 RESERVED' : 
+       paymentStatus === 'DEBITED' ? '💳 DEBITED' : 
+       paymentStatus === 'CHARGED' ? '✅ CHARGED' :
+       paymentStatus === 'REFUNDED' ? '💸 REFUNDED' : 
+       paymentStatus === 'CANCELLED' ? '❌ CANCELLED' : paymentStatus}
     </span>
   );
 
@@ -357,13 +364,49 @@ export default function PanServicesHistoryPage() {
                     )}
 
                     {/* Payment Status Info */}
+                    {service.payment_status === 'RESERVED' && (service.status === 'PENDING' || service.status === 'PROCESSING') && (
+                      <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-yellow-600">🔒</span>
+                          <p className="text-sm text-yellow-700 font-medium">
+                            Payment Reserved: ₹{service.amount}
+                          </p>
+                        </div>
+                        <p className="text-xs text-yellow-600 mt-1">
+                          Payment will be deducted only after successful completion of your application
+                        </p>
+                      </div>
+                    )}
+
+                    {service.payment_status === 'CHARGED' && (
+                      <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-green-600">✅</span>
+                          <p className="text-sm text-green-700 font-medium">
+                            Payment Charged: ₹{service.amount}
+                          </p>
+                          {service.payment_charged_at && (
+                            <span className="text-xs text-green-600">
+                              on {new Date(service.payment_charged_at).toLocaleDateString('en-US', {
+                                month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                              })}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-green-600 mt-1">
+                          Payment deducted after successful completion
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Legacy payment status info */}
                     {service.payment_status === 'DEBITED' && (service.status === 'PENDING' || service.status === 'PROCESSING') && service.expires_at && (
                       <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-2">
                             <span className="text-orange-600">⏳</span>
                             <p className="text-sm text-orange-700 font-medium">
-                              Payment debited: ₹{service.amount}
+                              Payment debited: ₹{service.amount} (Legacy)
                             </p>
                           </div>
                           <p className="text-sm text-orange-600 font-semibold">

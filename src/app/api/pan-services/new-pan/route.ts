@@ -76,7 +76,7 @@ async function handler(request: NextRequest) {
     const orderId = inspayService.generateOrderId();
 
     try {
-      console.log('🔄 Calling InsPay API (Pre-deduction) with data:', {
+      console.log('🔄 Calling InsPay API (Balance Reserved - No Deduction Yet) with data:', {
         number: mobile_number,
         mode,
         orderid: orderId
@@ -92,60 +92,9 @@ async function handler(request: NextRequest) {
       console.log('📥 InsPay API Response:', JSON.stringify(inspayResponse, null, 2));
 
       if (inspayResponse.status === 'Success') {
-        console.log('✅ InsPay Success - Processing wallet deduction and record creation...');
+        console.log('✅ InsPay Success - Creating record with RESERVED payment status (NO MONEY DEDUCTED YET)');
 
-        // NOW DEDUCT FROM WALLET
-        const { data: currentWallet } = await supabaseAdmin
-          .from('wallets')
-          .select('balance, id')
-          .eq('user_id', user.id)
-          .single();
-
-        if (!currentWallet || currentWallet.balance < config.price) {
-          // Note: In a real successful API call, we should have enough balance as checked earlier.
-          return corsJsonResponse({
-            success: false,
-            message: 'Insufficient balance at the time of processing.'
-          }, 400);
-        }
-
-        const newBalance = currentWallet.balance - config.price;
-        const { error: deductError } = await supabaseAdmin
-          .from('wallets')
-          .update({
-            balance: newBalance,
-            updated_at: new Date().toISOString()
-          })
-          .eq('user_id', user.id);
-
-        if (deductError) {
-          console.error('❌ Critical Error deducting from wallet after InsPay success:', deductError);
-          return NextResponse.json({
-            success: false,
-            message: 'Failed to process payment. Please contact support.'
-          }, { status: 500 });
-        }
-
-        // Create transaction history record
-        await supabaseAdmin
-          .from('transactions')
-          .insert({
-            user_id: user.id,
-            wallet_id: currentWallet.id,
-            type: 'WITHDRAWAL',
-            amount: -config.price,
-            status: 'COMPLETED',
-            description: `PAN Service Payment - NEW_PAN (${orderId})`,
-            reference: orderId,
-            metadata: {
-              service_type: 'NEW_PAN',
-              order_id: orderId,
-              mobile_number,
-              mode
-            }
-          });
-
-        // Create PAN service record with status PROCESSING/DEBITED immediately
+        // Create PAN service record with RESERVED payment status (NO DEDUCTION)
         const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
         const { data: panService, error: panServiceError } = await supabaseAdmin
           .from('pan_services')
@@ -160,8 +109,9 @@ async function handler(request: NextRequest) {
             inspay_url: inspayResponse.url,
             amount: config.price,
             status: 'PROCESSING',
-            payment_status: 'DEBITED',
-            payment_debited_at: new Date().toISOString(),
+            payment_status: 'RESERVED', // Changed from DEBITED to RESERVED
+            payment_reserved_at: new Date().toISOString(), // Track when balance was reserved
+            wallet_balance_at_time: wallet.balance, // Store current balance for verification
             expires_at: expiresAt.toISOString()
           })
           .select()
@@ -173,12 +123,13 @@ async function handler(request: NextRequest) {
 
         return NextResponse.json({
           success: true,
-          message: 'Redirecting to complete your PAN application.',
+          message: 'PAN application initiated successfully. Complete your application to proceed with payment.',
           data: {
             id: panService?.id,
             order_id: orderId,
             inspay_url: inspayResponse.url,
-            amount: config.price
+            amount: config.price,
+            payment_note: 'Payment will be deducted only after successful completion of your PAN application.'
           }
         });
 

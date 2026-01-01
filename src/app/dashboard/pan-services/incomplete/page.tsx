@@ -61,15 +61,41 @@ export default function IncompletePanPage() {
       const data = await response.json();
 
       if (data.success) {
-        toast.success('Incomplete PAN application resumed successfully!');
+        // Show success message with new payment flow
+        toast.success(data.message || 'Incomplete PAN application resumed successfully!', {
+          duration: 5000,
+          icon: '🚀'
+        });
 
-        // Redirect to InsPay URL
-        if (data.data.inspay_url) {
-          window.open(data.data.inspay_url, '_blank');
+        // Show order ID
+        if (data.data?.order_id) {
+          toast.success(`Order ID: ${data.data.order_id}`, {
+            duration: 8000,
+            icon: '📋'
+          });
         }
 
-        // Redirect to history page
-        router.push('/dashboard/pan-services/history');
+        // Show payment note
+        if (data.data?.payment_note) {
+          toast.info(data.data.payment_note, {
+            duration: 6000,
+            icon: '💡'
+          });
+        }
+
+        // Redirect to InsPay URL
+        if (data.data?.inspay_url) {
+          toast.loading('Opening PAN application portal...', { duration: 2000 });
+          
+          setTimeout(() => {
+            window.location.href = data.data.inspay_url;
+          }, 1500);
+        } else {
+          // Redirect to history page
+          setTimeout(() => {
+            router.push('/dashboard/pan-services/history');
+          }, 2000);
+        }
       } else {
         toast.error(data.message || 'Failed to resume incomplete PAN application');
       }
@@ -129,12 +155,13 @@ export default function IncompletePanPage() {
 
                 {/* Information Box */}
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="font-medium text-blue-800 mb-2">About Incomplete PAN Applications:</h4>
+                  <h4 className="font-medium text-blue-800 mb-2">New Payment Flow - Pay After Success:</h4>
                   <ul className="text-sm text-blue-700 space-y-1">
-                    <li>• No additional charges for completing incomplete applications</li>
-                    <li>• You can resume where you left off in the application process</li>
-                    <li>• All previously entered data will be preserved</li>
-                    <li>• Complete the application within the validity period</li>
+                    <li>• ✅ No upfront payment required</li>
+                    <li>• 💰 Payment deducted only after successful completion</li>
+                    <li>• ❌ If application fails, no money will be charged</li>
+                    <li>• 🔒 Your wallet balance is reserved but not deducted</li>
+                    <li>• 📋 All previously entered data will be preserved</li>
                   </ul>
                 </div>
 
@@ -188,34 +215,45 @@ export default function IncompletePanPage() {
 
             {/* Service Fee */}
             <div className="bg-blue-50 rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-blue-900 mb-4">Service Fee</h3>
+              <h3 className="text-lg font-semibold text-blue-900 mb-4">💳 New Payment Flow</h3>
               <div className="text-2xl font-bold text-blue-600 mb-2">
                 ₹107
               </div>
-              <p className="text-sm text-blue-700">
-                Payment will be deducted after successful completion
-              </p>
+              <div className="space-y-2 text-sm text-blue-700">
+                <div className="flex items-center space-x-2">
+                  <span className="text-blue-500">🔒</span>
+                  <span>Balance reserved (not deducted)</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-blue-500">✅</span>
+                  <span>Charged only after success</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-blue-500">❌</span>
+                  <span>No charge if application fails</span>
+                </div>
+              </div>
             </div>
 
             {/* Process Info */}
-            <div className="bg-blue-50 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-blue-900 mb-4">Process Information</h3>
-              <div className="space-y-3 text-sm text-blue-800">
+            <div className="bg-green-50 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-green-900 mb-4">🚀 How It Works</h3>
+              <div className="space-y-3 text-sm text-green-800">
                 <div className="flex items-start space-x-2">
-                  <span className="text-blue-500 mt-1">1.</span>
+                  <span className="text-green-500 mt-1">1.</span>
                   <span>Enter your existing order ID</span>
                 </div>
                 <div className="flex items-start space-x-2">
-                  <span className="text-blue-500 mt-1">2.</span>
-                  <span>You'll be redirected to NSDL portal</span>
+                  <span className="text-green-500 mt-1">2.</span>
+                  <span>Balance reserved (no deduction yet)</span>
                 </div>
                 <div className="flex items-start space-x-2">
-                  <span className="text-blue-500 mt-1">3.</span>
-                  <span>Complete the remaining application steps</span>
+                  <span className="text-green-500 mt-1">3.</span>
+                  <span>Complete application on NSDL portal</span>
                 </div>
                 <div className="flex items-start space-x-2">
-                  <span className="text-blue-500 mt-1">4.</span>
-                  <span>Payment will be deducted after successful completion</span>
+                  <span className="text-green-500 mt-1">4.</span>
+                  <span><strong>Payment charged only on success!</strong></span>
                 </div>
               </div>
             </div>
