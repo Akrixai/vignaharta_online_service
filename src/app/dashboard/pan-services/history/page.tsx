@@ -57,12 +57,49 @@ export default function PanServicesHistoryPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('ALL');
   const [resuming, setResuming] = useState<string | null>(null);
+  const [autoRefresh, setAutoRefresh] = useState(true);
 
   useEffect(() => {
     if (session?.user?.id) {
       fetchServices();
+      
+      // Check for redirect parameters
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirected = urlParams.get('redirected');
+      const status = urlParams.get('status');
+      const txid = urlParams.get('txid');
+      
+      if (redirected === 'true') {
+        if (status === 'Success') {
+          toast.success('PAN application completed successfully!', { duration: 5000 });
+        } else if (status === 'Failure') {
+          toast.error('PAN application failed. Amount will be refunded.', { duration: 5000 });
+        } else {
+          toast.info('Returned from PAN application portal', { duration: 3000 });
+        }
+        
+        // Clean up URL parameters
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
     }
   }, [session]);
+
+  // Auto-refresh every 30 seconds for pending/processing orders
+  useEffect(() => {
+    if (!autoRefresh || loading) return;
+    
+    const hasPendingOrders = services.some(s => 
+      s.status === 'PENDING' || s.status === 'PROCESSING'
+    );
+    
+    if (hasPendingOrders) {
+      const interval = setInterval(() => {
+        fetchServices();
+      }, 30000); // 30 seconds
+      
+      return () => clearInterval(interval);
+    }
+  }, [services, autoRefresh, loading]);
 
   const fetchServices = async () => {
     try {
@@ -196,28 +233,65 @@ export default function PanServicesHistoryPage() {
 
         {/* Filters */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setFilter('ALL')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'ALL'
-                ? 'bg-red-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-            >
-              All ({services.length})
-            </button>
-            {Object.keys(statusColors).map(status => (
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap gap-2">
               <button
-                key={status}
-                onClick={() => setFilter(status)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === status
+                onClick={() => setFilter('ALL')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'ALL'
                   ? 'bg-red-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
               >
-                {status} ({services.filter(s => s.status === status).length})
+                All ({services.length})
               </button>
-            ))}
+              {Object.keys(statusColors).map(status => (
+                <button
+                  key={status}
+                  onClick={() => setFilter(status)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === status
+                    ? 'bg-red-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                >
+                  {status} ({services.filter(s => s.status === status).length})
+                </button>
+              ))}
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={autoRefresh}
+                  onChange={(e) => setAutoRefresh(e.target.checked)}
+                  className="rounded"
+                />
+                Auto-refresh
+                {autoRefresh && services.some(s => s.status === 'PENDING' || s.status === 'PROCESSING') && (
+                  <span className="text-green-600 text-xs">(30s)</span>
+                )}
+              </label>
+              
+              <button
+                onClick={fetchServices}
+                disabled={loading}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 text-sm flex items-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Refreshing...
+                  </>
+                ) : (
+                  <>
+                    🔄 Refresh
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
 

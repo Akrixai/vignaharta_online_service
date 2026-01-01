@@ -63,6 +63,22 @@ After deployment, your proxy endpoints will be:
 https://api.akrixsolutions.in/cpanel-proxy/new_pan.php
 https://api.akrixsolutions.in/cpanel-proxy/correction.php  
 https://api.akrixsolutions.in/cpanel-proxy/incomplete.php
+https://api.akrixsolutions.in/cpanel-proxy/callback.php (for InsPay callbacks)
+https://api.akrixsolutions.in/cpanel-proxy/redirect.php (for PAN card redirections)
+```
+
+## InsPay Dashboard Configuration
+
+In your InsPay dashboard, set these URLs:
+
+**Server to server Call Back URL:**
+```
+https://api.akrixsolutions.in/cpanel-proxy/callback.php?txid=YOUR ORDER ID&status=Success/Failure&opid=OPERATOR ID
+```
+
+**Pan Card Redirection URL:**
+```
+https://api.akrixsolutions.in/cpanel-proxy/redirect.php?txid=YOUR ORDER ID&status=Success/Failure&opid=OPERATOR ID
 ```
 
 ## Testing the Proxy
@@ -78,6 +94,12 @@ curl "https://api.akrixsolutions.in/cpanel-proxy/correction.php?username=IP98193
 
 # Test Incomplete API
 curl "https://api.akrixsolutions.in/cpanel-proxy/incomplete.php?username=IP9819399470&token=1998ff964beca8baf895edd6955b6e20&orderid=TEST123"
+
+# Test Callback (simulate InsPay callback)
+curl "https://api.akrixsolutions.in/cpanel-proxy/callback.php?txid=12345&status=Success&opid=OP123"
+
+# Test Redirect
+curl -I "https://api.akrixsolutions.in/cpanel-proxy/redirect.php?txid=12345&status=Success&opid=OP123"
 ```
 
 ## Security Features

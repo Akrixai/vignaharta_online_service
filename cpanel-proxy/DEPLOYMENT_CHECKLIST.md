@@ -16,6 +16,8 @@
   - [ ] `new_pan.php`
   - [ ] `correction.php`
   - [ ] `incomplete.php`
+  - [ ] `callback.php` (for InsPay callbacks)
+  - [ ] `redirect.php` (for PAN card redirections)
   - [ ] `.htaccess`
   - [ ] `404.php`
   - [ ] `500.php`
@@ -43,6 +45,8 @@
 - [ ] Login to InsPay dashboard
 - [ ] Navigate to API Details section
 - [ ] Update White list IP Address with your cPanel server IP
+- [ ] Set Server to server Call Back URL: `https://api.akrixsolutions.in/cpanel-proxy/callback.php?txid=YOUR ORDER ID&status=Success/Failure&opid=OPERATOR ID`
+- [ ] Set Pan Card Redirection URL: `https://api.akrixsolutions.in/cpanel-proxy/redirect.php?txid=YOUR ORDER ID&status=Success/Failure&opid=OPERATOR ID`
 - [ ] Save configuration
 - [ ] Wait for IP whitelisting to take effect (may take a few minutes)
 
@@ -69,6 +73,16 @@ https://api.akrixsolutions.in/cpanel-proxy/correction.php?username=IP9819399470&
 - [ ] Test Incomplete:
 ```
 https://api.akrixsolutions.in/cpanel-proxy/incomplete.php?username=IP9819399470&token=1998ff964beca8baf895edd6955b6e20&orderid=TEST123
+```
+
+- [ ] Test Callback (simulate InsPay callback):
+```
+https://api.akrixsolutions.in/cpanel-proxy/callback.php?txid=12345&status=Success&opid=OP123
+```
+
+- [ ] Test Redirect:
+```
+https://api.akrixsolutions.in/cpanel-proxy/redirect.php?txid=12345&status=Success&opid=OP123
 ```
 
 ### 3. Expected Responses
