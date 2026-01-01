@@ -18,7 +18,6 @@ import {
   Search,
   Filter,
   Star,
-  DollarSign,
   Clock,
   CheckCircle,
   AlertCircle,
@@ -529,54 +528,82 @@ export default function ServicesPage() {
                     </Card>
                   ) : (
                     <Card key={item.id} className="group hover:shadow-2xl transition-all duration-300 border border-blue-100 flex flex-col">
-                      <div className="p-6 flex-1 flex flex-col">
-                        <div className="flex items-start justify-between mb-6">
-                          <div className="flex items-center gap-4">
-                            {item.icon_url ? (
-                              <img src={item.icon_url} alt="" className="w-14 h-14 rounded-2xl shadow-md p-1 bg-white border border-gray-100" />
-                            ) : (
-                              <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center text-3xl shadow-inner border border-blue-50">
+                      {/* Service Icon/Image Banner */}
+                      <div className="relative h-56 w-full overflow-hidden rounded-t-lg bg-gradient-to-br from-blue-50 to-blue-100">
+                        {item.icon_url ? (
+                          <div className="w-full h-full flex items-center justify-center p-8">
+                            <img
+                              src={item.icon_url}
+                              alt={item.name}
+                              className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500 rounded-xl shadow-lg"
+                              onError={(e) => { 
+                                (e.target as HTMLElement).style.display = 'none';
+                                // Show fallback with category icon
+                                const parent = (e.target as HTMLElement).parentElement;
+                                if (parent) {
+                                  parent.innerHTML = `
+                                    <div class="w-full h-full flex items-center justify-center">
+                                      <div class="text-center">
+                                        <div class="text-6xl mb-3 text-blue-400">${item.category_info?.icon || '🔗'}</div>
+                                        <p class="text-blue-600 font-medium text-sm">${item.category_info?.name || item.category || 'Service'}</p>
+                                      </div>
+                                    </div>
+                                  `;
+                                }
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <div className="text-center">
+                              <div className="text-6xl mb-3 text-blue-400 group-hover:scale-110 transition-transform duration-500">
                                 {item.category_info?.icon || '🔗'}
                               </div>
-                            )}
-                            <div>
-                              <h3 className="font-black text-xl text-gray-900 group-hover:text-blue-600 transition-colors flex items-center gap-2">
-                                {item.name}
-                                {item.is_featured && <Star className="w-4 h-4 text-yellow-500 fill-current" />}
-                              </h3>
-                              <div className="flex items-center gap-2 mt-1">
-                                <span className="text-xs font-bold text-blue-500 px-2 py-0.5 bg-blue-50 rounded-md">
-                                  {item.category_info?.name || item.category}
-                                </span>
-                              </div>
+                              <p className="text-blue-600 font-medium text-sm">{item.category_info?.name || item.category || 'Service'}</p>
                             </div>
+                          </div>
+                        )}
+                        
+                        {/* Featured badge */}
+                        {item.is_featured && (
+                          <div className="absolute top-3 right-3 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1 shadow-lg">
+                            <Star className="w-3 h-3 fill-current" />
+                            Featured
+                          </div>
+                        )}
+                        
+                        {/* Price badge */}
+                        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-gray-800 text-sm font-bold px-3 py-1 rounded-full shadow-lg">
+                          {item.amount > 0 ? `₹${item.amount}` : 'Free'}
+                        </div>
+                      </div>
+
+                      <div className="p-6 flex-1 flex flex-col">
+                        <div className="mb-4">
+                          <h3 className="font-black text-xl text-gray-900 group-hover:text-blue-600 transition-colors mb-2">
+                            {item.name}
+                          </h3>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-blue-500 px-2 py-0.5 bg-blue-50 rounded-md">
+                              {item.category_info?.name || item.category}
+                            </span>
                           </div>
                         </div>
 
-                        <p className="text-gray-600 text-sm mb-6 line-clamp-3 leading-relaxed">
+                        <p className="text-gray-600 text-sm mb-6 line-clamp-3 leading-relaxed flex-1">
                           {item.description}
                         </p>
 
-                        <div className="grid grid-cols-1 gap-3 mb-6">
-                          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
-                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
-                              <DollarSign className="w-3 h-3" /> Access Fee
-                            </span>
-                            <span className="font-black text-gray-900">
-                              {item.amount > 0 ? `₹${item.amount}` : <span className="text-green-600">Free Access</span>}
-                            </span>
+                        {isCustomer && item.cashback_enabled && (
+                          <div className="flex items-center justify-between p-3 bg-green-50 rounded-xl border border-green-100 mb-4">
+                            <span className="text-xs font-bold text-green-700">💰 Cashback</span>
+                            <span className="font-black text-green-700">{item.cashback_percentage}%</span>
                           </div>
-                          {isCustomer && item.cashback_enabled && (
-                            <div className="flex items-center justify-between p-3 bg-green-50 rounded-xl border border-green-100 italic">
-                              <span className="text-xs font-bold text-green-700">💰 Cashback</span>
-                              <span className="font-black text-green-700">{item.cashback_percentage}%</span>
-                            </div>
-                          )}
-                        </div>
+                        )}
 
                         {/* Insufficient balance warning */}
                         {item.requires_payment && item.amount > 0 && walletBalance !== null && walletBalance < item.amount && (
-                          <div className="bg-red-50 border border-red-100 rounded-xl p-3 mb-6 animate-pulse">
+                          <div className="bg-red-50 border border-red-100 rounded-xl p-3 mb-4 animate-pulse">
                             <div className="flex items-center gap-2 text-red-700 text-xs font-bold">
                               <AlertCircle className="w-4 h-4" />
                               <span>Recharge Wallet to Access</span>
