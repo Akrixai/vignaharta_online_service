@@ -78,7 +78,7 @@ export default function PanServicesHistoryPage() {
         } else if (status === 'Failure') {
           toast.error('PAN application failed. Amount will be refunded.', { duration: 5000 });
         } else {
-          toast.info('Returned from PAN application portal', { duration: 3000 });
+          toast('Returned from PAN application portal', { duration: 3000 });
         }
         
         // Clean up URL parameters

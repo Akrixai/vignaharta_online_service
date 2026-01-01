@@ -108,7 +108,7 @@ export default function PanCorrectionPage() {
 
         // Show payment note
         if (data.data?.payment_note) {
-          toast.info(data.data.payment_note, {
+          toast(data.data.payment_note, {
             duration: 6000,
             icon: '💡'
           });

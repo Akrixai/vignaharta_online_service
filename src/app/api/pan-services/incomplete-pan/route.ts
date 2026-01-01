@@ -99,21 +99,33 @@ async function handler(request: NextRequest) {
       if (inspayResponse.status === 'Success') {
         console.log('✅ InsPay Success - Updating existing record with new InsPay details');
 
-        // Update the existing record instead of creating a new one
+        // Prepare update data
+        const updateData: any = {
+          service_type: 'INCOMPLETE_PAN', // Update service type
+          inspay_txid: inspayResponse.txid, // New txid from InsPay
+          inspay_opid: inspayResponse.opid, // New opid
+          inspay_url: inspayResponse.url, // New URL
+          amount: config.price, // Update amount if different
+          status: 'PROCESSING', // Reset to processing
+          updated_at: new Date().toISOString()
+        };
+
+        // Only update payment status if it's not already in the new flow
+        if (existingService.payment_status === 'DEBITED') {
+          // Convert from old flow to new flow
+          updateData.payment_status = config.price > 0 ? 'RESERVED' : 'COMPLETED';
+          updateData.payment_reserved_at = config.price > 0 ? new Date().toISOString() : null;
+          updateData.payment_debited_at = null; // Clear old flow timestamp
+          updateData.wallet_balance_at_time = wallet.balance;
+        } else if (existingService.payment_status === 'RESERVED') {
+          // Already in new flow, just update wallet balance
+          updateData.wallet_balance_at_time = wallet.balance;
+        }
+
+        // Update the existing record
         const { data: updatedService, error: updateError } = await supabaseAdmin
           .from('pan_services')
-          .update({
-            service_type: 'INCOMPLETE_PAN', // Update service type
-            inspay_txid: inspayResponse.txid, // New txid from InsPay
-            inspay_opid: inspayResponse.opid, // New opid
-            inspay_url: inspayResponse.url, // New URL
-            amount: config.price, // Update amount if different
-            status: 'PROCESSING', // Reset to processing
-            payment_status: config.price > 0 ? 'RESERVED' : 'COMPLETED',
-            payment_reserved_at: config.price > 0 ? new Date().toISOString() : null,
-            wallet_balance_at_time: wallet.balance,
-            updated_at: new Date().toISOString()
-          })
+          .update(updateData)
           .eq('id', existingService.id)
           .select()
           .single();
