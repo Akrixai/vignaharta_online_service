@@ -8,13 +8,8 @@ import {
   Plus, 
   Edit, 
   Trash2, 
-  Eye, 
   Search, 
-  Filter,
   ExternalLink,
-  DollarSign,
-  Users,
-  TrendingUp,
   Star
 } from 'lucide-react';
 
@@ -65,7 +60,33 @@ export default function DirectLinksManagement() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedService, setSelectedService] = useState<DirectLinkService | null>(null);
 
-  // Check authorization
+  useEffect(() => {
+    if (session && (session.user.role === UserRole.ADMIN || session.user.role === UserRole.EMPLOYEE)) {
+      fetchServices();
+      fetchCategories();
+    }
+  }, [session, selectedCategory, showActiveOnly]);
+
+  // Add error boundary handling
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      console.error('Global error caught:', event.error);
+    };
+
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      console.error('Unhandled promise rejection:', event.reason);
+    };
+
+    window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, []);
+
+  // Check authorization after all hooks
   if (!session || (session.user.role !== UserRole.ADMIN && session.user.role !== UserRole.EMPLOYEE)) {
     return (
       <DashboardLayout>
@@ -79,11 +100,6 @@ export default function DirectLinksManagement() {
     );
   }
 
-  useEffect(() => {
-    fetchServices();
-    fetchCategories();
-  }, [selectedCategory, showActiveOnly]);
-
   const fetchServices = async () => {
     try {
       setLoading(true);
@@ -92,15 +108,22 @@ export default function DirectLinksManagement() {
       if (showActiveOnly) params.append('is_active', 'true');
 
       const response = await fetch(`/api/admin/direct-links?${params}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
 
       if (data.success) {
-        setServices(data.data);
+        setServices(data.data || []);
       } else {
         console.error('Failed to fetch services:', data.error);
+        setServices([]);
       }
     } catch (error) {
       console.error('Error fetching services:', error);
+      setServices([]);
     } finally {
       setLoading(false);
     }
@@ -109,13 +132,22 @@ export default function DirectLinksManagement() {
   const fetchCategories = async () => {
     try {
       const response = await fetch('/api/direct-links/categories');
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
 
       if (data.success) {
-        setCategories(data.data);
+        setCategories(data.data || []);
+      } else {
+        console.error('Failed to fetch categories:', data.error);
+        setCategories([]);
       }
     } catch (error) {
       console.error('Error fetching categories:', error);
+      setCategories([]);
     }
   };
 
@@ -361,6 +393,49 @@ function CreateServiceModal({
     allowed_roles: ['RETAILER', 'CUSTOMER']
   });
   const [loading, setLoading] = useState(false);
+  const [uploadingIcon, setUploadingIcon] = useState(false);
+
+  const handleIconUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file (JPG, PNG, GIF, WebP)');
+      return;
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Please select an image smaller than 5MB');
+      return;
+    }
+
+    setUploadingIcon(true);
+    try {
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+      uploadFormData.append('folder', 'service-icons');
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: uploadFormData,
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setFormData({ ...formData, icon_url: data.url });
+      } else {
+        alert('Failed to upload icon: ' + data.error);
+      }
+    } catch (error) {
+      console.error('Error uploading icon:', error);
+      alert('Failed to upload icon');
+    } finally {
+      setUploadingIcon(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -456,6 +531,46 @@ function CreateServiceModal({
             />
           </div>
 
+          {/* Icon Upload Section */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Service Icon
+            </label>
+            <div className="flex items-center gap-4">
+              {formData.icon_url && (
+                <div className="flex items-center gap-2">
+                  <img 
+                    src={formData.icon_url} 
+                    alt="Service icon" 
+                    className="w-12 h-12 rounded-lg object-cover border border-gray-200"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, icon_url: '' })}
+                    className="text-red-600 hover:text-red-800 text-sm"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
+              <div className="flex-1">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleIconUpload}
+                  disabled={uploadingIcon}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                {uploadingIcon && (
+                  <p className="text-sm text-blue-600 mt-1">Uploading icon...</p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  Upload an icon for your service (JPG, PNG, GIF, WebP - Max 5MB)
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -516,7 +631,7 @@ function CreateServiceModal({
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || uploadingIcon}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
             >
               {loading ? 'Creating...' : 'Create Service'}
@@ -556,6 +671,49 @@ function EditServiceModal({
     allowed_roles: service.allowed_roles
   });
   const [loading, setLoading] = useState(false);
+  const [uploadingIcon, setUploadingIcon] = useState(false);
+
+  const handleIconUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file (JPG, PNG, GIF, WebP)');
+      return;
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Please select an image smaller than 5MB');
+      return;
+    }
+
+    setUploadingIcon(true);
+    try {
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+      uploadFormData.append('folder', 'service-icons');
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: uploadFormData,
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setFormData({ ...formData, icon_url: data.url });
+      } else {
+        alert('Failed to upload icon: ' + data.error);
+      }
+    } catch (error) {
+      console.error('Error uploading icon:', error);
+      alert('Failed to upload icon');
+    } finally {
+      setUploadingIcon(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -651,6 +809,46 @@ function EditServiceModal({
             />
           </div>
 
+          {/* Icon Upload Section */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Service Icon
+            </label>
+            <div className="flex items-center gap-4">
+              {formData.icon_url && (
+                <div className="flex items-center gap-2">
+                  <img 
+                    src={formData.icon_url} 
+                    alt="Service icon" 
+                    className="w-12 h-12 rounded-lg object-cover border border-gray-200"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, icon_url: '' })}
+                    className="text-red-600 hover:text-red-800 text-sm"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
+              <div className="flex-1">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleIconUpload}
+                  disabled={uploadingIcon}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                {uploadingIcon && (
+                  <p className="text-sm text-blue-600 mt-1">Uploading icon...</p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  Upload an icon for your service (JPG, PNG, GIF, WebP - Max 5MB)
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -721,7 +919,7 @@ function EditServiceModal({
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || uploadingIcon}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
             >
               {loading ? 'Updating...' : 'Update Service'}

@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import DashboardLayout from '@/components/dashboard/layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { UserRole, EmployeeDesignation } from '@/types';
-import { formatCurrency, formatDateTime } from '@/lib/utils';
+import { UserRole } from '@/types';
+import { formatCurrency } from '@/lib/utils';
 import { useApi } from '@/hooks/useApi';
 import AdvertisementCarousel from '@/components/AdvertisementCarousel';
 import ManagerDashboard from '@/components/dashboard/ManagerDashboard';
@@ -53,15 +53,6 @@ export default function DashboardPage() {
     if (user.role === UserRole.EMPLOYEE) return 'Employee';
     if (user.role === UserRole.RETAILER) return 'Retailer';
     return user.role;
-  };
-
-  const getTransactionColor = (type: string) => {
-    switch (type) {
-      case 'DEPOSIT': return 'text-green-600';
-      case 'SCHEME_PAYMENT': return 'text-red-600';
-      case 'REFUND': return 'text-blue-600';
-      default: return 'text-gray-600';
-    }
   };
 
   if (loading) {
@@ -420,6 +411,96 @@ export default function DashboardPage() {
                   <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">📋</div>
                   <h3 className="text-white font-bold text-sm mb-1">Incomplete PAN</h3>
                   <p className="text-orange-100 text-xs">Complete Application</p>
+                </div>
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Authorized Services */}
+        {(user.role === UserRole.RETAILER || user.role === UserRole.CUSTOMER) && (
+          <div className="my-8">
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">🔗 Authorized Services</h2>
+                <p className="text-gray-600">Quick access to authorized services</p>
+              </div>
+              <Link href="/dashboard/services?tab=direct">
+                <button className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 flex items-center gap-2 shadow-lg">
+                  <span>View All</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+              {/* Quick Access to Services Page */}
+              <Link href="/dashboard/services?tab=direct">
+                <div className="group bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-green-600 text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
+                  </div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🔗</div>
+                  <h3 className="text-white font-bold text-sm mb-1">All Services</h3>
+                  <p className="text-green-100 text-xs">Browse All</p>
+                </div>
+              </Link>
+
+              {/* Featured Services Placeholder - These will be populated from the database */}
+              <Link href="/dashboard/services?tab=direct&category=Banking">
+                <div className="group bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-blue-600 text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
+                  </div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🏦</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Banking</h3>
+                  <p className="text-blue-100 text-xs">Financial Services</p>
+                </div>
+              </Link>
+
+              <Link href="/dashboard/services?tab=direct&category=Insurance">
+                <div className="group bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-purple-600 text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
+                  </div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🛡️</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Insurance</h3>
+                  <p className="text-purple-100 text-xs">Protection Plans</p>
+                </div>
+              </Link>
+
+              <Link href="/dashboard/services?tab=direct&category=Travel">
+                <div className="group bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-orange-600 text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
+                  </div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">✈️</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Travel</h3>
+                  <p className="text-orange-100 text-xs">Booking Services</p>
+                </div>
+              </Link>
+
+              <Link href="/dashboard/services?tab=direct&category=Education">
+                <div className="group bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-indigo-600 text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
+                  </div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">📚</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Education</h3>
+                  <p className="text-indigo-100 text-xs">Learning Services</p>
+                </div>
+              </Link>
+
+              <Link href="/dashboard/services?tab=direct&category=Healthcare">
+                <div className="group bg-gradient-to-br from-red-500 to-red-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-red-600 text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
+                  </div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🏥</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Healthcare</h3>
+                  <p className="text-red-100 text-xs">Medical Services</p>
                 </div>
               </Link>
             </div>

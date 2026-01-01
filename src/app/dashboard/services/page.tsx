@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
 import DashboardLayout from '@/components/dashboard/layout';
 import {
   Card,
@@ -18,7 +19,6 @@ import {
   Filter,
   Star,
   DollarSign,
-  Gift,
   Clock,
   CheckCircle,
   AlertCircle,
@@ -37,12 +37,26 @@ import './services.css';
 
 export default function ServicesPage() {
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
   const [viewMode, setViewMode] = useState<'GOVERNMENT' | 'DIRECT'>('GOVERNMENT');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [selectedType, setSelectedType] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedService, setSelectedService] = useState<any>(null);
   const [showApplicationForm, setShowApplicationForm] = useState(false);
+
+  // Handle URL parameters
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    const category = searchParams.get('category');
+    
+    if (tab === 'direct') {
+      setViewMode('DIRECT');
+    }
+    if (category) {
+      setSelectedCategory(category);
+    }
+  }, [searchParams]);
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -173,15 +187,15 @@ export default function ServicesPage() {
   };
 
   const categories = viewMode === 'GOVERNMENT'
-    ? [...new Set(services.map((s) => s.category).filter(Boolean))]
-    : directLinkCategories.map(c => c.name);
+    ? [...new Set((services || []).map((s) => s.category).filter(Boolean))]
+    : (directLinkCategories || []).map(c => c.name);
 
   const loading = viewMode === 'GOVERNMENT' ? loadingServices : loadingDirectLinks;
   const error = viewMode === 'GOVERNMENT' ? errorServices : errorDirectLinks;
   const refresh = viewMode === 'GOVERNMENT' ? refreshServices : refreshDirectLinks;
 
   const filteredItems = viewMode === 'GOVERNMENT'
-    ? services.filter((service) => {
+    ? (services || []).filter((service) => {
       const matchesCategory =
         selectedCategory === 'ALL' || service.category === selectedCategory;
       const matchesType =
@@ -195,7 +209,7 @@ export default function ServicesPage() {
 
       return matchesCategory && matchesType && matchesSearch;
     })
-    : directLinks.filter(s =>
+    : (directLinks || []).filter(s =>
       (selectedCategory === 'ALL' || s.category === selectedCategory) &&
       (searchTerm === '' || s.name.toLowerCase().includes(searchTerm.toLowerCase()) || s.description?.toLowerCase().includes(searchTerm.toLowerCase()))
     );
@@ -263,7 +277,7 @@ export default function ServicesPage() {
                   className="whitespace-nowrap text-base font-black"
                   style={{ color: '#ffffff' }}
                 >
-                  Authorized Service
+                  Authorized Services
                 </span>
               </button>
             </div>
