@@ -284,6 +284,16 @@ export default function ServicesPage() {
                 Wallet: ₹{walletBalance.toFixed(2)}
               </span>
             )}
+            <button
+              onClick={() => {
+                setViewMode('DIRECT');
+                setSelectedCategory('ALL');
+              }}
+              className="flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full hover:bg-white/30 transition-all duration-200 text-red-50 font-medium border border-white/20"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Quick Access: Authorized Services
+            </button>
           </div>
         </div>
 
@@ -390,18 +400,57 @@ export default function ServicesPage() {
                   viewMode === 'GOVERNMENT' ? (
                     <Card key={item.id} className="group hover:shadow-2xl transition-all duration-300 border border-red-100 flex flex-col">
                       {item.image_url && (
-                        <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
+                        <div className="relative h-56 w-full overflow-hidden rounded-t-lg bg-gradient-to-br from-red-50 to-red-100">
                           <img
                             src={item.image_url}
                             alt={item.name}
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                            onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                            onError={(e) => { 
+                              (e.target as HTMLElement).style.display = 'none';
+                              // Show fallback gradient background
+                              const parent = (e.target as HTMLElement).parentElement;
+                              if (parent) {
+                                parent.innerHTML = `
+                                  <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-red-100 to-red-200">
+                                    <div class="text-center">
+                                      <div class="text-4xl mb-2 text-red-400">🏛️</div>
+                                      <p class="text-red-600 font-medium text-sm">Government Service</p>
+                                    </div>
+                                  </div>
+                                `;
+                              }
+                            }}
                           />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                           <div className="absolute top-4 right-4 shadow-xl">
-                            <div className={`px-4 py-1 rounded-full text-xs font-black border-2 border-white ${item.is_free ? 'bg-green-500 text-white' : 'bg-red-600 text-white'}`}>
+                            <div className={`px-4 py-2 rounded-full text-sm font-black border-2 border-white backdrop-blur-sm ${item.is_free ? 'bg-green-500/90 text-white' : 'bg-red-600/90 text-white'}`}>
                               {item.is_free ? 'FREE' : formatCurrency(isCustomer && item.customer_price ? item.customer_price : item.price)}
                             </div>
                           </div>
+                          {item.cashback_enabled && isCustomer && (
+                            <div className="absolute top-4 left-4 bg-yellow-500/90 text-white px-3 py-1 rounded-full text-xs font-bold border-2 border-white backdrop-blur-sm">
+                              💰 Cashback Available
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {!item.image_url && (
+                        <div className="relative h-56 w-full overflow-hidden rounded-t-lg bg-gradient-to-br from-red-50 via-red-100 to-red-200 flex items-center justify-center">
+                          <div className="text-center">
+                            <div className="text-6xl mb-3 text-red-400">🏛️</div>
+                            <p className="text-red-600 font-bold text-lg">Government Service</p>
+                            <p className="text-red-500 text-sm mt-1">{item.category}</p>
+                          </div>
+                          <div className="absolute top-4 right-4 shadow-xl">
+                            <div className={`px-4 py-2 rounded-full text-sm font-black border-2 border-white backdrop-blur-sm ${item.is_free ? 'bg-green-500/90 text-white' : 'bg-red-600/90 text-white'}`}>
+                              {item.is_free ? 'FREE' : formatCurrency(isCustomer && item.customer_price ? item.customer_price : item.price)}
+                            </div>
+                          </div>
+                          {item.cashback_enabled && isCustomer && (
+                            <div className="absolute top-4 left-4 bg-yellow-500/90 text-white px-3 py-1 rounded-full text-xs font-bold border-2 border-white backdrop-blur-sm">
+                              💰 Cashback Available
+                            </div>
+                          )}
                         </div>
                       )}
                       <CardHeader className="flex-none">
@@ -414,11 +463,6 @@ export default function ServicesPage() {
                               <Filter className="w-3 h-3" /> {item.category}
                             </CardDescription>
                           </div>
-                          {!item.image_url && (
-                            <div className={`px-3 py-1 rounded-full text-xs font-bold ${item.is_free ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                              {item.is_free ? 'FREE' : formatCurrency(isCustomer && item.customer_price ? item.customer_price : item.price)}
-                            </div>
-                          )}
                         </div>
                       </CardHeader>
                       <CardContent className="flex-1 flex flex-col">

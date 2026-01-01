@@ -49,8 +49,17 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Upload to Supabase Storage - use proper bucket name
-    const bucketName = 'documents'; // Use single bucket for all documents
+    // Determine bucket based on folder
+    let bucketName = 'documents'; // Default bucket
+    if (folder === 'services' || folder === 'service-images') {
+      bucketName = 'service-images';
+    } else if (folder === 'profile-photos') {
+      bucketName = 'profile-photos';
+    } else if (folder === 'employee-documents') {
+      bucketName = 'employee-documents';
+    }
+
+    // Upload to Supabase Storage
     const { data, error } = await supabaseAdmin.storage
       .from(bucketName)
       .upload(filePath, buffer, {
