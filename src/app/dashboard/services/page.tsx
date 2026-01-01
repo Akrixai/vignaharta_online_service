@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import DashboardLayout from '@/components/dashboard/layout';
@@ -35,17 +35,16 @@ import { formatCurrency } from '@/lib/utils';
 import ServiceApplicationForm from '@/components/ServiceApplicationForm';
 import './services.css';
 
-export default function ServicesPage() {
-  const { data: session } = useSession();
+// Component to handle URL parameters
+function URLParamsHandler({ 
+  setViewMode, 
+  setSelectedCategory 
+}: { 
+  setViewMode: (mode: 'GOVERNMENT' | 'DIRECT') => void;
+  setSelectedCategory: (category: string) => void;
+}) {
   const searchParams = useSearchParams();
-  const [viewMode, setViewMode] = useState<'GOVERNMENT' | 'DIRECT'>('GOVERNMENT');
-  const [selectedCategory, setSelectedCategory] = useState('ALL');
-  const [selectedType, setSelectedType] = useState('ALL');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedService, setSelectedService] = useState<any>(null);
-  const [showApplicationForm, setShowApplicationForm] = useState(false);
-
-  // Handle URL parameters
+  
   useEffect(() => {
     const tab = searchParams.get('tab');
     const category = searchParams.get('category');
@@ -56,7 +55,19 @@ export default function ServicesPage() {
     if (category) {
       setSelectedCategory(category);
     }
-  }, [searchParams]);
+  }, [searchParams, setViewMode, setSelectedCategory]);
+
+  return null;
+}
+
+export default function ServicesPage() {
+  const { data: session } = useSession();
+  const [viewMode, setViewMode] = useState<'GOVERNMENT' | 'DIRECT'>('GOVERNMENT');
+  const [selectedCategory, setSelectedCategory] = useState('ALL');
+  const [selectedType, setSelectedType] = useState('ALL');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedService, setSelectedService] = useState<any>(null);
+  const [showApplicationForm, setShowApplicationForm] = useState(false);
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -221,6 +232,12 @@ export default function ServicesPage() {
 
   return (
     <DashboardLayout>
+      <Suspense fallback={null}>
+        <URLParamsHandler 
+          setViewMode={setViewMode} 
+          setSelectedCategory={setSelectedCategory} 
+        />
+      </Suspense>
       <div className="services-page-container">
         {/* Header with Tab Switcher */}
         <div className="bg-gradient-to-r from-red-600 to-red-700 rounded-xl p-8 text-white shadow-xl mb-4">
