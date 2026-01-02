@@ -50,6 +50,8 @@ function URLParamsHandler({
     
     if (tab === 'direct') {
       setViewMode('DIRECT');
+    } else if (tab === 'authorized') {
+      setViewMode('DIRECT');
     }
     if (category) {
       setSelectedCategory(category);
@@ -528,24 +530,24 @@ export default function ServicesPage() {
                     </Card>
                   ) : (
                     <Card key={item.id} className="group hover:shadow-2xl transition-all duration-300 border border-blue-100 flex flex-col">
-                      {/* Service Icon/Image Banner */}
-                      <div className="relative h-56 w-full overflow-hidden rounded-t-lg bg-gradient-to-br from-blue-50 to-blue-100">
-                        {item.icon_url ? (
+                      {/* Service Banner - Matching Government Services Style */}
+                      {item.icon_url && item.icon_url.trim() !== '' ? (
+                        <div className="relative h-56 w-full overflow-hidden rounded-t-lg bg-gradient-to-br from-blue-50 to-blue-100">
                           <div className="w-full h-full flex items-center justify-center p-8">
                             <img
                               src={item.icon_url}
                               alt={item.name}
-                              className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500 rounded-xl shadow-lg"
+                              className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500 rounded-lg shadow-lg"
                               onError={(e) => { 
                                 (e.target as HTMLElement).style.display = 'none';
-                                // Show fallback with category icon
-                                const parent = (e.target as HTMLElement).parentElement;
+                                // Show fallback gradient background
+                                const parent = (e.target as HTMLElement).parentElement?.parentElement;
                                 if (parent) {
                                   parent.innerHTML = `
-                                    <div class="w-full h-full flex items-center justify-center">
+                                    <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200">
                                       <div class="text-center">
-                                        <div class="text-6xl mb-3 text-blue-400">${item.category_info?.icon || '🔗'}</div>
-                                        <p class="text-blue-600 font-medium text-sm">${item.category_info?.name || item.category || 'Service'}</p>
+                                        <div class="text-4xl mb-2 text-blue-400">🔗</div>
+                                        <p class="text-blue-600 font-medium text-sm">Direct Service</p>
                                       </div>
                                     </div>
                                   `;
@@ -553,30 +555,37 @@ export default function ServicesPage() {
                               }}
                             />
                           </div>
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <div className="text-center">
-                              <div className="text-6xl mb-3 text-blue-400 group-hover:scale-110 transition-transform duration-500">
-                                {item.category_info?.icon || '🔗'}
-                              </div>
-                              <p className="text-blue-600 font-medium text-sm">{item.category_info?.name || item.category || 'Service'}</p>
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                          <div className="absolute top-4 right-4 shadow-xl">
+                            <div className={`px-4 py-2 rounded-full text-sm font-black border-2 border-white backdrop-blur-sm ${item.amount > 0 ? 'bg-blue-600/90 text-white' : 'bg-green-500/90 text-white'}`}>
+                              {item.amount > 0 ? `₹${item.amount}` : 'FREE'}
                             </div>
                           </div>
-                        )}
-                        
-                        {/* Featured badge */}
-                        {item.is_featured && (
-                          <div className="absolute top-3 right-3 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1 shadow-lg">
-                            <Star className="w-3 h-3 fill-current" />
-                            Featured
-                          </div>
-                        )}
-                        
-                        {/* Price badge */}
-                        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-gray-800 text-sm font-bold px-3 py-1 rounded-full shadow-lg">
-                          {item.amount > 0 ? `₹${item.amount}` : 'Free'}
+                          {item.is_featured && (
+                            <div className="absolute top-4 left-4 bg-yellow-500/90 text-white px-3 py-1 rounded-full text-xs font-bold border-2 border-white backdrop-blur-sm">
+                              ⭐ Featured
+                            </div>
+                          )}
                         </div>
-                      </div>
+                      ) : (
+                        <div className="relative h-56 w-full overflow-hidden rounded-t-lg bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200 flex items-center justify-center">
+                          <div className="text-center">
+                            <div className="text-6xl mb-3 text-blue-400">🔗</div>
+                            <p className="text-blue-600 font-bold text-lg">Direct Service</p>
+                            <p className="text-blue-500 text-sm mt-1">{item.category_info?.name || item.category}</p>
+                          </div>
+                          <div className="absolute top-4 right-4 shadow-xl">
+                            <div className={`px-4 py-2 rounded-full text-sm font-black border-2 border-white backdrop-blur-sm ${item.amount > 0 ? 'bg-blue-600/90 text-white' : 'bg-green-500/90 text-white'}`}>
+                              {item.amount > 0 ? `₹${item.amount}` : 'FREE'}
+                            </div>
+                          </div>
+                          {item.is_featured && (
+                            <div className="absolute top-4 left-4 bg-yellow-500/90 text-white px-3 py-1 rounded-full text-xs font-bold border-2 border-white backdrop-blur-sm">
+                              ⭐ Featured
+                            </div>
+                          )}
+                        </div>
+                      )}
 
                       <div className="p-6 flex-1 flex flex-col">
                         <div className="mb-4">

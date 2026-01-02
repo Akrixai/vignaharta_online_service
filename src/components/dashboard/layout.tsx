@@ -26,7 +26,8 @@ const menuItems: MenuItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: '📊', roles: [UserRole.ADMIN, UserRole.EMPLOYEE, UserRole.RETAILER, UserRole.CUSTOMER] },
   { name: 'Wallet', href: '/dashboard/wallet', icon: '💰', roles: [UserRole.ADMIN, UserRole.RETAILER, UserRole.CUSTOMER] }, // Admin, Retailer, and Customer can access wallet
   { name: 'Wallet Transactions', href: '/dashboard/wallet-transactions', icon: '💳', roles: [UserRole.RETAILER, UserRole.CUSTOMER] }, // Detailed transaction history
-  { name: 'Apply Services', href: '/dashboard/services', icon: '📝', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'Apply Services', href: '/dashboard/services', icon: '🔗', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'Authorized Services', href: '/dashboard/services?tab=authorized', icon: '🔗', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
   { name: 'Draft Applications', href: '/dashboard/drafts', icon: '💾', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
   { name: 'My Applications', href: '/dashboard/applications', icon: '📋', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
   { name: 'Cashback Earnings', href: '/dashboard/customer/cashback', icon: '🎁', roles: [UserRole.CUSTOMER] },

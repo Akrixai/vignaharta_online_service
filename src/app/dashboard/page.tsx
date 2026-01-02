@@ -417,6 +417,96 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* Apply Services */}
+        {(user.role === UserRole.RETAILER || user.role === UserRole.CUSTOMER) && (
+          <div className="my-8">
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">📝 Apply Services</h2>
+                <p className="text-gray-600">Government services and schemes</p>
+              </div>
+              <Link href="/dashboard/services">
+                <button className="bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-200 flex items-center gap-2 shadow-lg">
+                  <span>View All</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+              {/* Quick Access to Government Services */}
+              <Link href="/dashboard/services">
+                <div className="group bg-gradient-to-br from-red-500 to-red-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-red-600 text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
+                  </div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🏛️</div>
+                  <h3 className="text-white font-bold text-sm mb-1">All Services</h3>
+                  <p className="text-red-100 text-xs">Browse All</p>
+                </div>
+              </Link>
+
+              {/* Category-based Services */}
+              <Link href="/dashboard/services?category=Identity">
+                <div className="group bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-blue-600 text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
+                  </div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🆔</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Identity</h3>
+                  <p className="text-blue-100 text-xs">PAN, Aadhaar</p>
+                </div>
+              </Link>
+
+              <Link href="/dashboard/services?category=Business">
+                <div className="group bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-purple-600 text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
+                  </div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🏢</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Business</h3>
+                  <p className="text-purple-100 text-xs">GST, License</p>
+                </div>
+              </Link>
+
+              <Link href="/dashboard/services?category=Legal">
+                <div className="group bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-orange-600 text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
+                  </div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">⚖️</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Legal</h3>
+                  <p className="text-orange-100 text-xs">Certificates</p>
+                </div>
+              </Link>
+
+              <Link href="/dashboard/services?category=Social">
+                <div className="group bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-indigo-600 text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
+                  </div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🤝</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Social</h3>
+                  <p className="text-indigo-100 text-xs">Welfare Schemes</p>
+                </div>
+              </Link>
+
+              <Link href="/dashboard/services?category=Financial">
+                <div className="group bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-green-600 text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
+                  </div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">💰</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Financial</h3>
+                  <p className="text-green-100 text-xs">Loans, Subsidies</p>
+                </div>
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* Authorized Services */}
         {(user.role === UserRole.RETAILER || user.role === UserRole.CUSTOMER) && (
           <div className="my-8">
