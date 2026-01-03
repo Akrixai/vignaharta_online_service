@@ -655,20 +655,28 @@ export default function ElectricityBillPage() {
           let cleanMessage = message.replace(/Your Balance is.*$/i, '').trim();
           if (cleanMessage.endsWith('.')) cleanMessage = cleanMessage.slice(0, -1);
 
-          const finalSuccessMsg = `✅ ${cleanMessage}! Your electricity bill payment for ${consumerNumberValue} was successful.${operatorRef ? `\nRef: ${operatorRef}` : ''}`;
+          const finalSuccessMsg = `✅ ${cleanMessage}! Redirecting to receipt...`;
 
           setMessage(finalSuccessMsg);
           setMessageType('success');
 
-          // Reset form on success
-          setTimeout(() => {
-            setConsumerNumber('');
-            setAmount('');
-            setCustomerName('');
-            setBillDetails(null);
-            setDynamicFieldValues({});
-            fetchWalletBalance();
-          }, 3000);
+          // Redirect to receipt page after successful payment
+          const transactionId = responseData.transaction_id;
+          if (transactionId) {
+            setTimeout(() => {
+              router.push(`/dashboard/recharge/electricity/receipt?txn=${transactionId}`);
+            }, 2000);
+          } else {
+            // Fallback: Reset form if no transaction ID
+            setTimeout(() => {
+              setConsumerNumber('');
+              setAmount('');
+              setCustomerName('');
+              setBillDetails(null);
+              setDynamicFieldValues({});
+              fetchWalletBalance();
+            }, 3000);
+          }
         } else if (status === 'PENDING') {
           setMessage(
             `⏳ ${message}${operatorRef ? `\nRef: ${operatorRef}` : ''}\nKwikAPI Status: ${kwikApiStatus}\nTransaction is being processed. You will be notified once completed.`
