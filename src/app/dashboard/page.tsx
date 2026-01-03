@@ -449,7 +449,7 @@ export default function DashboardPage() {
               </Link>
 
               {/* Category-based Services */}
-              <Link href="/dashboard/services?category=Identity">
+              <Link href="/dashboard/services?category=Identity Documents">
                 <div className="group bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
                   <div className="absolute top-2 right-2 bg-white text-blue-600 text-[8px] font-bold px-2 py-1 rounded-full">
                     LIVE
@@ -460,7 +460,7 @@ export default function DashboardPage() {
                 </div>
               </Link>
 
-              <Link href="/dashboard/services?category=Business">
+              <Link href="/dashboard/services?category=Business Services">
                 <div className="group bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
                   <div className="absolute top-2 right-2 bg-white text-purple-600 text-[8px] font-bold px-2 py-1 rounded-full">
                     LIVE
@@ -471,7 +471,7 @@ export default function DashboardPage() {
                 </div>
               </Link>
 
-              <Link href="/dashboard/services?category=Legal">
+              <Link href="/dashboard/services?category=Legal Services">
                 <div className="group bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
                   <div className="absolute top-2 right-2 bg-white text-orange-600 text-[8px] font-bold px-2 py-1 rounded-full">
                     LIVE
@@ -482,18 +482,18 @@ export default function DashboardPage() {
                 </div>
               </Link>
 
-              <Link href="/dashboard/services?category=Social">
+              <Link href="/dashboard/services?category=Government Schemes">
                 <div className="group bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
                   <div className="absolute top-2 right-2 bg-white text-indigo-600 text-[8px] font-bold px-2 py-1 rounded-full">
                     LIVE
                   </div>
                   <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🤝</div>
-                  <h3 className="text-white font-bold text-sm mb-1">Social</h3>
+                  <h3 className="text-white font-bold text-sm mb-1">Schemes</h3>
                   <p className="text-indigo-100 text-xs">Welfare Schemes</p>
                 </div>
               </Link>
 
-              <Link href="/dashboard/services?category=Financial">
+              <Link href="/dashboard/services?category=Financial Services">
                 <div className="group bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
                   <div className="absolute top-2 right-2 bg-white text-green-600 text-[8px] font-bold px-2 py-1 rounded-full">
                     LIVE
@@ -539,7 +539,7 @@ export default function DashboardPage() {
               </Link>
 
               {/* Featured Services Placeholder - These will be populated from the database */}
-              <Link href="/dashboard/services?tab=direct&category=Banking">
+              <Link href="/dashboard/services?tab=direct&category=FINANCIAL">
                 <div className="group bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
                   <div className="absolute top-2 right-2 bg-white text-blue-600 text-[8px] font-bold px-2 py-1 rounded-full">
                     LIVE
@@ -550,18 +550,18 @@ export default function DashboardPage() {
                 </div>
               </Link>
 
-              <Link href="/dashboard/services?tab=direct&category=Insurance">
+              <Link href="/dashboard/services?tab=direct&category=GOVERNMENT">
                 <div className="group bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
                   <div className="absolute top-2 right-2 bg-white text-purple-600 text-[8px] font-bold px-2 py-1 rounded-full">
                     LIVE
                   </div>
-                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🛡️</div>
-                  <h3 className="text-white font-bold text-sm mb-1">Insurance</h3>
-                  <p className="text-purple-100 text-xs">Protection Plans</p>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🏛️</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Government</h3>
+                  <p className="text-purple-100 text-xs">Gov Services</p>
                 </div>
               </Link>
 
-              <Link href="/dashboard/services?tab=direct&category=Travel">
+              <Link href="/dashboard/services?tab=direct&category=TRANSPORT">
                 <div className="group bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
                   <div className="absolute top-2 right-2 bg-white text-orange-600 text-[8px] font-bold px-2 py-1 rounded-full">
                     LIVE
@@ -572,7 +572,7 @@ export default function DashboardPage() {
                 </div>
               </Link>
 
-              <Link href="/dashboard/services?tab=direct&category=Education">
+              <Link href="/dashboard/services?tab=direct&category=EDUCATION">
                 <div className="group bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
                   <div className="absolute top-2 right-2 bg-white text-indigo-600 text-[8px] font-bold px-2 py-1 rounded-full">
                     LIVE
@@ -583,7 +583,7 @@ export default function DashboardPage() {
                 </div>
               </Link>
 
-              <Link href="/dashboard/services?tab=direct&category=Healthcare">
+              <Link href="/dashboard/services?tab=direct&category=HEALTHCARE">
                 <div className="group bg-gradient-to-br from-red-500 to-red-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
                   <div className="absolute top-2 right-2 bg-white text-red-600 text-[8px] font-bold px-2 py-1 rounded-full">
                     LIVE

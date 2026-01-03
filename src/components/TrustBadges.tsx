@@ -117,21 +117,11 @@ export default function TrustBadges() {
         </div>
 
         {/* Certifications Section */}
-        <div className="mt-16 bg-gradient-to-r from-red-50 to-orange-50 rounded-2xl p-8 border-2 border-red-200">
+        <div className="mt-16 bg-transparent rounded-2xl p-8">
           <h3 className="text-2xl font-bold text-center text-gray-900 mb-8">
             Our Certifications & Compliance
           </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="text-4xl mb-2">🏛️</div>
-              <div className="font-semibold text-gray-900">Government</div>
-              <div className="text-sm text-gray-600">Authorized</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl mb-2">🔐</div>
-              <div className="font-semibold text-gray-900">ISO 27001</div>
-              <div className="text-sm text-gray-600">Certified</div>
-            </div>
+          <div className="grid grid-cols-2 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
             <div className="text-center">
               <div className="text-4xl mb-2">💼</div>
               <div className="font-semibold text-gray-900">GST</div>

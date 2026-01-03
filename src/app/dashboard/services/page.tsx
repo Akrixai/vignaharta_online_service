@@ -35,24 +35,27 @@ import ServiceApplicationForm from '@/components/ServiceApplicationForm';
 import './services.css';
 
 // Component to handle URL parameters
-function URLParamsHandler({ 
-  setViewMode, 
-  setSelectedCategory 
-}: { 
+function URLParamsHandler({
+  setViewMode,
+  setSelectedCategory
+}: {
   setViewMode: (mode: 'GOVERNMENT' | 'DIRECT') => void;
   setSelectedCategory: (category: string) => void;
 }) {
   const searchParams = useSearchParams();
-  
+
   useEffect(() => {
     const tab = searchParams.get('tab');
     const category = searchParams.get('category');
-    
-    if (tab === 'direct') {
+
+    // Set view mode based on tab parameter
+    if (tab === 'direct' || tab === 'authorized') {
       setViewMode('DIRECT');
-    } else if (tab === 'authorized') {
-      setViewMode('DIRECT');
+    } else if (tab === 'government') {
+      setViewMode('GOVERNMENT');
     }
+
+    // Set category filter if provided, otherwise leave as is
     if (category) {
       setSelectedCategory(category);
     }
@@ -234,9 +237,9 @@ export default function ServicesPage() {
   return (
     <DashboardLayout>
       <Suspense fallback={null}>
-        <URLParamsHandler 
-          setViewMode={setViewMode} 
-          setSelectedCategory={setSelectedCategory} 
+        <URLParamsHandler
+          setViewMode={setViewMode}
+          setSelectedCategory={setSelectedCategory}
         />
       </Suspense>
       <div className="services-page-container">
@@ -259,7 +262,6 @@ export default function ServicesPage() {
               <button
                 onClick={() => {
                   setViewMode('GOVERNMENT');
-                  setSelectedCategory('ALL');
                 }}
                 className={`px-4 py-3 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 ${viewMode === 'GOVERNMENT'
                   ? 'bg-[#059669] shadow-[0_0_20px_rgba(5,150,105,0.4)] scale-100'
@@ -280,7 +282,6 @@ export default function ServicesPage() {
               <button
                 onClick={() => {
                   setViewMode('DIRECT');
-                  setSelectedCategory('ALL');
                 }}
                 className={`px-4 py-3 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 ${viewMode === 'DIRECT'
                   ? 'bg-[#059669] shadow-[0_0_20px_rgba(5,150,105,0.4)] scale-100'
@@ -319,7 +320,6 @@ export default function ServicesPage() {
             <button
               onClick={() => {
                 setViewMode('DIRECT');
-                setSelectedCategory('ALL');
               }}
               className="flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full hover:bg-white/30 transition-all duration-200 text-red-50 font-medium border border-white/20"
             >
@@ -437,7 +437,7 @@ export default function ServicesPage() {
                             src={item.image_url}
                             alt={item.name}
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                            onError={(e) => { 
+                            onError={(e) => {
                               (e.target as HTMLElement).style.display = 'none';
                               // Show fallback gradient background
                               const parent = (e.target as HTMLElement).parentElement;
@@ -533,28 +533,26 @@ export default function ServicesPage() {
                       {/* Service Banner - Matching Government Services Style */}
                       {item.icon_url && item.icon_url.trim() !== '' ? (
                         <div className="relative h-56 w-full overflow-hidden rounded-t-lg bg-gradient-to-br from-blue-50 to-blue-100">
-                          <div className="w-full h-full flex items-center justify-center p-8">
-                            <img
-                              src={item.icon_url}
-                              alt={item.name}
-                              className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500 rounded-lg shadow-lg"
-                              onError={(e) => { 
-                                (e.target as HTMLElement).style.display = 'none';
-                                // Show fallback gradient background
-                                const parent = (e.target as HTMLElement).parentElement?.parentElement;
-                                if (parent) {
-                                  parent.innerHTML = `
-                                    <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200">
-                                      <div class="text-center">
-                                        <div class="text-4xl mb-2 text-blue-400">🔗</div>
-                                        <p class="text-blue-600 font-medium text-sm">Direct Service</p>
-                                      </div>
+                          <img
+                            src={item.icon_url}
+                            alt={item.name}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            onError={(e) => {
+                              (e.target as HTMLElement).style.display = 'none';
+                              // Show fallback gradient background
+                              const parent = (e.target as HTMLElement).parentElement;
+                              if (parent) {
+                                parent.innerHTML = `
+                                  <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200">
+                                    <div class="text-center">
+                                      <div class="text-4xl mb-2 text-blue-400">🔗</div>
+                                      <p class="text-blue-600 font-medium text-sm">Direct Service</p>
                                     </div>
-                                  `;
-                                }
-                              }}
-                            />
-                          </div>
+                                  </div>
+                                `;
+                              }
+                            }}
+                          />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                           <div className="absolute top-4 right-4 shadow-xl">
                             <div className={`px-4 py-2 rounded-full text-sm font-black border-2 border-white backdrop-blur-sm ${item.amount > 0 ? 'bg-blue-600/90 text-white' : 'bg-green-500/90 text-white'}`}>
