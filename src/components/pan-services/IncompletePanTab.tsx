@@ -58,7 +58,7 @@ export default function IncompletePanTab({ walletBalance, onWalletUpdate, router
       } else if (service.status === 'FAILURE') {
         toast.error(`PAN application ${service.order_id} failed. Please check details.`, { duration: 5000 });
       } else if (service.status === 'PROCESSING') {
-        toast.info(`PAN application ${service.order_id} is now being processed.`, { duration: 3000 });
+        toast(`PAN application ${service.order_id} is now being processed.`, { duration: 3000 });
       }
       // Refresh pending applications when status changes
       fetchPendingApplications();
@@ -267,17 +267,18 @@ export default function IncompletePanTab({ walletBalance, onWalletUpdate, router
                 disabled={loadingApplications}
                 className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
               >
-              {loadingApplications ? (
-                <>
-                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Refreshing...
-                </>
-              ) : (
-                <>🔄 Refresh</>
-              )}
+                {loadingApplications ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Refreshing...
+                  </>
+                ) : (
+                  <>🔄 Refresh</>
+                )}
+              </button>
             </div>
           </div>
           
