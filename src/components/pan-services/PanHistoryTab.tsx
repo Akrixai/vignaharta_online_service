@@ -92,7 +92,7 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
       } else if (service.status === 'FAILURE') {
         toast.error(`PAN application ${service.order_id} failed. Please check details.`, { duration: 5000 });
       } else if (service.status === 'PROCESSING') {
-        toast.info(`PAN application ${service.order_id} is in progress.`, { duration: 3000 });
+        toast(`PAN application ${service.order_id} is in progress.`, { duration: 3000 });
       }
       // Refresh the full services list when status changes
       fetchServices();
@@ -234,7 +234,8 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
       const data = await res.json();
       if (data.success && data.data?.inspay_url) {
         window.open(data.data.inspay_url, '_blank');
-        toast.success('Resuming application...');
+        console.log(`🚀 Resuming application with Order ID: ${orderId}`);
+        toast.success(`Resuming application ${orderId}...`);
         fetchServices(); // Refresh to see updated status
       } else {
         toast.error(data.message || 'Failed to resume application');
@@ -435,9 +436,9 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-500">Order ID:</span>
-                      <p className="font-mono font-medium text-blue-600">{service.order_id}</p>
+                    <div className="bg-blue-50 p-2 rounded border border-blue-100">
+                      <span className="text-xs text-gray-500 block mb-1">Merchant Order ID:</span>
+                      <p className="font-mono font-bold text-blue-700">{service.order_id}</p>
                     </div>
                     <div>
                       <span className="text-gray-500">Mobile Number:</span>

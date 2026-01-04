@@ -72,13 +72,13 @@ export default function PanServicesHistoryPage() {
   useEffect(() => {
     if (session?.user?.id) {
       fetchServices();
-      
+
       // Check for redirect parameters
       const urlParams = new URLSearchParams(window.location.search);
       const redirected = urlParams.get('redirected');
       const status = urlParams.get('status');
       const txid = urlParams.get('txid');
-      
+
       if (redirected === 'true') {
         if (status === 'Success') {
           toast.success('PAN application completed successfully!', { duration: 5000 });
@@ -87,7 +87,7 @@ export default function PanServicesHistoryPage() {
         } else {
           toast('Returned from PAN application portal', { duration: 3000 });
         }
-        
+
         // Clean up URL parameters
         window.history.replaceState({}, document.title, window.location.pathname);
       }
@@ -97,17 +97,17 @@ export default function PanServicesHistoryPage() {
   // Auto-refresh every 10 seconds for pending/processing orders
   useEffect(() => {
     if (!autoRefresh || loading) return;
-    
-    const hasPendingOrders = services.some(s => 
+
+    const hasPendingOrders = services.some(s =>
       s.status === 'PENDING' || s.status === 'PROCESSING'
     );
-    
+
     if (hasPendingOrders) {
       const interval = setInterval(() => {
         console.log('🔄 Auto-refreshing PAN services history...');
         fetchServices();
       }, 10000); // 10 seconds for faster updates
-      
+
       return () => clearInterval(interval);
     }
   }, [services, autoRefresh, loading]);
@@ -156,11 +156,11 @@ export default function PanServicesHistoryPage() {
 
   const getPaymentStatusBadge = (paymentStatus: string) => (
     <span className={`px-2 py-1 rounded-full text-xs font-medium ${paymentStatusColors[paymentStatus as keyof typeof paymentStatusColors]}`}>
-      {paymentStatus === 'RESERVED' ? '🔒 RESERVED' : 
-       paymentStatus === 'DEBITED' ? '💳 DEBITED' : 
-       paymentStatus === 'CHARGED' ? '✅ CHARGED' :
-       paymentStatus === 'REFUNDED' ? '💸 REFUNDED' : 
-       paymentStatus === 'CANCELLED' ? '❌ CANCELLED' : paymentStatus}
+      {paymentStatus === 'RESERVED' ? '🔒 RESERVED' :
+        paymentStatus === 'DEBITED' ? '💳 DEBITED' :
+          paymentStatus === 'CHARGED' ? '✅ CHARGED' :
+            paymentStatus === 'REFUNDED' ? '💸 REFUNDED' :
+              paymentStatus === 'CANCELLED' ? '❌ CANCELLED' : paymentStatus}
     </span>
   );
 
@@ -184,9 +184,9 @@ export default function PanServicesHistoryPage() {
   const handleDownloadReceipt = async (orderId: string, format: 'json' | 'pdf' = 'pdf') => {
     try {
       setDownloadingReceipt(orderId);
-      
+
       const response = await fetch(`/api/pan-services/receipt?order_id=${orderId}&format=${format}`);
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         toast.error(errorData.message || 'Failed to generate receipt');
@@ -310,7 +310,7 @@ export default function PanServicesHistoryPage() {
                 </button>
               ))}
             </div>
-            
+
             <div className="flex items-center gap-3">
               <label className="flex items-center gap-2 text-sm">
                 <input
@@ -324,7 +324,7 @@ export default function PanServicesHistoryPage() {
                   <span className="text-green-600 text-xs">(10s)</span>
                 )}
               </label>
-              
+
               <button
                 onClick={fetchServices}
                 disabled={loading}
@@ -385,9 +385,9 @@ export default function PanServicesHistoryPage() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
-                      <div>
-                        <span className="text-gray-500">Order ID:</span>
-                        <p className="font-mono font-medium text-blue-600">{service.order_id}</p>
+                      <div className="bg-blue-50 p-2 rounded border border-blue-100">
+                        <span className="text-xs text-gray-500 block mb-1">Merchant Order ID:</span>
+                        <p className="font-mono font-bold text-blue-700">{service.order_id}</p>
                       </div>
                       <div>
                         <span className="text-gray-500">Mobile Number:</span>
@@ -588,7 +588,7 @@ export default function PanServicesHistoryPage() {
                         >
                           {downloadingReceipt === service.order_id ? 'Generating...' : '📄 Download Receipt'}
                         </button>
-                        
+
                         {service.acknowledgement_number && service.acknowledgement_number !== 'Order is under process' && (
                           <div className="text-xs text-center p-2 bg-green-50 rounded border">
                             <div className="font-semibold text-green-800">Tracking Number:</div>

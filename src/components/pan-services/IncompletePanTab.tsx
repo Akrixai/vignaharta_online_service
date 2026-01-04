@@ -139,7 +139,8 @@ export default function IncompletePanTab({ walletBalance, onWalletUpdate, router
         setConfirmationData(confirmData);
         setShowConfirmModal(true);
 
-        toast.success('Application ready to resume!');
+        console.log(`🚀 Resuming application with Order ID: ${orderId}`);
+        toast.success(`Application ${orderId} ready to resume!`);
         fetchPendingApplications(); // Refresh to see updated status
       } else {
         toast.error(data.message || 'Failed to resume application');
@@ -156,11 +157,18 @@ export default function IncompletePanTab({ walletBalance, onWalletUpdate, router
     e.preventDefault();
 
     if (!formData.existing_order_id.trim()) {
-      toast.error('Please enter your existing order ID');
+      toast.error('Please enter your existing Order ID');
+      return;
+    }
+
+    // Ensure it looks like our Order ID
+    if (!formData.existing_order_id.startsWith('PAN_')) {
+      toast.error('Invalid Order ID format. It should start with PAN_');
       return;
     }
 
     setLoading(true);
+    console.log(`🔍 Manually resuming Order ID: ${formData.existing_order_id}`);
 
     try {
       const response = await fetch('/api/pan-services/incomplete-pan', {
@@ -299,9 +307,9 @@ export default function IncompletePanTab({ walletBalance, onWalletUpdate, router
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm mb-3">
-                        <div>
-                          <span className="text-gray-500">Order ID:</span>
-                          <p className="font-mono font-medium text-blue-600">{app.order_id}</p>
+                        <div className="bg-blue-50 p-2 rounded border border-blue-100">
+                          <span className="text-xs text-gray-500 block mb-1">Merchant Order ID:</span>
+                          <p className="font-mono font-bold text-blue-700">{app.order_id}</p>
                         </div>
                         <div>
                           <span className="text-gray-500">Mobile:</span>
@@ -374,26 +382,26 @@ export default function IncompletePanTab({ walletBalance, onWalletUpdate, router
           {/* Main Form */}
           <div className="lg:col-span-2">
             <div className="mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Resume by Order ID</h3>
-              <p className="text-sm text-gray-600">Enter your existing order ID to resume an incomplete application</p>
+              <h3 className="text-lg font-semibold text-gray-900">Resume by Merchant Order ID</h3>
+              <p className="text-sm text-gray-600">Enter your original application ID (starting with PAN_) to resume</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label htmlFor="existing_order_id" className="block text-sm font-medium text-gray-700 mb-2">
-                  Existing Order ID *
+                  Merchant Order ID (PAN_...) *
                 </label>
                 <input
                   type="text"
                   id="existing_order_id"
                   value={formData.existing_order_id}
                   onChange={(e) => setFormData({ ...formData, existing_order_id: e.target.value })}
-                  placeholder="Enter your existing PAN application order ID"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="e.g. PAN_1767536365065_898"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  This is the order ID from your previous incomplete PAN application
+                <p className="text-xs text-blue-600 mt-1 font-medium">
+                  Enter the ID starting with PAN_ that was assigned to your application
                 </p>
               </div>
 
