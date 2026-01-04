@@ -1,17 +1,19 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { toast } from 'react-hot-toast';
 
 interface PanService {
   id: string;
+  service_type: 'NEW_PAN' | 'PAN_CORRECTION' | 'INCOMPLETE_PAN';
+  mobile_number: string;
+  mode: 'EKYC' | 'ESIGN';
   order_id: string;
+  amount: number;
   status: 'PENDING' | 'SUCCESS' | 'FAILURE' | 'PROCESSING' | 'EXPIRED';
   payment_status: 'PENDING' | 'RESERVED' | 'DEBITED' | 'CHARGED' | 'REFUNDED' | 'CANCELLED';
-  acknowledgement_number?: string;
-  callback_data?: any;
-  webhook_received_at?: string;
+  created_at: string;
   updated_at: string;
-  service_type: string;
-  amount: number;
+  acknowledgement_number?: string;
+  inspay_txid?: string;
+  inspay_opid?: string;
 }
 
 interface MonitoringStats {
@@ -20,7 +22,6 @@ interface MonitoringStats {
   processing: number;
   success: number;
   failure: number;
-  active_monitoring: number;
   total_spent: number;
 }
 
@@ -35,7 +36,7 @@ interface UsePanServiceMonitorOptions {
 export function usePanServiceMonitor(options: UsePanServiceMonitorOptions = {}) {
   const {
     enabled = true,
-    interval = 15000, // 15 seconds
+    interval = 30000, // 30 seconds default
     onStatusChange,
     onSuccess,
     onFailure
@@ -48,26 +49,19 @@ export function usePanServiceMonitor(options: UsePanServiceMonitorOptions = {}) 
     processing: 0,
     success: 0,
     failure: 0,
-    active_monitoring: 0,
     total_spent: 0
   });
   const [isMonitoring, setIsMonitoring] = useState(false);
-  const [lastUpdate, setLastUpdate] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const previousServicesRef = useRef<Map<string, PanService>>(new Map());
 
-  const fetchMonitoringData = useCallback(async () => {
+  const fetchServices = useCallback(async () => {
     try {
       setError(null);
-      
-      const url = new URL('/api/pan-services/monitor', window.location.origin);
-      if (lastUpdate) {
-        url.searchParams.set('last_update', lastUpdate);
-      }
-
-      const response = await fetch(url.toString());
+      const response = await fetch('/api/pan-services/history');
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -76,117 +70,84 @@ export function usePanServiceMonitor(options: UsePanServiceMonitorOptions = {}) 
       const data = await response.json();
       
       if (data.success) {
-        const newServices = data.data.active_services || [];
-        const newStats = data.data.stats || stats;
+        const newServices = data.data || [];
+        const previousServices = previousServicesRef.current;
         
         // Check for status changes
-        if (onStatusChange || onSuccess || onFailure) {
-          newServices.forEach((service: PanService) => {
-            const previousService = previousServicesRef.current.get(service.order_id);
-            
-            if (previousService && previousService.status !== service.status) {
-              // Status changed
-              onStatusChange?.(service, previousService.status);
-              
-              if (service.status === 'SUCCESS') {
-                onSuccess?.(service);
-                toast.success(`PAN application ${service.order_id} completed successfully!`, {
-                  duration: 5000,
-                  icon: '✅'
-                });
-              } else if (service.status === 'FAILURE') {
-                onFailure?.(service);
-                toast.error(`PAN application ${service.order_id} failed.`, {
-                  duration: 5000,
-                  icon: '❌'
-                });
-              } else if (service.status === 'PROCESSING' && previousService.status === 'PENDING') {
-                toast(`PAN application ${service.order_id} is now being processed.`, {
-                  duration: 3000,
-                  icon: '⏳'
-                });
-              }
-            }
-            
-            // Update acknowledgement number notification
-            if (service.acknowledgement_number && 
-                service.acknowledgement_number !== 'Order is under process' &&
-                (!previousService || previousService.acknowledgement_number !== service.acknowledgement_number)) {
-              toast.success(`Tracking number received: ${service.acknowledgement_number}`, {
-                duration: 4000,
-                icon: '🎯'
-              });
-            }
-          });
-        }
-
-        // Update previous services map
-        const newServicesMap = new Map();
         newServices.forEach((service: PanService) => {
-          newServicesMap.set(service.order_id, service);
+          const previousService = previousServices.get(service.id);
+          
+          if (previousService && previousService.status !== service.status) {
+            console.log(`🔄 Status change detected for ${service.order_id}: ${previousService.status} → ${service.status}`);
+            
+            // Call status change callback
+            onStatusChange?.(service, previousService.status);
+            
+            // Call specific callbacks
+            if (service.status === 'SUCCESS') {
+              onSuccess?.(service);
+            } else if (service.status === 'FAILURE') {
+              onFailure?.(service);
+            }
+          }
         });
-        previousServicesRef.current = newServicesMap;
 
+        // Update services and previous services map
         setServices(newServices);
+        previousServicesRef.current = new Map(
+          newServices.map((service: PanService) => [service.id, service])
+        );
+
+        // Calculate stats
+        const newStats: MonitoringStats = {
+          total: newServices.length,
+          pending: newServices.filter((s: PanService) => s.status === 'PENDING').length,
+          processing: newServices.filter((s: PanService) => s.status === 'PROCESSING').length,
+          success: newServices.filter((s: PanService) => s.status === 'SUCCESS').length,
+          failure: newServices.filter((s: PanService) => s.status === 'FAILURE').length,
+          total_spent: newServices
+            .filter((s: PanService) => s.status === 'SUCCESS')
+            .reduce((sum: number, s: PanService) => sum + s.amount, 0)
+        };
+        
         setStats(newStats);
-        setLastUpdate(data.data.last_check);
-        setIsMonitoring(newServices.length > 0);
+        setLastUpdate(new Date());
       } else {
-        throw new Error(data.message || 'Failed to fetch monitoring data');
+        throw new Error(data.message || 'Failed to fetch services');
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      setError(errorMessage);
-      console.error('Monitoring error:', err);
-      
-      // Don't show toast for every error to avoid spam
-      if (!error) {
-        toast.error('Failed to check for updates', { duration: 2000 });
-      }
+      console.error('Error fetching PAN services:', err);
+      setError(err instanceof Error ? err.message : 'Unknown error');
     }
-  }, [lastUpdate, onStatusChange, onSuccess, onFailure, error, stats]);
+  }, [onStatusChange, onSuccess, onFailure]);
 
   const startMonitoring = useCallback(() => {
     if (!enabled) return;
-
+    
+    console.log('🚀 Starting PAN service monitoring...');
+    setIsMonitoring(true);
+    
     // Initial fetch
-    fetchMonitoringData();
-
+    fetchServices();
+    
     // Set up interval
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
-
-    intervalRef.current = setInterval(fetchMonitoringData, interval);
-  }, [enabled, fetchMonitoringData, interval]);
+    intervalRef.current = setInterval(fetchServices, interval);
+  }, [enabled, fetchServices, interval]);
 
   const stopMonitoring = useCallback(() => {
+    console.log('⏹️ Stopping PAN service monitoring...');
+    setIsMonitoring(false);
+    
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
-    setIsMonitoring(false);
   }, []);
 
   const refreshNow = useCallback(() => {
-    fetchMonitoringData();
-  }, [fetchMonitoringData]);
-
-  const monitorSpecificOrder = useCallback(async (orderId: string) => {
-    try {
-      const response = await fetch(`/api/pan-services/monitor?order_id=${orderId}`);
-      const data = await response.json();
-      
-      if (data.success) {
-        return data.data;
-      } else {
-        throw new Error(data.message);
-      }
-    } catch (err) {
-      console.error('Error monitoring specific order:', err);
-      throw err;
-    }
-  }, []);
+    console.log('🔄 Manual refresh triggered...');
+    fetchServices();
+  }, [fetchServices]);
 
   // Start/stop monitoring based on enabled flag
   useEffect(() => {
@@ -218,7 +179,6 @@ export function usePanServiceMonitor(options: UsePanServiceMonitorOptions = {}) 
     lastUpdate,
     refreshNow,
     startMonitoring,
-    stopMonitoring,
-    monitorSpecificOrder
+    stopMonitoring
   };
 }

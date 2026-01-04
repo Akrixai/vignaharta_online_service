@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { UserRole } from '@/types';
 import toast from 'react-hot-toast';
 import DashboardLayout from '@/components/dashboard/layout';
+import PanConfirmationModal from '@/components/pan-services/PanConfirmationModal';
 
 interface PanConfig {
   price: number;
@@ -19,6 +20,8 @@ export default function NewPanPage() {
   const [config, setConfig] = useState<PanConfig | null>(null);
   const [configLoading, setConfigLoading] = useState(true);
   const [walletLoading, setWalletLoading] = useState(true);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmationData, setConfirmationData] = useState<any>(null);
   const [formData, setFormData] = useState({
     mobile_number: '',
     mode: 'EKYC' as 'EKYC' | 'ESIGN'
@@ -131,47 +134,31 @@ export default function NewPanPage() {
       console.log('📥 Response data:', data);
 
       if (data.success) {
-        // Show success message with new payment flow
-        toast.success(data.message || 'Application initiated successfully! Complete it to proceed with payment.', {
-          duration: 5000,
+        // Prepare confirmation data
+        const confirmData = {
+          service_type: 'NEW_PAN' as const,
+          order_id: data.data.order_id,
+          mobile_number: formData.mobile_number,
+          mode: formData.mode,
+          amount: config.price,
+          inspay_url: data.data.inspay_url,
+          inspay_txid: data.data.inspay_txid,
+          created_at: new Date().toISOString(),
+          payment_note: data.data.payment_note
+        };
+
+        setConfirmationData(confirmData);
+        setShowConfirmModal(true);
+
+        // Show success toast
+        toast.success(data.message || 'Application initiated successfully!', {
+          duration: 3000,
           icon: '🚀'
         });
-
-        // Show order ID
-        if (data.data?.order_id) {
-          toast.success(`Order ID: ${data.data.order_id}`, {
-            duration: 8000,
-            icon: '📋'
-          });
-        }
-
-        // Show payment note
-        if (data.data?.payment_note) {
-          toast(data.data.payment_note, {
-            duration: 6000,
-            icon: '💡'
-          });
-        }
 
         // Show debug info in development
         if (process.env.NODE_ENV === 'development' && data.debug) {
           console.log('🐛 Debug info:', data.debug);
-        }
-
-        // Redirect to InsPay URL immediately
-        if (data.data?.inspay_url) {
-          console.log('🔗 Redirecting to InsPay URL:', data.data.inspay_url);
-          toast.loading('Opening PAN application portal...', { duration: 2000 });
-
-          // Open in same window for better tracking
-          setTimeout(() => {
-            window.location.href = data.data.inspay_url;
-          }, 1500);
-        } else {
-          // If no URL, redirect to history
-          setTimeout(() => {
-            router.push('/dashboard/pan-services/history');
-          }, 2000);
         }
       } else {
         console.error('❌ API Error:', data);
@@ -191,6 +178,26 @@ export default function NewPanPage() {
     }
   };
 
+  const handleConfirmRedirect = () => {
+    if (confirmationData?.inspay_url) {
+      toast.loading('Opening PAN application portal...', { duration: 2000 });
+      setTimeout(() => {
+        window.location.href = confirmationData.inspay_url;
+      }, 1000);
+    } else {
+      router.push('/dashboard/pan-services/history');
+    }
+    setShowConfirmModal(false);
+  };
+
+  const handleCloseModal = () => {
+    setShowConfirmModal(false);
+    // Redirect to history after closing modal
+    setTimeout(() => {
+      router.push('/dashboard/pan-services/history');
+    }, 500);
+  };
+
   if (!hasAccess) {
     return (
       <DashboardLayout>
@@ -206,8 +213,9 @@ export default function NewPanPage() {
   }
 
   return (
-    <DashboardLayout>
-      <div className="max-w-4xl mx-auto">
+    <>
+      <DashboardLayout>
+        <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">New PAN Application</h1>
@@ -418,7 +426,16 @@ export default function NewPanPage() {
             </div>
           </div>
         </div>
-      </div>
-    </DashboardLayout>
+      </DashboardLayout>
+
+      {/* Confirmation Modal */}
+      <PanConfirmationModal
+        isOpen={showConfirmModal}
+        onClose={handleCloseModal}
+        onConfirm={handleConfirmRedirect}
+        data={confirmationData}
+        loading={false}
+      />
+    </>
   );
 }

@@ -22,6 +22,7 @@ async function handler(request: NextRequest) {
     try {
       body = await request.json();
     } catch (e) {
+      console.error('❌ Failed to parse request JSON:', e);
       return corsJsonResponse({ success: false, message: 'Invalid JSON body' }, 400);
     }
 
@@ -65,17 +66,21 @@ async function handler(request: NextRequest) {
 
     // Check wallet balance
     if (wallet.balance < config.price) {
-      return NextResponse.json({
+      return corsJsonResponse({
         success: false,
         message: `Insufficient wallet balance. Required: ₹${config.price}, Available: ₹${wallet.balance}. Please add money to your wallet first.`
-      }, { status: 400 });
+      }, 400);
     }
 
     // Generate order ID
     const orderId = inspayService.generateOrderId();
 
     try {
-      console.log('🔄 Calling InsPay API (Balance Reserved - No Deduction Yet) for PAN Correction...');
+      console.log('🔄 Calling InsPay PAN Correction API (Balance Reserved - No Deduction Yet) with data:', {
+        number: mobile_number,
+        mode,
+        orderid: orderId
+      });
 
       // Call InsPay API FIRST
       const inspayResponse = await inspayService.panCorrectionRequest({
@@ -123,6 +128,7 @@ async function handler(request: NextRequest) {
             id: panService?.id,
             order_id: orderId,
             inspay_url: inspayResponse.url,
+            inspay_txid: inspayResponse.txid,
             amount: config.price,
             payment_note: 'Payment will be deducted only after successful completion of your PAN correction.'
           }
@@ -132,7 +138,7 @@ async function handler(request: NextRequest) {
         console.log('❌ InsPay Error:', inspayResponse.message);
         return corsJsonResponse({
           success: false,
-          message: `${inspayResponse.message || 'Failed to initiate PAN correction'}. No amount was deducted.`
+          message: inspayResponse.message || 'Failed to initiate PAN correction. No amount was deducted.'
         }, 400);
       }
 

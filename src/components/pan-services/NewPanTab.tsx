@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import toast from 'react-hot-toast';
+import PanConfirmationModal from './PanConfirmationModal';
 
 interface PanConfig {
   price: number;
@@ -19,6 +20,8 @@ export default function NewPanTab({ walletBalance, onWalletUpdate, router }: New
   const [loading, setLoading] = useState(false);
   const [config, setConfig] = useState<PanConfig | null>(null);
   const [configLoading, setConfigLoading] = useState(true);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmationData, setConfirmationData] = useState<any>(null);
   const [formData, setFormData] = useState({
     mobile_number: '',
     mode: 'EKYC' as 'EKYC' | 'ESIGN'
@@ -82,35 +85,27 @@ export default function NewPanTab({ walletBalance, onWalletUpdate, router }: New
       const data = await response.json();
 
       if (data.success) {
-        toast.success(data.message || 'Application initiated successfully! Complete it to proceed with payment.', {
-          duration: 5000,
+        // Prepare confirmation data
+        const confirmData = {
+          service_type: 'NEW_PAN' as const,
+          order_id: data.data.order_id,
+          mobile_number: formData.mobile_number,
+          mode: formData.mode,
+          amount: config.price,
+          inspay_url: data.data.inspay_url,
+          inspay_txid: data.data.inspay_txid,
+          created_at: new Date().toISOString(),
+          payment_note: data.data.payment_note
+        };
+
+        setConfirmationData(confirmData);
+        setShowConfirmModal(true);
+
+        // Show success toast
+        toast.success(data.message || 'Application initiated successfully!', {
+          duration: 3000,
           icon: '🚀'
         });
-
-        if (data.data?.order_id) {
-          toast.success(`Order ID: ${data.data.order_id}`, {
-            duration: 8000,
-            icon: '📋'
-          });
-        }
-
-        if (data.data?.payment_note) {
-          toast(data.data.payment_note, {
-            duration: 6000,
-            icon: '💡'
-          });
-        }
-
-        if (data.data?.inspay_url) {
-          toast.loading('Opening PAN application portal...', { duration: 2000 });
-          setTimeout(() => {
-            window.location.href = data.data.inspay_url;
-          }, 1500);
-        } else {
-          setTimeout(() => {
-            router.push('/dashboard/pan-services?tab=history');
-          }, 2000);
-        }
       } else {
         toast.error(data.message || 'Failed to initiate PAN application');
       }
@@ -122,12 +117,33 @@ export default function NewPanTab({ walletBalance, onWalletUpdate, router }: New
     }
   };
 
+  const handleConfirmRedirect = () => {
+    if (confirmationData?.inspay_url) {
+      toast.loading('Opening PAN application portal...', { duration: 2000 });
+      setTimeout(() => {
+        window.location.href = confirmationData.inspay_url;
+      }, 1000);
+    } else {
+      router.push('/dashboard/pan-services?tab=history');
+    }
+    setShowConfirmModal(false);
+  };
+
+  const handleCloseModal = () => {
+    setShowConfirmModal(false);
+    // Redirect to history after closing modal
+    setTimeout(() => {
+      router.push('/dashboard/pan-services?tab=history');
+    }, 500);
+  };
+
   return (
-    <div className="p-6">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Form */}
-        <div className="lg:col-span-2">
-          <form onSubmit={handleSubmit} className="space-y-6">
+    <>
+      <div className="p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Form */}
+          <div className="lg:col-span-2">
+            <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="mobile_number" className="block text-sm font-medium text-gray-700 mb-2">
                 Mobile Number *
@@ -265,6 +281,15 @@ export default function NewPanTab({ walletBalance, onWalletUpdate, router }: New
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Confirmation Modal */}
+      <PanConfirmationModal
+        isOpen={showConfirmModal}
+        onClose={handleCloseModal}
+        onConfirm={handleConfirmRedirect}
+        data={confirmationData}
+        loading={false}
+      />
+    </>
   );
 }

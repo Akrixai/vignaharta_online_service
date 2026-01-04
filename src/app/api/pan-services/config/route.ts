@@ -1,18 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
-import { UserRole } from '@/types';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    const user = await getAuthenticatedUser(request);
+    if (!user) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if user has access
-    if (session.user.role !== UserRole.RETAILER && session.user.role !== UserRole.CUSTOMER && session.user.role !== UserRole.ADMIN) {
+    // Check if user has access (RETAILER, CUSTOMER, or ADMIN)
+    if (!['RETAILER', 'CUSTOMER', 'ADMIN'].includes(user.role)) {
       return NextResponse.json({ success: false, message: 'Access denied' }, { status: 403 });
     }
 
@@ -23,13 +21,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'Service type is required' }, { status: 400 });
     }
 
-    // Validate service type
-    const validTypes = ['NEW_PAN', 'PAN_CORRECTION', 'INCOMPLETE_PAN'];
-    if (!validTypes.includes(serviceType)) {
+    if (!['NEW_PAN', 'PAN_CORRECTION', 'INCOMPLETE_PAN'].includes(serviceType)) {
       return NextResponse.json({ success: false, message: 'Invalid service type' }, { status: 400 });
     }
 
-    // Get configuration
+    // Get configuration for the service type
     const { data: config, error: configError } = await supabaseAdmin
       .from('pan_commission_config')
       .select('*')
@@ -38,20 +34,26 @@ export async function GET(request: NextRequest) {
       .single();
 
     if (configError || !config) {
-      console.error('Config error:', configError);
-      return NextResponse.json({ success: false, message: 'Service configuration not found' }, { status: 404 });
+      console.error('Config fetch error:', configError);
+      return NextResponse.json({ 
+        success: false, 
+        message: `Configuration not found for ${serviceType}` 
+      }, { status: 404 });
     }
 
     return NextResponse.json({
       success: true,
       data: {
         service_type: config.service_type,
-        price: parseFloat(config.price)
+        price: config.price,
+        is_active: config.is_active,
+        created_at: config.created_at,
+        updated_at: config.updated_at
       }
     });
 
   } catch (error) {
-    console.error('Error in PAN config API:', error);
+    console.error('Error in PAN services config API:', error);
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
   }
 }

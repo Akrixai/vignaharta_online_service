@@ -178,7 +178,7 @@ export async function GET(request: NextRequest) {
 
       updateData.status = 'FAILURE';
       updateData.completed_at = callbackTimestamp;
-      updateData.error_message = `Application failed with status: ${status}`;
+      updateData.error_message = `Application failed with status: ${status}. ${opid || ''}`;
 
       // For RESERVED payments, no refund needed since money was never deducted
       if (panService.payment_status === 'RESERVED') {
@@ -254,10 +254,10 @@ export async function GET(request: NextRequest) {
       }
     }
     else {
-      // Handle unknown status
-      console.log(`⚠️ Processing UNKNOWN status: ${status} - treating as pending`);
+      // Handle unknown status - treat as processing to avoid losing applications
+      console.log(`⚠️ Processing UNKNOWN status: ${status} - treating as processing`);
       updateData.status = 'PROCESSING';
-      updateData.error_message = `Unknown callback status received: ${status}`;
+      updateData.error_message = `Unknown callback status received: ${status}. Please check application status manually.`;
     }
 
     // Update PAN service record
