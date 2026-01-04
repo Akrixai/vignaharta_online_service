@@ -7,6 +7,7 @@ import { UserRole } from '@/types';
 import toast from 'react-hot-toast';
 import DashboardLayout from '@/components/dashboard/layout';
 import PanConfirmationModal from '@/components/pan-services/PanConfirmationModal';
+import PanBrandingFooter from '@/components/pan-services/PanBrandingFooter';
 
 interface PanService {
   id: string;
@@ -377,6 +378,9 @@ export default function IncompletePanPage() {
               </div>
             </form>
           </div>
+
+          {/* Branding Footer */}
+          <PanBrandingFooter />
         </div>
       </DashboardLayout>
 

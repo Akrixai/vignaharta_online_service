@@ -6,6 +6,7 @@ import { UserRole } from '@/types';
 import Link from 'next/link';
 import { toast } from 'react-hot-toast';
 import DashboardLayout from '@/components/dashboard/layout';
+import PanBrandingFooter from '@/components/pan-services/PanBrandingFooter';
 // import { format } from 'date-fns';
 
 interface PanService {
@@ -603,6 +604,9 @@ export default function PanServicesHistoryPage() {
             ))}
           </div>
         )}
+
+        {/* Branding Footer */}
+        <PanBrandingFooter />
       </div>
     </DashboardLayout>
   );

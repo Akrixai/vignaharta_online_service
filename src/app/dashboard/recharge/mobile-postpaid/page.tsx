@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/dashboard/layout';
+import RechargeBrandingFooter from '@/components/recharge/RechargeBrandingFooter';
 
 interface BillDetails {
   customer_name?: string;
@@ -682,6 +683,9 @@ export default function MobilePostpaidPage() {
             </div>
           </div>
         </div>
+
+        {/* Branding Footer */}
+        <RechargeBrandingFooter />
       </div>
     </DashboardLayout>
   );

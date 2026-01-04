@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/dashboard/layout';
 import RechargeTransactionModal from '@/components/RechargeTransactionModal';
+import RechargeBrandingFooter from '@/components/recharge/RechargeBrandingFooter';
 
 interface Transaction {
   id: string;
@@ -243,6 +244,9 @@ export default function RechargeTransactionsPage() {
           onClose={() => setSelectedTransaction(null)}
         />
       )}
+
+      {/* Branding Footer */}
+      <RechargeBrandingFooter />
     </DashboardLayout>
   );
 }

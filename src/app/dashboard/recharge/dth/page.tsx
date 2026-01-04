@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/dashboard/layout';
 import SearchableSelect from '@/components/SearchableSelect';
 import PlanDetailsModal from '@/components/PlanDetailsModal';
+import RechargeBrandingFooter from '@/components/recharge/RechargeBrandingFooter';
 
 interface Operator {
     id: string;
@@ -497,8 +498,8 @@ export default function DTHRechargePageEnhanced() {
                         {/* Message */}
                         {message && (
                             <div className={`p-4 rounded-lg ${messageType === 'success' ? 'bg-green-50 text-green-800 border border-green-200' :
-                                    messageType === 'error' ? 'bg-red-50 text-red-800 border border-red-200' :
-                                        'bg-blue-50 text-blue-800 border border-blue-200'
+                                messageType === 'error' ? 'bg-red-50 text-red-800 border border-red-200' :
+                                    'bg-blue-50 text-blue-800 border border-blue-200'
                                 }`}>
                                 {message}
                             </div>
@@ -829,6 +830,9 @@ export default function DTHRechargePageEnhanced() {
                         </>
                     )}
                 </div>
+
+                {/* Branding Footer */}
+                <RechargeBrandingFooter />
             </div>
 
             <style jsx>{`

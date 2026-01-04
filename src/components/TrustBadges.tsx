@@ -36,6 +36,8 @@ const badges: Badge[] = [
     description: "Licensed Service Provider",
     details: [
       "Authorized by government departments",
+      "Official NSDL PAN Service Partner",
+      "Integrated with Bharat Connect (BBPS)",
       "Registered under Indian Companies Act",
       "GST compliant operations",
       "Verified business credentials"
@@ -121,7 +123,7 @@ export default function TrustBadges() {
           <h3 className="text-2xl font-bold text-center text-gray-900 mb-8">
             Our Certifications & Compliance
           </h3>
-          <div className="grid grid-cols-2 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
             <div className="text-center">
               <div className="text-4xl mb-2">💼</div>
               <div className="font-semibold text-gray-900">GST</div>
@@ -131,6 +133,16 @@ export default function TrustBadges() {
               <div className="text-4xl mb-2">🇮🇳</div>
               <div className="font-semibold text-gray-900">Digital India</div>
               <div className="text-sm text-gray-600">Partner</div>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl mb-2">📄</div>
+              <div className="font-semibold text-gray-900">NSDL</div>
+              <div className="text-sm text-gray-600">Authorized</div>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl mb-2">💳</div>
+              <div className="font-semibold text-gray-900">BBPS</div>
+              <div className="text-sm text-gray-600">Integrated</div>
             </div>
           </div>
         </div>

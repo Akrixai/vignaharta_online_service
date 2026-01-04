@@ -12,6 +12,7 @@ import NewPanTab from '@/components/pan-services/NewPanTab';
 import PanCorrectionTab from '@/components/pan-services/PanCorrectionTab';
 import IncompletePanTab from '@/components/pan-services/IncompletePanTab';
 import PanHistoryTab from '@/components/pan-services/PanHistoryTab';
+import PanBrandingFooter from '@/components/pan-services/PanBrandingFooter';
 
 type TabType = 'new' | 'correction' | 'incomplete' | 'history';
 
@@ -146,11 +147,10 @@ export default function PanServicesPage() {
                 <button
                   key={tab.id}
                   onClick={() => handleTabChange(tab.id)}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors duration-200 ${
-                    activeTab === tab.id
+                  className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors duration-200 ${activeTab === tab.id
                       ? 'border-blue-500 text-blue-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center space-x-2">
                     <span className="text-lg">{tab.icon}</span>
@@ -168,29 +168,29 @@ export default function PanServicesPage() {
         {/* Tab Content */}
         <div className="bg-white rounded-lg shadow">
           {activeTab === 'new' && (
-            <NewPanTab 
-              walletBalance={walletBalance} 
+            <NewPanTab
+              walletBalance={walletBalance}
               onWalletUpdate={fetchWalletBalance}
               router={router}
             />
           )}
           {activeTab === 'correction' && (
-            <PanCorrectionTab 
-              walletBalance={walletBalance} 
+            <PanCorrectionTab
+              walletBalance={walletBalance}
               onWalletUpdate={fetchWalletBalance}
               router={router}
             />
           )}
           {activeTab === 'incomplete' && (
-            <IncompletePanTab 
-              walletBalance={walletBalance} 
+            <IncompletePanTab
+              walletBalance={walletBalance}
               onWalletUpdate={fetchWalletBalance}
               router={router}
             />
           )}
           {activeTab === 'history' && (
-            <PanHistoryTab 
-              walletBalance={walletBalance} 
+            <PanHistoryTab
+              walletBalance={walletBalance}
               onWalletUpdate={fetchWalletBalance}
               router={router}
             />
@@ -277,6 +277,9 @@ export default function PanServicesPage() {
             </div>
           </div>
         )}
+
+        {/* Branding Footer */}
+        <PanBrandingFooter />
       </div>
     </DashboardLayout>
   );

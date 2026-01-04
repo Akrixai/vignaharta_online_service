@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/dashboard/layout';
 import SearchableSelect from '@/components/SearchableSelect';
 import PlanDetailsModal from '@/components/PlanDetailsModal';
+import RechargeBrandingFooter from '@/components/recharge/RechargeBrandingFooter';
 
 type ServiceType = 'PREPAID';
 
@@ -1289,6 +1290,9 @@ export default function MobileRechargePageEnhanced() {
 
 
       </div>
+
+      {/* Branding Footer */}
+      <RechargeBrandingFooter />
 
       <style jsx>{`
       .scrollbar-hide::-webkit-scrollbar {

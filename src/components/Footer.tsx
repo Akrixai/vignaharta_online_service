@@ -15,6 +15,7 @@ import {
 import Logo from '@/components/ui/logo';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { footerTranslations } from '@/translations/footer';
+import Image from 'next/image';
 
 export default function Footer() {
   const { language } = useLanguage();
@@ -63,6 +64,20 @@ export default function Footer() {
               <a href="#" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center hover:bg-red-50 transition-all border border-gray-200 group">
                 <Layers className="w-5 h-5 text-gray-600 group-hover:text-red-600 transition-colors" />
               </a>
+            </div>
+
+            {/* Integrated Partner Badges */}
+            <div className="pt-4 flex flex-wrap gap-4 items-center">
+              <div className="bg-white p-2 rounded-lg border border-gray-200 shadow-sm hover:border-blue-300 transition-all group">
+                <div className="relative w-20 h-8">
+                  <Image src="/nsdllogo.png" alt="NSDL Official Partner" fill className="object-contain" />
+                </div>
+              </div>
+              <div className="bg-white p-2 rounded-lg border border-gray-200 shadow-sm hover:border-orange-300 transition-all group">
+                <div className="relative w-20 h-8">
+                  <Image src="/bharatconnect.png" alt="Bharat Connect BBPS Partner" fill className="object-contain" />
+                </div>
+              </div>
             </div>
           </motion.div>
 

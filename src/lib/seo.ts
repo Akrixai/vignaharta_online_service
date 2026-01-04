@@ -46,7 +46,12 @@ export const defaultSEO: Metadata = {
     'vighnaharta services',
     'government service provider india',
     'digital service provider india',
-    'online government service provider'
+    'online government service provider',
+    'nsdl partner',
+    'nsdl pan card services',
+    'bharat connect bill payments',
+    'bbps electricity bill payment',
+    'vighnaharta digital india partner'
   ],
   authors: [{ name: 'Vighnaharta Online Services' }],
   creator: 'Vighnaharta Online Services',
@@ -176,7 +181,11 @@ export const pageSEO = {
       'vighnaharta services',
       'government service provider india',
       'digital service provider india',
-      'online government service provider'
+      'online government service provider',
+      'nsdl authorized pan center',
+      'bharat connect bbps portal',
+      'bill payment through vighnaharta',
+      'official nsdl pan card portal'
     ],
     canonical: '/',
   },
@@ -280,8 +289,8 @@ export const structuredData = {
     '@type': 'Organization',
     name: siteName,
     url: baseUrl,
-    logo: `${baseUrl}/images/logo.png?v=2`,
-    description: defaultDescription,
+    logo: `${baseUrl}/vignaharta.png?v=2`,
+    description: "Vighnaharta Online Services is India's leading digital government services portal, providing official NSDL PAN card services and Bharat Connect (BBPS) bill payments. We offer 100+ government services online with fast processing and secure delivery.",
     contactPoint: {
       '@type': 'ContactPoint',
       telephone: '+91-7499116527',

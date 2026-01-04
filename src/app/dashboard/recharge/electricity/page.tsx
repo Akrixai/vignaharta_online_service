@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/dashboard/layout';
 import SearchableSelect from '@/components/SearchableSelect';
+import RechargeBrandingFooter from '@/components/recharge/RechargeBrandingFooter';
 
 interface Operator {
   id: string;
@@ -1167,6 +1168,9 @@ export default function ElectricityBillPage() {
             </div>
           </div>
         </div>
+
+        {/* Branding Footer */}
+        <RechargeBrandingFooter />
       </div>
     </DashboardLayout>
   );

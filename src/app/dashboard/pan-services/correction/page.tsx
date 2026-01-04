@@ -7,6 +7,7 @@ import { UserRole } from '@/types';
 import toast from 'react-hot-toast';
 import DashboardLayout from '@/components/dashboard/layout';
 import PanConfirmationModal from '@/components/pan-services/PanConfirmationModal';
+import PanBrandingFooter from '@/components/pan-services/PanBrandingFooter';
 
 interface PanConfig {
   price: number;
@@ -392,6 +393,9 @@ export default function PanCorrectionPage() {
               </div>
             </div>
           </div>
+
+          {/* Branding Footer */}
+          <PanBrandingFooter />
         </div>
       </DashboardLayout>
 

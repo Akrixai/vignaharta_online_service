@@ -12,6 +12,7 @@ import LatestBlogPosts from "@/components/LatestBlogPosts";
 import TawkToChat from "@/components/TawkToChat";
 import FeaturedProducts from "@/components/FeaturedProducts";
 import HiringBanner from "@/components/HiringBanner";
+import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 
 // Define types for our data
@@ -643,6 +644,119 @@ export default function LandingPageClient() {
           </div>
         </main>
 
+        {/* Feature Highlights Section: Recharge & PAN Services */}
+        <section className="py-20 bg-white relative overflow-hidden">
+          {/* Decorative Elements */}
+          <div className="absolute top-0 right-0 w-96 h-96 bg-red-50 rounded-full blur-3xl opacity-50 -translate-y-1/2 translate-x-1/2"></div>
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-orange-50 rounded-full blur-3xl opacity-50 translate-y-1/2 -translate-x-1/2"></div>
+
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+
+              {/* Recharge & Utility Section */}
+              <div className="group bg-gradient-to-br from-white to-orange-50 p-8 rounded-[2.5rem] shadow-2xl border border-orange-100 hover:shadow-orange-200/50 transition-all duration-500 transform hover:-translate-y-2">
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="w-16 h-16 bg-gradient-to-tr from-orange-500 to-red-500 rounded-2xl flex items-center justify-center text-white text-3xl shadow-lg transform group-hover:rotate-6 transition-transform">
+                    ⚡
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-black text-gray-900 leading-none mb-1 text-left">RECHARGE & UTILITIES</h3>
+                    <p className="text-orange-600 font-bold text-sm tracking-widest uppercase text-left">Instant Profits • BBPS Powered</p>
+                  </div>
+                </div>
+
+                <div className="space-y-6 text-left">
+                  <div className="p-6 bg-white/60 backdrop-blur-md rounded-2xl border border-white shadow-sm group-hover:bg-white transition-colors">
+                    <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                      <span className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">🏪</span>
+                      For Our Retailer Partners
+                    </h4>
+                    <p className="text-gray-600 text-sm leading-relaxed">
+                      Scale your earnings with <span className="text-red-600 font-black">High Commissions</span> on Mobile Recharge, DTH, and Electricity Bill Payments. One-click processing with guaranteed profit on every transaction.
+                    </p>
+                  </div>
+
+                  <div className="p-6 bg-white/60 backdrop-blur-md rounded-2xl border border-white shadow-sm group-hover:bg-white transition-colors">
+                    <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                      <span className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">👤</span>
+                      For Our Direct Customers
+                    </h4>
+                    <p className="text-gray-600 text-sm leading-relaxed">
+                      Experience the joy of saving! Get <span className="text-blue-600 font-black">Big Cashback</span> on every recharge and bill payment. Secure, fast, and rewarding digital payments made easy.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="bg-orange-500/10 p-3 rounded-xl border border-orange-200 text-center">
+                      <span className="block text-xl">📱</span>
+                      <span className="text-[10px] font-black text-orange-700 uppercase">Mobile</span>
+                    </div>
+                    <div className="bg-red-500/10 p-3 rounded-xl border border-red-200 text-center">
+                      <span className="block text-xl">📡</span>
+                      <span className="text-[10px] font-black text-red-700 uppercase">DTH</span>
+                    </div>
+                    <div className="bg-yellow-500/10 p-3 rounded-xl border border-yellow-200 text-center">
+                      <span className="block text-xl">💡</span>
+                      <span className="text-[10px] font-black text-yellow-700 uppercase">Electricity</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* PAN Services Section */}
+              <div className="group bg-gradient-to-br from-white to-blue-50 p-8 rounded-[2.5rem] shadow-2xl border border-blue-100 hover:shadow-blue-200/50 transition-all duration-500 transform hover:-translate-y-2">
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="w-16 h-16 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center text-white text-3xl shadow-lg transform group-hover:-rotate-6 transition-transform">
+                    📄
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-black text-gray-900 leading-none mb-1 text-left">NSDL PAN SERVICES</h3>
+                    <p className="text-blue-600 font-bold text-sm tracking-widest uppercase text-left">Lowest Cost • Official Source</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4 text-left">
+                  <div className="flex gap-4 items-start p-4 bg-white/60 rounded-2xl hover:bg-white transition-all shadow-sm">
+                    <span className="text-2xl">✨</span>
+                    <div>
+                      <h4 className="font-bold text-gray-900">New PAN Application</h4>
+                      <p className="text-gray-600 text-sm">Apply for a fresh PAN card with paperless e-KYC technology. Fast, verified, and direct.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4 items-start p-4 bg-white/60 rounded-2xl hover:bg-white transition-all shadow-sm">
+                    <span className="text-2xl">🔧</span>
+                    <div>
+                      <h4 className="font-bold text-gray-900">PAN Correction / Update</h4>
+                      <p className="text-gray-600 text-sm">Correct name, DOB, or photo errors on your existing PAN card at the <span className="text-indigo-600 font-bold">Lowest Market Cost</span>.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4 items-start p-4 bg-white/60 rounded-2xl hover:bg-white transition-all shadow-sm border-2 border-dashed border-blue-200">
+                    <span className="text-2xl">⏳</span>
+                    <div>
+                      <h4 className="font-bold text-gray-900">Resume Incomplete PAN</h4>
+                      <p className="text-gray-600 text-sm">Don't lose your progress! Resume and finish your incomplete applications instantly through our portal.</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 flex flex-wrap gap-4 items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-tighter">Authorized NSDL Integration</span>
+                    </div>
+                    <Link href="/register" className="text-sm font-black text-indigo-600 hover:text-indigo-800 flex items-center gap-1 group/btn">
+                      Get Started Now
+                      <span className="group-hover/btn:translate-x-1 transition-transform">→</span>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
         {/* Enhanced How It Works Section */}
         <div className="bg-gradient-to-r from-red-50 to-orange-50 py-16">
           <HowItWorks />
@@ -662,6 +776,55 @@ export default function LandingPageClient() {
         <div className="bg-white py-16">
           <LatestBlogPosts />
         </div>
+
+        {/* Strategic Partners Section */}
+        <section className="bg-gradient-to-br from-gray-50 to-red-50 py-20 border-y border-gray-100">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 animate-fade-in">
+              Our Strategic Partners
+            </h2>
+            <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto animate-fade-in animate-delay-200">
+              We collaborate with India's leading government authorities and payment systems to ensure secure and official service delivery.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center justify-items-center max-w-4xl mx-auto">
+              {/* NSDL Partner */}
+              <div className="group bg-white p-8 rounded-2xl shadow-xl border border-blue-100 hover:border-blue-500 transition-all duration-500 transform hover:scale-110">
+                <div className="relative w-48 h-20 mb-4">
+                  <Image
+                    src="/nsdllogo.png"
+                    alt="NSDL Authorized Partner"
+                    fill
+                    className="object-contain filter group-hover:drop-shadow-lg transition-all"
+                  />
+                </div>
+                <div className="h-1 w-24 bg-blue-500 rounded-full mx-auto mb-3"></div>
+                <p className="text-sm font-bold text-blue-600 uppercase tracking-widest">Official PAN Partner</p>
+              </div>
+
+              {/* BBPS Partner */}
+              <div className="group bg-white p-8 rounded-2xl shadow-xl border border-orange-100 hover:border-orange-500 transition-all duration-500 transform hover:scale-110">
+                <div className="relative w-48 h-20 mb-4">
+                  <Image
+                    src="/bharatconnect.png"
+                    alt="Bharat Connect BBPS Partner"
+                    fill
+                    className="object-contain filter group-hover:drop-shadow-lg transition-all"
+                  />
+                </div>
+                <div className="h-1 w-24 bg-orange-500 rounded-full mx-auto mb-3"></div>
+                <p className="text-sm font-bold text-orange-600 uppercase tracking-widest">BBPS Payment Partner</p>
+              </div>
+            </div>
+
+            <div className="mt-16 bg-white/50 backdrop-blur-sm p-6 rounded-2xl border border-gray-200 inline-block">
+              <p className="text-gray-600 flex items-center justify-center font-medium">
+                <span className="text-2xl mr-3">🛡️</span>
+                Certified and integrated with official government-authorized systems for 100% genuine processing.
+              </p>
+            </div>
+          </div>
+        </section>
 
         <Footer />
 
