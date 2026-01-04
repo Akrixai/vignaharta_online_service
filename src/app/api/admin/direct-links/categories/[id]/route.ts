@@ -9,8 +9,45 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+// GET - Get single category
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session || (session.user.role !== UserRole.ADMIN && session.user.role !== UserRole.EMPLOYEE)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { data: category, error } = await supabase
+      .from('direct_links_categories')
+      .select('*')
+      .eq('id', params.id)
+      .single();
+
+    if (error) throw error;
+
+    if (!category) {
+      return NextResponse.json({ error: 'Category not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: category
+    });
+  } catch (error: any) {
+    console.error('Error fetching category:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
 // PUT - Update category
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -18,7 +55,6 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id } = params;
     const body = await request.json();
     const { name, description, icon, sort_order, is_active } = body;
 
@@ -34,7 +70,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       .from('direct_links_categories')
       .select('id')
       .eq('name', name)
-      .neq('id', id)
+      .neq('id', params.id)
       .single();
 
     if (existing) {
@@ -52,7 +88,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         sort_order: sort_order || 0,
         is_active: is_active !== false
       })
-      .eq('id', id)
+      .eq('id', params.id)
       .select()
       .single();
 
@@ -70,7 +106,10 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 // DELETE - Delete category
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -78,24 +117,11 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id } = params;
-
-    // First get the category name to check services
-    const { data: category } = await supabase
-      .from('direct_links_categories')
-      .select('name')
-      .eq('id', id)
-      .single();
-
-    if (!category) {
-      return NextResponse.json({ error: 'Category not found' }, { status: 404 });
-    }
-
     // Check if category is being used by any services
     const { data: servicesUsingCategory } = await supabase
       .from('direct_links_services')
-      .select('id')
-      .eq('category', category.name);
+      .select('id, name')
+      .eq('category', params.id);
 
     if (servicesUsingCategory && servicesUsingCategory.length > 0) {
       return NextResponse.json({ 
@@ -106,7 +132,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     const { error } = await supabase
       .from('direct_links_categories')
       .delete()
-      .eq('id', id);
+      .eq('id', params.id);
 
     if (error) throw error;
 

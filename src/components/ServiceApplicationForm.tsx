@@ -34,7 +34,7 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
   const [uploadedFiles, setUploadedFiles] = useState<Record<string, string[]>>({});
   const [savingDraft, setSavingDraft] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 5;
+  const totalSteps = 2; // Changed to 2 steps: Form Details and Payment Summary
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [feeBreakdown, setFeeBreakdown] = useState<{
     base_amount: number;
@@ -44,45 +44,46 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
     total_amount: number;
   } | null>(null);
 
-  // Calculate progress based on filled fields
-  const calculateProgress = () => {
+  // Calculate form completion for step navigation
+  const calculateFormCompletion = () => {
     let filledFields = 0;
-    let totalFields = 5; // Basic fields
+    let totalFields = 4; // Required basic fields
 
-    if (formData.customer_name) filledFields++;
-    if (formData.customer_phone) filledFields++;
-    if (formData.customer_address) filledFields++;
-    if (formData.purpose) filledFields++;
-    if (formData.remarks) filledFields++;
+    if (formData.customer_name.trim()) filledFields++;
+    if (formData.customer_phone.trim()) filledFields++;
+    if (formData.customer_address.trim()) filledFields++;
+    if (formData.purpose.trim()) filledFields++;
 
     // Add dynamic fields
     if (service?.dynamic_fields) {
-      totalFields += service.dynamic_fields.length;
-      service.dynamic_fields.forEach((field: any) => {
-        if (formData.service_specific_data[`dynamic_${field.id}`]) {
+      const requiredDynamicFields = service.dynamic_fields.filter((field: any) => field.required);
+      totalFields += requiredDynamicFields.length;
+      
+      requiredDynamicFields.forEach((field: any) => {
+        const value = formData.service_specific_data[`dynamic_${field.id}`];
+        if (value && value.toString().trim()) {
           filledFields++;
         }
       });
     }
 
     const progress = Math.round((filledFields / totalFields) * 100);
-    const step = Math.ceil((progress / 100) * totalSteps);
-    return { progress, step: Math.max(1, Math.min(step, totalSteps)) };
+    const isFormComplete = filledFields === totalFields;
+    
+    return { progress, isFormComplete, filledFields, totalFields };
   };
 
-  // Update step based on progress
-  useEffect(() => {
-    if (service) {
-      const { step } = calculateProgress();
-      setCurrentStep(step);
-    }
-  }, [formData, service]);
+  // Check if we can proceed to step 2
+  const canProceedToStep2 = () => {
+    const { isFormComplete } = calculateFormCompletion();
+    return isFormComplete;
+  };
 
   // Save draft function
   const handleSaveDraft = async () => {
     try {
       setSavingDraft(true);
-      const { progress } = calculateProgress();
+      const { progress } = calculateFormCompletion();
 
       const response = await fetch('/api/drafts', {
         method: 'POST',
@@ -899,55 +900,80 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
               <div className="mb-3">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm font-medium text-gray-700">Application Progress</span>
-                  <span className="text-sm font-bold text-purple-600">{calculateProgress().progress}%</span>
+                  <span className="text-sm font-bold text-purple-600">
+                    Step {currentStep} of {totalSteps}
+                  </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <div
                     className="bg-gradient-to-r from-purple-500 to-pink-500 h-3 rounded-full transition-all duration-500"
-                    style={{ width: `${calculateProgress().progress}%` }}
+                    style={{ width: `${(currentStep / totalSteps) * 100}%` }}
                   ></div>
                 </div>
               </div>
 
               {/* Step Indicators */}
               <div className="flex justify-between items-center">
-                {[1, 2, 3, 4, 5].map((step) => (
-                  <div key={step} className="flex flex-col items-center flex-1">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${step <= currentStep
-                          ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                          : 'bg-gray-200 text-gray-500'
-                        }`}
-                    >
-                      {step}
-                    </div>
+                <div className="flex flex-col items-center flex-1">
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${currentStep >= 1
+                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                        : 'bg-gray-200 text-gray-500'
+                      }`}
+                  >
+                    1
                   </div>
-                ))}
+                  <span className="text-xs font-medium text-gray-600 mt-1">Service Details</span>
+                </div>
+                
+                <div className="flex-1 h-1 bg-gray-200 mx-2">
+                  <div 
+                    className={`h-full transition-all duration-500 ${currentStep >= 2 
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500' 
+                      : 'bg-gray-200'
+                    }`}
+                  ></div>
+                </div>
+                
+                <div className="flex flex-col items-center flex-1">
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${currentStep >= 2
+                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                        : 'bg-gray-200 text-gray-500'
+                      }`}
+                  >
+                    2
+                  </div>
+                  <span className="text-xs font-medium text-gray-600 mt-1">Payment Summary</span>
+                </div>
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Step Content */}
+            {currentStep === 1 ? (
+              // Step 1: Service Form Details
+              <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
 
-              {/* Service Type Selection */}
-              <div className="bg-white rounded-lg shadow-md border border-red-200 hover:shadow-lg transition-shadow duration-200">
-                <div className="p-6 border-l-4 border-red-500">
-                  <label className="block text-sm font-medium text-red-700 mb-2">
-                    Service Type *
-                  </label>
-                  <select className="w-full p-3 border border-red-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-yellow-50 text-red-700 font-medium">
-                    <option value={service.name}>{service.name}</option>
-                  </select>
+                {/* Service Type Selection */}
+                <div className="bg-white rounded-lg shadow-md border border-red-200 hover:shadow-lg transition-shadow duration-200">
+                  <div className="p-6 border-l-4 border-red-500">
+                    <label className="block text-sm font-medium text-red-700 mb-2">
+                      Service Type *
+                    </label>
+                    <select className="w-full p-3 border border-red-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-yellow-50 text-red-700 font-medium">
+                      <option value={service.name}>{service.name}</option>
+                    </select>
+                  </div>
                 </div>
-              </div>
 
-              {/* Personal Information Section */}
-              <div className="bg-white rounded-lg shadow-md border border-yellow-300 hover:shadow-lg transition-shadow duration-200">
-                <div className="p-6 border-b border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50">
-                  <h3 className="text-lg font-semibold text-red-700 flex items-center gap-2">
-                    <span className="text-yellow-600">👤</span>
-                    Personal Information
-                  </h3>
-                </div>
+                {/* Personal Information Section */}
+                <div className="bg-white rounded-lg shadow-md border border-yellow-300 hover:shadow-lg transition-shadow duration-200">
+                  <div className="p-6 border-b border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50">
+                    <h3 className="text-lg font-semibold text-red-700 flex items-center gap-2">
+                      <span className="text-yellow-600">👤</span>
+                      Personal Information
+                    </h3>
+                  </div>
                 <div className="p-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Full Name */}
@@ -1171,7 +1197,113 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
                 </div>
               </div>
 
-              {/* Payment Summary */}
+              {/* Step 1 Navigation Buttons */}
+              <div className="flex gap-4 pt-6 border-t border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-lg">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex-1 px-6 py-3 border border-red-300 text-red-700 rounded-md hover:bg-red-50 font-medium transition-all duration-200 hover:shadow-md"
+                  disabled={loading || savingDraft}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveDraft}
+                  disabled={savingDraft || loading}
+                  className="flex-1 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-medium disabled:opacity-50 transition-all duration-200 hover:shadow-lg"
+                >
+                  {savingDraft ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Saving Draft...
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center gap-2">
+                      💾 Save Draft
+                    </span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (canProceedToStep2()) {
+                      setCurrentStep(2);
+                    } else {
+                      toast.error('Please fill in all required fields before proceeding to payment summary');
+                    }
+                  }}
+                  disabled={!canProceedToStep2()}
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-md hover:from-blue-700 hover:to-purple-700 font-medium disabled:opacity-50 transition-all duration-200 hover:shadow-lg hover:scale-105 transform"
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    Next: Payment Summary →
+                  </span>
+                </button>
+              </div>
+            </form>
+            ) : (
+              // Step 2: Payment Summary
+              <div className="space-y-6">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                  <div className="p-6 border-b border-gray-200">
+                    <h2 className="text-2xl font-bold text-gray-800">
+                      Payment Summary
+                    </h2>
+                    <p className="text-gray-600 mt-1">
+                      Review your application details and payment information
+                    </p>
+                  </div>
+                </div>
+
+                {/* Application Summary */}
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                  <div className="p-6 border-b border-gray-200">
+                    <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                      <span className="text-blue-600">📋</span>
+                      Application Summary
+                    </h3>
+                  </div>
+                  <div className="p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Service Type</label>
+                        <p className="text-lg font-semibold text-gray-900">{service.name}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Applicant Name</label>
+                        <p className="text-lg font-semibold text-gray-900">{formData.customer_name || 'Not provided'}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Phone Number</label>
+                        <p className="text-lg font-semibold text-gray-900">{formData.customer_phone || 'Not provided'}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Email</label>
+                        <p className="text-lg font-semibold text-gray-900">{formData.customer_email || 'Not provided'}</p>
+                      </div>
+                    </div>
+                    {formData.purpose && (
+                      <div className="mt-4">
+                        <label className="text-sm font-medium text-gray-500">Purpose</label>
+                        <p className="text-gray-900">{formData.purpose}</p>
+                      </div>
+                    )}
+                    {documents.length > 0 && (
+                      <div className="mt-4">
+                        <label className="text-sm font-medium text-gray-500">Documents Uploaded</label>
+                        <div className="mt-2 space-y-1">
+                          {documents.map((file, index) => (
+                            <div key={index} className="flex items-center gap-2 text-sm text-gray-700">
+                              <span className="text-green-600">📄</span>
+                              {file.name}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               <div className="bg-white rounded-lg shadow-sm border border-gray-200">
                 <div className="p-6 border-b border-gray-200">
                   <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
@@ -1196,11 +1328,32 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
                 </div>
               </div>
 
-              {/* reCAPTCHA Notice */}
               {/* Payment Summary Section */}
-              {!service.is_free && service.price > 0 && (() => {
+              {!service.is_free && service.price > 0 ? (() => {
                 const breakdown = calculateFeeBreakdown();
-                if (!breakdown) return null;
+                if (!breakdown) return (
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div className="p-6 border-b border-gray-200">
+                      <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                        <span className="text-red-600">💳</span>
+                        Payment Summary
+                      </h3>
+                    </div>
+                    <div className="p-6">
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium text-gray-700">Service Fee:</span>
+                          <span className="text-xl font-bold text-red-600">
+                            {formatCurrency(service.price)}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2">
+                          Amount will be deducted from your wallet upon submission
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
                 
                 return (
                   <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 rounded-2xl border-2 border-blue-300 shadow-lg overflow-hidden">
@@ -1283,8 +1436,29 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
                     </div>
                   </div>
                 );
-              })()}
+              })() : (
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                  <div className="p-6 border-b border-gray-200">
+                    <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                      <span className="text-green-600">🎉</span>
+                      Free Service
+                    </h3>
+                  </div>
+                  <div className="p-6">
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-gray-700">Service Fee:</span>
+                        <span className="text-xl font-bold text-green-600">FREE</span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">
+                        No payment required for this service
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
+              {/* reCAPTCHA Notice */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-start gap-3">
                   <span className="text-2xl">🔒</span>
@@ -1324,37 +1498,29 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
                 </div>
               </div>
 
-              {/* Submit Buttons */}
+              {/* Step 2 Navigation Buttons */}
               <div className="flex gap-4 pt-6 border-t border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-lg">
+                <button
+                  type="button"
+                  onClick={() => setCurrentStep(1)}
+                  className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 font-medium transition-all duration-200 hover:shadow-md"
+                  disabled={loading}
+                >
+                  ← Back to Form
+                </button>
                 <button
                   type="button"
                   onClick={onClose}
                   className="flex-1 px-6 py-3 border border-red-300 text-red-700 rounded-md hover:bg-red-50 font-medium transition-all duration-200 hover:shadow-md"
-                  disabled={loading || savingDraft}
+                  disabled={loading}
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
-                  onClick={handleSaveDraft}
-                  disabled={savingDraft || loading}
-                  className="flex-1 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-medium disabled:opacity-50 transition-all duration-200 hover:shadow-lg"
-                >
-                  {savingDraft ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Saving Draft...
-                    </span>
-                  ) : (
-                    <span className="flex items-center justify-center gap-2">
-                      💾 Save Draft
-                    </span>
-                  )}
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-red-600 via-red-500 to-yellow-500 text-white rounded-md hover:from-red-700 hover:via-red-600 hover:to-yellow-600 font-medium disabled:opacity-50 transition-all duration-200 hover:shadow-lg hover:scale-105 transform"
-                  disabled={loading || savingDraft}
+                  onClick={handleSubmit}
+                  className="flex-2 px-6 py-3 bg-gradient-to-r from-red-600 via-red-500 to-yellow-500 text-white rounded-md hover:from-red-700 hover:via-red-600 hover:to-yellow-600 font-medium disabled:opacity-50 transition-all duration-200 hover:shadow-lg hover:scale-105 transform"
+                  disabled={loading}
                 >
                   {loading ? (
                     <span className="flex items-center justify-center gap-2">
@@ -1366,11 +1532,10 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
                   )}
                 </button>
               </div>
-            </form>
+            </div>
+            )}
           </div>
         </div>
-
-
       </div>
     </div>
   );

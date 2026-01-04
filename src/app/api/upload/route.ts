@@ -53,6 +53,8 @@ export async function POST(request: NextRequest) {
     let bucketName = 'documents'; // Default bucket
     if (folder === 'services' || folder === 'service-images') {
       bucketName = 'service-images';
+    } else if (folder === 'direct-links-icons') {
+      bucketName = 'service-images'; // Use service-images bucket for direct links icons
     } else if (folder === 'profile-photos') {
       bucketName = 'profile-photos';
     } else if (folder === 'employee-documents') {

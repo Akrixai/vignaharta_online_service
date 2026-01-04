@@ -18,16 +18,47 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: categories, error } = await supabase
+    const { searchParams } = new URL(request.url);
+    const all = searchParams.get('all');
+    
+    // If 'all' parameter is present, return all categories without pagination
+    if (all === 'true') {
+      const { data: categories, error } = await supabase
+        .from('direct_links_categories')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true });
+
+      if (error) throw error;
+
+      return NextResponse.json({
+        success: true,
+        data: categories || []
+      });
+    }
+
+    // Otherwise, return paginated results
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const offset = (page - 1) * limit;
+
+    const { data: categories, error, count } = await supabase
       .from('direct_links_categories')
-      .select('*')
-      .order('sort_order', { ascending: true });
+      .select('*', { count: 'exact' })
+      .order('sort_order', { ascending: true })
+      .range(offset, offset + limit - 1);
 
     if (error) throw error;
 
     return NextResponse.json({
       success: true,
-      data: categories || []
+      data: categories || [],
+      pagination: {
+        page,
+        limit,
+        total: count || 0,
+        totalPages: Math.ceil((count || 0) / limit)
+      }
     });
   } catch (error: any) {
     console.error('Error fetching categories:', error);

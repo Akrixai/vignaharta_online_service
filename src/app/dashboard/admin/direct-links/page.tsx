@@ -10,8 +10,16 @@ import {
   Trash2, 
   Search, 
   ExternalLink,
-  Star
+  Star,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
+import {
+  CreateServiceModal,
+  EditServiceModal,
+  CreateCategoryModal,
+  EditCategoryModal
+} from '@/components/admin/DirectLinksModals';
 
 interface DirectLinkService {
   id: string;
@@ -48,10 +56,18 @@ interface Category {
   is_active: boolean;
 }
 
+interface PaginationInfo {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
 export default function DirectLinksManagement() {
   const { data: session } = useSession();
   const [services, setServices] = useState<DirectLinkService[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [allCategories, setAllCategories] = useState<Category[]>([]); // For dropdown
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -68,12 +84,45 @@ export default function DirectLinksManagement() {
   const [showEditCategoryModal, setShowEditCategoryModal] = useState(false);
   const [selectedCategoryForEdit, setSelectedCategoryForEdit] = useState<Category | null>(null);
 
+  // Pagination states
+  const [servicesPagination, setServicesPagination] = useState<PaginationInfo>({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 0
+  });
+  
+  const [categoriesPagination, setCategoriesPagination] = useState<PaginationInfo>({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 0
+  });
+
   useEffect(() => {
     if (session && (session.user.role === UserRole.ADMIN || session.user.role === UserRole.EMPLOYEE)) {
-      fetchServices();
-      fetchCategories();
+      if (activeTab === 'services') {
+        fetchServices();
+        fetchAllCategories(); // Fetch all categories for dropdown
+      } else {
+        fetchCategories();
+      }
     }
-  }, [session, selectedCategory, showActiveOnly]);
+  }, [session, selectedCategory, showActiveOnly, servicesPagination.page, categoriesPagination.page, activeTab]);
+
+  // Fetch all categories for dropdown (without pagination)
+  const fetchAllCategories = async () => {
+    try {
+      const response = await fetch('/api/admin/direct-links/categories?all=true');
+      const data = await response.json();
+
+      if (data.success) {
+        setAllCategories(data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching all categories:', error);
+    }
+  };
 
   // Check authorization
   if (!session || (session.user.role !== UserRole.ADMIN && session.user.role !== UserRole.EMPLOYEE)) {
@@ -95,12 +144,19 @@ export default function DirectLinksManagement() {
       const params = new URLSearchParams();
       if (selectedCategory) params.append('category', selectedCategory);
       if (showActiveOnly) params.append('is_active', 'true');
+      params.append('page', servicesPagination.page.toString());
+      params.append('limit', servicesPagination.limit.toString());
 
       const response = await fetch(`/api/admin/direct-links?${params}`);
       const data = await response.json();
 
       if (data.success) {
         setServices(data.data || []);
+        setServicesPagination(prev => ({
+          ...prev,
+          total: data.pagination.total,
+          totalPages: data.pagination.totalPages
+        }));
       } else {
         console.error('Failed to fetch services:', data.error);
         setServices([]);
@@ -115,11 +171,21 @@ export default function DirectLinksManagement() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/admin/direct-links/categories');
+      setLoading(true);
+      const params = new URLSearchParams();
+      params.append('page', categoriesPagination.page.toString());
+      params.append('limit', categoriesPagination.limit.toString());
+
+      const response = await fetch(`/api/admin/direct-links/categories?${params}`);
       const data = await response.json();
 
       if (data.success) {
         setCategories(data.data || []);
+        setCategoriesPagination(prev => ({
+          ...prev,
+          total: data.pagination?.total || data.data?.length || 0,
+          totalPages: data.pagination?.totalPages || Math.ceil((data.data?.length || 0) / prev.limit)
+        }));
       } else {
         console.error('Failed to fetch categories:', data.error);
         setCategories([]);
@@ -127,6 +193,8 @@ export default function DirectLinksManagement() {
     } catch (error) {
       console.error('Error fetching categories:', error);
       setCategories([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -173,10 +241,130 @@ export default function DirectLinksManagement() {
     }
   };
 
+  // Pagination handlers
+  const handleServicesPageChange = (newPage: number) => {
+    setServicesPagination(prev => ({ ...prev, page: newPage }));
+  };
+
+  const handleCategoriesPageChange = (newPage: number) => {
+    setCategoriesPagination(prev => ({ ...prev, page: newPage }));
+  };
+
+  // Reset pagination when switching tabs or changing filters
+  const handleTabChange = (tab: 'services' | 'categories') => {
+    setActiveTab(tab);
+    if (tab === 'services') {
+      setServicesPagination(prev => ({ ...prev, page: 1 }));
+    } else {
+      setCategoriesPagination(prev => ({ ...prev, page: 1 }));
+    }
+  };
+
+  const handleFilterChange = () => {
+    setServicesPagination(prev => ({ ...prev, page: 1 }));
+  };
+
   const filteredServices = services.filter(service =>
     service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     service.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Pagination Component
+  const PaginationComponent = ({ 
+    pagination, 
+    onPageChange 
+  }: { 
+    pagination: PaginationInfo; 
+    onPageChange: (page: number) => void;
+  }) => {
+    if (pagination.totalPages <= 1) return null;
+
+    const getPageNumbers = () => {
+      const pages = [];
+      const maxVisible = 5;
+      let start = Math.max(1, pagination.page - Math.floor(maxVisible / 2));
+      let end = Math.min(pagination.totalPages, start + maxVisible - 1);
+      
+      if (end - start + 1 < maxVisible) {
+        start = Math.max(1, end - maxVisible + 1);
+      }
+
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+      return pages;
+    };
+
+    return (
+      <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
+        <div className="flex justify-between flex-1 sm:hidden">
+          <button
+            onClick={() => onPageChange(pagination.page - 1)}
+            disabled={pagination.page === 1}
+            className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          <button
+            onClick={() => onPageChange(pagination.page + 1)}
+            disabled={pagination.page === pagination.totalPages}
+            className="relative ml-3 inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+        <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm text-gray-700">
+              Showing{' '}
+              <span className="font-medium">
+                {Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)}
+              </span>{' '}
+              to{' '}
+              <span className="font-medium">
+                {Math.min(pagination.page * pagination.limit, pagination.total)}
+              </span>{' '}
+              of{' '}
+              <span className="font-medium">{pagination.total}</span> results
+            </p>
+          </div>
+          <div>
+            <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+              <button
+                onClick={() => onPageChange(pagination.page - 1)}
+                disabled={pagination.page === 1}
+                className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              
+              {getPageNumbers().map((pageNum) => (
+                <button
+                  key={pageNum}
+                  onClick={() => onPageChange(pageNum)}
+                  className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                    pageNum === pagination.page
+                      ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                      : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              ))}
+              
+              <button
+                onClick={() => onPageChange(pagination.page + 1)}
+                disabled={pagination.page === pagination.totalPages}
+                className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </nav>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <DashboardLayout>
@@ -193,24 +381,24 @@ export default function DirectLinksManagement() {
           <div className="border-b border-gray-200 mb-6">
             <nav className="-mb-px flex space-x-8">
               <button
-                onClick={() => setActiveTab('services')}
+                onClick={() => handleTabChange('services')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'services'
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                Services ({services.length})
+                Services ({servicesPagination.total})
               </button>
               <button
-                onClick={() => setActiveTab('categories')}
+                onClick={() => handleTabChange('categories')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'categories'
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                Categories ({categories.length})
+                Categories ({categoriesPagination.total})
               </button>
             </nav>
           </div>
@@ -248,11 +436,14 @@ export default function DirectLinksManagement() {
 
                 <select
                   value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedCategory(e.target.value);
+                    handleFilterChange();
+                  }}
                   className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">All Categories</option>
-                  {categories.map(category => (
+                  {allCategories.map(category => (
                     <option key={category.id} value={category.name}>
                       {category.icon} {category.name}
                     </option>
@@ -263,7 +454,10 @@ export default function DirectLinksManagement() {
                   <input
                     type="checkbox"
                     checked={showActiveOnly}
-                    onChange={(e) => setShowActiveOnly(e.target.checked)}
+                    onChange={(e) => {
+                      setShowActiveOnly(e.target.checked);
+                      handleFilterChange();
+                    }}
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
                   <span className="text-sm text-gray-700">Active only</span>
@@ -276,81 +470,89 @@ export default function DirectLinksManagement() {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredServices.map(service => (
-                    <div key={service.id} className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          {service.icon_url ? (
-                            <img src={service.icon_url} alt="" className="w-8 h-8 rounded" />
-                          ) : (
-                            <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
-                              {service.category_info?.icon || '🔗'}
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                    {filteredServices.map(service => (
+                      <div key={service.id} className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            {service.icon_url ? (
+                              <img src={service.icon_url} alt="" className="w-8 h-8 rounded" />
+                            ) : (
+                              <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
+                                {service.category_info?.icon || '🔗'}
+                              </div>
+                            )}
+                            <div>
+                              <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                                {service.name}
+                                {service.is_featured && <Star className="w-4 h-4 text-yellow-500 fill-current" />}
+                              </h3>
+                              <p className="text-sm text-gray-500">{service.category_info?.name}</p>
                             </div>
-                          )}
-                          <div>
-                            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                              {service.name}
-                              {service.is_featured && <Star className="w-4 h-4 text-yellow-500 fill-current" />}
-                            </h3>
-                            <p className="text-sm text-gray-500">{service.category_info?.name}</p>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className={`px-2 py-1 text-xs rounded-full ${
+                              service.is_active 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-red-100 text-red-800'
+                            }`}>
+                              {service.is_active ? 'Active' : 'Inactive'}
+                            </span>
                           </div>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <span className={`px-2 py-1 text-xs rounded-full ${
-                            service.is_active 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-red-100 text-red-800'
-                          }`}>
-                            {service.is_active ? 'Active' : 'Inactive'}
-                          </span>
-                        </div>
-                      </div>
 
-                      <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                        {service.description}
-                      </p>
+                        <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                          {service.description}
+                        </p>
 
-                      <div className="space-y-2 mb-4">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-500">Amount:</span>
-                          <span className="font-medium">₹{service.amount}</span>
+                        <div className="space-y-2 mb-4">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-gray-500">Amount:</span>
+                            <span className="font-medium">₹{service.amount}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-gray-500">Roles:</span>
+                            <span className="font-medium">{service.allowed_roles.join(', ')}</span>
+                          </div>
                         </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-500">Roles:</span>
-                          <span className="font-medium">{service.allowed_roles.join(', ')}</span>
-                        </div>
-                      </div>
 
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => window.open(service.service_url, '_blank')}
-                          className="flex-1 bg-gray-100 text-gray-700 px-3 py-2 rounded text-sm hover:bg-gray-200 flex items-center justify-center gap-1"
-                        >
-                          <ExternalLink className="w-3 h-3" />
-                          Preview
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSelectedService(service);
-                            setShowEditModal(true);
-                          }}
-                          className="bg-blue-100 text-blue-700 px-3 py-2 rounded text-sm hover:bg-blue-200"
-                        >
-                          <Edit className="w-3 h-3" />
-                        </button>
-                        {session.user.role === UserRole.ADMIN && (
+                        <div className="flex items-center gap-2">
                           <button
-                            onClick={() => handleDelete(service.id)}
-                            className="bg-red-100 text-red-700 px-3 py-2 rounded text-sm hover:bg-red-200"
+                            onClick={() => window.open(service.service_url, '_blank')}
+                            className="flex-1 bg-gray-100 text-gray-700 px-3 py-2 rounded text-sm hover:bg-gray-200 flex items-center justify-center gap-1"
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <ExternalLink className="w-3 h-3" />
+                            Preview
                           </button>
-                        )}
+                          <button
+                            onClick={() => {
+                              setSelectedService(service);
+                              setShowEditModal(true);
+                            }}
+                            className="bg-blue-100 text-blue-700 px-3 py-2 rounded text-sm hover:bg-blue-200"
+                          >
+                            <Edit className="w-3 h-3" />
+                          </button>
+                          {session.user.role === UserRole.ADMIN && (
+                            <button
+                              onClick={() => handleDelete(service.id)}
+                              className="bg-red-100 text-red-700 px-3 py-2 rounded text-sm hover:bg-red-200"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+
+                  {/* Services Pagination */}
+                  <PaginationComponent 
+                    pagination={servicesPagination} 
+                    onPageChange={handleServicesPageChange} 
+                  />
+                </>
               )}
 
               {filteredServices.length === 0 && !loading && (
@@ -392,53 +594,61 @@ export default function DirectLinksManagement() {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {categories.map(category => (
-                    <div key={category.id} className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          <div className="text-3xl">{category.icon}</div>
-                          <div>
-                            <h3 className="font-semibold text-gray-900">{category.name}</h3>
-                            <p className="text-sm text-gray-500">Order: {category.sort_order}</p>
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-6">
+                    {categories.map(category => (
+                      <div key={category.id} className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className="text-3xl">{category.icon}</div>
+                            <div>
+                              <h3 className="font-semibold text-gray-900">{category.name}</h3>
+                              <p className="text-sm text-gray-500">Order: {category.sort_order}</p>
+                            </div>
                           </div>
+                          <span className={`px-2 py-1 text-xs rounded-full ${
+                            category.is_active 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {category.is_active ? 'Active' : 'Inactive'}
+                          </span>
                         </div>
-                        <span className={`px-2 py-1 text-xs rounded-full ${
-                          category.is_active 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {category.is_active ? 'Active' : 'Inactive'}
-                        </span>
-                      </div>
 
-                      <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                        {category.description || 'No description provided'}
-                      </p>
+                        <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                          {category.description || 'No description provided'}
+                        </p>
 
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => {
-                            setSelectedCategoryForEdit(category);
-                            setShowEditCategoryModal(true);
-                          }}
-                          className="flex-1 bg-blue-100 text-blue-700 px-3 py-2 rounded text-sm hover:bg-blue-200 flex items-center justify-center gap-1"
-                        >
-                          <Edit className="w-3 h-3" />
-                          Edit
-                        </button>
-                        {session.user.role === UserRole.ADMIN && (
+                        <div className="flex items-center gap-2">
                           <button
-                            onClick={() => handleDeleteCategory(category.id)}
-                            className="bg-red-100 text-red-700 px-3 py-2 rounded text-sm hover:bg-red-200"
+                            onClick={() => {
+                              setSelectedCategoryForEdit(category);
+                              setShowEditCategoryModal(true);
+                            }}
+                            className="flex-1 bg-blue-100 text-blue-700 px-3 py-2 rounded text-sm hover:bg-blue-200 flex items-center justify-center gap-1"
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Edit className="w-3 h-3" />
+                            Edit
                           </button>
-                        )}
+                          {session.user.role === UserRole.ADMIN && (
+                            <button
+                              onClick={() => handleDeleteCategory(category.id)}
+                              className="bg-red-100 text-red-700 px-3 py-2 rounded text-sm hover:bg-red-200"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+
+                  {/* Categories Pagination */}
+                  <PaginationComponent 
+                    pagination={categoriesPagination} 
+                    onPageChange={handleCategoriesPageChange} 
+                  />
+                </>
               )}
 
               {categories.length === 0 && !loading && (
@@ -457,7 +667,7 @@ export default function DirectLinksManagement() {
         {/* Service Modals */}
         {showCreateModal && (
           <CreateServiceModal
-            categories={categories}
+            categories={allCategories}
             onClose={() => setShowCreateModal(false)}
             onSuccess={() => {
               setShowCreateModal(false);
@@ -469,7 +679,7 @@ export default function DirectLinksManagement() {
         {showEditModal && selectedService && (
           <EditServiceModal
             service={selectedService}
-            categories={categories}
+            categories={allCategories}
             onClose={() => {
               setShowEditModal(false);
               setSelectedService(null);
@@ -509,736 +719,5 @@ export default function DirectLinksManagement() {
         )}
       </div>
     </DashboardLayout>
-  );
-}
-
-// Create Service Modal Component (keeping existing implementation)
-function CreateServiceModal({ 
-  categories, 
-  onClose, 
-  onSuccess 
-}: { 
-  categories: Category[];
-  onClose: () => void;
-  onSuccess: () => void;
-}) {
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    service_url: '',
-    service_type: 'EXTERNAL',
-    amount: 0,
-    is_active: true,
-    is_featured: false,
-    category: '',
-    icon_url: '',
-    button_text: 'Access Service',
-    redirect_type: 'NEW_TAB',
-    requires_payment: false,
-    allowed_roles: ['RETAILER', 'CUSTOMER'],
-    metadata: {}
-  });
-  const [loading, setLoading] = useState(false);
-  const [uploadingIcon, setUploadingIcon] = useState(false);
-
-  const handleIconUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      alert('Please select an image file (JPG, PNG, GIF, WebP)');
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Please select an image smaller than 5MB');
-      return;
-    }
-
-    setUploadingIcon(true);
-    try {
-      const uploadFormData = new FormData();
-      uploadFormData.append('file', file);
-      uploadFormData.append('folder', 'service-icons');
-
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: uploadFormData,
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setFormData({ ...formData, icon_url: data.url });
-      } else {
-        alert('Failed to upload icon: ' + data.error);
-      }
-    } catch (error) {
-      console.error('Error uploading icon:', error);
-      alert('Failed to upload icon');
-    } finally {
-      setUploadingIcon(false);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const response = await fetch('/api/admin/direct-links', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        onSuccess();
-      } else {
-        alert('Failed to create service: ' + data.error);
-      }
-    } catch (error) {
-      console.error('Error creating service:', error);
-      alert('Failed to create service');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Create Direct Link Service</h2>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Service Name *
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Category
-              </label>
-              <select
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">Select Category</option>
-                {categories.map(category => (
-                  <option key={category.id} value={category.name}>
-                    {category.icon} {category.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description
-            </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Service URL *
-            </label>
-            <input
-              type="url"
-              required
-              value={formData.service_url}
-              onChange={(e) => setFormData({ ...formData, service_url: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Amount (₹)
-              </label>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.amount}
-                onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Button Text
-              </label>
-              <input
-                type="text"
-                value={formData.button_text}
-                onChange={(e) => setFormData({ ...formData, button_text: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-4">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={formData.is_active}
-                onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="text-sm text-gray-700">Active</span>
-            </label>
-
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={formData.is_featured}
-                onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="text-sm text-gray-700">Featured</span>
-            </label>
-
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={formData.requires_payment}
-                onChange={(e) => setFormData({ ...formData, requires_payment: e.target.checked })}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="text-sm text-gray-700">Requires Payment</span>
-            </label>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-            >
-              {loading ? 'Creating...' : 'Create Service'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-// Edit Service Modal Component (simplified version)
-function EditServiceModal({ 
-  service,
-  categories, 
-  onClose, 
-  onSuccess 
-}: { 
-  service: DirectLinkService;
-  categories: Category[];
-  onClose: () => void;
-  onSuccess: () => void;
-}) {
-  const [formData, setFormData] = useState({
-    name: service.name,
-    description: service.description,
-    service_url: service.service_url,
-    amount: service.amount,
-    is_active: service.is_active,
-    is_featured: service.is_featured,
-    category: service.category,
-    button_text: service.button_text,
-    requires_payment: service.requires_payment,
-    allowed_roles: service.allowed_roles
-  });
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const response = await fetch(`/api/admin/direct-links/${service.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        onSuccess();
-      } else {
-        alert('Failed to update service: ' + data.error);
-      }
-    } catch (error) {
-      console.error('Error updating service:', error);
-      alert('Failed to update service');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Edit Service</h2>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Service Name *
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Category
-              </label>
-              <select
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">Select Category</option>
-                {categories.map(category => (
-                  <option key={category.id} value={category.name}>
-                    {category.icon} {category.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description
-            </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Service URL *
-            </label>
-            <input
-              type="url"
-              required
-              value={formData.service_url}
-              onChange={(e) => setFormData({ ...formData, service_url: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Amount (₹)
-              </label>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.amount}
-                onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Button Text
-              </label>
-              <input
-                type="text"
-                value={formData.button_text}
-                onChange={(e) => setFormData({ ...formData, button_text: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-4">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={formData.is_active}
-                onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="text-sm text-gray-700">Active</span>
-            </label>
-
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={formData.is_featured}
-                onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="text-sm text-gray-700">Featured</span>
-            </label>
-
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={formData.requires_payment}
-                onChange={(e) => setFormData({ ...formData, requires_payment: e.target.checked })}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="text-sm text-gray-700">Requires Payment</span>
-            </label>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-            >
-              {loading ? 'Updating...' : 'Update Service'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-// Create Category Modal Component
-function CreateCategoryModal({ 
-  onClose, 
-  onSuccess 
-}: { 
-  onClose: () => void;
-  onSuccess: () => void;
-}) {
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    icon: '',
-    sort_order: 0,
-    is_active: true
-  });
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const response = await fetch('/api/admin/direct-links/categories', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        onSuccess();
-      } else {
-        alert('Failed to create category: ' + data.error);
-      }
-    } catch (error) {
-      console.error('Error creating category:', error);
-      alert('Failed to create category');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Create Category</h2>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="grid grid-cols-1 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Category Name *
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Icon (Emoji) *
-              </label>
-              <input
-                type="text"
-                required
-                placeholder="🏦"
-                value={formData.icon}
-                onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Sort Order
-              </label>
-              <input
-                type="number"
-                value={formData.sort_order}
-                onChange={(e) => setFormData({ ...formData, sort_order: parseInt(e.target.value) || 0 })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
-            </div>
-
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="is_active"
-                checked={formData.is_active}
-                onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                className="rounded border-gray-300 text-green-600 focus:ring-green-500"
-              />
-              <label htmlFor="is_active" className="ml-2 text-sm text-gray-700">
-                Active
-              </label>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-            >
-              {loading ? 'Creating...' : 'Create Category'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-// Edit Category Modal Component
-function EditCategoryModal({ 
-  category,
-  onClose, 
-  onSuccess 
-}: { 
-  category: Category;
-  onClose: () => void;
-  onSuccess: () => void;
-}) {
-  const [formData, setFormData] = useState({
-    name: category.name,
-    description: category.description,
-    icon: category.icon,
-    sort_order: category.sort_order,
-    is_active: category.is_active
-  });
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const response = await fetch(`/api/admin/direct-links/categories/${category.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        onSuccess();
-      } else {
-        alert('Failed to update category: ' + data.error);
-      }
-    } catch (error) {
-      console.error('Error updating category:', error);
-      alert('Failed to update category');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Edit Category</h2>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="grid grid-cols-1 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Category Name *
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Icon (Emoji) *
-              </label>
-              <input
-                type="text"
-                required
-                placeholder="🏦"
-                value={formData.icon}
-                onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Sort Order
-              </label>
-              <input
-                type="number"
-                value={formData.sort_order}
-                onChange={(e) => setFormData({ ...formData, sort_order: parseInt(e.target.value) || 0 })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
-            </div>
-
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="edit_is_active"
-                checked={formData.is_active}
-                onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                className="rounded border-gray-300 text-green-600 focus:ring-green-500"
-              />
-              <label htmlFor="edit_is_active" className="ml-2 text-sm text-gray-700">
-                Active
-              </label>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-            >
-              {loading ? 'Updating...' : 'Update Category'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
   );
 }

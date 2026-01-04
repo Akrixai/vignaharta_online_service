@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from('direct_links_services')
-      .select('*')
+      .select('*', { count: 'exact' })
       .order('created_at', { ascending: false });
 
     if (category) {

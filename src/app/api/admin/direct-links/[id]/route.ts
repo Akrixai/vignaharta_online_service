@@ -9,7 +9,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// GET - Get specific direct links service
+// GET - Get single direct links service
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -33,20 +33,9 @@ export async function GET(
       return NextResponse.json({ error: 'Service not found' }, { status: 404 });
     }
 
-    // Fetch category info separately
-    let category_info = null;
-    if (service.category) {
-      const { data: categoryData } = await supabase
-        .from('direct_links_categories')
-        .select('name, description, icon')
-        .eq('name', service.category)
-        .single();
-      category_info = categoryData;
-    }
-
-    return NextResponse.json({ 
-      success: true, 
-      data: { ...service, category_info } 
+    return NextResponse.json({
+      success: true,
+      data: service
     });
   } catch (error: any) {
     console.error('Error fetching direct links service:', error);
@@ -62,7 +51,7 @@ export async function PUT(
   try {
     const session = await getServerSession(authOptions);
     
-    if (!session || session.user.role !== UserRole.ADMIN) {
+    if (!session || (session.user.role !== UserRole.ADMIN && session.user.role !== UserRole.EMPLOYEE)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -85,40 +74,42 @@ export async function PUT(
     } = body;
 
     // Validation
-    if (amount && amount < 0) {
+    if (!name || !service_url || !service_type) {
+      return NextResponse.json({ 
+        error: 'Name, service URL, and service type are required' 
+      }, { status: 400 });
+    }
+
+    if (amount < 0) {
       return NextResponse.json({ 
         error: 'Amount cannot be negative' 
       }, { status: 400 });
     }
 
-    const updateData: any = {};
-    if (name !== undefined) updateData.name = name;
-    if (description !== undefined) updateData.description = description;
-    if (service_url !== undefined) updateData.service_url = service_url;
-    if (service_type !== undefined) updateData.service_type = service_type;
-    if (amount !== undefined) updateData.amount = parseFloat(amount);
-    if (is_active !== undefined) updateData.is_active = is_active;
-    if (is_featured !== undefined) updateData.is_featured = is_featured;
-    if (category !== undefined) updateData.category = category;
-    if (icon_url !== undefined) updateData.icon_url = icon_url;
-    if (button_text !== undefined) updateData.button_text = button_text;
-    if (redirect_type !== undefined) updateData.redirect_type = redirect_type;
-    if (requires_payment !== undefined) updateData.requires_payment = requires_payment;
-    if (allowed_roles !== undefined) updateData.allowed_roles = allowed_roles;
-    if (metadata !== undefined) updateData.metadata = metadata;
-
     const { data, error } = await supabase
       .from('direct_links_services')
-      .update(updateData)
+      .update({
+        name,
+        description,
+        service_url,
+        service_type,
+        amount: parseFloat(amount) || 0,
+        is_active: is_active !== false,
+        is_featured: is_featured || false,
+        category,
+        icon_url,
+        button_text: button_text || 'Access Service',
+        redirect_type: redirect_type || 'NEW_TAB',
+        requires_payment: requires_payment !== false,
+        allowed_roles: allowed_roles || ['RETAILER', 'CUSTOMER'],
+        metadata: metadata || {},
+        updated_at: new Date().toISOString()
+      })
       .eq('id', params.id)
       .select()
       .single();
 
     if (error) throw error;
-
-    if (!data) {
-      return NextResponse.json({ error: 'Service not found' }, { status: 404 });
-    }
 
     return NextResponse.json({ 
       success: true, 
@@ -150,9 +141,9 @@ export async function DELETE(
 
     if (error) throw error;
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
-      message: 'Direct links service deleted successfully' 
+      message: 'Direct links service deleted successfully'
     });
   } catch (error: any) {
     console.error('Error deleting direct links service:', error);
