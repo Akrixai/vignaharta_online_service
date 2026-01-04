@@ -200,7 +200,8 @@ export default function IncompletePanTab({ walletBalance, onWalletUpdate, router
   };
 
   return (
-    <div className="p-6">
+    <>
+      <div className="p-6">
       {/* Pending Applications Section */}
       {pendingApplications.length > 0 && (
         <div className="mb-8">
@@ -435,6 +436,7 @@ export default function IncompletePanTab({ walletBalance, onWalletUpdate, router
             </button>
           </div>
         </div>
+      </div>
       </div>
 
       {/* Confirmation Modal */}

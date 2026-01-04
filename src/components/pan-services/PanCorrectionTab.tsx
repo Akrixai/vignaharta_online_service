@@ -279,6 +279,7 @@ export default function PanCorrectionTab({ walletBalance, onWalletUpdate, router
           </div>
         </div>
       </div>
+      </div>
 
       {/* Confirmation Modal */}
       <PanConfirmationModal

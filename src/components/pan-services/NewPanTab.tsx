@@ -279,6 +279,7 @@ export default function NewPanTab({ walletBalance, onWalletUpdate, router }: New
               </div>
             </div>
           </div>
+          </div>
         </div>
       </div>
 

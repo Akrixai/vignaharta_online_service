@@ -216,8 +216,8 @@ export default function NewPanPage() {
     <>
       <DashboardLayout>
         <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
+          {/* Header */}
+          <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">New PAN Application</h1>
           <p className="text-gray-600">Apply for a new PAN card with instant processing</p>
         </div>
@@ -425,6 +425,7 @@ export default function NewPanPage() {
               </button>
             </div>
           </div>
+        </div>
         </div>
       </DashboardLayout>
 
