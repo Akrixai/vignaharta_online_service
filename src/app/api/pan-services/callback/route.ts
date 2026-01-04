@@ -94,11 +94,11 @@ export async function GET(request: NextRequest) {
     const statusMap: { [key: string]: string } = {
       'Success': 'SUCCESS',
       'Failure': 'FAILURE',
-      'Pending': 'PROCESSING',
+      'Pending': 'PENDING',
       'Failed': 'FAILURE'
     };
 
-    const newStatus = statusMap[status] || 'PROCESSING';
+    const newStatus = statusMap[status] || 'PENDING';
     const previousStatus = panService.status;
 
     console.log(`📊 Status change for ${panService.order_id}: ${previousStatus} → ${newStatus}`);
@@ -122,12 +122,18 @@ export async function GET(request: NextRequest) {
       updated_at: new Date().toISOString()
     };
 
-    // Set acknowledgement number if provided and not the default processing message
-    if (opid && opid !== 'Order is under process' && opid.trim() !== '') {
-      updateData.acknowledgement_number = opid;
-      console.log('📋 Setting acknowledgement number:', opid, 'for order:', panService.order_id);
+    // Set acknowledgement number for success, or message for pending/failure
+    if (opid && opid.trim() !== '' && opid !== 'Order is under process') {
+      if (newStatus === 'SUCCESS') {
+        updateData.acknowledgement_number = opid;
+        console.log('📋 Setting acknowledgement number:', opid, 'for order:', panService.order_id);
+      } else {
+        // For PENDING/FAILURE, store opid as error_message for display
+        updateData.error_message = opid;
+        console.log('📝 Setting status message:', opid, 'for order:', panService.order_id);
+      }
     } else {
-      console.log('⏳ Received processing status for order:', panService.order_id, 'opid:', opid);
+      console.log('⏳ Received callback status for order:', panService.order_id, 'with no message');
     }
 
     // Set completion timestamp for final statuses

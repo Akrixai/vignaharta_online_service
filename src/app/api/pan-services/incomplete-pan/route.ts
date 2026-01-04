@@ -67,7 +67,8 @@ async function handler(request: NextRequest) {
       console.log('🔄 Calling InsPay API (Balance Reserved - No Deduction Yet) for Incomplete PAN...');
 
       // First, try to find existing PAN service record
-      const { data: existingService, error: findError } = await supabaseAdmin
+      // We look for the application by our original merchant order_id (starts with PAN_)
+      let { data: existingService, error: findError } = await supabaseAdmin
         .from('pan_services')
         .select('*')
         .eq('order_id', order_id)
@@ -78,7 +79,7 @@ async function handler(request: NextRequest) {
         console.error('❌ Existing PAN service not found for order_id:', order_id);
         return corsJsonResponse({
           success: false,
-          message: 'Original PAN application not found. Please check your order ID.'
+          message: 'Original PAN application not found. Please check your Order ID (starting with PAN_).'
         }, 404);
       }
 
@@ -89,9 +90,10 @@ async function handler(request: NextRequest) {
         mobile_number: existingService.mobile_number
       });
 
-      // Call InsPay API
+      // Call InsPay API using the ORIGINAL merchant order_id (starts with PAN_)
+      // This allows InsPay to resume the session associated with our ID
       const inspayResponse = await inspayService.incompletePanRequest({
-        orderid: order_id
+        orderid: existingService.order_id
       });
 
       console.log('📥 InsPay API Response:', JSON.stringify(inspayResponse, null, 2));
@@ -106,7 +108,7 @@ async function handler(request: NextRequest) {
           inspay_opid: inspayResponse.opid, // New opid
           inspay_url: inspayResponse.url, // New URL
           amount: config.price, // Update amount if different
-          status: 'PROCESSING', // Reset to processing
+          status: 'PENDING', // Reset to pending/incomplete status
           updated_at: new Date().toISOString()
         };
 
@@ -140,15 +142,15 @@ async function handler(request: NextRequest) {
 
         return NextResponse.json({
           success: true,
-          message: config.price > 0 
+          message: config.price > 0
             ? 'Incomplete PAN application resumed successfully. Complete your application to proceed with payment.'
             : 'Incomplete PAN application resumed successfully.',
           data: {
             id: updatedService?.id,
-            order_id: order_id,
+            order_id: existingService.order_id, // Always return our original order_id to UI
             inspay_url: inspayResponse.url,
             amount: config.price,
-            payment_note: config.price > 0 
+            payment_note: config.price > 0
               ? 'Payment will be deducted only after successful completion of your PAN application.'
               : 'No additional payment required.'
           }

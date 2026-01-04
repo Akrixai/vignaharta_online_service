@@ -92,7 +92,7 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
       } else if (service.status === 'FAILURE') {
         toast.error(`PAN application ${service.order_id} failed. Please check details.`, { duration: 5000 });
       } else if (service.status === 'PROCESSING') {
-        toast.info(`PAN application ${service.order_id} is now being processed.`, { duration: 3000 });
+        toast.info(`PAN application ${service.order_id} is in progress.`, { duration: 3000 });
       }
       // Refresh the full services list when status changes
       fetchServices();
@@ -149,11 +149,14 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
     filter === 'ALL' || service.status === filter
   );
 
-  const getStatusBadge = (status: string) => (
-    <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[status as keyof typeof statusColors]}`}>
-      {status}
-    </span>
-  );
+  const getStatusBadge = (status: string) => {
+    const displayStatus = status === 'PROCESSING' ? 'PENDING' : status;
+    return (
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[displayStatus as keyof typeof statusColors]}`}>
+        {displayStatus}
+      </span>
+    );
+  };
 
   const getPaymentStatusBadge = (paymentStatus: string) => (
     <span className={`px-2 py-1 rounded-full text-xs font-medium ${paymentStatusColors[paymentStatus as keyof typeof paymentStatusColors]}`}>
@@ -588,8 +591,12 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
                   )}
 
                   {service.error_message && (
-                    <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                      <p className="text-sm text-red-700">{service.error_message}</p>
+                    <div className={`mt-3 p-3 rounded-lg border ${service.status === 'PENDING' ? 'bg-yellow-50 border-yellow-200' : 'bg-red-50 border-red-200'
+                      }`}>
+                      <p className={`text-sm ${service.status === 'PENDING' ? 'text-yellow-700 font-medium' : 'text-red-700'
+                        }`}>
+                        <strong>{service.status === 'PENDING' ? 'Status Message:' : 'Reason:'}</strong> {service.error_message}
+                      </p>
                     </div>
                   )}
 

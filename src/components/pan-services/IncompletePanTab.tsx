@@ -21,6 +21,7 @@ interface PanService {
   acknowledgement_number?: string;
   inspay_url?: string;
   webhook_received_at?: string;
+  error_message?: string;
 }
 
 interface IncompletePanTabProps {
@@ -316,6 +317,13 @@ export default function IncompletePanTab({ walletBalance, onWalletUpdate, router
                       {(app.acknowledgement_number && app.acknowledgement_number !== 'Order is under process') && (
                         <div className="mb-3 p-2 bg-blue-100 border border-blue-200 rounded text-xs">
                           <span className="font-semibold text-blue-800">Tracking:</span> {app.acknowledgement_number}
+                        </div>
+                      )}
+
+                      {app.error_message && (
+                        <div className={`mb-3 p-2 rounded text-xs border ${app.status === 'PENDING' ? 'bg-yellow-100 border-yellow-200 text-yellow-800' : 'bg-red-100 border-red-200 text-red-800'
+                          }`}>
+                          <span className="font-bold">Message:</span> {app.error_message}
                         </div>
                       )}
 
