@@ -94,7 +94,7 @@ export default function PanServicesHistoryPage() {
     }
   }, [session]);
 
-  // Auto-refresh every 30 seconds for pending/processing orders
+  // Auto-refresh every 10 seconds for pending/processing orders
   useEffect(() => {
     if (!autoRefresh || loading) return;
     
@@ -104,8 +104,9 @@ export default function PanServicesHistoryPage() {
     
     if (hasPendingOrders) {
       const interval = setInterval(() => {
+        console.log('🔄 Auto-refreshing PAN services history...');
         fetchServices();
-      }, 30000); // 30 seconds
+      }, 10000); // 10 seconds for faster updates
       
       return () => clearInterval(interval);
     }
@@ -320,7 +321,7 @@ export default function PanServicesHistoryPage() {
                 />
                 Auto-refresh
                 {autoRefresh && services.some(s => s.status === 'PENDING' || s.status === 'PROCESSING') && (
-                  <span className="text-green-600 text-xs">(30s)</span>
+                  <span className="text-green-600 text-xs">(10s)</span>
                 )}
               </label>
               
@@ -505,9 +506,36 @@ export default function PanServicesHistoryPage() {
                     )}
 
                     {service.callback_data && service.status === 'SUCCESS' && (
-                      <div className="mt-3 text-sm">
-                        <span className="text-gray-500">Callback received:</span>
-                        <p className="font-medium">{service.webhook_received_at ? new Date(service.webhook_received_at).toLocaleString() : 'N/A'}</p>
+                      <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-green-600">📞</span>
+                          <p className="text-sm text-green-700 font-medium">
+                            Callback received: {service.webhook_received_at ? new Date(service.webhook_received_at).toLocaleString() : 'N/A'}
+                          </p>
+                        </div>
+                        <p className="text-xs text-green-600 mt-1">
+                          Application status confirmed via real-time callback from InsPay
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Processing Status with Real-time Updates */}
+                    {service.status === 'PROCESSING' && (
+                      <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                          <p className="text-sm text-blue-700 font-medium">
+                            Application is being processed by NSDL
+                          </p>
+                        </div>
+                        <p className="text-xs text-blue-600 mt-1">
+                          Status updates will appear automatically every 10 seconds. No action required.
+                        </p>
+                        {service.inspay_txid && (
+                          <p className="text-xs text-blue-600 mt-1">
+                            InsPay Transaction ID: {service.inspay_txid}
+                          </p>
+                        )}
                       </div>
                     )}
 

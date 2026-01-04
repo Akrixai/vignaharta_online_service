@@ -83,15 +83,24 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
     refreshNow
   } = usePanServiceMonitor({
     enabled: true,
-    interval: 15000, // 15 seconds
+    interval: 10000, // 10 seconds for faster updates
     onStatusChange: (service, oldStatus) => {
       console.log(`Status changed for ${service.order_id}: ${oldStatus} → ${service.status}`);
+      // Show toast notification for status changes
+      if (service.status === 'SUCCESS') {
+        toast.success(`PAN application ${service.order_id} completed successfully!`, { duration: 5000 });
+      } else if (service.status === 'FAILURE') {
+        toast.error(`PAN application ${service.order_id} failed. Please check details.`, { duration: 5000 });
+      } else if (service.status === 'PROCESSING') {
+        toast.info(`PAN application ${service.order_id} is now being processed.`, { duration: 3000 });
+      }
       // Refresh the full services list when status changes
       fetchServices();
     },
     onSuccess: (service) => {
       // Refresh wallet balance when payment is charged
       onWalletUpdate();
+      toast.success(`Payment charged for ${service.order_id}. Receipt available for download.`, { duration: 5000 });
     }
   });
 
@@ -346,6 +355,17 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
               <div className="flex items-center gap-2 text-sm">
                 <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                 <span className="text-red-600 font-medium">Monitoring Error</span>
+                <span className="text-xs text-red-500">{monitoringError}</span>
+              </div>
+            )}
+            
+            {/* Show pending/processing count */}
+            {services.some(s => s.status === 'PENDING' || s.status === 'PROCESSING') && (
+              <div className="flex items-center gap-2 text-sm">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                <span className="text-blue-600 font-medium">
+                  {services.filter(s => s.status === 'PENDING' || s.status === 'PROCESSING').length} applications being monitored
+                </span>
               </div>
             )}
             
@@ -457,8 +477,28 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
                         </p>
                       </div>
                       <p className="text-xs text-green-600 mt-1">
-                        Application status confirmed via real-time callback
+                        Application status confirmed via real-time callback from InsPay
                       </p>
+                    </div>
+                  )}
+
+                  {/* Processing Status with Real-time Updates */}
+                  {service.status === 'PROCESSING' && (
+                    <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                        <p className="text-sm text-blue-700 font-medium">
+                          Application is being processed by NSDL
+                        </p>
+                      </div>
+                      <p className="text-xs text-blue-600 mt-1">
+                        Status updates will appear automatically. No action required.
+                      </p>
+                      {service.inspay_txid && (
+                        <p className="text-xs text-blue-600 mt-1">
+                          InsPay Transaction ID: {service.inspay_txid}
+                        </p>
+                      )}
                     </div>
                   )}
 

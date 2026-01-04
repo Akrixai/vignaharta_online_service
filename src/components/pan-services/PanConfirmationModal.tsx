@@ -1,7 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-
 interface PanConfirmationData {
   service_type: 'NEW_PAN' | 'PAN_CORRECTION' | 'INCOMPLETE_PAN';
   order_id: string;
@@ -40,29 +38,6 @@ export default function PanConfirmationModal({
   data, 
   loading = false 
 }: PanConfirmationModalProps) {
-  const [countdown, setCountdown] = useState(10);
-  const [canProceed, setCanProceed] = useState(false);
-
-  // Start countdown when modal opens
-  useState(() => {
-    if (isOpen && data) {
-      setCountdown(10);
-      setCanProceed(false);
-      
-      const timer = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 1) {
-            setCanProceed(true);
-            clearInterval(timer);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      return () => clearInterval(timer);
-    }
-  });
 
   if (!isOpen || !data) return null;
 
@@ -260,16 +235,9 @@ export default function PanConfirmationModal({
             </button>
 
             <div className="flex items-center space-x-4">
-              {!canProceed && (
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                  <span>Please wait {countdown}s to proceed...</span>
-                </div>
-              )}
-              
               <button
                 onClick={onConfirm}
-                disabled={loading || !canProceed}
+                disabled={loading}
                 className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200 flex items-center font-medium"
               >
                 {loading ? (

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import toast from 'react-hot-toast';
 import PanConfirmationModal from './PanConfirmationModal';
+import { usePanServiceMonitor } from '@/hooks/usePanServiceMonitor';
 
 interface PanService {
   id: string;
@@ -37,6 +38,36 @@ export default function IncompletePanTab({ walletBalance, onWalletUpdate, router
   const [confirmationData, setConfirmationData] = useState<any>(null);
   const [formData, setFormData] = useState({
     existing_order_id: ''
+  });
+
+  // Real-time monitoring for pending applications
+  const {
+    services: monitoredServices,
+    isMonitoring,
+    error: monitoringError,
+    lastUpdate,
+    refreshNow
+  } = usePanServiceMonitor({
+    enabled: true,
+    interval: 10000, // 10 seconds for faster updates
+    onStatusChange: (service, oldStatus) => {
+      console.log(`Status changed for ${service.order_id}: ${oldStatus} → ${service.status}`);
+      // Show toast notification for status changes
+      if (service.status === 'SUCCESS') {
+        toast.success(`PAN application ${service.order_id} completed successfully!`, { duration: 5000 });
+      } else if (service.status === 'FAILURE') {
+        toast.error(`PAN application ${service.order_id} failed. Please check details.`, { duration: 5000 });
+      } else if (service.status === 'PROCESSING') {
+        toast.info(`PAN application ${service.order_id} is now being processed.`, { duration: 3000 });
+      }
+      // Refresh pending applications when status changes
+      fetchPendingApplications();
+    },
+    onSuccess: (service) => {
+      // Refresh wallet balance when payment is charged
+      onWalletUpdate();
+      toast.success(`Payment charged for ${service.order_id}. Receipt available for download.`, { duration: 5000 });
+    }
   });
 
   useEffect(() => {
@@ -207,11 +238,35 @@ export default function IncompletePanTab({ walletBalance, onWalletUpdate, router
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-semibold text-gray-900">Your Incomplete Applications</h3>
-            <button
-              onClick={fetchPendingApplications}
-              disabled={loadingApplications}
-              className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
-            >
+            <div className="flex items-center gap-4">
+              {/* Real-time monitoring indicator */}
+              {isMonitoring && (
+                <div className="flex items-center gap-2 text-sm">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-green-600 font-medium">Live Updates</span>
+                  {lastUpdate && (
+                    <span className="text-xs text-gray-500">
+                      ({new Date(lastUpdate).toLocaleTimeString()})
+                    </span>
+                  )}
+                </div>
+              )}
+              
+              {monitoringError && (
+                <div className="flex items-center gap-2 text-sm">
+                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                  <span className="text-red-600 font-medium">Update Error</span>
+                </div>
+              )}
+              
+              <button
+                onClick={() => {
+                  fetchPendingApplications();
+                  refreshNow();
+                }}
+                disabled={loadingApplications}
+                className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+              >
               {loadingApplications ? (
                 <>
                   <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
@@ -223,7 +278,7 @@ export default function IncompletePanTab({ walletBalance, onWalletUpdate, router
               ) : (
                 <>🔄 Refresh</>
               )}
-            </button>
+            </div>
           </div>
           
           <div className="space-y-4">

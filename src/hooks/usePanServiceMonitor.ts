@@ -36,7 +36,7 @@ interface UsePanServiceMonitorOptions {
 export function usePanServiceMonitor(options: UsePanServiceMonitorOptions = {}) {
   const {
     enabled = true,
-    interval = 30000, // 30 seconds default
+    interval = 10000, // 10 seconds default for faster updates
     onStatusChange,
     onSuccess,
     onFailure
@@ -88,6 +88,24 @@ export function usePanServiceMonitor(options: UsePanServiceMonitorOptions = {}) 
               onSuccess?.(service);
             } else if (service.status === 'FAILURE') {
               onFailure?.(service);
+            }
+          }
+          
+          // Also check for other important changes
+          if (previousService) {
+            // Check for payment status changes
+            if (previousService.payment_status !== service.payment_status) {
+              console.log(`💳 Payment status change for ${service.order_id}: ${previousService.payment_status} → ${service.payment_status}`);
+            }
+            
+            // Check for acknowledgement number updates
+            if (!previousService.acknowledgement_number && service.acknowledgement_number && service.acknowledgement_number !== 'Order is under process') {
+              console.log(`🎯 Acknowledgement number received for ${service.order_id}: ${service.acknowledgement_number}`);
+            }
+            
+            // Check for callback updates
+            if (!previousService.webhook_received_at && service.webhook_received_at) {
+              console.log(`📞 Callback received for ${service.order_id} at ${service.webhook_received_at}`);
             }
           }
         });
