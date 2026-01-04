@@ -40,7 +40,7 @@ export default function IncompletePanPage() {
   useEffect(() => {
     if (hasAccess) {
       fetchPendingApplications();
-      
+
       // Auto-refresh every 30 seconds for pending applications
       const interval = setInterval(fetchPendingApplications, 30000);
       return () => clearInterval(interval);
@@ -49,7 +49,7 @@ export default function IncompletePanPage() {
 
   const fetchPendingApplications = async () => {
     try {
-      const response = await fetch('/api/pan-services/history?status=PENDING');
+      const response = await fetch('/api/pan-services/history?status=PENDING,PROCESSING');
       if (response.ok) {
         const data = await response.json();
         setPendingApplications(data.data || []);
@@ -103,7 +103,7 @@ export default function IncompletePanPage() {
 
         setConfirmationData(confirmData);
         setShowConfirmModal(true);
-        
+
         toast.success('Application ready to resume!');
         fetchPendingApplications(); // Refresh to see updated status
       } else {
@@ -141,7 +141,7 @@ export default function IncompletePanPage() {
       if (data.success) {
         // Find the application details from pending applications or create basic data
         const existingApp = pendingApplications.find(app => app.order_id === formData.existing_order_id);
-        
+
         // Prepare confirmation data
         const confirmData = {
           service_type: 'INCOMPLETE_PAN' as const,
@@ -163,7 +163,7 @@ export default function IncompletePanPage() {
           duration: 3000,
           icon: '🚀'
         });
-        
+
         // Refresh pending applications list
         fetchPendingApplications();
       } else {
@@ -244,7 +244,7 @@ export default function IncompletePanPage() {
                   )}
                 </button>
               </div>
-              
+
               <div className="space-y-4">
                 {pendingApplications.map((app) => (
                   <div key={app.id} className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -257,7 +257,7 @@ export default function IncompletePanPage() {
                           </span>
                           <span className="text-sm text-gray-600">Mode: {app.mode}</span>
                         </div>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm mb-3">
                           <div>
                             <span className="text-gray-500">Order ID:</span>
@@ -272,7 +272,7 @@ export default function IncompletePanPage() {
                             <p className="font-medium">₹{app.amount}</p>
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center justify-between">
                           <div className="text-sm text-gray-600">
                             Applied: {new Date(app.created_at).toLocaleDateString('en-US', {
@@ -286,7 +286,7 @@ export default function IncompletePanPage() {
                           )}
                         </div>
                       </div>
-                      
+
                       <div className="ml-4">
                         <button
                           onClick={() => handleResumeFromList(app.order_id, app)}
@@ -300,7 +300,7 @@ export default function IncompletePanPage() {
                   </div>
                 ))}
               </div>
-              
+
               <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-sm text-blue-800">
                   <strong>💡 Quick Resume:</strong> Click "Resume Now" on any incomplete application above, or enter the Order ID manually below if you have it from another source.
@@ -315,7 +315,7 @@ export default function IncompletePanPage() {
               <h3 className="text-lg font-semibold text-gray-900">Resume by Order ID</h3>
               <p className="text-sm text-gray-600">Enter your existing order ID to resume an incomplete application</p>
             </div>
-            
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label htmlFor="existing_order_id" className="block text-sm font-medium text-gray-700 mb-2">

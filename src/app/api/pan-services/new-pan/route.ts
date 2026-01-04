@@ -108,7 +108,7 @@ async function handler(request: NextRequest) {
             inspay_opid: inspayResponse.opid,
             inspay_url: inspayResponse.url,
             amount: config.price,
-            status: 'PROCESSING',
+            status: 'PENDING',
             payment_status: 'RESERVED', // Changed from DEBITED to RESERVED
             payment_reserved_at: new Date().toISOString(), // Track when balance was reserved
             wallet_balance_at_time: wallet.balance, // Store current balance for verification

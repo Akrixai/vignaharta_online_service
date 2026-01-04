@@ -107,12 +107,12 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
   useEffect(() => {
     if (session?.user?.id) {
       fetchServices();
-      
+
       // Check for redirect parameters
       const urlParams = new URLSearchParams(window.location.search);
       const redirected = urlParams.get('redirected');
       const status = urlParams.get('status');
-      
+
       if (redirected === 'true') {
         if (status === 'Success') {
           toast.success('PAN application completed successfully!', { duration: 5000 });
@@ -121,7 +121,7 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
         } else {
           toast('Returned from PAN application portal', { duration: 3000 });
         }
-        
+
         // Clean up URL parameters
         window.history.replaceState({}, document.title, window.location.pathname);
       }
@@ -157,11 +157,11 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
 
   const getPaymentStatusBadge = (paymentStatus: string) => (
     <span className={`px-2 py-1 rounded-full text-xs font-medium ${paymentStatusColors[paymentStatus as keyof typeof paymentStatusColors]}`}>
-      {paymentStatus === 'RESERVED' ? '🔒 RESERVED' : 
-       paymentStatus === 'DEBITED' ? '💳 DEBITED' : 
-       paymentStatus === 'CHARGED' ? '✅ CHARGED' :
-       paymentStatus === 'REFUNDED' ? '💸 REFUNDED' : 
-       paymentStatus === 'CANCELLED' ? '❌ CANCELLED' : paymentStatus}
+      {paymentStatus === 'RESERVED' ? '🔒 RESERVED' :
+        paymentStatus === 'DEBITED' ? '💳 DEBITED' :
+          paymentStatus === 'CHARGED' ? '✅ CHARGED' :
+            paymentStatus === 'REFUNDED' ? '💸 REFUNDED' :
+              paymentStatus === 'CANCELLED' ? '❌ CANCELLED' : paymentStatus}
     </span>
   );
 
@@ -184,9 +184,9 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
   const handleDownloadReceipt = async (orderId: string, format: 'json' | 'pdf' = 'pdf') => {
     try {
       setDownloadingReceipt(orderId);
-      
+
       const response = await fetch(`/api/pan-services/receipt?order_id=${orderId}&format=${format}`);
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         toast.error(errorData.message || 'Failed to generate receipt');
@@ -270,7 +270,7 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
             </div>
           </div>
         </div>
-        
+
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <div className="flex items-center">
             <div className="text-2xl text-green-600 mr-3">✅</div>
@@ -282,27 +282,27 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
             </div>
           </div>
         </div>
-        
+
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <div className="flex items-center">
             <div className="text-2xl text-yellow-600 mr-3">⏳</div>
             <div>
               <div className="text-2xl font-bold text-yellow-900">
-                {(monitoringStats.pending || 0) + (monitoringStats.processing || 0) || 
-                 services.filter(s => s.status === 'PENDING' || s.status === 'PROCESSING').length}
+                {(monitoringStats.pending || 0) + (monitoringStats.processing || 0) ||
+                  services.filter(s => s.status === 'PENDING' || s.status === 'PROCESSING').length}
               </div>
               <div className="text-sm text-yellow-700">In Progress</div>
             </div>
           </div>
         </div>
-        
+
         <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
           <div className="flex items-center">
             <div className="text-2xl text-purple-600 mr-3">💰</div>
             <div>
               <div className="text-2xl font-bold text-purple-900">
-                ₹{(monitoringStats.total_spent || 
-                   services.filter(s => s.status === 'SUCCESS').reduce((sum, s) => sum + s.amount, 0)).toLocaleString()}
+                ₹{(monitoringStats.total_spent ||
+                  services.filter(s => s.status === 'SUCCESS').reduce((sum, s) => sum + s.amount, 0)).toLocaleString()}
               </div>
               <div className="text-sm text-purple-700">Total Spent</div>
             </div>
@@ -336,7 +336,7 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
               </button>
             ))}
           </div>
-          
+
           <div className="flex items-center gap-3">
             {/* Real-time Status Indicator */}
             {isMonitoring && (
@@ -350,7 +350,7 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
                 )}
               </div>
             )}
-            
+
             {monitoringError && (
               <div className="flex items-center gap-2 text-sm">
                 <div className="w-2 h-2 bg-red-500 rounded-full"></div>
@@ -358,7 +358,7 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
                 <span className="text-xs text-red-500">{monitoringError}</span>
               </div>
             )}
-            
+
             {/* Show pending/processing count */}
             {services.some(s => s.status === 'PENDING' || s.status === 'PROCESSING') && (
               <div className="flex items-center gap-2 text-sm">
@@ -368,7 +368,7 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
                 </span>
               </div>
             )}
-            
+
             <button
               onClick={() => {
                 fetchServices();
@@ -593,6 +593,39 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
                     </div>
                   )}
 
+                  {/* Real-time Activity / Acknowledgement */}
+                  {(service.acknowledgement_number && service.acknowledgement_number !== 'Order is under process') && (
+                    <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-blue-600">🎯</span>
+                        <p className="text-sm text-blue-700 font-medium">
+                          Acknowledgement Number: {service.acknowledgement_number}
+                        </p>
+                      </div>
+                      <p className="text-xs text-blue-600 mt-1">
+                        Use this to track your application on Income Tax Department portal
+                      </p>
+                    </div>
+                  )}
+
+                  {service.webhook_received_at && (
+                    <div className={`mt-3 p-3 rounded-lg border ${service.status === 'SUCCESS' ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200'}`}>
+                      <div className="flex items-center space-x-2">
+                        <span className={service.status === 'SUCCESS' ? 'text-green-600' : 'text-blue-600'}>
+                          {service.status === 'SUCCESS' ? '✅' : '📞'}
+                        </span>
+                        <p className={`text-sm font-medium ${service.status === 'SUCCESS' ? 'text-green-700' : 'text-blue-700'}`}>
+                          Last update received: {new Date(service.webhook_received_at).toLocaleString()}
+                        </p>
+                      </div>
+                      <p className={`text-xs mt-1 ${service.status === 'SUCCESS' ? 'text-green-600' : 'text-blue-600'}`}>
+                        {service.status === 'SUCCESS'
+                          ? 'Final status confirmed via real-time callback from InsPay'
+                          : 'Application progress update received from InsPay server'}
+                      </p>
+                    </div>
+                  )}
+
                   <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
                     <span>Applied: {new Date(service.created_at).toLocaleDateString('en-US', {
                       year: 'numeric', month: 'short', day: 'numeric',
@@ -636,14 +669,14 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
                       >
                         {downloadingReceipt === service.order_id ? 'Generating...' : '📄 Download Receipt'}
                       </button>
-                      
+
                       {service.acknowledgement_number && service.acknowledgement_number !== 'Order is under process' && (
                         <div className="text-xs text-center p-2 bg-green-50 rounded border">
                           <div className="font-semibold text-green-800">Tracking Number:</div>
                           <div className="font-mono text-green-700">{service.acknowledgement_number}</div>
                         </div>
                       )}
-                      
+
                       <Link
                         href={`/dashboard/pan-services/history?order_id=${service.order_id}`}
                         className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm text-center block"

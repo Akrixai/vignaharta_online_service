@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
     // Find PAN service by order_id (InsPay sends order_id as txid parameter)
     let panService = null;
     let findError = null;
-    
+
     // First try to find by order_id (most common case)
     const { data: panServiceByOrderId, error: orderIdError } = await supabase
       .from('pan_services')
@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
         .select('*, user:users(id, email, name, role)')
         .eq('inspay_txid', txid)
         .single();
-        
+
       if (panServiceByInspayTxid) {
         panService = panServiceByInspayTxid;
         console.log('✅ Found PAN service by inspay_txid:', panService.order_id, 'for txid:', txid);
@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
     // Map InsPay status to our status
     const statusMap: { [key: string]: string } = {
       'Success': 'SUCCESS',
-      'Failure': 'FAILURE', 
+      'Failure': 'FAILURE',
       'Pending': 'PROCESSING',
       'Failed': 'FAILURE'
     };
@@ -103,11 +103,20 @@ export async function GET(request: NextRequest) {
 
     console.log(`📊 Status change for ${panService.order_id}: ${previousStatus} → ${newStatus}`);
 
+    // Preserve callback history in callback_raw_data
+    let callbackHistory: any[] = [];
+    if (Array.isArray(panService.callback_raw_data)) {
+      callbackHistory = [...panService.callback_raw_data];
+    } else if (panService.callback_raw_data && typeof panService.callback_raw_data === 'object' && Object.keys(panService.callback_raw_data).length > 0) {
+      callbackHistory = [panService.callback_raw_data];
+    }
+    callbackHistory.push(callbackData);
+
     // Prepare update data
     const updateData: any = {
       status: newStatus,
       callback_data: callbackData,
-      callback_raw_data: callbackData,
+      callback_raw_data: callbackHistory,
       webhook_received_at: new Date().toISOString(),
       callback_processed_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
@@ -205,7 +214,7 @@ async function processSuccessfulPanApplication(panService: any, updateData: any)
 
     // Charge payment from wallet
     const newBalance = wallet.balance - amountToCharge;
-    
+
     await supabase
       .from('wallets')
       .update({ balance: newBalance })
@@ -220,7 +229,7 @@ async function processSuccessfulPanApplication(panService: any, updateData: any)
       status: 'COMPLETED',
       description: `${panService.service_type} - ${panService.order_id}`,
       reference: panService.order_id,
-      metadata: { 
+      metadata: {
         pan_service_id: panService.id,
         service_type: panService.service_type,
         mobile_number: panService.mobile_number
@@ -292,7 +301,7 @@ async function processCommission(panService: any, wallet: any) {
     }
 
     const commissionAmount = parseFloat(commissionConfig.price || '0');
-    
+
     if (commissionAmount <= 0) {
       console.log('⚠️ No commission amount configured for:', panService.service_type);
       return;
@@ -313,7 +322,7 @@ async function processCommission(panService: any, wallet: any) {
       status: 'COMPLETED',
       description: `Commission for ${panService.service_type} - ${panService.order_id}`,
       reference: panService.order_id,
-      metadata: { 
+      metadata: {
         pan_service_id: panService.id,
         service_type: panService.service_type,
         commission_config_id: commissionConfig.id
@@ -359,7 +368,7 @@ async function processRefund(panService: any) {
         status: 'COMPLETED',
         description: `Refund for failed ${panService.service_type} - ${panService.order_id}`,
         reference: panService.order_id,
-        metadata: { 
+        metadata: {
           pan_service_id: panService.id,
           service_type: panService.service_type,
           reason: 'Application failed'
