@@ -503,6 +503,94 @@ export default function DashboardPage() {
                   <p className="text-green-100 text-xs">Loans, Subsidies</p>
                 </div>
               </Link>
+
+              <Link href="/dashboard/services?category=Educational Services">
+                <div className="group bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-teal-600 text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
+                  </div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🎓</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Education</h3>
+                  <p className="text-teal-100 text-xs">Certificates, Courses</p>
+                </div>
+              </Link>
+
+              <Link href="/dashboard/services?category=Healthcare Services">
+                <div className="group bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-pink-600 text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
+                  </div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🏥</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Healthcare</h3>
+                  <p className="text-pink-100 text-xs">Medical Services</p>
+                </div>
+              </Link>
+
+              <Link href="/dashboard/services?category=Employment Services">
+                <div className="group bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-yellow-600 text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
+                  </div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">💼</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Employment</h3>
+                  <p className="text-yellow-100 text-xs">Job Services</p>
+                </div>
+              </Link>
+
+              <Link href="/dashboard/services?category=Certificates">
+                <div className="group bg-gradient-to-br from-red-500 to-red-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-red-600 text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
+                  </div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">📜</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Certificates</h3>
+                  <p className="text-red-100 text-xs">Official Documents</p>
+                </div>
+              </Link>
+
+              <Link href="/dashboard/services?category=Document Verification">
+                <div className="group bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-cyan-600 text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
+                  </div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">✅</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Verification</h3>
+                  <p className="text-cyan-100 text-xs">Document Verify</p>
+                </div>
+              </Link>
+
+              <Link href="/dashboard/services?category=Information Services">
+                <div className="group bg-gradient-to-br from-violet-500 to-violet-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-violet-600 text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
+                  </div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">ℹ️</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Information</h3>
+                  <p className="text-violet-100 text-xs">Info Services</p>
+                </div>
+              </Link>
+
+              <Link href="/dashboard/services?category=Revenue Services">
+                <div className="group bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-amber-600 text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
+                  </div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">💸</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Revenue</h3>
+                  <p className="text-amber-100 text-xs">Tax Services</p>
+                </div>
+              </Link>
+
+              <Link href="/dashboard/services?category=Other">
+                <div className="group bg-gradient-to-br from-slate-500 to-slate-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-slate-600 text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
+                  </div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">📋</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Other</h3>
+                  <p className="text-slate-100 text-xs">Misc Services</p>
+                </div>
+              </Link>
             </div>
           </div>
         )}
@@ -539,25 +627,25 @@ export default function DashboardPage() {
               </Link>
 
               {/* Featured Services Placeholder - These will be populated from the database */}
-              <Link href="/dashboard/services?tab=direct&category=FINANCIAL">
+              <Link href="/dashboard/services?tab=direct&category=GOVERNMENT">
                 <div className="group bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
                   <div className="absolute top-2 right-2 bg-white text-blue-600 text-[8px] font-bold px-2 py-1 rounded-full">
                     LIVE
                   </div>
-                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🏦</div>
-                  <h3 className="text-white font-bold text-sm mb-1">Banking</h3>
-                  <p className="text-blue-100 text-xs">Financial Services</p>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">�</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Government</h3>
+                  <p className="text-blue-100 text-xs">Gov Services</p>
                 </div>
               </Link>
 
-              <Link href="/dashboard/services?tab=direct&category=GOVERNMENT">
+              <Link href="/dashboard/services?tab=direct&category=FINANCIAL">
                 <div className="group bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
                   <div className="absolute top-2 right-2 bg-white text-purple-600 text-[8px] font-bold px-2 py-1 rounded-full">
                     LIVE
                   </div>
-                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🏛️</div>
-                  <h3 className="text-white font-bold text-sm mb-1">Government</h3>
-                  <p className="text-purple-100 text-xs">Gov Services</p>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">💰</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Financial</h3>
+                  <p className="text-purple-100 text-xs">Banking Services</p>
                 </div>
               </Link>
 
@@ -566,9 +654,9 @@ export default function DashboardPage() {
                   <div className="absolute top-2 right-2 bg-white text-orange-600 text-[8px] font-bold px-2 py-1 rounded-full">
                     LIVE
                   </div>
-                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">✈️</div>
-                  <h3 className="text-white font-bold text-sm mb-1">Travel</h3>
-                  <p className="text-orange-100 text-xs">Booking Services</p>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🚗</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Transport</h3>
+                  <p className="text-orange-100 text-xs">Travel Services</p>
                 </div>
               </Link>
 
@@ -577,7 +665,7 @@ export default function DashboardPage() {
                   <div className="absolute top-2 right-2 bg-white text-indigo-600 text-[8px] font-bold px-2 py-1 rounded-full">
                     LIVE
                   </div>
-                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">📚</div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🎓</div>
                   <h3 className="text-white font-bold text-sm mb-1">Education</h3>
                   <p className="text-indigo-100 text-xs">Learning Services</p>
                 </div>
@@ -591,6 +679,61 @@ export default function DashboardPage() {
                   <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🏥</div>
                   <h3 className="text-white font-bold text-sm mb-1">Healthcare</h3>
                   <p className="text-red-100 text-xs">Medical Services</p>
+                </div>
+              </Link>
+
+              <Link href="/dashboard/services?tab=direct&category=UTILITY">
+                <div className="group bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-green-600 text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
+                  </div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">⚡</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Utility</h3>
+                  <p className="text-green-100 text-xs">Bills & Services</p>
+                </div>
+              </Link>
+
+              <Link href="/dashboard/services?tab=direct&category=BUSINESS">
+                <div className="group bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-teal-600 text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
+                  </div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">💼</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Business</h3>
+                  <p className="text-teal-100 text-xs">Professional Services</p>
+                </div>
+              </Link>
+
+              <Link href="/dashboard/services?tab=direct&category=OTHER">
+                <div className="group bg-gradient-to-br from-gray-500 to-gray-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-gray-600 text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
+                  </div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">📋</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Other</h3>
+                  <p className="text-gray-100 text-xs">Misc Services</p>
+                </div>
+              </Link>
+
+              <Link href="/dashboard/services?tab=direct&category=Aadhaar Services">
+                <div className="group bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-blue-600 text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
+                  </div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🏢</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Aadhaar</h3>
+                  <p className="text-blue-100 text-xs">Aadhaar Services</p>
+                </div>
+              </Link>
+
+              <Link href="/dashboard/services?tab=direct&category=KNOW STATUS">
+                <div className="group bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-white text-purple-600 text-[8px] font-bold px-2 py-1 rounded-full">
+                    LIVE
+                  </div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🏤</div>
+                  <h3 className="text-white font-bold text-sm mb-1">Know Status</h3>
+                  <p className="text-purple-100 text-xs">Status Check</p>
                 </div>
               </Link>
             </div>
