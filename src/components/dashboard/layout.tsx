@@ -49,11 +49,7 @@ const menuItems: MenuItem[] = [
   { name: 'Recharge History', href: '/dashboard/recharge/transactions', icon: '📊', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
 
   // PAN Services
-  { name: 'PAN Services', href: '/dashboard/pan-services', icon: '🆔', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
-  { name: 'New PAN Application', href: '/dashboard/pan-services/new', icon: '🆔', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
-  { name: 'PAN Correction', href: '/dashboard/pan-services/correction', icon: '✏️', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
-  { name: 'Incomplete PAN', href: '/dashboard/pan-services/incomplete', icon: '📋', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
-  { name: 'PAN Services History', href: '/dashboard/pan-services/history', icon: '📊', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'Pan Services', href: '/dashboard/pan-services', icon: '🆔', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
 
   // Coming Soon Services
   { name: 'Gas Bill', href: '/dashboard/coming-soon', icon: '🔥', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
@@ -358,14 +354,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
               {/* PAN Services Section */}
               {filteredMenuItems.some(item =>
-                ['PAN Services', 'New PAN Application', 'PAN Correction', 'Incomplete PAN', 'PAN Services History'].includes(item.name)
+                ['Pan Services'].includes(item.name)
               ) && (
                   <>
                     <div className="pt-3 pb-1 px-2">
                       <h3 className="text-xs font-semibold text-red-300 uppercase tracking-wider">PAN Services</h3>
                     </div>
                     {filteredMenuItems.filter(item =>
-                      ['PAN Services', 'New PAN Application', 'PAN Correction', 'Incomplete PAN', 'PAN Services History'].includes(item.name)
+                      ['Pan Services'].includes(item.name)
                     ).map((item) => (
                       <Link
                         key={item.name}

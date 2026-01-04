@@ -2,72 +2,57 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { UserRole } from '@/types';
+import toast from 'react-hot-toast';
 import DashboardLayout from '@/components/dashboard/layout';
 
-interface PanService {
-  id: string;
-  title: string;
-  description: string;
+// Tab Components
+import NewPanTab from '@/components/pan-services/NewPanTab';
+import PanCorrectionTab from '@/components/pan-services/PanCorrectionTab';
+import IncompletePanTab from '@/components/pan-services/IncompletePanTab';
+import PanHistoryTab from '@/components/pan-services/PanHistoryTab';
+
+type TabType = 'new' | 'correction' | 'incomplete' | 'history';
+
+interface TabConfig {
+  id: TabType;
+  label: string;
   icon: string;
-  href: string;
-  price: number;
-  features: string[];
+  description: string;
 }
 
-const panServices: PanService[] = [
+const tabs: TabConfig[] = [
   {
-    id: 'new-pan',
-    title: 'New PAN Application',
-    description: 'Apply for a new PAN card with our secure payment-after-success system',
+    id: 'new',
+    label: 'New PAN',
     icon: '🆔',
-    href: '/dashboard/pan-services/new',
-    price: 107,
-    features: [
-      '💳 No upfront payment required',
-      '✅ Pay only after successful completion',
-      'EKYC (Instant PAN without signature)',
-      'ESIGN (PAN with signature and photo)',
-      'Instant processing',
-      'Digital delivery'
-    ]
+    description: 'Apply for a new PAN card'
   },
   {
-    id: 'pan-correction',
-    title: 'PAN Correction',
-    description: 'Correct errors in your existing PAN card - risk-free payment',
+    id: 'correction',
+    label: 'PAN Correction',
     icon: '✏️',
-    href: '/dashboard/pan-services/correction',
-    price: 107,
-    features: [
-      '💳 No upfront payment required',
-      '✅ Pay only after successful completion',
-      'Name correction',
-      'Date of birth correction',
-      'Address update',
-      'Photo update'
-    ]
+    description: 'Correct errors in existing PAN'
   },
   {
-    id: 'incomplete-pan',
-    title: 'Incomplete PAN',
-    description: 'Complete your pending PAN application with secure payment',
+    id: 'incomplete',
+    label: 'Incomplete PAN',
     icon: '📋',
-    href: '/dashboard/pan-services/incomplete',
-    price: 107,
-    features: [
-      '💳 No upfront payment required',
-      '✅ Pay only after successful completion',
-      'Resume incomplete application',
-      'Quick completion',
-      'Status tracking'
-    ]
+    description: 'Resume pending applications'
+  },
+  {
+    id: 'history',
+    label: 'Service History',
+    icon: '📊',
+    description: 'View all applications'
   }
 ];
 
 export default function PanServicesPage() {
   const { data: session } = useSession();
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<TabType>('new');
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const [loadingWallet, setLoadingWallet] = useState(false);
 
@@ -79,6 +64,15 @@ export default function PanServicesPage() {
       fetchWalletBalance();
     }
   }, [hasAccess]);
+
+  // Check URL parameters for tab selection
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get('tab') as TabType;
+    if (tab && tabs.find(t => t.id === tab)) {
+      setActiveTab(tab);
+    }
+  }, []);
 
   const fetchWalletBalance = async () => {
     setLoadingWallet(true);
@@ -95,6 +89,14 @@ export default function PanServicesPage() {
     } finally {
       setLoadingWallet(false);
     }
+  };
+
+  const handleTabChange = (tabId: TabType) => {
+    setActiveTab(tabId);
+    // Update URL without page reload
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', tabId);
+    window.history.replaceState({}, '', url.toString());
   };
 
   if (!hasAccess) {
@@ -116,7 +118,7 @@ export default function PanServicesPage() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">PAN Services</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Pan Services</h1>
           <p className="text-gray-600">Complete PAN card services with instant processing</p>
 
           {/* Wallet Balance */}
@@ -126,161 +128,155 @@ export default function PanServicesPage() {
               <span className="text-lg font-semibold text-green-600">
                 {loadingWallet ? '...' : `₹${walletBalance.toLocaleString()}`}
               </span>
+              <button
+                onClick={() => router.push('/dashboard/wallet')}
+                className="ml-2 px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
+              >
+                Add Money
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Services Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {panServices.map((service) => (
-            <div key={service.id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
-              <div className="p-6">
-                <div className="flex items-center mb-4">
-                  <span className="text-3xl mr-3">{service.icon}</span>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">{service.title}</h3>
-                    <p className="text-sm text-gray-600">{service.description}</p>
-                  </div>
-                </div>
-
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-gray-600">Service Fee:</span>
-                    <span className="text-lg font-bold text-blue-600">
-                      {service.price === 0 ? 'Free' : `₹${service.price}`}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="mb-6">
-                  <h4 className="text-sm font-medium text-gray-900 mb-2">Features:</h4>
-                  <ul className="text-sm text-gray-600 space-y-1">
-                    {service.features.map((feature, index) => (
-                      <li key={index} className="flex items-center">
-                        <span className="text-green-500 mr-2">✓</span>
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <Link
-                  href={service.href}
-                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 text-center block"
+        {/* Tab Navigation */}
+        <div className="bg-white rounded-lg shadow mb-6">
+          <div className="border-b border-gray-200">
+            <nav className="flex space-x-8 px-6" aria-label="Tabs">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => handleTabChange(tab.id)}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors duration-200 ${
+                    activeTab === tab.id
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
                 >
-                  Start Application
-                </Link>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Quick Links */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Links</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Link
-              href="/dashboard/pan-services/history"
-              className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200"
-            >
-              <span className="text-2xl mr-3">📊</span>
-              <div>
-                <h3 className="font-medium text-gray-900">Service History</h3>
-                <p className="text-sm text-gray-600">View all your PAN service applications</p>
-              </div>
-            </Link>
-
-            <Link
-              href="/dashboard/wallet"
-              className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200"
-            >
-              <span className="text-2xl mr-3">💰</span>
-              <div>
-                <h3 className="font-medium text-gray-900">Add Money to Wallet</h3>
-                <p className="text-sm text-gray-600">Top up your wallet for seamless transactions</p>
-              </div>
-            </Link>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-lg">{tab.icon}</span>
+                    <div className="text-left">
+                      <div className="font-medium">{tab.label}</div>
+                      <div className="text-xs text-gray-500">{tab.description}</div>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </nav>
           </div>
         </div>
 
-        {/* Important Notes */}
-        <div className="mt-8 bg-orange-50 border-2 border-orange-300 rounded-lg p-6">
-          <div className="flex items-start space-x-3 mb-4">
-            <span className="text-3xl">⚠️</span>
-            <div>
-              <h3 className="text-xl font-bold text-orange-900 mb-2">Important: Instant Payment System</h3>
-              <p className="text-sm text-orange-800 mb-3">
-                We follow InsPay's instant deduction model for faster processing and better tracking.
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-white rounded-lg p-4 border border-orange-200">
-              <h4 className="font-semibold text-orange-900 mb-2 flex items-center">
-                <span className="mr-2">💳</span> Payment Process
-              </h4>
-              <ul className="text-sm text-gray-700 space-y-1">
-                <li>• <strong>Instant deduction</strong> when you start application</li>
-                <li>• Amount debited from wallet immediately</li>
-                <li>• Order ID generated for tracking</li>
-                <li>• Visible in history instantly</li>
-              </ul>
-            </div>
-
-            <div className="bg-white rounded-lg p-4 border border-orange-200">
-              <h4 className="font-semibold text-orange-900 mb-2 flex items-center">
-                <span className="mr-2">⏰</span> 24-Hour Window
-              </h4>
-              <ul className="text-sm text-gray-700 space-y-1">
-                <li>• Complete application within 24 hours</li>
-                <li>• Auto-refund if not completed</li>
-                <li>• Full refund on failure</li>
-                <li>• Real-time status updates</li>
-              </ul>
-            </div>
-
-            <div className="bg-white rounded-lg p-4 border border-orange-200">
-              <h4 className="font-semibold text-orange-900 mb-2 flex items-center">
-                <span className="mr-2">✅</span> On Success
-              </h4>
-              <ul className="text-sm text-gray-700 space-y-1">
-                <li>• Commission credited instantly</li>
-                <li>• Application marked complete</li>
-                <li>• PAN details updated</li>
-                <li>• Receipt generated</li>
-              </ul>
-            </div>
-
-            <div className="bg-white rounded-lg p-4 border border-orange-200">
-              <h4 className="font-semibold text-orange-900 mb-2 flex items-center">
-                <span className="mr-2">💸</span> Refund Policy
-              </h4>
-              <ul className="text-sm text-gray-700 space-y-1">
-                <li>• Automatic refund on failure</li>
-                <li>• Refund if expired (24 hours)</li>
-                <li>• Amount returned to wallet</li>
-                <li>• No manual intervention needed</li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h4 className="font-semibold text-blue-900 mb-2">Application Modes:</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-blue-800">
-              <div>
-                <strong>EKYC (Recommended):</strong> Instant PAN without signature requirement. Faster processing.
-              </div>
-              <div>
-                <strong>ESIGN:</strong> PAN with signature and photo. Traditional processing method.
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4 text-sm text-orange-800">
-            <strong>Note:</strong> All applications are processed through NSDL official portal. Ensure you have sufficient wallet balance before starting.
-          </div>
+        {/* Tab Content */}
+        <div className="bg-white rounded-lg shadow">
+          {activeTab === 'new' && (
+            <NewPanTab 
+              walletBalance={walletBalance} 
+              onWalletUpdate={fetchWalletBalance}
+              router={router}
+            />
+          )}
+          {activeTab === 'correction' && (
+            <PanCorrectionTab 
+              walletBalance={walletBalance} 
+              onWalletUpdate={fetchWalletBalance}
+              router={router}
+            />
+          )}
+          {activeTab === 'incomplete' && (
+            <IncompletePanTab 
+              walletBalance={walletBalance} 
+              onWalletUpdate={fetchWalletBalance}
+              router={router}
+            />
+          )}
+          {activeTab === 'history' && (
+            <PanHistoryTab 
+              walletBalance={walletBalance} 
+              onWalletUpdate={fetchWalletBalance}
+              router={router}
+            />
+          )}
         </div>
+
+        {/* Important Notes - Only show on non-history tabs */}
+        {activeTab !== 'history' && (
+          <div className="mt-8 bg-blue-50 border-2 border-blue-300 rounded-lg p-6">
+            <div className="flex items-start space-x-3 mb-4">
+              <span className="text-3xl">💳</span>
+              <div>
+                <h3 className="text-xl font-bold text-blue-900 mb-2">New Payment Flow - Pay After Success</h3>
+                <p className="text-sm text-blue-800 mb-3">
+                  We've updated our payment system to charge you only after successful completion of your PAN application.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-white rounded-lg p-4 border border-blue-200">
+                <h4 className="font-semibold text-blue-900 mb-2 flex items-center">
+                  <span className="mr-2">🔒</span> No Upfront Payment
+                </h4>
+                <ul className="text-sm text-gray-700 space-y-1">
+                  <li>• <strong>Balance reserved</strong> but not deducted</li>
+                  <li>• Start application without payment</li>
+                  <li>• Order ID generated for tracking</li>
+                  <li>• Visible in history instantly</li>
+                </ul>
+              </div>
+
+              <div className="bg-white rounded-lg p-4 border border-blue-200">
+                <h4 className="font-semibold text-blue-900 mb-2 flex items-center">
+                  <span className="mr-2">✅</span> Payment on Success
+                </h4>
+                <ul className="text-sm text-gray-700 space-y-1">
+                  <li>• Money charged only after completion</li>
+                  <li>• No risk of losing money</li>
+                  <li>• Commission credited on success</li>
+                  <li>• Receipt generated automatically</li>
+                </ul>
+              </div>
+
+              <div className="bg-white rounded-lg p-4 border border-blue-200">
+                <h4 className="font-semibold text-blue-900 mb-2 flex items-center">
+                  <span className="mr-2">❌</span> No Charge on Failure
+                </h4>
+                <ul className="text-sm text-gray-700 space-y-1">
+                  <li>• If application fails, no charge</li>
+                  <li>• Reserved amount released automatically</li>
+                  <li>• No refund process needed</li>
+                  <li>• Complete transparency</li>
+                </ul>
+              </div>
+
+              <div className="bg-white rounded-lg p-4 border border-blue-200">
+                <h4 className="font-semibold text-blue-900 mb-2 flex items-center">
+                  <span className="mr-2">🚀</span> Better Experience
+                </h4>
+                <ul className="text-sm text-gray-700 space-y-1">
+                  <li>• Reduced payment anxiety</li>
+                  <li>• Faster application process</li>
+                  <li>• Better success tracking</li>
+                  <li>• Improved user confidence</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-4">
+              <h4 className="font-semibold text-green-900 mb-2">Application Modes:</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-green-800">
+                <div>
+                  <strong>EKYC (Recommended):</strong> Instant PAN without signature requirement. Faster processing.
+                </div>
+                <div>
+                  <strong>ESIGN:</strong> PAN with signature and photo. Traditional processing method.
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 text-sm text-blue-800">
+              <strong>Note:</strong> All applications are processed through NSDL official portal. Ensure you have sufficient wallet balance for reservation before starting.
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

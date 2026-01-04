@@ -1,0 +1,227 @@
+'use client';
+
+import { useState } from 'react';
+import { useSession } from 'next-auth/react';
+import toast from 'react-hot-toast';
+
+interface IncompletePanTabProps {
+  walletBalance: number;
+  onWalletUpdate: () => void;
+  router: any;
+}
+
+export default function IncompletePanTab({ walletBalance, onWalletUpdate, router }: IncompletePanTabProps) {
+  const { data: session } = useSession();
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    existing_order_id: ''
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!formData.existing_order_id.trim()) {
+      toast.error('Please enter your existing order ID');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch('/api/pan-services/incomplete-pan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success(data.message || 'Incomplete PAN application resumed successfully!', {
+          duration: 5000,
+          icon: '🚀'
+        });
+
+        if (data.data?.order_id) {
+          toast.success(`Order ID: ${data.data.order_id}`, {
+            duration: 8000,
+            icon: '📋'
+          });
+        }
+
+        if (data.data?.payment_note) {
+          toast(data.data.payment_note, {
+            duration: 6000,
+            icon: '💡'
+          });
+        }
+
+        if (data.data?.inspay_url) {
+          toast.loading('Opening PAN application portal...', { duration: 2000 });
+          setTimeout(() => {
+            window.location.href = data.data.inspay_url;
+          }, 1500);
+        } else {
+          setTimeout(() => {
+            router.push('/dashboard/pan-services?tab=history');
+          }, 2000);
+        }
+      } else {
+        toast.error(data.message || 'Failed to resume incomplete PAN application');
+      }
+    } catch (error) {
+      console.error('Error resuming incomplete PAN application:', error);
+      toast.error('An error occurred while processing your request');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="p-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Main Form */}
+        <div className="lg:col-span-2">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label htmlFor="existing_order_id" className="block text-sm font-medium text-gray-700 mb-2">
+                Existing Order ID *
+              </label>
+              <input
+                type="text"
+                id="existing_order_id"
+                value={formData.existing_order_id}
+                onChange={(e) => setFormData({ ...formData, existing_order_id: e.target.value })}
+                placeholder="Enter your existing PAN application order ID"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                This is the order ID from your previous incomplete PAN application
+              </p>
+            </div>
+
+            {/* Information Box */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="font-medium text-blue-800 mb-2">New Payment Flow - Pay After Success:</h4>
+              <ul className="text-sm text-blue-700 space-y-1">
+                <li>• ✅ No upfront payment required</li>
+                <li>• 💰 Payment deducted only after successful completion</li>
+                <li>• ❌ If application fails, no money will be charged</li>
+                <li>• 🔒 Your wallet balance is reserved but not deducted</li>
+                <li>• 📋 All previously entered data will be preserved</li>
+              </ul>
+            </div>
+
+            {/* How to Find Order ID */}
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <h4 className="font-medium text-yellow-800 mb-2">How to Find Your Order ID:</h4>
+              <ul className="text-sm text-yellow-700 space-y-1">
+                <li>• Check your email for the original application confirmation</li>
+                <li>• Look for SMS notifications from NSDL</li>
+                <li>• Check your PAN services history in this dashboard</li>
+                <li>• Contact support if you cannot locate your order ID</li>
+              </ul>
+            </div>
+
+            <div className="flex justify-end pt-6 border-t border-gray-200">
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
+              >
+                {loading ? 'Processing...' : 'Resume Application'}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Service Fee */}
+          <div className="bg-blue-50 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-blue-900 mb-4">💳 New Payment Flow</h3>
+            <div className="text-2xl font-bold text-blue-600 mb-2">
+              ₹107
+            </div>
+            <div className="space-y-2 text-sm text-blue-700">
+              <div className="flex items-center space-x-2">
+                <span className="text-blue-500">🔒</span>
+                <span>Balance reserved (not deducted)</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-blue-500">✅</span>
+                <span>Charged only after success</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-blue-500">❌</span>
+                <span>No charge if application fails</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Process Info */}
+          <div className="bg-green-50 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-green-900 mb-4">🚀 How It Works</h3>
+            <div className="space-y-3 text-sm text-green-800">
+              <div className="flex items-start space-x-2">
+                <span className="text-green-500 mt-1">1.</span>
+                <span>Enter your existing order ID</span>
+              </div>
+              <div className="flex items-start space-x-2">
+                <span className="text-green-500 mt-1">2.</span>
+                <span>Balance reserved (no deduction yet)</span>
+              </div>
+              <div className="flex items-start space-x-2">
+                <span className="text-green-500 mt-1">3.</span>
+                <span>Complete application on NSDL portal</span>
+              </div>
+              <div className="flex items-start space-x-2">
+                <span className="text-green-500 mt-1">4.</span>
+                <span><strong>Payment charged only on success!</strong></span>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Links */}
+          <div className="bg-gray-50 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Links</h3>
+            <div className="space-y-3">
+              <button
+                onClick={() => router.push('/dashboard/pan-services?tab=history')}
+                className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+              >
+                <div className="font-medium text-gray-900">View History</div>
+                <div className="text-sm text-gray-600">Check your previous applications</div>
+              </button>
+
+              <button
+                onClick={() => router.push('/dashboard/pan-services?tab=new')}
+                className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+              >
+                <div className="font-medium text-gray-900">New Application</div>
+                <div className="text-sm text-gray-600">Start a fresh PAN application</div>
+              </button>
+            </div>
+          </div>
+
+          {/* Support */}
+          <div className="bg-orange-50 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-orange-900 mb-4">Need Help?</h3>
+            <p className="text-sm text-orange-800 mb-3">
+              Can't find your order ID or facing issues?
+            </p>
+            <button
+              onClick={() => router.push('/dashboard/help-support')}
+              className="w-full bg-orange-600 text-white py-2 px-4 rounded-lg hover:bg-orange-700 transition-colors duration-200"
+            >
+              Contact Support
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

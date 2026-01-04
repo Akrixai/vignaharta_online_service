@@ -16,8 +16,9 @@ interface PanService {
   order_id: string;
   amount: number;
   status: 'PENDING' | 'SUCCESS' | 'FAILURE' | 'PROCESSING' | 'EXPIRED';
-  payment_status: 'PENDING' | 'DEBITED' | 'REFUNDED';
+  payment_status: 'PENDING' | 'RESERVED' | 'DEBITED' | 'CHARGED' | 'REFUNDED' | 'CANCELLED';
   payment_debited_at?: string;
+  payment_charged_at?: string;
   refund_processed: boolean;
   refund_processed_at?: string;
   expires_at?: string;
@@ -25,8 +26,13 @@ interface PanService {
   completed_at?: string;
   inspay_txid?: string;
   inspay_opid?: string;
+  acknowledgement_number?: string;
   inspay_url?: string;
   error_message?: string;
+  receipt_generated?: boolean;
+  receipt_generated_at?: string;
+  callback_data?: any;
+  callback_raw_data?: any;
   created_at: string;
   updated_at: string;
 }
@@ -61,6 +67,7 @@ export default function PanServicesHistoryPage() {
   const [filter, setFilter] = useState<string>('ALL');
   const [resuming, setResuming] = useState<string | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [downloadingReceipt, setDownloadingReceipt] = useState<string | null>(null);
 
   useEffect(() => {
     if (session?.user?.id) {
@@ -172,6 +179,44 @@ export default function PanServicesHistoryPage() {
     return `${minutes}m remaining`;
   };
 
+
+  const handleDownloadReceipt = async (orderId: string, format: 'json' | 'pdf' = 'pdf') => {
+    try {
+      setDownloadingReceipt(orderId);
+      
+      const response = await fetch(`/api/pan-services/receipt?order_id=${orderId}&format=${format}`);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        toast.error(errorData.message || 'Failed to generate receipt');
+        return;
+      }
+
+      if (format === 'pdf') {
+        // Download PDF
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `PAN_Receipt_${orderId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        toast.success('Receipt downloaded successfully!');
+      } else {
+        // Show JSON data
+        const data = await response.json();
+        console.log('Receipt data:', data);
+        toast.success('Receipt data generated successfully!');
+      }
+    } catch (error) {
+      console.error('Receipt download error:', error);
+      toast.error('Failed to download receipt');
+    } finally {
+      setDownloadingReceipt(null);
+    }
+  };
 
   const handleResume = async (orderId: string) => {
     try {
@@ -445,6 +490,27 @@ export default function PanServicesHistoryPage() {
                       </div>
                     )}
 
+                    {service.acknowledgement_number && service.acknowledgement_number !== 'Order is under process' && (
+                      <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-blue-600">🎯</span>
+                          <p className="text-sm text-blue-700 font-medium">
+                            Acknowledgement Number: {service.acknowledgement_number}
+                          </p>
+                        </div>
+                        <p className="text-xs text-blue-600 mt-1">
+                          Use this number to track your PAN application status with Income Tax Department
+                        </p>
+                      </div>
+                    )}
+
+                    {service.callback_data && service.status === 'SUCCESS' && (
+                      <div className="mt-3 text-sm">
+                        <span className="text-gray-500">Callback received:</span>
+                        <p className="font-medium">{service.webhook_received_at ? new Date(service.webhook_received_at).toLocaleString() : 'N/A'}</p>
+                      </div>
+                    )}
+
                     {service.error_message && (
                       <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
                         <p className="text-sm text-red-700">{service.error_message}</p>
@@ -486,12 +552,22 @@ export default function PanServicesHistoryPage() {
                     )}
 
                     {service.status === 'SUCCESS' && (
-                      <button
-                        onClick={() => toast.success('PAN application completed successfully!')}
-                        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
-                      >
-                        View Details
-                      </button>
+                      <div className="space-y-2">
+                        <button
+                          onClick={() => handleDownloadReceipt(service.order_id, 'pdf')}
+                          disabled={downloadingReceipt === service.order_id}
+                          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm w-full disabled:opacity-50"
+                        >
+                          {downloadingReceipt === service.order_id ? 'Generating...' : '📄 Download Receipt'}
+                        </button>
+                        
+                        {service.acknowledgement_number && service.acknowledgement_number !== 'Order is under process' && (
+                          <div className="text-xs text-center p-2 bg-green-50 rounded border">
+                            <div className="font-semibold text-green-800">Tracking Number:</div>
+                            <div className="font-mono text-green-700">{service.acknowledgement_number}</div>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>
