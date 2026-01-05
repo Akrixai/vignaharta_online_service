@@ -196,10 +196,11 @@ export default function ElectricityBillPage() {
                   fieldConfig.type = 'select';
                   fieldConfig.placeholder = 'Select your city';
                   fieldConfig.options = [
-                    { value: 'Surat', label: 'Surat (Corrected)' },
-                    { value: 'Ahmedabad', label: 'Ahmedabad (Corrected)' },
-                    { value: 'Bhiwandi', label: 'Bhiwandi / Kalwa / Mumbra (Corrected)' },
-                    { value: 'Agra', label: 'Agra (Corrected)' }
+                    { value: 'Ahmedabad', label: 'Ahmedabad' },
+                    { value: 'Agra', label: 'Agra' },
+                    { value: 'Surat', label: 'Surat' },
+                    { value: 'Bhiwandi', label: 'Bhiwandi' },
+                    { value: 'Shilmumbrakalwa', label: 'Shilmumbrakalwa' },
                   ] as FieldOption[];
                 } else {
                   // For other operators, keep as text input
@@ -248,10 +249,11 @@ export default function ElectricityBillPage() {
               kwikapi_param: 'opt1',
               description: 'Select your city for Torrent Power',
               options: [
-                { value: 'Surat', label: 'Surat (Corrected)' },
-                { value: 'Ahmedabad', label: 'Ahmedabad (Corrected)' },
-                { value: 'Bhiwandi', label: 'Bhiwandi / Kalwa / Mumbra (Corrected)' },
-                { value: 'Agra', label: 'Agra (Corrected)' }
+                { value: 'Ahmedabad', label: 'Ahmedabad' },
+                { value: 'Agra', label: 'Agra' },
+                { value: 'Surat', label: 'Surat' },
+                { value: 'Bhiwandi', label: 'Bhiwandi' },
+                { value: 'Shilmumbrakalwa', label: 'Shilmumbrakalwa' },
               ] as FieldOption[]
             });
           }
@@ -317,10 +319,11 @@ export default function ElectricityBillPage() {
             kwikapi_param: 'opt1',
             description: 'Select your city for Torrent Power',
             options: [
-              { value: 'Surat', label: 'Surat' },
               { value: 'Ahmedabad', label: 'Ahmedabad' },
-              { value: 'Bhiwandi', label: 'Bhiwandi / Kalwa / Mumbra' },
-              { value: 'Agra', label: 'Agra' }
+              { value: 'Agra', label: 'Agra' },
+              { value: 'Surat', label: 'Surat' },
+              { value: 'Bhiwandi', label: 'Bhiwandi' },
+              { value: 'Shilmumbrakalwa', label: 'Shilmumbrakalwa' },
             ] as FieldOption[]
           });
         } else {
@@ -381,10 +384,11 @@ export default function ElectricityBillPage() {
           kwikapi_param: 'opt1',
           description: 'Select your city for Torrent Power',
           options: [
-            { value: 'Surat', label: 'Surat' },
             { value: 'Ahmedabad', label: 'Ahmedabad' },
-            { value: 'Bhiwandi', label: 'Bhiwandi / Kalwa / Mumbra' },
-            { value: 'Agra', label: 'Agra' }
+            { value: 'Agra', label: 'Agra' },
+            { value: 'Surat', label: 'Surat' },
+            { value: 'Bhiwandi', label: 'Bhiwandi' },
+            { value: 'Shilmumbrakalwa', label: 'Shilmumbrakalwa' },
           ] as FieldOption[]
         });
       }

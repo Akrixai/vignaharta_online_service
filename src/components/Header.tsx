@@ -45,7 +45,7 @@ export default function Header() {
             <Link href={language === 'en' ? '/' : `/${language}`} className="flex-shrink-0">
               <Logo size="md" showText={true} animated={true} />
             </Link>
-            <div className="hidden xl:block flex-shrink-0">
+            <div className="hidden 2xl:block flex-shrink-0">
               <span className="text-white/90 text-xs xl:text-sm font-medium animate-fade-in whitespace-nowrap">
                 {t.onlineServicePortal}
               </span>
@@ -56,29 +56,37 @@ export default function Header() {
           </div>
 
           {/* Center Section - Navigation & New Badge */}
-          <div className="hidden lg:flex items-center space-x-1 lg:space-x-2 xl:space-x-3 flex-1 justify-center min-w-0">
-            <nav className="flex items-center space-x-0.5 lg:space-x-1 xl:space-x-2">
-              <Link href={language === 'en' ? '/about' : `/${language}/about`} className="text-white hover:text-red-200 px-1.5 lg:px-2 xl:px-3 py-1.5 lg:py-2 rounded-lg text-[10px] lg:text-xs xl:text-sm font-medium transform hover:scale-105 transition-all duration-200 hover:bg-red-700/50 relative group whitespace-nowrap">
+          <div className="hidden lg:flex items-center space-x-1 xl:space-x-2 flex-1 justify-center min-w-0 px-2">
+            <nav className="flex items-center space-x-0.5 xl:space-x-1 overflow-hidden">
+              <Link href={language === 'en' ? '/about' : `/${language}/about`} className="text-white hover:text-red-200 px-2 py-2 rounded-lg text-xs xl:text-sm font-bold transform hover:scale-105 transition-all duration-200 hover:bg-red-700/50 relative group whitespace-nowrap">
                 {t.about}
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
               </Link>
-              <Link href={language === 'en' ? '/services' : `/${language}/services`} className="text-white hover:text-red-200 px-1.5 lg:px-2 xl:px-3 py-1.5 lg:py-2 rounded-lg text-[10px] lg:text-xs xl:text-sm font-medium transform hover:scale-105 transition-all duration-200 hover:bg-red-700/50 relative group whitespace-nowrap">
+              <Link href={language === 'en' ? '/services' : `/${language}/services`} className="text-white hover:text-red-200 px-2 py-2 rounded-lg text-xs xl:text-sm font-bold transform hover:scale-105 transition-all duration-200 hover:bg-red-700/50 relative group whitespace-nowrap">
                 {t.services}
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
               </Link>
-              <Link href="/products" className="text-white hover:text-red-200 px-1.5 lg:px-2 xl:px-3 py-1.5 lg:py-2 rounded-lg text-[10px] lg:text-xs xl:text-sm font-medium transform hover:scale-105 transition-all duration-200 hover:bg-red-700/50 relative group whitespace-nowrap">
+              <Link href="/it-services" className="text-white hover:text-red-200 px-2 py-2 rounded-lg text-xs xl:text-sm font-bold transform hover:scale-105 transition-all duration-200 hover:bg-red-700/50 relative group whitespace-nowrap">
+                IT Services
+                <span className="absolute top-0 right-0 -mr-1 -mt-1 flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
+                </span>
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
+              </Link>
+              <Link href="/products" className="text-white hover:text-red-200 px-2 py-2 rounded-lg text-xs xl:text-sm font-bold transform hover:scale-105 transition-all duration-200 hover:bg-red-700/50 relative group whitespace-nowrap">
                 Products
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
               </Link>
-              <Link href={language === 'en' ? '/contact' : `/${language}/contact`} className="text-white hover:text-red-200 px-1.5 lg:px-2 xl:px-3 py-1.5 lg:py-2 rounded-lg text-[10px] lg:text-xs xl:text-sm font-medium transform hover:scale-105 transition-all duration-200 hover:bg-red-700/50 relative group whitespace-nowrap">
+              <Link href={language === 'en' ? '/contact' : `/${language}/contact`} className="text-white hover:text-red-200 px-2 py-2 rounded-lg text-xs xl:text-sm font-bold transform hover:scale-105 transition-all duration-200 hover:bg-red-700/50 relative group whitespace-nowrap">
                 {t.contact}
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
               </Link>
             </nav>
 
-            {/* New Features Notification Badge */}
+            {/* New Features Notification Badge - Hidden on smaller desktops */}
             {showNotification && (
-              <div className="hidden xl:flex items-center animate-fade-in">
+              <div className="hidden 2xl:flex items-center animate-fade-in ml-2">
                 <div className="relative group flex items-center bg-gradient-to-r from-yellow-400/20 to-orange-400/20 border border-yellow-400/30 rounded-full pl-2 pr-1 py-1">
                   <Link href="/whats-new" className="flex items-center gap-1 mr-1">
                     <span className="relative flex h-2 w-2 flex-shrink-0">
@@ -104,6 +112,7 @@ export default function Header() {
               </div>
             )}
           </div>
+
 
           {/* Right Section - Actions */}
           <div className="flex items-center space-x-0.5 sm:space-x-1 md:space-x-2 flex-shrink-0 min-w-0">

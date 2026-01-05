@@ -500,6 +500,77 @@ export default function LandingPageClient() {
               </div>
             </div>
 
+            {/* Premium IT Solutions Section */}
+            <div className="relative mb-16 group">
+              <div className="absolute inset-0 bg-gradient-to-r from-red-600/10 via-orange-600/10 to-red-600/10 blur-3xl rounded-[3rem] opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+              <div className="relative bg-white text-gray-900 rounded-[3rem] p-8 md:p-12 shadow-2xl overflow-hidden border border-red-100 group-hover:border-red-500/30 transition-all duration-500">
+                {/* Decorative Elements */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-red-100 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 opacity-50"></div>
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-orange-100 rounded-full blur-[80px] translate-y-1/2 -translate-x-1/2 opacity-50"></div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
+                  <div className="text-left space-y-6">
+                    <div className="inline-flex items-center px-4 py-2 rounded-full bg-red-50 border border-red-100 text-red-600 text-xs font-bold tracking-widest uppercase">
+                      <span className="relative flex h-2 w-2 mr-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
+                      </span>
+                      Now Launching: Premium IT Solutions
+                    </div>
+                    <h2 className="text-3xl md:text-5xl font-black leading-tight text-gray-900">
+                      Transform Your Business with <br />
+                      <span className="bg-gradient-to-r from-red-600 via-orange-600 to-red-700 bg-clip-text text-transparent">Next-Gen Technology</span>
+                    </h2>
+                    <p className="text-gray-600 text-lg font-bold leading-relaxed max-w-lg">
+                      Beyond government services, we now provide end-to-end IT solutions. From stunning websites to powerful mobile apps and AI-driven insights.
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      {[
+                        { icon: "🌐", label: "Web Dev" },
+                        { icon: "📱", label: "App Dev" },
+                        { icon: "🤖", label: "AI & ML" },
+                        { icon: "📈", label: "Marketing" }
+                      ].map((item, i) => (
+                        <div key={i} className="flex items-center gap-3 p-3 rounded-2xl bg-red-50 border border-red-100 group-hover:bg-red-100 transition-colors">
+                          <span className="text-xl">{item.icon}</span>
+                          <span className="font-bold text-sm text-red-600">{item.label}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="pt-4">
+                      <Link href="/it-services" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-red-600 to-red-700 rounded-2xl font-black text-white hover:shadow-[0_0_30px_rgba(239,68,68,0.4)] transition-all transform hover:-translate-y-1">
+                        Discover IT Services
+                        <span className="text-xl">→</span>
+                      </Link>
+                    </div>
+                  </div>
+
+                  <div className="relative group/img">
+                    <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-orange-600 rounded-3xl blur-xl opacity-10 group-hover/img:opacity-20 transition-opacity"></div>
+                    <div className="relative rounded-[2.5rem] overflow-hidden border border-red-100 aspect-video lg:aspect-square shadow-xl">
+                      <Image
+                        src="/images/it-services-hero.png"
+                        alt="IT Services"
+                        fill
+                        className="object-cover transform group-hover/img:scale-110 transition-transform duration-700"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-white/20 via-transparent to-transparent"></div>
+                      <div className="absolute bottom-6 left-6 right-6">
+                        <div className="p-4 rounded-2xl bg-white/80 backdrop-blur-md border border-red-100 shadow-lg">
+                          <div className="text-xs font-bold text-red-600 uppercase tracking-tighter mb-1">Featured Solution</div>
+                          <div className="text-sm font-bold text-gray-900">Custom Enterprise AI Dashboards</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+
             {/* Enhanced Stats Section with Animated Counters */}
             <StatsDisplay stats={serviceStats} />
 

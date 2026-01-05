@@ -27,10 +27,11 @@ export async function GET(request: NextRequest) {
         // City options for Torrent Power operators
         if (operatorCode?.includes('TORRENT') || operatorCode?.includes('torrent')) {
           options = [
-            { value: 'SURAT', label: 'Surat' },
-            { value: 'AHMEDABAD', label: 'Ahmedabad' },
-            { value: 'BHIWANDI', label: 'Bhiwandi' },
-            { value: 'AGRA', label: 'Agra' },
+            { value: 'Ahmedabad', label: 'Ahmedabad' },
+            { value: 'Agra', label: 'Agra' },
+            { value: 'Surat', label: 'Surat' },
+            { value: 'Bhiwandi', label: 'Bhiwandi' },
+            { value: 'Shilmumbrakalwa', label: 'Shilmumbrakalwa' },
           ];
         } else {
           // Generic city options
