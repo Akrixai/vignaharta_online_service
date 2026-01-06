@@ -187,8 +187,7 @@ export async function GET(request: NextRequest) {
 /**
  * Process successful PAN application
  * - Charge payment from wallet
- * - Process commission
- * - Generate receipt
+ * - Record transaction
  */
 async function processSuccessfulPanApplication(panService: any, updateData: any) {
   try {
@@ -198,65 +197,74 @@ async function processSuccessfulPanApplication(panService: any, updateData: any)
       return;
     }
 
-    // Get current wallet balance
-    const { data: wallet } = await supabase
-      .from('wallets')
-      .select('id, balance')
-      .eq('user_id', panService.user_id)
-      .single();
-
-    if (!wallet) {
-      console.error('❌ Wallet not found for user:', panService.user_id);
-      return;
-    }
-
-    const amountToCharge = parseFloat(panService.amount);
-
-    // Check if payment was already charged
+    // Check if payment was already charged to avoid double deduction
     if (panService.payment_status === 'CHARGED') {
       console.log('💰 Payment already charged for:', panService.order_id);
       return;
     }
 
-    // Charge payment from wallet
-    const newBalance = wallet.balance - amountToCharge;
-
-    await supabase
+    // Get current wallet balance - ALWAYS fetch fresh balance before update
+    const { data: wallet, error: walletError } = await supabase
       .from('wallets')
-      .update({ balance: newBalance })
-      .eq('user_id', panService.user_id);
+      .select('id, balance')
+      .eq('user_id', panService.user_id)
+      .single();
 
-    // Record transaction
+    if (walletError || !wallet) {
+      console.error('❌ Wallet not found for user:', panService.user_id);
+      return;
+    }
+
+    const amountToCharge = parseFloat(panService.amount || '0');
+    if (amountToCharge <= 0) {
+      console.log('⚠️ No amount to charge for PAN service:', panService.order_id);
+      return;
+    }
+
+    // Deduct payment from wallet
+    const currentBalance = parseFloat(wallet.balance.toString());
+    const newBalance = currentBalance - amountToCharge;
+
+    console.log(`💸 Charging ₹${amountToCharge} from wallet. Balance: ${currentBalance} -> ${newBalance}`);
+
+    const { error: balanceUpdateError } = await supabase
+      .from('wallets')
+      .update({
+        balance: newBalance,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', wallet.id);
+
+    if (balanceUpdateError) {
+      console.error('❌ Failed to update wallet balance:', balanceUpdateError);
+      throw balanceUpdateError;
+    }
+
+    // Record formal withdrawal transaction
     await supabase.from('transactions').insert({
       user_id: panService.user_id,
       wallet_id: wallet.id,
       type: 'WITHDRAWAL',
       amount: amountToCharge,
       status: 'COMPLETED',
-      description: `${panService.service_type} - ${panService.order_id}`,
+      description: `Payment for ${getServiceTypeName(panService.service_type)} application - ${panService.order_id}`,
       reference: panService.order_id,
       metadata: {
         pan_service_id: panService.id,
         service_type: panService.service_type,
-        mobile_number: panService.mobile_number
+        mobile_number: panService.mobile_number,
+        payment_mode: panService.mode
       }
     });
 
-    // Update payment status
+    // Update payment status for the main PAN service record
     updateData.payment_status = 'CHARGED';
     updateData.payment_charged_at = new Date().toISOString();
 
-    // Process commission for retailers
-    if (user.role === 'RETAILER' && !panService.commission_processed) {
-      await processCommission(panService, wallet);
-      updateData.commission_processed = true;
-      updateData.commission_processed_at = new Date().toISOString();
-    }
-
-    console.log('✅ Payment charged successfully for:', panService.order_id);
+    console.log('✅ Payment charged and transaction recorded successfully for:', panService.order_id);
 
   } catch (error) {
-    console.error('❌ Error processing successful PAN application:', error);
+    console.error('❌ Error in processSuccessfulPanApplication:', error);
   }
 }
 
@@ -267,13 +275,13 @@ async function processSuccessfulPanApplication(panService: any, updateData: any)
  */
 async function processFailedPanApplication(panService: any, updateData: any) {
   try {
-    // If payment was reserved but not charged, release it
+    // If payment was reserved but not charged, release it by marking as CANCELLED
     if (panService.payment_status === 'RESERVED') {
       updateData.payment_status = 'CANCELLED';
-      console.log('🔓 Payment reservation released for failed application:', panService.order_id);
+      console.log('🔓 Payment reservation released (marked CANCELLED) for failed application:', panService.order_id);
     }
 
-    // If payment was already debited (legacy), process refund
+    // If payment was already debited (older system/legacy), process refund
     if (panService.payment_status === 'DEBITED' && !panService.refund_processed) {
       await processRefund(panService);
       updateData.refund_processed = true;
@@ -281,64 +289,10 @@ async function processFailedPanApplication(panService: any, updateData: any) {
       updateData.payment_status = 'REFUNDED';
     }
 
-    console.log('✅ Failed PAN application processed:', panService.order_id);
+    console.log('✅ Failed PAN application status handling completed:', panService.order_id);
 
   } catch (error) {
-    console.error('❌ Error processing failed PAN application:', error);
-  }
-}
-
-/**
- * Process commission for retailers
- */
-async function processCommission(panService: any, wallet: any) {
-  try {
-    // Get commission configuration
-    const { data: commissionConfig } = await supabase
-      .from('pan_commission_config')
-      .select('*')
-      .eq('service_type', panService.service_type)
-      .eq('is_active', true)
-      .single();
-
-    if (!commissionConfig) {
-      console.log('⚠️ No commission config found for:', panService.service_type);
-      return;
-    }
-
-    const commissionAmount = parseFloat(commissionConfig.price || '0');
-
-    if (commissionAmount <= 0) {
-      console.log('⚠️ No commission amount configured for:', panService.service_type);
-      return;
-    }
-
-    // Add commission to wallet
-    await supabase
-      .from('wallets')
-      .update({ balance: wallet.balance + commissionAmount })
-      .eq('user_id', panService.user_id);
-
-    // Record commission transaction
-    await supabase.from('transactions').insert({
-      user_id: panService.user_id,
-      wallet_id: wallet.id,
-      type: 'COMMISSION',
-      amount: commissionAmount,
-      status: 'COMPLETED',
-      description: `Commission for ${panService.service_type} - ${panService.order_id}`,
-      reference: panService.order_id,
-      metadata: {
-        pan_service_id: panService.id,
-        service_type: panService.service_type,
-        commission_config_id: commissionConfig.id
-      }
-    });
-
-    console.log('💰 Commission processed:', commissionAmount, 'for:', panService.order_id);
-
-  } catch (error) {
-    console.error('❌ Error processing commission:', error);
+    console.error('❌ Error in processFailedPanApplication:', error);
   }
 }
 
@@ -401,4 +355,13 @@ async function processRefund(panService: any) {
 // POST endpoint for testing
 export async function POST(request: NextRequest) {
   return GET(request);
+}
+
+function getServiceTypeName(serviceType: string): string {
+  const names = {
+    'NEW_PAN': 'New PAN',
+    'PAN_CORRECTION': 'PAN Correction',
+    'INCOMPLETE_PAN': 'Incomplete PAN'
+  };
+  return names[serviceType as keyof typeof names] || serviceType;
 }
