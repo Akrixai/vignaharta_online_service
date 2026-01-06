@@ -501,21 +501,31 @@ export default function PanServicesHistoryPage() {
                           </p>
                         </div>
                         <p className="text-xs text-blue-600 mt-1">
-                          Use this number to track your PAN application status with Income Tax Department
+                          Use this number to track your PAN application status with NSDL
                         </p>
+                        <div className="mt-3">
+                          <a
+                            href="https://tin.tin.proteantech.in/tan2/servlet/PanStatusTrack"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded hover:bg-blue-700 transition-colors"
+                          >
+                            🔍 Track Status on NSDL
+                          </a>
+                        </div>
                       </div>
                     )}
 
-                    {service.callback_data && service.status === 'SUCCESS' && (
+                    {service.status === 'SUCCESS' && (
                       <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
                         <div className="flex items-center space-x-2">
-                          <span className="text-green-600">📞</span>
+                          <span className="text-green-600">✅</span>
                           <p className="text-sm text-green-700 font-medium">
-                            Callback received: {service.webhook_received_at ? new Date(service.webhook_received_at).toLocaleString() : 'N/A'}
+                            Application successfully completed and status confirmed.
                           </p>
                         </div>
                         <p className="text-xs text-green-600 mt-1">
-                          Application status confirmed via real-time callback from InsPay
+                          Your PAN application has been processed successfully via NSDL e-Gov.
                         </p>
                       </div>
                     )}
@@ -582,13 +592,28 @@ export default function PanServicesHistoryPage() {
 
                     {service.status === 'SUCCESS' && (
                       <div className="space-y-2">
-                        <button
-                          onClick={() => handleDownloadReceipt(service.order_id, 'pdf')}
-                          disabled={downloadingReceipt === service.order_id}
-                          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm w-full disabled:opacity-50"
-                        >
-                          {downloadingReceipt === service.order_id ? 'Generating...' : '📄 Download Receipt'}
-                        </button>
+                        <div className="space-y-2">
+                          <button
+                            onClick={() => handleDownloadReceipt(service.order_id, 'pdf')}
+                            disabled={downloadingReceipt === service.order_id}
+                            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm w-full disabled:opacity-50 flex items-center justify-center gap-2"
+                          >
+                            {downloadingReceipt === service.order_id ? 'Generating...' : (
+                              <>
+                                <span>📥</span> Download
+                              </>
+                            )}
+                          </button>
+
+                          <a
+                            href={`/api/pan-services/receipt?order_id=${service.order_id}&format=pdf`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="bg-blue-50 text-blue-700 border border-blue-200 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors text-sm w-full text-center flex items-center justify-center gap-2"
+                          >
+                            <span>👁️</span> View Receipt
+                          </a>
+                        </div>
 
                         {service.acknowledgement_number && service.acknowledgement_number !== 'Order is under process' && (
                           <div className="text-xs text-center p-2 bg-green-50 rounded border">

@@ -7,7 +7,7 @@ import { authOptions } from '@/lib/auth';
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
 
     if (userRole === 'RETAILER' || userRole === 'CUSTOMER') {
       // Customer/Retailer specific stats
-      
+
       // Get wallet balance
       const { data: wallet } = await supabaseAdmin
         .from('wallets')
@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
     } else if (userRole === 'EMPLOYEE') {
       // Employee specific stats
       const designation = (session.user as any).designation;
-      
+
       // Get pending applications count
       const { data: pendingApps, count: pendingCount } = await supabaseAdmin
         .from('applications')
@@ -182,7 +182,7 @@ export async function GET(request: NextRequest) {
 
         const currentMonthCount = lastMonthApps?.length || 0;
         const previousMonthCount = twoMonthsAgoApps?.length || 0;
-        const monthlyGrowth = previousMonthCount > 0 
+        const monthlyGrowth = previousMonthCount > 0
           ? Math.round(((currentMonthCount - previousMonthCount) / previousMonthCount) * 100)
           : 0;
 
@@ -225,7 +225,7 @@ export async function GET(request: NextRequest) {
       } else if (designation === 'STATE_MANAGER') {
         // State Manager stats
         const territoryState = (session.user as any).territory_state;
-        
+
         const { data: districtManagers, count: districtManagerCount } = await supabaseAdmin
           .from('users')
           .select('id', { count: 'exact' })
@@ -255,7 +255,7 @@ export async function GET(request: NextRequest) {
       } else if (designation === 'DISTRICT_MANAGER') {
         // District Manager stats
         const territoryDistrict = (session.user as any).territory_district;
-        
+
         const { data: supervisors, count: supervisorCount } = await supabaseAdmin
           .from('users')
           .select('id', { count: 'exact' })
@@ -285,7 +285,7 @@ export async function GET(request: NextRequest) {
       } else if (designation === 'SUPERVISOR') {
         // Supervisor stats
         const territoryArea = (session.user as any).territory_area;
-        
+
         const { data: retailers, count: retailerCount } = await supabaseAdmin
           .from('users')
           .select('id', { count: 'exact' })
@@ -328,7 +328,7 @@ export async function GET(request: NextRequest) {
 
     } else if (userRole === 'ADMIN') {
       // Admin specific stats
-      
+
       // Get user counts by role
       const { data: users } = await supabaseAdmin
         .from('users')
@@ -382,7 +382,7 @@ export async function GET(request: NextRequest) {
       }, {}) || {};
 
       const topSchemes = Object.entries(schemeStats)
-        .sort(([,a]: any, [,b]: any) => b - a)
+        .sort(([, a]: any, [, b]: any) => b - a)
         .slice(0, 5)
         .map(([name, count]) => ({ name, applications: count }));
 

@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
           id,
           name,
           email,
-          mobile_number,
+          phone,
           role
         )
       `)
@@ -67,42 +67,42 @@ export async function GET(request: NextRequest) {
       mode: panService.mode,
       amount: panService.amount,
       status: panService.status,
-      
+
       // Payment Information
       payment_status: panService.payment_status,
       payment_charged_at: panService.payment_charged_at,
-      
+
       // InsPay Details
       inspay_txid: panService.inspay_txid,
       inspay_opid: panService.inspay_opid,
       acknowledgement_number: panService.acknowledgement_number || panService.inspay_opid,
-      
+
       // Callback Information
       callback_data: panService.callback_data,
       callback_raw_data: panService.callback_raw_data,
       webhook_received_at: panService.webhook_received_at,
-      
+
       // Timestamps
       created_at: panService.created_at,
       completed_at: panService.completed_at,
       updated_at: panService.updated_at,
-      
+
       // User Information
       user: {
         name: panService.users.name,
         email: panService.users.email,
-        mobile: panService.users.mobile_number,
+        mobile: panService.users.phone,
         role: panService.users.role
       },
-      
+
       // Company Information
       company: {
-        name: 'Vighnaharta Online Services',
+        name: 'Vighnaharta Online Services Private Limited',
         address: 'India',
         website: 'https://vighnahartaonlineservices.com',
         support_email: 'support@vighnahartaonlineservices.com'
       },
-      
+
       // Receipt Metadata
       receipt_generated_at: new Date().toISOString(),
       receipt_id: `RCP_${panService.order_id}_${Date.now()}`
@@ -126,11 +126,11 @@ export async function GET(request: NextRequest) {
     if (format === 'pdf') {
       // Generate PDF receipt
       const pdfBuffer = await generatePDFReceipt(receiptData);
-      
+
       return new NextResponse(pdfBuffer, {
         headers: {
           'Content-Type': 'application/pdf',
-          'Content-Disposition': `attachment; filename="PAN_Receipt_${panService.order_id}.pdf"`
+          'Content-Disposition': `inline; filename="PAN_Receipt_${panService.order_id}.pdf"`
         }
       });
     }
@@ -152,169 +152,190 @@ export async function GET(request: NextRequest) {
 }
 
 async function generatePDFReceipt(receiptData: any): Promise<Buffer> {
-  const pdf = new jsPDF();
-  
-  // Set font
-  pdf.setFont('helvetica');
-  
-  // Header
-  pdf.setFontSize(20);
-  pdf.setTextColor(220, 38, 38); // Red color
-  pdf.text(receiptData.company.name, 105, 20, { align: 'center' });
-  
-  pdf.setFontSize(12);
-  pdf.setTextColor(0, 0, 0);
-  pdf.text('PAN Services Provider', 105, 30, { align: 'center' });
-  
-  pdf.setFontSize(16);
-  pdf.text('Service Receipt', 105, 45, { align: 'center' });
-  
-  // Success badge
+  const pdf = new jsPDF('p', 'mm', 'a4');
+  const pageWidth = pdf.internal.pageSize.getWidth();
+
+  // Color Palette
+  const colors = {
+    primary: [220, 38, 38], // Red
+    secondary: [37, 99, 235], // Blue
+    success: [16, 185, 129], // Green
+    background: [249, 250, 251], // Light Gray
+    text: [31, 41, 55], // Dark Gray
+    lightText: [107, 114, 128] // Medium Gray
+  };
+
+  // 1. Header Section
+  pdf.setFillColor(254, 242, 242); // Very light red
+  pdf.rect(0, 0, pageWidth, 40, 'F');
+
+  // Company Logo/Name
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(22);
+  pdf.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
+  pdf.text('VIGHNAHARTA', pageWidth / 2, 18, { align: 'center' });
+
   pdf.setFontSize(10);
-  pdf.setFillColor(16, 185, 129); // Green
+  pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(colors.lightText[0], colors.lightText[1], colors.lightText[2]);
+  pdf.text('ONLINE SERVICES PRIVATE LIMITED', pageWidth / 2, 24, { align: 'center', charSpace: 2 });
+
+  pdf.setFontSize(9);
+  pdf.text('Official Digital Service Partner', pageWidth / 2, 32, { align: 'center' });
+
+  // 2. Receipt Title & Status
+  let yPos = 55;
+  pdf.setFontSize(18);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
+  pdf.text('SERVICE PAYMENT RECEIPT', 20, yPos);
+
+  // Success Badge
+  pdf.setFillColor(colors.success[0], colors.success[1], colors.success[2]);
+  pdf.roundedRect(pageWidth - 65, yPos - 8, 45, 12, 6, 6, 'F');
   pdf.setTextColor(255, 255, 255);
-  pdf.roundedRect(85, 50, 40, 8, 3, 3, 'F');
-  pdf.text('✓ COMPLETED', 105, 56, { align: 'center' });
-  
-  // Reset color
-  pdf.setTextColor(0, 0, 0);
-  
-  let yPos = 75;
-  
-  // Service Details Section
-  pdf.setFontSize(14);
-  pdf.setTextColor(220, 38, 38);
-  pdf.text('Service Details', 20, yPos);
-  yPos += 10;
-  
   pdf.setFontSize(10);
-  pdf.setTextColor(0, 0, 0);
-  
-  const serviceDetails = [
-    ['Receipt ID:', receiptData.receipt_id],
-    ['Order ID:', receiptData.order_id],
-    ['Service Type:', getServiceTypeName(receiptData.service_type)],
-    ['Mode:', receiptData.mode],
-    ['Mobile Number:', receiptData.mobile_number],
-    ['Amount Paid:', `₹${receiptData.amount}`]
-  ];
-  
-  serviceDetails.forEach(([label, value]) => {
-    pdf.text(label, 20, yPos);
-    pdf.text(value, 80, yPos);
-    yPos += 7;
-  });
-  
-  yPos += 10;
-  
-  // Tracking Information (if available)
-  if (receiptData.acknowledgement_number && receiptData.acknowledgement_number !== 'Order is under process') {
-    pdf.setFontSize(14);
-    pdf.setTextColor(220, 38, 38);
-    pdf.text('Tracking Information', 20, yPos);
-    yPos += 10;
-    
-    // Tracking box
-    pdf.setFillColor(243, 244, 246); // Light gray
-    pdf.roundedRect(20, yPos - 5, 170, 25, 3, 3, 'F');
-    
-    pdf.setFontSize(10);
-    pdf.setTextColor(0, 0, 0);
-    pdf.text('PAN Application Acknowledgement Number', 105, yPos + 3, { align: 'center' });
-    
-    pdf.setFontSize(14);
-    pdf.setTextColor(220, 38, 38);
-    pdf.text(receiptData.acknowledgement_number, 105, yPos + 12, { align: 'center' });
-    
-    pdf.setFontSize(8);
-    pdf.setTextColor(100, 100, 100);
-    pdf.text('Use this number to track your PAN application status', 105, yPos + 20, { align: 'center' });
-    
-    yPos += 35;
-  }
-  
-  // Payment Information
-  pdf.setFontSize(14);
-  pdf.setTextColor(220, 38, 38);
-  pdf.text('Payment Information', 20, yPos);
-  yPos += 10;
-  
+  pdf.text('✓ SUCCESSFUL', pageWidth - 42.5, yPos, { align: 'center' });
+
+  yPos += 15;
+
+  // 3. NSDL Branding Section
+  pdf.setFillColor(243, 244, 246);
+  pdf.roundedRect(20, yPos, pageWidth - 40, 25, 3, 3, 'F');
+
   pdf.setFontSize(10);
-  pdf.setTextColor(0, 0, 0);
-  
-  const paymentDetails = [
-    ['Payment Status:', receiptData.payment_status],
-    ['Payment Date:', new Date(receiptData.payment_charged_at).toLocaleString()],
-    ['Transaction ID:', receiptData.inspay_txid]
-  ];
-  
-  paymentDetails.forEach(([label, value]) => {
-    pdf.text(label, 20, yPos);
-    pdf.text(value, 80, yPos);
-    yPos += 7;
-  });
-  
-  yPos += 10;
-  
-  // Customer Information
-  pdf.setFontSize(14);
-  pdf.setTextColor(220, 38, 38);
-  pdf.text('Customer Information', 20, yPos);
-  yPos += 10;
-  
-  pdf.setFontSize(10);
-  pdf.setTextColor(0, 0, 0);
-  
-  const customerDetails = [
-    ['Name:', receiptData.user.name],
-    ['Email:', receiptData.user.email],
-    ['Mobile:', receiptData.user.mobile]
-  ];
-  
-  customerDetails.forEach(([label, value]) => {
-    pdf.text(label, 20, yPos);
-    pdf.text(value, 80, yPos);
-    yPos += 7;
-  });
-  
-  yPos += 10;
-  
-  // Service Timeline
-  pdf.setFontSize(14);
-  pdf.setTextColor(220, 38, 38);
-  pdf.text('Service Timeline', 20, yPos);
-  yPos += 10;
-  
-  pdf.setFontSize(10);
-  pdf.setTextColor(0, 0, 0);
-  
-  const timelineDetails = [
-    ['Application Date:', new Date(receiptData.created_at).toLocaleString()],
-    ['Completion Date:', new Date(receiptData.completed_at).toLocaleString()],
-    ['Receipt Generated:', new Date(receiptData.receipt_generated_at).toLocaleString()]
-  ];
-  
-  timelineDetails.forEach(([label, value]) => {
-    pdf.text(label, 20, yPos);
-    pdf.text(value, 80, yPos);
-    yPos += 7;
-  });
-  
-  // Footer
-  yPos = 270; // Fixed position for footer
-  pdf.setDrawColor(200, 200, 200);
-  pdf.line(20, yPos - 5, 190, yPos - 5);
-  
-  pdf.setFontSize(10);
-  pdf.setTextColor(0, 0, 0);
-  pdf.text(receiptData.company.name, 105, yPos, { align: 'center' });
-  pdf.text(`Website: ${receiptData.company.website}`, 105, yPos + 7, { align: 'center' });
-  pdf.text(`Support: ${receiptData.company.support_email}`, 105, yPos + 14, { align: 'center' });
-  
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
+  pdf.text('OFFICIAL NSDL e-GOV PORTAL PARTNER', 30, yPos + 10);
+
+  pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(8);
-  pdf.setTextColor(100, 100, 100);
-  pdf.text('This is a computer-generated receipt. No signature required.', 105, yPos + 25, { align: 'center' });
-  
+  pdf.setTextColor(colors.lightText[0], colors.lightText[1], colors.lightText[2]);
+  pdf.text('Securely processed via NSDL (Protean) Digital Infrastructure', 30, yPos + 18);
+
+  // NSDL Initials on the right
+  pdf.setFontSize(16);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(200, 200, 200);
+  pdf.text('NSDL', pageWidth - 45, yPos + 15, { align: 'center' });
+
+  yPos += 35;
+
+  // 4. Main Service Details
+  pdf.setFontSize(14);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
+  pdf.text('Service Information', 20, yPos);
+
+  yPos += 8;
+  pdf.setDrawColor(229, 231, 235);
+  pdf.line(20, yPos, pageWidth - 20, yPos);
+  yPos += 10;
+
+  const serviceRows = [
+    { label: 'Receipt ID', value: receiptData.receipt_id },
+    { label: 'Order ID', value: receiptData.order_id },
+    { label: 'Service Type', value: getServiceTypeName(receiptData.service_type) },
+    { label: 'Application Mode', value: receiptData.mode },
+    { label: 'Applicant Mobile', value: receiptData.mobile_number }
+  ];
+
+  pdf.setFontSize(10);
+  serviceRows.forEach(row => {
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(colors.lightText[0], colors.lightText[1], colors.lightText[2]);
+    pdf.text(row.label, 20, yPos);
+
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
+    pdf.text(row.value, 70, yPos);
+    yPos += 8;
+  });
+
+  yPos += 10;
+
+  // 5. Tracking Section (If successful)
+  if (receiptData.acknowledgement_number && receiptData.acknowledgement_number !== 'Order is under process') {
+    pdf.setFillColor(239, 246, 255); // Light blue
+    pdf.roundedRect(20, yPos, pageWidth - 40, 45, 4, 4, 'F');
+
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
+    pdf.text('Tracking & Acknowledgement', 35, yPos + 12);
+
+    pdf.setFontSize(10);
+    pdf.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
+    pdf.text('Ack Number:', 35, yPos + 22);
+
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(16);
+    pdf.text(receiptData.acknowledgement_number, 70, yPos + 22);
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(9);
+    pdf.setTextColor(colors.lightText[0], colors.lightText[1], colors.lightText[2]);
+    pdf.text('You can track your PAN status on NSDL (Protean) portal:', 35, yPos + 32);
+
+    pdf.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
+    pdf.setFont('helvetica', 'bold');
+    const trackUrl = 'https://tin.tin.proteantech.in/tan2/servlet/PanStatusTrack';
+    pdf.textWithLink(trackUrl, 35, yPos + 38, { url: trackUrl });
+
+    yPos += 55;
+  }
+
+  // 6. Payment Information
+  pdf.setFontSize(14);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
+  pdf.text('Payment Summary', 20, yPos);
+
+  yPos += 8;
+  pdf.line(20, yPos, pageWidth - 20, yPos);
+  yPos += 10;
+
+  const paymentRows = [
+    { label: 'Amount Paid', value: `INR ${receiptData.amount}.00`, bold: true, color: colors.success },
+    { label: 'Payment Status', value: receiptData.payment_status },
+    { label: 'Payment Date', value: new Date(receiptData.payment_charged_at || receiptData.created_at).toLocaleString() },
+    { label: 'Transaction ID', value: receiptData.inspay_txid || 'N/A' }
+  ];
+
+  paymentRows.forEach(row => {
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(colors.lightText[0], colors.lightText[1], colors.lightText[2]);
+    pdf.text(row.label, 20, yPos);
+
+    if (row.bold) pdf.setFont('helvetica', 'bold');
+    if (row.color) pdf.setTextColor(row.color[0], row.color[1], row.color[2]);
+    else pdf.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
+
+    pdf.text(row.value, 70, yPos);
+    yPos += 8;
+  });
+
+  // 7. Footer Section
+  const footerY = 265;
+  pdf.setFillColor(249, 250, 251);
+  pdf.rect(0, footerY, pageWidth, 297 - footerY, 'F');
+
+  pdf.setDrawColor(209, 213, 219);
+  pdf.line(20, footerY + 5, pageWidth - 20, footerY + 5);
+
+  pdf.setFontSize(9);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
+  pdf.text(receiptData.company.name, pageWidth / 2, footerY + 12, { align: 'center' });
+
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(8);
+  pdf.setTextColor(colors.lightText[0], colors.lightText[1], colors.lightText[2]);
+  pdf.text('www.vighnahartaonlineservices.com | support@vighnahartaonlineservices.com', pageWidth / 2, footerY + 17, { align: 'center' });
+
+  pdf.setFontSize(7);
+  pdf.text('This is a computer-generated digital receipt and does not require a physical signature.', pageWidth / 2, footerY + 24, { align: 'center' });
+
   return Buffer.from(pdf.output('arraybuffer'));
 }
 
