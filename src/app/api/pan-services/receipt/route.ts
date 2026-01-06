@@ -187,75 +187,84 @@ async function generatePDFReceipt(receiptData: any): Promise<Buffer> {
   const vignahartaLogo = getBase64Image('vignaharta.png');
   const nsdlLogo = getBase64Image('nsdllogo.png');
 
-  // 1. Header Background & Accents
-  pdf.setFillColor(254, 242, 242); // Very light red/blush
-  pdf.rect(0, 0, pageWidth, 50, 'F');
+  // 1. Header Background & Accents (0-45mm)
+  pdf.setFillColor(254, 242, 242);
+  pdf.rect(0, 0, pageWidth, 45, 'F');
   pdf.setDrawColor(colors.primary[0], colors.primary[1], colors.primary[2]);
-  pdf.setLineWidth(1);
-  pdf.line(0, 50, pageWidth, 50);
+  pdf.setLineWidth(0.8);
+  pdf.line(0, 45, pageWidth, 45);
+
+  // 1.5 Background Watermark (Draw early so it's behind cards)
+  pdf.setTextColor(250, 250, 250); // Extremely subtle light gray
+  pdf.setFontSize(60);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('VERIFIED RECEIPT', pageWidth / 2, pageHeight / 2 + 20, { align: 'center', angle: 45 });
 
   // 2. Logos & Company Info
   if (vignahartaLogo) {
-    pdf.addImage(vignahartaLogo, 'PNG', 15, 12, 25, 25);
+    pdf.addImage(vignahartaLogo, 'PNG', 15, 10, 22, 22);
   }
 
   pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(24);
+  pdf.setFontSize(22);
   pdf.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
-  pdf.text('VIGHNAHARTA', 45, 25);
+  pdf.text('VIGHNAHARTA', 42, 22);
 
-  pdf.setFontSize(10);
+  pdf.setFontSize(9);
   pdf.setFont('helvetica', 'normal');
   pdf.setTextColor(colors.lightText[0], colors.lightText[1], colors.lightText[2]);
-  pdf.text('ONLINE SERVICES PRIVATE LIMITED', 45, 32, { charSpace: 0.5 });
+  pdf.text('ONLINE SERVICES PRIVATE LIMITED', 42, 28, { charSpace: 0.5 });
 
   if (nsdlLogo) {
-    pdf.addImage(nsdlLogo, 'PNG', pageWidth - 55, 12, 40, 22);
+    // Add white background box for NSDL logo to fix checkered/transparent issues
+    pdf.setFillColor(255, 255, 255);
+    pdf.rect(pageWidth - 56, 10, 42, 22, 'F');
+    pdf.addImage(nsdlLogo, 'PNG', pageWidth - 55, 11, 40, 20);
   }
 
   // 3. Status Badge & Receipt Header
-  let yPos = 65;
-  pdf.setFontSize(20);
+  let yPos = 60;
+  pdf.setFontSize(18);
   pdf.setFont('helvetica', 'bold');
   pdf.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
   pdf.text('SERVICE PAYMENT RECEIPT', 20, yPos);
 
   // Successful Badge
   pdf.setFillColor(colors.success[0], colors.success[1], colors.success[2]);
-  pdf.roundedRect(pageWidth - 70, yPos - 8, 50, 12, 3, 3, 'F');
+  pdf.roundedRect(pageWidth - 65, yPos - 8, 45, 11, 2, 2, 'F');
   pdf.setTextColor(255, 255, 255);
-  pdf.setFontSize(10);
+  pdf.setFontSize(9);
   pdf.setFont('helvetica', 'bold');
-  pdf.text('✓ SUCCESSFUL', pageWidth - 45, yPos, { align: 'center' });
+  pdf.text('✓ SUCCESSFUL', pageWidth - 42.5, yPos - 0.5, { align: 'center' });
 
-  yPos += 18;
+  yPos += 12;
 
   // 4. Partner Branding Banner
   pdf.setFillColor(243, 244, 246);
-  pdf.roundedRect(20, yPos, pageWidth - 40, 20, 3, 3, 'F');
+  pdf.roundedRect(20, yPos, pageWidth - 40, 15, 2, 2, 'F');
 
-  pdf.setFontSize(11);
+  pdf.setFontSize(10);
   pdf.setFont('helvetica', 'bold');
   pdf.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
-  pdf.text('OFFICIAL NSDL e-GOV (PROTEAN) AUTHORIZED PORTAL PARTNER', pageWidth / 2, yPos + 12, { align: 'center' });
+  pdf.text('OFFICIAL NSDL e-GOV (PROTEAN) AUTHORIZED PORTAL PARTNER', pageWidth / 2, yPos + 9, { align: 'center' });
 
-  yPos += 35;
+  yPos += 28;
 
   // 5. Service Information Card
   pdf.setDrawColor(colors.border[0], colors.border[1], colors.border[2]);
-  pdf.setLineWidth(0.3);
-  pdf.roundedRect(20, yPos, pageWidth - 40, 58, 4, 4, 'S');
+  pdf.setLineWidth(0.25);
+  pdf.roundedRect(20, yPos, pageWidth - 40, 52, 3, 3, 'S');
 
   pdf.setFillColor(colors.background[0], colors.background[1], colors.background[2]);
-  pdf.rect(21, yPos + 1, pageWidth - 42, 10, 'F');
+  pdf.rect(21, yPos + 0.5, pageWidth - 42, 9, 'F');
 
-  pdf.setFontSize(12);
+  pdf.setFontSize(11);
   pdf.setFont('helvetica', 'bold');
   pdf.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
-  pdf.text('Application & Service Details', 28, yPos + 8);
+  pdf.text('Application & Service Details', 26, yPos + 7);
 
-  yPos += 20;
-  pdf.setFontSize(10);
+  yPos += 18;
+  pdf.setFontSize(9.5);
 
   const applicationData = [
     { l: 'Receipt ID', v: receiptData.receipt_id },
@@ -268,71 +277,67 @@ async function generatePDFReceipt(receiptData: any): Promise<Buffer> {
   applicationData.forEach((row, idx) => {
     pdf.setFont('helvetica', 'bold');
     pdf.setTextColor(colors.lightText[0], colors.lightText[1], colors.lightText[2]);
-    pdf.text(row.l, 30, yPos + (idx * 7.5));
+    pdf.text(row.l, 28, yPos + (idx * 7));
 
     pdf.setFont('helvetica', 'bold');
     pdf.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
-    pdf.text(`:   ${row.v}`, 75, yPos + (idx * 7.5));
+    pdf.text(`:   ${row.v}`, 70, yPos + (idx * 7));
   });
 
-  yPos += 48;
+  yPos += 42;
 
-  // 6. Tracking Section (Premium Highlight)
+  // 6. Tracking Section (Conditional)
   if (receiptData.acknowledgement_number && receiptData.acknowledgement_number !== 'Order is under process') {
     pdf.setFillColor(239, 246, 255); // Blue-50
     pdf.setDrawColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
-    pdf.setLineWidth(0.5);
-    pdf.roundedRect(20, yPos, pageWidth - 40, 48, 4, 4, 'FD');
+    pdf.setLineWidth(0.4);
+    pdf.roundedRect(20, yPos, pageWidth - 40, 42, 3, 3, 'FD');
 
-    // Subtle Watermark
-    pdf.setFontSize(32);
-    pdf.setTextColor(225, 235, 250);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('NSDL DIGITAL PORTAL', pageWidth / 2, yPos + 28, { align: 'center' });
-
-    pdf.setFontSize(14);
+    pdf.setFontSize(13);
     pdf.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
-    pdf.text('Digital Acknowledgement (Ack)', 30, yPos + 12);
-
-    pdf.setFontSize(11);
-    pdf.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
-    pdf.text('Acknowledgement Number:', 30, yPos + 25);
-
-    pdf.setFontSize(22);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text(receiptData.acknowledgement_number, 85, yPos + 25);
+    pdf.text('Digital Acknowledgement (Ack)', 28, yPos + 10);
 
     pdf.setFontSize(10);
+    pdf.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
+    pdf.text('Ack Number:', 28, yPos + 22);
+
+    pdf.setFontSize(20);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(receiptData.acknowledgement_number, 78, yPos + 22);
+
+    pdf.setFontSize(9);
     pdf.setFont('helvetica', 'normal');
     pdf.setTextColor(colors.lightText[0], colors.lightText[1], colors.lightText[2]);
-    pdf.text('Official Tracking Portal URL:', 30, yPos + 38);
+    pdf.text('Track Status:', 28, yPos + 33);
 
     pdf.setTextColor(colors.secondary[0], colors.secondary[1], colors.secondary[2]);
     pdf.setFont('helvetica', 'bold');
     const trackUrl = 'https://tin.tin.proteantech.in/tan2/servlet/PanStatusTrack';
-    pdf.textWithLink(trackUrl, 85, yPos + 38, { url: trackUrl });
+    pdf.textWithLink('Click here to track on official NSDL portal', 78, yPos + 33, { url: trackUrl });
 
-    yPos += 62;
+    yPos += 52;
+  } else {
+    yPos += 5; // Minimal gap if no tracking
   }
 
   // 7. Payment Summary
-  pdf.setFontSize(15);
+  pdf.setFontSize(13);
   pdf.setFont('helvetica', 'bold');
   pdf.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
   pdf.text('Payment Information', 20, yPos);
 
-  yPos += 10;
+  yPos += 6;
   pdf.setDrawColor(colors.border[0], colors.border[1], colors.border[2]);
-  pdf.setLineWidth(0.3);
+  pdf.setLineWidth(0.2);
   pdf.line(20, yPos, pageWidth - 20, yPos);
-  yPos += 12;
+  yPos += 10;
 
   const paymentDetails = [
-    { l: 'Total Transaction Amount', v: `₹ ${receiptData.amount}.00`, b: true, c: colors.success },
-    { l: 'External Transaction ID', v: receiptData.inspay_txid || 'N/A' },
-    { l: 'Current Status', v: 'SUCCESS / CHARGED' },
+    { l: 'Total Service Fee', v: `₹ ${receiptData.amount}.00`, b: true, c: colors.success },
+    { l: 'Transaction ID', v: receiptData.inspay_txid || 'N/A' },
+    { l: 'Payment Status', v: 'SUCCESS / CHARGED' },
     {
-      l: 'Processed At', v: new Date(receiptData.payment_charged_at || receiptData.created_at).toLocaleString('en-IN', {
+      l: 'Date & Time', v: new Date(receiptData.payment_charged_at || receiptData.created_at).toLocaleString('en-IN', {
         day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
       })
     }
@@ -341,44 +346,39 @@ async function generatePDFReceipt(receiptData: any): Promise<Buffer> {
   paymentDetails.forEach((row, idx) => {
     pdf.setFont('helvetica', 'bold');
     pdf.setTextColor(colors.lightText[0], colors.lightText[1], colors.lightText[2]);
-    pdf.text(row.l, 30, yPos + (idx * 8));
+    pdf.text(row.l, 28, yPos + (idx * 7));
 
-    if (row.b) pdf.setFontSize(12);
+    if (row.b) pdf.setFontSize(11);
     if (row.c) pdf.setTextColor(row.c[0], row.c[1], row.c[2]);
     else pdf.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
 
-    pdf.text(`:   ${row.v}`, 85, yPos + (idx * 8));
-    pdf.setFontSize(10); // Reset for next loop
+    pdf.text(`:   ${row.v}`, 75, yPos + (idx * 7));
+    pdf.setFontSize(9.5); // Reset
   });
 
-  // 8. Security Watermark Background
-  pdf.setTextColor(245, 245, 245);
-  pdf.setFontSize(60);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text('VERIFIED RECEIPT', pageWidth / 2, pageHeight / 2 + 30, { align: 'center', angle: 45 });
-
   // 9. Footer Area
-  const footerY = pageHeight - 38;
+  const footerHeight = 35;
+  const footerY = pageHeight - footerHeight;
   pdf.setFillColor(254, 242, 242);
-  pdf.rect(0, footerY, pageWidth, 38, 'F');
+  pdf.rect(0, footerY, pageWidth, footerHeight, 'F');
 
   pdf.setDrawColor(colors.primary[0], colors.primary[1], colors.primary[2]);
-  pdf.setLineWidth(0.6);
-  pdf.line(20, footerY + 5, pageWidth - 20, footerY + 5);
+  pdf.setLineWidth(0.5);
+  pdf.line(20, footerY + 4, pageWidth - 20, footerY + 4);
 
-  pdf.setFontSize(10);
+  pdf.setFontSize(9.5);
   pdf.setFont('helvetica', 'bold');
   pdf.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
-  pdf.text('VIGHNAHARTA ONLINE SERVICES PRIVATE LIMITED', pageWidth / 2, footerY + 13, { align: 'center' });
+  pdf.text('VIGHNAHARTA ONLINE SERVICES PRIVATE LIMITED', pageWidth / 2, footerY + 11, { align: 'center' });
 
   pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(8);
+  pdf.setFontSize(7.5);
   pdf.setTextColor(colors.lightText[0], colors.lightText[1], colors.lightText[2]);
   pdf.text('Official Website: www.vighnahartaonlineservices.com | Support: support@vighnahartaonlineservices.com', pageWidth / 2, footerY + 20, { align: 'center' });
 
-  pdf.setFontSize(7);
-  pdf.text('Disclaimer: This is a computer-generated document and is legally valid as a receipt for digital PAN service fees.', pageWidth / 2, footerY + 28, { align: 'center' });
-  pdf.text('It does not replace the official NSDL acknowledgement slip for identity purposes unless verified by the department.', pageWidth / 2, footerY + 32, { align: 'center' });
+  pdf.setFontSize(6.5);
+  pdf.text('Disclaimer: This is a computer-generated digital receipt and does not require a physical signature.', pageWidth / 2, footerY + 24, { align: 'center' });
+  pdf.text('This receipt confirms the service fee payment only. The PAN card will be issued after official NSDL verification.', pageWidth / 2, footerY + 28, { align: 'center' });
 
   return Buffer.from(pdf.output('arraybuffer'));
 }
