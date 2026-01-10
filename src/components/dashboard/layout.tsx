@@ -75,6 +75,7 @@ const menuItems: MenuItem[] = [
 
   // Admin Management Section
   { name: 'KWIKAPI Wallet', href: '/dashboard/admin/kwikapi-wallet', icon: '💰', roles: [UserRole.ADMIN] },
+  { name: 'Service Commission Config', href: '/dashboard/admin/service-commission-config', icon: '💸', roles: [UserRole.ADMIN] },
   { name: 'Recharge Configuration', href: '/dashboard/admin/recharge-config', icon: '⚙️', roles: [UserRole.ADMIN] },
   { name: 'PAN Commission Config', href: '/dashboard/admin/pan-commission', icon: '🆔', roles: [UserRole.ADMIN] },
   { name: 'Manage Direct Links', href: '/dashboard/admin/direct-links', icon: '🔗', roles: [UserRole.ADMIN, UserRole.EMPLOYEE] },
@@ -430,14 +431,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
               {/* Admin Configuration Section */}
               {(userRole === UserRole.ADMIN || userRole === UserRole.EMPLOYEE) && filteredMenuItems.some(item =>
-                ['KWIKAPI Wallet', 'Recharge Configuration', 'PAN Commission Config', 'Manage Direct Links', 'Referral Configuration', 'Contact Configuration', 'Registration Fee', 'Platform & Yearly Fees', 'Penalty Management', 'Leaderboard Emails', 'Shareable Service Forms'].includes(item.name)
+                ['KWIKAPI Wallet', 'Service Commission Config', 'Recharge Configuration', 'PAN Commission Config', 'Manage Direct Links', 'Referral Configuration', 'Contact Configuration', 'Registration Fee', 'Platform & Yearly Fees', 'Penalty Management', 'Leaderboard Emails', 'Shareable Service Forms'].includes(item.name)
               ) && (
                   <>
                     <div className="pt-3 pb-1 px-2">
                       <h3 className="text-xs font-semibold text-yellow-300 uppercase tracking-wider">Admin - Configuration</h3>
                     </div>
                     {filteredMenuItems.filter(item =>
-                      ['KWIKAPI Wallet', 'Recharge Configuration', 'PAN Commission Config', 'Manage Direct Links', 'Referral Configuration', 'Contact Configuration', 'Registration Fee', 'Platform & Yearly Fees', 'Penalty Management', 'Leaderboard Emails', 'Shareable Service Forms'].includes(item.name)
+                      ['KWIKAPI Wallet', 'Service Commission Config', 'Recharge Configuration', 'PAN Commission Config', 'Manage Direct Links', 'Referral Configuration', 'Contact Configuration', 'Registration Fee', 'Platform & Yearly Fees', 'Penalty Management', 'Leaderboard Emails', 'Shareable Service Forms'].includes(item.name)
                     ).map((item) => (
                       <Link
                         key={item.name}

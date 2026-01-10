@@ -9,16 +9,26 @@ async function testKwikApiDirect() {
         const kwikApiUrl = `https://www.kwikapi.com/api/v2/operator_codes.php?api_key=${kwikApiKey}`;
         
         console.log('📡 Calling KwikAPI...');
+        console.log('🔗 URL:', kwikApiUrl.replace(kwikApiKey, '***HIDDEN***'));
+        
         const response = await fetch(kwikApiUrl);
         
+        console.log('📊 Response Status:', response.status);
+        console.log('📊 Response Headers:', Object.fromEntries(response.headers.entries()));
+        
         if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Response Error Text:', errorText);
             throw new Error(`KwikAPI request failed: ${response.status} ${response.statusText}`);
         }
 
         const data = await response.json();
+        console.log('📥 Response Status Field:', data.status);
+        console.log('📥 Response Keys:', Object.keys(data));
         
         if (data.status !== 'SUCCESS') {
-            throw new Error(`KwikAPI returned error: ${data.message || 'Unknown error'}`);
+            console.error('❌ Full KwikAPI Response:', data);
+            throw new Error(`KwikAPI returned error: ${data.message || data.error || 'Unknown error'}`);
         }
 
         const operators = data.response;
@@ -64,6 +74,7 @@ async function testKwikApiDirect() {
 
     } catch (error) {
         console.error('❌ Error testing KwikAPI:', error.message);
+        console.error('❌ Full error:', error);
         return null;
     }
 }

@@ -32,8 +32,14 @@ export async function POST(request: NextRequest) {
 
     console.log('🔄 Starting operator sync from KwikAPI...');
 
+    // Verify API key is available
+    if (!process.env.KWIKAPI_API_KEY) {
+      throw new Error('KWIKAPI_API_KEY environment variable is not set');
+    }
+
     // Fetch operators from KwikAPI
-    const kwikApiUrl = `https://www.kwikapi.com/api/v2/operator_codes.php?api_key=${process.env.KWIKAPI_KEY}`;
+    const kwikApiUrl = `https://www.kwikapi.com/api/v2/operator_codes.php?api_key=${process.env.KWIKAPI_API_KEY}`;
+    console.log('📡 Calling KwikAPI URL:', kwikApiUrl.replace(process.env.KWIKAPI_API_KEY, '***HIDDEN***'));
     
     const response = await fetch(kwikApiUrl);
     if (!response.ok) {
@@ -41,9 +47,11 @@ export async function POST(request: NextRequest) {
     }
 
     const kwikApiData = await response.json();
+    console.log('📥 KwikAPI Response Status:', kwikApiData.status);
     
     if (kwikApiData.status !== 'SUCCESS') {
-      throw new Error(`KwikAPI returned error: ${kwikApiData.message || 'Unknown error'}`);
+      console.error('❌ KwikAPI Error Details:', kwikApiData);
+      throw new Error(`KwikAPI returned error: ${kwikApiData.message || kwikApiData.error || 'Unknown error'}`);
     }
 
     const operators: KwikApiOperator[] = kwikApiData.response;
@@ -100,9 +108,14 @@ export async function POST(request: NextRequest) {
           // Map service type
           const mappedServiceType = serviceTypeMapping[operator.service_type] || operator.service_type;
 
-          // Parse amounts with fallbacks
-          const minAmount = parseInt(operator.amount_minimum) || 1;
-          const maxAmount = parseInt(operator.amount_maximum) || 50000;
+          // Parse amounts with fallbacks and database limits
+          const minAmount = Math.max(1, parseInt(operator.amount_minimum) || 1);
+          const maxAmount = Math.min(99999999.99, parseInt(operator.amount_maximum) || 50000);
+
+          // Log if we had to cap the maximum amount
+          if (parseInt(operator.amount_maximum) > 99999999) {
+            console.log(`⚠️ Capped max amount for operator ${operator.operator_id} from ${operator.amount_maximum} to 99999999.99`);
+          }
 
           // Determine if operator should be active (status = 1 and biller_status = on)
           const isActive = operator.status === '1' && operator.biller_status === 'on';
