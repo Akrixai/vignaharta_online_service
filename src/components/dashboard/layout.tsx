@@ -46,17 +46,21 @@ const menuItems: MenuItem[] = [
   { name: 'Mobile Postpaid', href: '/dashboard/recharge/mobile-postpaid', icon: '📞', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
   { name: 'DTH Recharge', href: '/dashboard/recharge/dth', icon: '📺', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
   { name: 'Electricity Bill', href: '/dashboard/recharge/electricity', icon: '⚡', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'Gas Bill', href: '/dashboard/recharge/gas', icon: '🔥', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'Water Bill', href: '/dashboard/recharge/water', icon: '💧', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'Broadband Bill', href: '/dashboard/recharge/broadband', icon: '🌐', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'Landline Bill', href: '/dashboard/recharge/landline', icon: '☎️', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'Insurance Premium', href: '/dashboard/recharge/insurance', icon: '🛡️', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'FASTag Recharge', href: '/dashboard/recharge/fastag', icon: '🛣️', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'Credit Card Bill', href: '/dashboard/recharge/creditcard', icon: '💳', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'Data Card Recharge', href: '/dashboard/recharge/datacard', icon: '📶', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'Cable TV Bill', href: '/dashboard/recharge/cabletv', icon: '📺', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
   { name: 'Recharge History', href: '/dashboard/recharge/transactions', icon: '📊', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
 
   // PAN Services
   { name: 'Pan Services', href: '/dashboard/pan-services', icon: '🆔', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
 
   // Coming Soon Services
-  { name: 'Gas Bill', href: '/dashboard/coming-soon', icon: '🔥', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
-  { name: 'Water Bill', href: '/dashboard/coming-soon', icon: '💧', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
-  { name: 'Fastag', href: '/dashboard/coming-soon', icon: '🚗', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
-  { name: 'Credit Card Bill', href: '/dashboard/coming-soon', icon: '💳', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
-  { name: 'Broadband', href: '/dashboard/coming-soon', icon: '🌐', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
   { name: 'Cibil Report', href: '/dashboard/coming-soon', icon: '📊', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
   { name: 'Money Transfer', href: '/dashboard/coming-soon', icon: '💸', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
   { name: 'AEPS Cash Withdrawal', href: '/dashboard/coming-soon', icon: '🏧', roles: [UserRole.RETAILER] },
@@ -330,14 +334,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
               {/* Recharge & Bills Section */}
               {filteredMenuItems.some(item =>
-                ['Mobile Recharge', 'Mobile Postpaid', 'DTH Recharge', 'Electricity Bill', 'Recharge History'].includes(item.name)
+                ['Mobile Recharge', 'Mobile Postpaid', 'DTH Recharge', 'Electricity Bill', 'Gas Bill', 'Water Bill', 'Broadband Bill', 'Landline Bill', 'Insurance Premium', 'Recharge History'].includes(item.name)
               ) && (
                   <>
                     <div className="pt-3 pb-1 px-2">
                       <h3 className="text-xs font-semibold text-red-300 uppercase tracking-wider">Recharge & Bills</h3>
                     </div>
                     {filteredMenuItems.filter(item =>
-                      ['Mobile Recharge', 'Mobile Postpaid', 'DTH Recharge', 'Electricity Bill', 'Recharge History'].includes(item.name)
+                      ['Mobile Recharge', 'Mobile Postpaid', 'DTH Recharge', 'Electricity Bill', 'Gas Bill', 'Water Bill', 'Broadband Bill', 'Landline Bill', 'Insurance Premium', 'Recharge History'].includes(item.name)
                     ).map((item) => (
                       <Link
                         key={item.name}

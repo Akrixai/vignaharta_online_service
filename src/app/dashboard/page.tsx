@@ -228,60 +228,60 @@ export default function DashboardPage() {
                 </div>
               </Link>
 
-              {/* Gas Bill - Coming Soon */}
-              <Link href="/dashboard/coming-soon">
+              {/* Gas Bill - LIVE */}
+              <Link href="/dashboard/recharge/gas">
                 <div className="group bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
-                  <div className="absolute top-2 right-2 bg-white text-orange-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
+                  <div className="absolute top-2 right-2 bg-green-500 text-white text-[8px] font-bold px-2 py-1 rounded-full">LIVE</div>
                   <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🔥</div>
                   <h3 className="text-white font-bold text-sm mb-1">Gas</h3>
                   <p className="text-orange-100 text-xs">Pay Bill</p>
                 </div>
               </Link>
 
-              {/* Water Bill - Coming Soon */}
-              <Link href="/dashboard/coming-soon">
+              {/* Water Bill - LIVE */}
+              <Link href="/dashboard/recharge/water">
                 <div className="group bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
-                  <div className="absolute top-2 right-2 bg-white text-cyan-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
+                  <div className="absolute top-2 right-2 bg-green-500 text-white text-[8px] font-bold px-2 py-1 rounded-full">LIVE</div>
                   <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">💧</div>
                   <h3 className="text-white font-bold text-sm mb-1">Water</h3>
                   <p className="text-cyan-100 text-xs">Pay Bill</p>
                 </div>
               </Link>
 
-              {/* Broadband - Coming Soon */}
-              <Link href="/dashboard/coming-soon">
+              {/* Broadband - LIVE */}
+              <Link href="/dashboard/recharge/broadband">
                 <div className="group bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
-                  <div className="absolute top-2 right-2 bg-white text-indigo-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
+                  <div className="absolute top-2 right-2 bg-green-500 text-white text-[8px] font-bold px-2 py-1 rounded-full">LIVE</div>
                   <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🌐</div>
                   <h3 className="text-white font-bold text-sm mb-1">Broadband</h3>
                   <p className="text-indigo-100 text-xs">Pay Bill</p>
                 </div>
               </Link>
 
-              {/* Landline - Coming Soon */}
-              <Link href="/dashboard/coming-soon">
+              {/* Landline - LIVE */}
+              <Link href="/dashboard/recharge/landline">
                 <div className="group bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
-                  <div className="absolute top-2 right-2 bg-white text-green-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
+                  <div className="absolute top-2 right-2 bg-green-500 text-white text-[8px] font-bold px-2 py-1 rounded-full">LIVE</div>
                   <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">☎️</div>
                   <h3 className="text-white font-bold text-sm mb-1">Landline</h3>
                   <p className="text-green-100 text-xs">Pay Bill</p>
                 </div>
               </Link>
 
-              {/* Fastag - Coming Soon */}
-              <Link href="/dashboard/coming-soon">
+              {/* FASTag - LIVE */}
+              <Link href="/dashboard/recharge/fastag">
                 <div className="group bg-gradient-to-br from-red-500 to-red-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
-                  <div className="absolute top-2 right-2 bg-white text-red-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
-                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🚗</div>
+                  <div className="absolute top-2 right-2 bg-green-500 text-white text-[8px] font-bold px-2 py-1 rounded-full">LIVE</div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🛣️</div>
                   <h3 className="text-white font-bold text-sm mb-1">FASTag</h3>
                   <p className="text-red-100 text-xs">Recharge</p>
                 </div>
               </Link>
 
-              {/* Insurance - Coming Soon */}
-              <Link href="/dashboard/coming-soon">
+              {/* Insurance - LIVE */}
+              <Link href="/dashboard/recharge/insurance">
                 <div className="group bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
-                  <div className="absolute top-2 right-2 bg-white text-pink-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
+                  <div className="absolute top-2 right-2 bg-green-500 text-white text-[8px] font-bold px-2 py-1 rounded-full">LIVE</div>
                   <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🛡️</div>
                   <h3 className="text-white font-bold text-sm mb-1">Insurance</h3>
                   <p className="text-pink-100 text-xs">Pay Premium</p>
@@ -298,23 +298,33 @@ export default function DashboardPage() {
                 </div>
               </Link>
 
-              {/* Cable TV - Coming Soon */}
-              <Link href="/dashboard/coming-soon">
+              {/* Cable TV - LIVE */}
+              <Link href="/dashboard/recharge/cabletv">
                 <div className="group bg-gradient-to-br from-violet-500 to-violet-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
-                  <div className="absolute top-2 right-2 bg-white text-violet-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
+                  <div className="absolute top-2 right-2 bg-green-500 text-white text-[8px] font-bold px-2 py-1 rounded-full">LIVE</div>
                   <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">📡</div>
                   <h3 className="text-white font-bold text-sm mb-1">Cable TV</h3>
                   <p className="text-violet-100 text-xs">Pay Bill</p>
                 </div>
               </Link>
 
-              {/* Credit Card - Coming Soon */}
-              <Link href="/dashboard/coming-soon">
+              {/* Credit Card - LIVE */}
+              <Link href="/dashboard/recharge/creditcard">
                 <div className="group bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
-                  <div className="absolute top-2 right-2 bg-white text-teal-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
+                  <div className="absolute top-2 right-2 bg-green-500 text-white text-[8px] font-bold px-2 py-1 rounded-full">LIVE</div>
                   <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">💳</div>
                   <h3 className="text-white font-bold text-sm mb-1">Credit Card</h3>
                   <p className="text-teal-100 text-xs">Pay Bill</p>
+                </div>
+              </Link>
+
+              {/* DataCard - LIVE */}
+              <Link href="/dashboard/recharge/datacard">
+                <div className="group bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-2 right-2 bg-green-500 text-white text-[8px] font-bold px-2 py-1 rounded-full">LIVE</div>
+                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">📶</div>
+                  <h3 className="text-white font-bold text-sm mb-1">DataCard</h3>
+                  <p className="text-indigo-100 text-xs">Recharge</p>
                 </div>
               </Link>
 
@@ -358,10 +368,10 @@ export default function DashboardPage() {
                 </div>
               </Link>
 
-              {/* Insurance All Types - Coming Soon */}
-              <Link href="/dashboard/coming-soon">
+              {/* Insurance All Types - LIVE */}
+              <Link href="/dashboard/recharge/insurance">
                 <div className="group bg-gradient-to-br from-sky-500 to-sky-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
-                  <div className="absolute top-2 right-2 bg-white text-sky-600 text-[8px] font-bold px-2 py-1 rounded-full">SOON</div>
+                  <div className="absolute top-2 right-2 bg-green-500 text-white text-[8px] font-bold px-2 py-1 rounded-full">LIVE</div>
                   <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">🛡️</div>
                   <h3 className="text-white font-bold text-sm mb-1">Insurance</h3>
                   <p className="text-sky-100 text-xs">All Types</p>

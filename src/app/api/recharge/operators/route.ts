@@ -45,7 +45,16 @@ export async function GET(request: NextRequest) {
           'DTH': ['DTH'],
           'ELECTRICITY': ['ELC'],
           'GAS': ['GAS'],
-          'WATER': ['Water']
+          'WATER': ['Water'],
+          'INSURANCE': ['Insurance'],
+          'BROADBAND': ['Broadband'],
+          'LANDLINE': ['Landline'],
+          'DATACARD': ['DataCard'],
+          'FASTAG': ['FASTag'],
+          'CABLETV': ['CableTV'],
+          'CREDITCARD': ['CreditCard'],
+          'MONEYTRANSFER': ['MoneyTransfer'],
+          'PAN': ['PAN']
         };
 
         const mappedTypes = serviceTypeMap[serviceType.toUpperCase()] || [serviceType];
