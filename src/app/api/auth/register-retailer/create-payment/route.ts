@@ -148,16 +148,21 @@ export async function POST(request: NextRequest) {
       ));
     }
 
-    // Calculate GST based on database configuration
-    const baseAmount = base_amount || parseFloat(feeConfig.amount);
-    const gstPercentage = feeConfig.gst_percentage || 18;
+    // Strictly use the fee configuration from the database (set by admin)
+    // This prevents client-side tampering with registration fees
+    const baseAmount = Number(feeConfig.amount);
+    const gstPercentage = Number(feeConfig.gst_percentage) || 18;
     const calculatedGstAmount = (baseAmount * gstPercentage) / 100;
-    const gstAmountValue = gst_amount || calculatedGstAmount;
-    const amount = total_amount || (baseAmount + gstAmountValue);
-    
+
+    // Final total amount to be paid
+    const finalAmount = Number((baseAmount + calculatedGstAmount).toFixed(2));
+
+    // For storing in our records
+    const gstAmountValue = calculatedGstAmount;
+
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
-    
+
     // Generate unique order ID (alphanumeric only, no special characters)
     const timestamp = Date.now();
     const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -174,7 +179,7 @@ export async function POST(request: NextRequest) {
     // Create Cashfree order using REST API
     const orderRequest = {
       order_id: orderId,
-      order_amount: amount,
+      order_amount: finalAmount,
       order_currency: 'INR',
       customer_details: {
         customer_id: customerId,
@@ -183,12 +188,14 @@ export async function POST(request: NextRequest) {
         customer_phone: phone,
       },
       order_meta: {
-        return_url: `${process.env.NEXTAUTH_URL}/payment/success?order_id=${orderId}&amount=${amount}`,
+        return_url: `${process.env.NEXTAUTH_URL}/payment/success?order_id=${orderId}&amount=${finalAmount}`,
         notify_url: `${process.env.NEXTAUTH_URL}/api/wallet/cashfree/webhook`,
         payment_methods: 'cc,dc,nb,upi,app,paylater,cardlessemi,emi',
       },
       order_note: 'Retailer Registration Fee',
     };
+
+    console.log('Creating Cashfree order:', JSON.stringify(orderRequest, null, 2));
 
     const cashfreeResponse = await fetch(cashfreeUrl, {
       method: 'POST',
@@ -203,9 +210,12 @@ export async function POST(request: NextRequest) {
 
     if (!cashfreeResponse.ok) {
       const errorData = await cashfreeResponse.json();
-      console.error('Cashfree API error:', errorData);
+      console.error('Cashfree API error:', JSON.stringify(errorData, null, 2));
       return addCorsHeaders(NextResponse.json(
-        { error: errorData.message || 'Failed to create Cashfree order' },
+        {
+          error: errorData.message || 'Failed to create Cashfree order',
+          cashfree_error: errorData
+        },
         { status: 500 }
       ));
     }
@@ -227,14 +237,14 @@ export async function POST(request: NextRequest) {
         pending_registration_id: null, // Will be set after payment success
         order_id: orderId,
         cf_order_id: cashfreeData.cf_order_id,
-        amount: amount,
+        amount: finalAmount,
         currency: 'INR',
         status: 'CREATED',
         payment_session_id: cashfreeData.payment_session_id,
         base_amount: baseAmount,
         gst_percentage: gstPercentage,
         gst_amount: gstAmountValue,
-        total_amount: amount,
+        total_amount: finalAmount,
         metadata: {
           // Store registration details here temporarily
           name,
@@ -251,7 +261,7 @@ export async function POST(request: NextRequest) {
           role: 'RETAILER',
           base_amount: baseAmount,
           gst_amount: gstAmountValue,
-          total_amount: amount,
+          total_amount: finalAmount,
         },
       });
 
@@ -267,7 +277,7 @@ export async function POST(request: NextRequest) {
       success: true,
       payment_session_id: cashfreeData.payment_session_id,
       order_id: orderId,
-      amount: amount,
+      amount: finalAmount,
     });
 
     return addCorsHeaders(response);

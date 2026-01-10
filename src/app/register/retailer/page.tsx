@@ -16,9 +16,10 @@ export default function RetailerRegisterPage() {
 
   const [step, setStep] = useState(1); // 1 = Details, 2 = Payment
   const [pendingRegistrationId, setPendingRegistrationId] = useState('');
-  const [registrationFee, setRegistrationFee] = useState<number>(1499);
+  const [registrationFee, setRegistrationFee] = useState<number>(599);
   const [gstPercentage, setGstPercentage] = useState<number>(18);
-  
+  const [isFeeLoading, setIsFeeLoading] = useState(true);
+
   // Calculate GST on registration fee
   const gstAmount = (registrationFee * gstPercentage) / 100;
   const totalPayable = registrationFee + gstAmount;
@@ -46,6 +47,7 @@ export default function RetailerRegisterPage() {
 
   useEffect(() => {
     // Fetch registration fee and GST percentage
+    setIsFeeLoading(true);
     fetch('/api/admin/registration-fees')
       .then(res => res.json())
       .then(data => {
@@ -55,7 +57,9 @@ export default function RetailerRegisterPage() {
             setGstPercentage(parseFloat(data.fee.gst_percentage));
           }
         }
-      });
+      })
+      .catch(err => console.error('Failed to fetch registration fee:', err))
+      .finally(() => setIsFeeLoading(false));
   }, []);
 
   const validateForm = () => {
@@ -140,7 +144,7 @@ export default function RetailerRegisterPage() {
     }
 
     setShopPhotoFile(file);
-    
+
     // Create preview
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -202,7 +206,7 @@ export default function RetailerRegisterPage() {
 
     try {
       let recaptchaToken = '';
-      
+
       if (isReady) {
         try {
           recaptchaToken = await executeRecaptcha('REGISTER_RETAILER');
@@ -245,7 +249,7 @@ export default function RetailerRegisterPage() {
       const script = document.createElement('script');
       script.src = 'https://sdk.cashfree.com/js/v3/cashfree.js';
       script.async = true;
-      
+
       script.onload = () => {
         const Cashfree = (window as any).Cashfree;
         const cashfree = Cashfree({
@@ -259,7 +263,7 @@ export default function RetailerRegisterPage() {
 
         cashfree.checkout(checkoutOptions).then((result: any) => {
           setIsLoading(false);
-          
+
           if (result.error) {
             // Payment failed - redirect to failure page
             const errorMessage = result.error.message || 'Payment failed';
@@ -317,7 +321,7 @@ export default function RetailerRegisterPage() {
           <h2 className="text-4xl font-extrabold text-red-800 mb-4">
             Become a Retailer Partner
           </h2>
-          
+
           {/* Step Indicator */}
           <div className="flex items-center justify-center space-x-4 mb-6">
             <div className={`flex items-center ${step >= 1 ? 'text-red-600' : 'text-gray-400'}`}>
@@ -363,9 +367,8 @@ export default function RetailerRegisterPage() {
                   required
                   value={formData.name}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors ${
-                    errors.name ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-4 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors ${errors.name ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   placeholder="Enter your full name or business name"
                 />
                 {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
@@ -383,9 +386,8 @@ export default function RetailerRegisterPage() {
                   required
                   value={formData.email}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors ${
-                    errors.email ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-4 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors ${errors.email ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   placeholder="Enter your email"
                 />
                 {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
@@ -403,9 +405,8 @@ export default function RetailerRegisterPage() {
                   required
                   value={formData.phone}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors ${
-                    errors.phone ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-4 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors ${errors.phone ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   placeholder="10-digit phone number"
                 />
                 {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone}</p>}
@@ -423,9 +424,8 @@ export default function RetailerRegisterPage() {
                   value={formData.address}
                   onChange={handleInputChange}
                   rows={3}
-                  className={`w-full px-4 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors ${
-                    errors.address ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-4 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors ${errors.address ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   placeholder="Enter your complete shop/business address"
                 />
                 {errors.address && <p className="mt-1 text-sm text-red-600">{errors.address}</p>}
@@ -443,9 +443,8 @@ export default function RetailerRegisterPage() {
                   required
                   value={formData.city}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors ${
-                    errors.city ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-4 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors ${errors.city ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   placeholder="Enter your city"
                 />
                 {errors.city && <p className="mt-1 text-sm text-red-600">{errors.city}</p>}
@@ -463,9 +462,8 @@ export default function RetailerRegisterPage() {
                   required
                   value={formData.state}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors ${
-                    errors.state ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-4 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors ${errors.state ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   placeholder="Enter your state"
                 />
                 {errors.state && <p className="mt-1 text-sm text-red-600">{errors.state}</p>}
@@ -483,9 +481,8 @@ export default function RetailerRegisterPage() {
                   required
                   value={formData.pincode}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors ${
-                    errors.pincode ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-4 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors ${errors.pincode ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   placeholder="6-digit PIN code"
                   maxLength={6}
                 />
@@ -504,9 +501,8 @@ export default function RetailerRegisterPage() {
                   required
                   value={formData.business_name}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors ${
-                    errors.business_name ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-4 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors ${errors.business_name ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   placeholder="Enter your business/shop name"
                 />
                 {errors.business_name && <p className="mt-1 text-sm text-red-600">{errors.business_name}</p>}
@@ -525,9 +521,8 @@ export default function RetailerRegisterPage() {
                       type="file"
                       accept="image/jpeg,image/jpg,image/png,image/webp"
                       onChange={handleShopPhotoChange}
-                      className={`w-full px-4 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors ${
-                        errors.shop_photo ? 'border-red-500' : 'border-gray-300'
-                      }`}
+                      className={`w-full px-4 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors ${errors.shop_photo ? 'border-red-500' : 'border-gray-300'
+                        }`}
                     />
                     <p className="mt-1 text-xs text-gray-500">
                       Upload a clear photo of your shop (JPEG, PNG, or WebP, max 5MB)
@@ -536,9 +531,9 @@ export default function RetailerRegisterPage() {
                   </div>
                   {shopPhotoPreview && (
                     <div className="w-24 h-24 border-2 border-red-200 rounded-lg overflow-hidden">
-                      <img 
-                        src={shopPhotoPreview} 
-                        alt="Shop preview" 
+                      <img
+                        src={shopPhotoPreview}
+                        alt="Shop preview"
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -558,9 +553,8 @@ export default function RetailerRegisterPage() {
                   required
                   value={formData.password}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors ${
-                    errors.password ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-4 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors ${errors.password ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   placeholder="Min. 8 characters"
                 />
                 {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
@@ -578,9 +572,8 @@ export default function RetailerRegisterPage() {
                   required
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors ${
-                    errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-4 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white transition-colors ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   placeholder="Confirm password"
                 />
                 {errors.confirmPassword && <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>}
@@ -591,11 +584,10 @@ export default function RetailerRegisterPage() {
               <button
                 type="submit"
                 disabled={isLoading || uploadingPhoto}
-                className={`w-full flex justify-center items-center py-4 px-6 border border-transparent text-lg font-bold rounded-xl text-white transition-all duration-200 ${
-                  isLoading || uploadingPhoto
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 focus:outline-none focus:ring-4 focus:ring-red-300 shadow-lg hover:shadow-xl'
-                }`}
+                className={`w-full flex justify-center items-center py-4 px-6 border border-transparent text-lg font-bold rounded-xl text-white transition-all duration-200 ${isLoading || uploadingPhoto
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 focus:outline-none focus:ring-4 focus:ring-red-300 shadow-lg hover:shadow-xl'
+                  }`}
               >
                 {isLoading || uploadingPhoto ? (
                   <>
@@ -617,7 +609,7 @@ export default function RetailerRegisterPage() {
         {step === 2 && (
           <div className="bg-gradient-to-br from-white via-blue-50 to-purple-50 p-8 rounded-xl shadow-2xl border-2 border-blue-300 animate-slide-in-right">
             <h3 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6 text-center">💳 Step 2: Complete Payment</h3>
-            
+
             {/* Payment Breakdown Card */}
             <div className="bg-gradient-to-br from-white to-blue-50 p-6 rounded-2xl shadow-2xl mb-6 border-2 border-blue-200">
               <div className="text-center mb-4">
@@ -627,21 +619,37 @@ export default function RetailerRegisterPage() {
               </div>
 
               {/* Fee Breakdown */}
-              <div className="bg-white rounded-xl p-5 shadow-lg border border-gray-200 space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-lg text-gray-700">Registration Fee:</span>
-                  <span className="text-lg font-semibold text-gray-800">₹{registrationFee.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-lg text-gray-700">GST ({gstPercentage}%):</span>
-                  <span className="text-lg font-semibold text-gray-800">₹{gstAmount.toFixed(2)}</span>
-                </div>
-                <div className="border-t border-gray-200 pt-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xl font-bold text-blue-600">Total Payable:</span>
-                    <span className="text-3xl font-extrabold text-blue-600">₹{totalPayable.toFixed(2)}</span>
+              <div className="bg-white rounded-xl p-5 shadow-lg border border-gray-200 space-y-3 relative overflow-hidden">
+                {isFeeLoading && !registrationFee && (
+                  <div className="py-8 flex flex-col items-center justify-center space-y-3">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <p className="text-sm text-gray-500 font-medium tracking-wide">Syncing with admin...</p>
                   </div>
-                </div>
+                )}
+
+                {(!isFeeLoading || registrationFee) && (
+                  <>
+                    {isFeeLoading && (
+                      <div className="absolute top-2 right-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400 opacity-50"></div>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center">
+                      <span className="text-lg text-gray-700">Registration Fee:</span>
+                      <span className="text-lg font-semibold text-gray-800">₹{registrationFee.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-lg text-gray-700">GST ({gstPercentage}%):</span>
+                      <span className="text-lg font-semibold text-gray-800">₹{gstAmount.toFixed(2)}</span>
+                    </div>
+                    <div className="border-t border-gray-200 pt-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xl font-bold text-blue-600">Total Payable:</span>
+                        <span className="text-3xl font-extrabold text-blue-600">₹{totalPayable.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
               <div className="mt-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-3 border border-green-200">
@@ -695,11 +703,10 @@ export default function RetailerRegisterPage() {
               <button
                 onClick={handlePayment}
                 disabled={isLoading || paymentLoading}
-                className={`w-full flex justify-center items-center py-5 px-6 border border-transparent text-xl font-bold rounded-2xl text-white transition-all duration-300 transform ${
-                  isLoading || paymentLoading
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 focus:outline-none focus:ring-4 focus:ring-purple-300 shadow-2xl hover:shadow-purple-500/50 hover:scale-105'
-                }`}
+                className={`w-full flex justify-center items-center py-5 px-6 border border-transparent text-xl font-bold rounded-2xl text-white transition-all duration-300 transform ${isLoading || paymentLoading
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 focus:outline-none focus:ring-4 focus:ring-purple-300 shadow-2xl hover:shadow-purple-500/50 hover:scale-105'
+                  }`}
               >
                 {isLoading || paymentLoading ? (
                   <>
