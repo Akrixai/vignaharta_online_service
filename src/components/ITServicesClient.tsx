@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import CalComEmbed from "@/components/CalComEmbed";
 import { useState, useEffect } from "react";
 
 const services = [
@@ -64,6 +65,7 @@ export default function ITServicesClient() {
 
     return (
         <div className="min-h-screen bg-white text-gray-900 selection:bg-red-500/30">
+            <CalComEmbed />
             <Header />
 
             {/* Hero Section */}
@@ -94,6 +96,14 @@ export default function ITServicesClient() {
                                 >
                                     Start Your Project
                                 </Link>
+                                <button
+                                    data-cal-link="akrix-ai/project-meeting"
+                                    data-cal-namespace="project-meeting"
+                                    data-cal-config='{"layout":"month_view"}'
+                                    className="px-8 py-4 bg-white border-2 border-green-600 text-green-600 rounded-2xl font-black text-lg hover:bg-green-50 transition-all transform hover:-translate-y-1 shadow-lg"
+                                >
+                                    Book Strategy Call
+                                </button>
                                 <Link
                                     href="#services"
                                     className="px-8 py-4 bg-white border-2 border-red-600 text-red-600 rounded-2xl font-black text-lg hover:bg-red-50 transition-all"
@@ -223,14 +233,22 @@ export default function ITServicesClient() {
                             <p className="text-xl text-red-50 font-bold max-w-2xl mx-auto">
                                 Let's collaborate to bring your vision to life. Our team of experts is ready to help you navigate your digital journey.
                             </p>
-                            <div className="pt-6">
+                            <div className="flex flex-col sm:flex-row justify-center gap-6 pt-6">
                                 <Link
                                     href="/contact"
-                                    className="inline-flex items-center gap-3 px-10 py-5 bg-white text-red-600 font-black text-xl rounded-2xl hover:bg-red-50 transition-all transform hover:scale-105 shadow-2xl"
+                                    className="inline-flex items-center justify-center gap-3 px-10 py-5 bg-white text-red-600 font-black text-xl rounded-2xl hover:bg-red-50 transition-all transform hover:scale-105 shadow-2xl"
                                 >
                                     Get Free Consultation
                                     <span>→</span>
                                 </Link>
+                                <button
+                                    data-cal-link="akrix-ai/project-meeting"
+                                    data-cal-namespace="project-meeting"
+                                    data-cal-config='{"layout":"month_view"}'
+                                    className="inline-flex items-center justify-center gap-3 px-10 py-5 bg-green-500 text-white font-black text-xl rounded-2xl hover:bg-green-600 transition-all transform hover:scale-105 shadow-2xl"
+                                >
+                                    Book a Call Now 📞
+                                </button>
                             </div>
                         </div>
                     </div>

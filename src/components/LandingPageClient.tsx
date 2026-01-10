@@ -10,6 +10,7 @@ import HowItWorks from "@/components/HowItWorks";
 import TrustBadges from "@/components/TrustBadges";
 import LatestBlogPosts from "@/components/LatestBlogPosts";
 import TawkToChat from "@/components/TawkToChat";
+import CalComEmbed from "@/components/CalComEmbed";
 import FeaturedProducts from "@/components/FeaturedProducts";
 import HiringBanner from "@/components/HiringBanner";
 import Image from "next/image";
@@ -296,6 +297,7 @@ export default function LandingPageClient() {
   return (
     <>
       <UserConsent onConsentGiven={handleConsentGiven} />
+      <CalComEmbed />
       <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 relative overflow-hidden">
         {/* Enhanced Floating Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -539,11 +541,20 @@ export default function LandingPageClient() {
                       ))}
                     </div>
 
-                    <div className="pt-4">
-                      <Link href="/it-services" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-red-600 to-red-700 rounded-2xl font-black text-white hover:shadow-[0_0_30px_rgba(239,68,68,0.4)] transition-all transform hover:-translate-y-1">
+                    <div className="pt-4 flex flex-col sm:flex-row gap-4">
+                      <Link href="/it-services" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-red-600 to-red-700 rounded-2xl font-black text-white hover:shadow-[0_0_30px_rgba(239,68,68,0.4)] transition-all transform hover:-translate-y-1">
                         Discover IT Services
                         <span className="text-xl">→</span>
                       </Link>
+                      <button
+                        data-cal-link="akrix-ai/project-meeting"
+                        data-cal-namespace="project-meeting"
+                        data-cal-config='{"layout":"month_view"}'
+                        className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white border-2 border-green-600 text-green-600 rounded-2xl font-black text-lg hover:bg-green-50 transition-all transform hover:-translate-y-1 shadow-lg"
+                      >
+                        Book a Strategy Call
+                        <span className="text-xl">📞</span>
+                      </button>
                     </div>
                   </div>
 
