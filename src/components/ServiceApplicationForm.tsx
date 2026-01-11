@@ -34,7 +34,7 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
   const [uploadedFiles, setUploadedFiles] = useState<Record<string, string[]>>({});
   const [savingDraft, setSavingDraft] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 2; // Changed to 2 steps: Form Details and Payment Summary
+  const totalSteps = 3; // 3 steps: Form Details, Document Upload, and Payment Summary
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [feeBreakdown, setFeeBreakdown] = useState<{
     base_amount: number;
@@ -47,7 +47,7 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
   // Calculate form completion for step navigation
   const calculateFormCompletion = () => {
     let filledFields = 0;
-    let totalFields = 4; // Required basic fields
+    let totalFields = 4; // Required basic fields: name, phone, address, purpose
 
     if (formData.customer_name.trim()) filledFields++;
     if (formData.customer_phone.trim()) filledFields++;
@@ -73,10 +73,20 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
     return { progress, isFormComplete, filledFields, totalFields };
   };
 
-  // Check if we can proceed to step 2
+  // Check if we can proceed to step 2 (Document Upload)
   const canProceedToStep2 = () => {
     const { isFormComplete } = calculateFormCompletion();
     return isFormComplete;
+  };
+
+  // Check if we can proceed to step 3 (Payment Summary)
+  const canProceedToStep3 = () => {
+    // Check if all required documents are uploaded
+    if (service?.required_documents && service.required_documents.length > 0) {
+      return documents.length >= service.required_documents.length;
+    }
+    // If no required documents, allow proceeding
+    return true;
   };
 
   // Save draft function
@@ -417,9 +427,9 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
             
             <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
               <div class="flex items-start space-x-2">
-                <span class="text-yellow-500 text-lg">⚠️</span>
-                <p class="text-sm text-yellow-800">
-                  The amount will be immediately deducted from your wallet upon submission.
+                <span className="text-yellow-500 text-lg">⚠️</span>
+                <p className="text-sm text-yellow-800">
+                  The amount will be immediately deducted from your wallet upon submission. Full refund if rejected.
                 </p>
               </div>
             </div>
@@ -555,7 +565,7 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
       if (response.ok) {
         const successMessage = service.is_free 
           ? 'Application submitted successfully!' 
-          : 'Application submitted successfully! Payment will be debited after approval.';
+          : 'Application submitted successfully! Payment has been deducted from your wallet.';
         toast.success(successMessage);
         setShowPaymentModal(false);
 
@@ -855,7 +865,7 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style={{ zIndex: 99999, position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
       <div className="w-full h-full bg-white shadow-2xl overflow-hidden flex flex-col" style={{ zIndex: 100000, position: 'relative' }}>
         {/* Header Section */}
-        <div className="bg-gradient-to-r from-red-600 via-red-500 to-yellow-500 text-white p-6 shadow-lg">
+        <div className="bg-gradient-to-r from-red-600 via-red-500 to-yellow-500 text-white p-6 shadow-lg flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center border border-white border-opacity-30 shadow-md">
@@ -880,7 +890,7 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 overflow-y-auto bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50">
+        <div className="flex-1 overflow-y-auto bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50" style={{ minHeight: 0 }}>
           <div className="p-6">
 
             {/* Application Form Title */}
@@ -943,6 +953,27 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
                       }`}
                   >
                     2
+                  </div>
+                  <span className="text-xs font-medium text-gray-600 mt-1">Documents</span>
+                </div>
+
+                <div className="flex-1 h-1 bg-gray-200 mx-2">
+                  <div 
+                    className={`h-full transition-all duration-500 ${currentStep >= 3 
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500' 
+                      : 'bg-gray-200'
+                    }`}
+                  ></div>
+                </div>
+                
+                <div className="flex flex-col items-center flex-1">
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${currentStep >= 3
+                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                        : 'bg-gray-200 text-gray-500'
+                      }`}
+                  >
+                    3
                   </div>
                   <span className="text-xs font-medium text-gray-600 mt-1">Payment Summary</span>
                 </div>
@@ -1108,95 +1139,6 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
                 </div>
               )}
 
-              {/* Document Upload Section */}
-              <div className="bg-white rounded-lg shadow-md border border-orange-300 hover:shadow-lg transition-shadow duration-200">
-                <div className="p-6 border-b border-orange-200 bg-gradient-to-r from-orange-50 to-yellow-50">
-                  <h3 className="text-lg font-semibold text-red-700 flex items-center gap-2">
-                    <span className="text-orange-600">📎</span>
-                    Document Upload
-                  </h3>
-                  <p className="text-red-600 text-sm mt-1 font-medium">
-                    Upload required documents for this service
-                  </p>
-                </div>
-                <div className="p-6">
-                  <div className="space-y-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Upload Documents
-                    </label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-red-400 transition-colors">
-                      <input
-                        type="file"
-                        multiple
-                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                        onChange={handleFileChange}
-                        className="hidden"
-                        id="file-upload"
-                      />
-                      <label htmlFor="file-upload" className="cursor-pointer">
-                        <div className="text-gray-400 mb-2">
-                          <svg className="mx-auto h-12 w-12" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        </div>
-                        <p className="text-sm text-gray-600">
-                          <span className="font-medium text-red-600">Click to upload</span> or drag and drop
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          PDF, JPG, PNG, DOC, DOCX (Max 5MB each)
-                        </p>
-                      </label>
-                    </div>
-
-                    {/* Display uploaded documents */}
-                    {documents.length > 0 && (
-                      <div className="mt-4">
-                        <h5 className="text-sm font-medium text-gray-700 mb-2">
-                          Uploaded Documents:
-                        </h5>
-                        <div className="space-y-2">
-                          {documents.map((file, index) => (
-                            <div key={index} className="flex items-center justify-between bg-green-50 p-3 rounded-lg border border-green-200">
-                              <div className="flex items-center gap-3">
-                                <span className="text-green-600">📄</span>
-                                <span className="text-sm font-medium text-gray-700">{file.name}</span>
-                                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                                  {(file.size / 1024 / 1024).toFixed(2)} MB
-                                </span>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => removeDocument(index)}
-                                className="text-red-600 hover:text-red-700 p-1"
-                              >
-                                <X className="w-4 h-4" />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Required documents list */}
-                    {service.documents && service.documents.length > 0 && (
-                      <div className="mt-4 bg-blue-50 p-4 rounded-lg border border-blue-200">
-                        <h5 className="text-sm font-medium text-blue-800 mb-2">
-                          Required Documents Checklist:
-                        </h5>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                          {service.documents.map((doc: string, index: number) => (
-                            <div key={index} className="flex items-center text-sm text-blue-700 bg-white p-2 rounded border border-blue-200">
-                              <span className="mr-2">📄</span>
-                              {doc}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
               {/* Step 1 Navigation Buttons */}
               <div className="flex gap-4 pt-6 border-t border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-lg">
                 <button
@@ -1230,20 +1172,145 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
                     if (canProceedToStep2()) {
                       setCurrentStep(2);
                     } else {
-                      toast.error('Please fill in all required fields before proceeding to payment summary');
+                      toast.error('Please fill in all required fields before proceeding to document upload');
                     }
                   }}
                   disabled={!canProceedToStep2()}
                   className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-md hover:from-blue-700 hover:to-purple-700 font-medium disabled:opacity-50 transition-all duration-200 hover:shadow-lg hover:scale-105 transform"
                 >
                   <span className="flex items-center justify-center gap-2">
-                    Next: Payment Summary →
+                    Next: Upload Documents →
                   </span>
                 </button>
               </div>
             </form>
+            ) : currentStep === 2 ? (
+              // Step 2: Document Upload
+              <div className="space-y-6">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                  <div className="p-6 border-b border-gray-200">
+                    <h2 className="text-2xl font-bold text-gray-800">
+                      Upload Documents
+                    </h2>
+                    <p className="text-gray-600 mt-1">
+                      Please upload all required documents for your application
+                    </p>
+                  </div>
+                </div>
+
+                {/* Document Upload Section */}
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                  <div className="p-6">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Upload Documents</h3>
+                    
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors relative">
+                      <div className="flex flex-col items-center">
+                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
+                          <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                          </svg>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-2">
+                          Click to upload or drag and drop
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          PDF, JPG, PNG, DOC, DOCX (Max 5MB each)
+                        </p>
+                      </div>
+                      <input
+                        type="file"
+                        multiple
+                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                        onChange={handleFileChange}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                      />
+                    </div>
+
+                    {/* Required Documents Checklist */}
+                    {service?.required_documents && service.required_documents.length > 0 && (
+                      <div className="mt-6">
+                        <h4 className="text-sm font-medium text-gray-700 mb-3">Required Documents Checklist:</h4>
+                        <div className="space-y-2">
+                          {service.required_documents.map((doc: string, index: number) => (
+                            <div key={index} className="flex items-center space-x-2">
+                              <div className="w-4 h-4 rounded border border-gray-300 flex items-center justify-center">
+                                {documents.length > index && (
+                                  <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                  </svg>
+                                )}
+                              </div>
+                              <span className="text-sm text-gray-600">{doc}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Uploaded Files List */}
+                    {documents.length > 0 && (
+                      <div className="mt-6">
+                        <h4 className="text-sm font-medium text-gray-700 mb-3">Uploaded Files:</h4>
+                        <div className="space-y-2">
+                          {documents.map((file, index) => (
+                            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
+                                  <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                                  </svg>
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium text-gray-900">{file.name}</p>
+                                  <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => removeDocument(index)}
+                                className="text-red-600 hover:text-red-800 p-1"
+                              >
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                </svg>
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Navigation Buttons */}
+                <div className="flex gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep(1)}
+                    className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 font-medium transition-all duration-200 hover:shadow-md"
+                  >
+                    ← Back to Details
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (canProceedToStep3()) {
+                        setCurrentStep(3);
+                      } else {
+                        toast.error('Please upload all required documents before proceeding to payment summary');
+                      }
+                    }}
+                    disabled={!canProceedToStep3()}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-md hover:from-blue-700 hover:to-purple-700 font-medium disabled:opacity-50 transition-all duration-200 hover:shadow-lg hover:scale-105 transform"
+                  >
+                    <span className="flex items-center justify-center gap-2">
+                      Next: Payment Summary →
+                    </span>
+                  </button>
+                </div>
+              </div>
             ) : (
-              // Step 2: Payment Summary
+              // Step 3: Payment Summary
               <div className="space-y-6">
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200">
                   <div className="p-6 border-b border-gray-200">
@@ -1321,7 +1388,7 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
                     </div>
                     {!service.is_free && (
                       <p className="text-xs text-gray-500 mt-2">
-                        Amount will be deducted from your wallet upon submission
+                        Amount will be deducted from your wallet upon submission. Full refund if rejected.
                       </p>
                     )}
                   </div>
@@ -1425,7 +1492,10 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
                           <span className="text-yellow-600 text-xl flex-shrink-0">⚠️</span>
                           <div>
                             <p className="text-sm text-yellow-900 font-bold mb-1">
-                              Payment After Approval
+                              Payment on Submission
+                            </p>
+                            <p className="text-xs text-yellow-800 leading-relaxed">
+                              Amount will be deducted from your wallet when you submit the application. If your application is rejected, the full amount will be refunded automatically.
                             </p>
                             <p className="text-xs text-yellow-800 leading-relaxed">
                               The total amount of <strong>₹{breakdown.total_amount.toFixed(2)}</strong> will be immediately debited from your wallet upon submission. If your application is rejected, the full amount will be automatically refunded to your wallet.
@@ -1498,15 +1568,15 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
                 </div>
               </div>
 
-              {/* Step 2 Navigation Buttons */}
+              {/* Step 3 Navigation Buttons */}
               <div className="flex gap-4 pt-6 border-t border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-lg">
                 <button
                   type="button"
-                  onClick={() => setCurrentStep(1)}
+                  onClick={() => setCurrentStep(2)}
                   className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 font-medium transition-all duration-200 hover:shadow-md"
                   disabled={loading}
                 >
-                  ← Back to Form
+                  ← Back to Documents
                 </button>
                 <button
                   type="button"

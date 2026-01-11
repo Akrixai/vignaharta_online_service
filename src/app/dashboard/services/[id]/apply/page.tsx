@@ -385,11 +385,7 @@ export default function ServiceApplicationPage() {
         showToast.error(
           `Insufficient wallet balance! Required: ₹${requiredAmount.toFixed(2)}, Available: ₹${currentBalance.toFixed(2)}, Shortfall: ₹${shortfall.toFixed(2)}`,
           {
-            duration: 6000,
-            action: {
-              label: 'Add Money',
-              onClick: () => router.push('/dashboard/wallet')
-            }
+            duration: 6000
           }
         );
         return false;
@@ -935,7 +931,10 @@ export default function ServiceApplicationPage() {
                     </div>
                     <div className="flex-1">
                       <p className="text-sm text-yellow-900 font-bold mb-1">
-                        Payment After Approval
+                        Payment on Submission
+                      </p>
+                      <p className="text-xs text-yellow-800 leading-relaxed">
+                        Amount will be deducted from your wallet when you submit the application. If your application is rejected, the full amount will be refunded automatically.
                       </p>
                       <p className="text-xs text-yellow-800 leading-relaxed">
                         The total amount of <strong>₹{feeBreakdown.total_amount.toFixed(2)}</strong> will be immediately debited from your wallet upon submission. If your application is rejected, the full amount will be automatically refunded to your wallet.
