@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category');
     const is_free = searchParams.get('is_free');
     const search = searchParams.get('search');
+    const state = searchParams.get('state');
 
     let query = supabaseAdmin
       .from('schemes')
@@ -49,6 +50,7 @@ export async function GET(request: NextRequest) {
         cashback_enabled,
         cashback_min_percentage,
         cashback_max_percentage,
+        available_states,
         created_by_user:users!schemes_created_by_fkey(name)
       `)
       .eq('is_active', true)
@@ -77,9 +79,19 @@ export async function GET(request: NextRequest) {
       query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
     }
 
+    // State-based filtering
+    if (state && state !== 'ALL') {
+      // Filter services that are available ONLY in the specified state
+      // Do NOT include nationwide services (ALL) when filtering by specific state
+      query = query
+        .filter('available_states', 'cs', `{${state}}`)
+        .not('available_states', 'cs', '{ALL}');
+    }
+
     const { data: services, error } = await query;
 
     if (error) {
+      console.error('Services fetch error:', error);
       return NextResponse.json({ error: 'Failed to fetch services' }, { status: 500 });
     }
 
@@ -89,6 +101,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
+    console.error('Services API error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

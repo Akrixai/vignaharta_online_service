@@ -32,6 +32,7 @@ import {
 } from '@/hooks/useRealTimeData';
 import { formatCurrency } from '@/lib/utils';
 import ServiceApplicationForm from '@/components/ServiceApplicationForm';
+import StateFilter from '@/components/StateFilter';
 import './services.css';
 
 // Component to handle URL parameters
@@ -69,6 +70,7 @@ export default function ServicesPage() {
   const [viewMode, setViewMode] = useState<'GOVERNMENT' | 'DIRECT'>('GOVERNMENT');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [selectedType, setSelectedType] = useState('ALL');
+  const [selectedState, setSelectedState] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedService, setSelectedService] = useState<any>(null);
   const [showApplicationForm, setShowApplicationForm] = useState(false);
@@ -89,7 +91,7 @@ export default function ServicesPage() {
     loading: loadingServices,
     error: errorServices,
     refresh: refreshServices
-  } = useRealTimeServices(viewMode === 'GOVERNMENT');
+  } = useRealTimeServices(viewMode === 'GOVERNMENT', selectedState);
 
   // Fetch direct links
   const {
@@ -129,7 +131,7 @@ export default function ServicesPage() {
   // Reset pagination on filter change
   useEffect(() => {
     setCurrentPage(1);
-  }, [viewMode, selectedCategory, selectedType, searchTerm]);
+  }, [viewMode, selectedCategory, selectedType, selectedState, searchTerm]);
 
   // Check access - Allow both retailers and customers
   if (!session || (session.user.role !== UserRole.RETAILER && session.user.role !== UserRole.CUSTOMER)) {
@@ -343,7 +345,7 @@ export default function ServicesPage() {
           className="w-full"
         >
           <div className="bg-white rounded-lg shadow-lg border-2 border-red-200 p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               <div className="relative">
                 <Search className="w-5 h-5 absolute left-3 top-3 text-gray-400" />
                 <input
@@ -352,6 +354,14 @@ export default function ServicesPage() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Search services..."
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                />
+              </div>
+
+              <div>
+                <StateFilter
+                  selectedState={selectedState}
+                  onStateChange={setSelectedState}
+                  showLabel={false}
                 />
               </div>
 

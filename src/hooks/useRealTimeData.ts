@@ -128,7 +128,7 @@ export function useRealTimeData<T = any>({
 
 // Specialized hooks for common use cases - using API endpoints
 
-export function useRealTimeServices(enabled = true) {
+export function useRealTimeServices(enabled = true, state?: string) {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -138,7 +138,12 @@ export function useRealTimeServices(enabled = true) {
       setLoading(true);
       setError(null);
 
-      const response = await fetch('/api/services');
+      const params = new URLSearchParams();
+      if (state && state !== 'ALL') {
+        params.append('state', state);
+      }
+
+      const response = await fetch(`/api/services?${params.toString()}`);
       if (!response.ok) {
         throw new Error('Failed to fetch services');
       }
@@ -161,7 +166,7 @@ export function useRealTimeServices(enabled = true) {
     if (enabled) {
       fetchServices();
     }
-  }, [enabled]);
+  }, [enabled, state]);
 
   return {
     data,

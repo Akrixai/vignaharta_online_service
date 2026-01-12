@@ -1,201 +1,137 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 import { UserRole } from '@/types';
 
-// PUT - Update service (Admin only)
+// PUT /api/admin/services/[id] - Update service
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session || session.user.role !== UserRole.ADMIN) {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user || user.role !== UserRole.ADMIN) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
-    const serviceId = params.id;
+    const resolvedParams = await params;
+    const serviceId = resolvedParams.id;
 
     // Add console logging for debugging dropdown options
+    console.log('Updating service:', serviceId, 'with data:', body);
 
-    if (body.dynamic_fields && Array.isArray(body.dynamic_fields)) {
-      body.dynamic_fields.forEach((field: any, index: number) => {
-        if (field.type === 'select') {
+    const { 
+      name, 
+      description, 
+      price, 
+      category, 
+      documents, 
+      is_free, 
+      available_states,
+      processing_time_days,
+      commission_rate,
+      dynamic_fields,
+      required_documents,
+      show_to_customer,
+      customer_price,
+      cashback_enabled,
+      cashback_min_percentage,
+      cashback_max_percentage,
+      image_url,
+      is_active
+    } = body;
 
-        }
-      });
-    }
+    // Ensure available_states is properly formatted
+    const statesArray = available_states && Array.isArray(available_states) 
+      ? available_states 
+      : ['ALL'];
 
-    // Check if service exists
-    const { data: existingService, error: fetchError } = await supabaseAdmin
-      .from('schemes')
-      .select('id')
-      .eq('id', serviceId)
-      .single();
+    const updateData: any = {
+      updated_at: new Date().toISOString()
+    };
 
-    if (fetchError || !existingService) {
-      return NextResponse.json({ error: 'Service not found' }, { status: 404 });
-    }
-
-    // Validation
-    if (body.price !== undefined && body.price < 0) {
-      return NextResponse.json({ 
-        error: 'Price cannot be negative' 
-      }, { status: 400 });
-    }
-
-    if (body.commission_rate !== undefined && (body.commission_rate < 0 || body.commission_rate > 100)) {
-      return NextResponse.json({ 
-        error: 'Commission rate must be between 0 and 100' 
-      }, { status: 400 });
-    }
-
-    // Validate cashback percentages
-    if (body.cashback_enabled) {
-      if (body.cashback_min_percentage !== undefined && (body.cashback_min_percentage < 0 || body.cashback_min_percentage > 100)) {
-        return NextResponse.json({
-          error: 'Cashback minimum percentage must be between 0 and 100'
-        }, { status: 400 });
-      }
-      if (body.cashback_max_percentage !== undefined && (body.cashback_max_percentage < 0 || body.cashback_max_percentage > 100)) {
-        return NextResponse.json({
-          error: 'Cashback maximum percentage must be between 0 and 100'
-        }, { status: 400 });
-      }
-      if (body.cashback_min_percentage !== undefined && body.cashback_max_percentage !== undefined && 
-          body.cashback_min_percentage > body.cashback_max_percentage) {
-        return NextResponse.json({
-          error: 'Cashback minimum percentage cannot be greater than maximum percentage'
-        }, { status: 400 });
-      }
-    }
-
-    // If cashback is disabled, reset cashback percentages
-    if (body.cashback_enabled === false) {
-      body.cashback_min_percentage = 0;
-      body.cashback_max_percentage = 0;
-    }
-
-    // Process dynamic fields to ensure dropdown options are properly formatted
-    if (body.dynamic_fields && Array.isArray(body.dynamic_fields)) {
-      body.dynamic_fields = body.dynamic_fields.map((field: any) => {
-        if (field.type === 'select' && field.options) {
-          // Ensure options is an array of strings
-          let processedOptions = [];
-          if (Array.isArray(field.options)) {
-            processedOptions = field.options.map((option: any) => {
-              if (typeof option === 'string') {
-                return option.trim();
-              }
-              return String(option).trim();
-            }).filter((option: string) => option.length > 0);
-          } else if (typeof field.options === 'string') {
-            // If options is a string, split by comma
-            processedOptions = field.options
-              .split(',')
-              .map((option: string) => option.trim())
-              .filter((option: string) => option.length > 0);
-          }
-
-          return {
-            ...field,
-            options: processedOptions
-          };
-        }
-        return field;
-      });
-    }
-
-    // If is_free is set to true, set price to 0
-    if (body.is_free === true) {
-      body.price = 0;
-    }
+    // Only update fields that are provided
+    if (name !== undefined) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+    if (price !== undefined) updateData.price = parseFloat(price) || 0;
+    if (category !== undefined) updateData.category = category;
+    if (documents !== undefined) updateData.documents = documents || [];
+    if (is_free !== undefined) updateData.is_free = is_free || false;
+    if (available_states !== undefined) updateData.available_states = statesArray;
+    if (processing_time_days !== undefined) updateData.processing_time_days = processing_time_days || 7;
+    if (commission_rate !== undefined) updateData.commission_rate = commission_rate || 0;
+    if (dynamic_fields !== undefined) updateData.dynamic_fields = dynamic_fields || [];
+    if (required_documents !== undefined) updateData.required_documents = required_documents || [];
+    if (show_to_customer !== undefined) updateData.show_to_customer = show_to_customer || false;
+    if (customer_price !== undefined) updateData.customer_price = customer_price ? parseFloat(customer_price) : null;
+    if (cashback_enabled !== undefined) updateData.cashback_enabled = cashback_enabled || false;
+    if (cashback_min_percentage !== undefined) updateData.cashback_min_percentage = cashback_min_percentage || 0;
+    if (cashback_max_percentage !== undefined) updateData.cashback_max_percentage = cashback_max_percentage || 0;
+    if (image_url !== undefined) updateData.image_url = image_url || null;
+    if (is_active !== undefined) updateData.is_active = is_active;
 
     const { data: service, error } = await supabaseAdmin
       .from('schemes')
-      .update({
-        ...body,
-        updated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', serviceId)
       .select()
       .single();
 
     if (error) {
+      console.error('Service update error:', error);
       return NextResponse.json({ error: 'Failed to update service' }, { status: 500 });
     }
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       message: 'Service updated successfully',
-      service 
+      service
     });
 
   } catch (error) {
+    console.error('Admin service PUT API error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-// DELETE - Delete service (Admin only)
+// DELETE /api/admin/services/[id] - Delete service
 export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session || session.user.role !== UserRole.ADMIN) {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user || user.role !== UserRole.ADMIN) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const serviceId = params.id;
+    const resolvedParams = await params;
+    const serviceId = resolvedParams.id;
 
-    // Check if service exists
-    const { data: existingService, error: fetchError } = await supabaseAdmin
-      .from('schemes')
-      .select('id, name')
-      .eq('id', serviceId)
-      .single();
-
-    if (fetchError || !existingService) {
-      return NextResponse.json({ error: 'Service not found' }, { status: 404 });
-    }
-
-    // Check if service has applications
-    const { data: applications, error: appError } = await supabaseAdmin
-      .from('applications')
-      .select('id')
-      .eq('scheme_id', serviceId)
-      .limit(1);
-
-    if (appError) {
-      return NextResponse.json({ error: 'Failed to check service usage' }, { status: 500 });
-    }
-
-    if (applications && applications.length > 0) {
-      return NextResponse.json({ 
-        error: 'Cannot delete service with existing applications. Deactivate it instead.' 
-      }, { status: 400 });
-    }
-
+    // Soft delete by setting is_active to false
     const { error } = await supabaseAdmin
       .from('schemes')
-      .delete()
+      .update({ 
+        is_active: false,
+        updated_at: new Date().toISOString()
+      })
       .eq('id', serviceId);
 
     if (error) {
+      console.error('Service delete error:', error);
       return NextResponse.json({ error: 'Failed to delete service' }, { status: 500 });
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Service deleted successfully' 
+    return NextResponse.json({
+      success: true,
+      message: 'Service deleted successfully'
     });
 
   } catch (error) {
+    console.error('Admin service DELETE API error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

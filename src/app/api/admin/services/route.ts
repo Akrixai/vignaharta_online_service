@@ -1,201 +1,133 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
+import { getAuthenticatedUser } from '@/lib/auth-helper';
 import { UserRole } from '@/types';
-import { sendNewServiceNotifications } from '@/lib/email-service';
 
-// GET - Fetch all services (Admin only)
-export async function GET() {
+// GET /api/admin/services - Get all services for admin management
+export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session || session.user.role !== UserRole.ADMIN) {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user || user.role !== UserRole.ADMIN) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { data: services, error } = await supabaseAdmin
       .from('schemes')
       .select(`
-        *,
-        created_by_user:users!schemes_created_by_fkey(name)
+        id,
+        name,
+        description,
+        price,
+        is_free,
+        is_active,
+        category,
+        documents,
+        processing_time_days,
+        commission_rate,
+        dynamic_fields,
+        required_documents,
+        image_url,
+        external_url,
+        available_states,
+        show_to_customer,
+        customer_price,
+        cashback_enabled,
+        cashback_min_percentage,
+        cashback_max_percentage,
+        created_at,
+        updated_at,
+        created_by
       `)
       .order('created_at', { ascending: false });
 
     if (error) {
+      console.error('Admin services fetch error:', error);
       return NextResponse.json({ error: 'Failed to fetch services' }, { status: 500 });
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      services: services || [] 
+    return NextResponse.json({
+      success: true,
+      services: services || []
     });
 
   } catch (error) {
+    console.error('Admin services API error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-// POST - Create new service (Admin only)
+// POST /api/admin/services - Create new service
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session || session.user.role !== UserRole.ADMIN) {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user || user.role !== UserRole.ADMIN) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
-
-    const {
-      name,
-      description,
-      price,
-      is_free,
-      category,
-      documents,
+    const { 
+      name, 
+      description, 
+      price, 
+      category, 
+      documents, 
+      is_free, 
+      available_states,
       processing_time_days,
       commission_rate,
+      dynamic_fields,
+      required_documents,
+      show_to_customer,
+      customer_price,
       cashback_enabled,
       cashback_min_percentage,
       cashback_max_percentage,
-      dynamic_fields,
-      required_documents,
-      image_url,
-      show_to_customer,
-      customer_price
+      image_url
     } = body;
 
-    // Add console logging for debugging dropdown options
-
-    if (dynamic_fields && Array.isArray(dynamic_fields)) {
-      dynamic_fields.forEach((field: any, index: number) => {
-        if (field.type === 'select') {
-
-        }
-      });
+    if (!name || !description || price === undefined) {
+      return NextResponse.json(
+        { error: 'Name, description, and price are required' },
+        { status: 400 }
+      );
     }
 
-    // Validation
-    if (!name) {
-      return NextResponse.json({ 
-        error: 'Service name is required' 
-      }, { status: 400 });
-    }
-
-    if (price < 0) {
-      return NextResponse.json({ 
-        error: 'Price cannot be negative' 
-      }, { status: 400 });
-    }
-
-    if (commission_rate < 0 || commission_rate > 100) {
-      return NextResponse.json({
-        error: 'Commission rate must be between 0 and 100'
-      }, { status: 400 });
-    }
-
-    // Validate cashback percentages
-    if (cashback_enabled) {
-      if (cashback_min_percentage < 0 || cashback_min_percentage > 100) {
-        return NextResponse.json({
-          error: 'Cashback minimum percentage must be between 0 and 100'
-        }, { status: 400 });
-      }
-      if (cashback_max_percentage < 0 || cashback_max_percentage > 100) {
-        return NextResponse.json({
-          error: 'Cashback maximum percentage must be between 0 and 100'
-        }, { status: 400 });
-      }
-      if (cashback_min_percentage > cashback_max_percentage) {
-        return NextResponse.json({
-          error: 'Cashback minimum percentage cannot be greater than maximum percentage'
-        }, { status: 400 });
-      }
-    }
-
-    // Process dynamic fields to ensure dropdown options are properly formatted
-    const processedDynamicFields = dynamic_fields ? dynamic_fields.map((field: any) => {
-      if (field.type === 'select' && field.options) {
-        // Ensure options is an array of strings
-        let processedOptions = [];
-        if (Array.isArray(field.options)) {
-          processedOptions = field.options.map((option: any) => {
-            if (typeof option === 'string') {
-              return option.trim();
-            }
-            return String(option).trim();
-          }).filter((option: string) => option.length > 0);
-        } else if (typeof field.options === 'string') {
-          // If options is a string, split by comma
-          processedOptions = field.options
-            .split(',')
-            .map((option: string) => option.trim())
-            .filter((option: string) => option.length > 0);
-        }
-
-        return {
-          ...field,
-          options: processedOptions
-        };
-      }
-      return field;
-    }) : [];
-
-    // Verify the user exists in the database
-    const { data: userExists, error: userError } = await supabaseAdmin
-      .from('users')
-      .select('id, email, role')
-      .eq('id', session.user.id)
-      .single();
-
-    if (userError || !userExists) {
-      return NextResponse.json({
-        error: 'User not found in database',
-        details: userError?.message
-      }, { status: 400 });
-    }
+    // Ensure available_states is properly formatted
+    const statesArray = available_states && Array.isArray(available_states) 
+      ? available_states 
+      : ['ALL'];
 
     const { data: service, error } = await supabaseAdmin
       .from('schemes')
       .insert({
         name,
         description,
-        price: is_free ? 0 : price,
-        is_free: is_free || false,
+        price: parseFloat(price) || 0,
         category,
         documents: documents || [],
+        is_free: is_free || false,
+        available_states: statesArray,
         processing_time_days: processing_time_days || 7,
         commission_rate: commission_rate || 0,
-        cashback_enabled: cashback_enabled || false,
-        cashback_min_percentage: cashback_enabled ? (cashback_min_percentage || 1) : 0,
-        cashback_max_percentage: cashback_enabled ? (cashback_max_percentage || 3) : 0,
-        dynamic_fields: processedDynamicFields,
+        dynamic_fields: dynamic_fields || [],
         required_documents: required_documents || [],
+        show_to_customer: show_to_customer || false,
+        customer_price: customer_price ? parseFloat(customer_price) : null,
+        cashback_enabled: cashback_enabled || false,
+        cashback_min_percentage: cashback_min_percentage || 0,
+        cashback_max_percentage: cashback_max_percentage || 0,
         image_url: image_url || null,
-        show_to_customer: show_to_customer !== false,
-        customer_price: customer_price || null,
-        created_by: session.user.id
+        created_by: user.id,
+        is_active: true
       })
       .select()
       .single();
 
     if (error) {
-      return NextResponse.json({
-        error: 'Failed to create service',
-        details: error.message
-      }, { status: 500 });
-    }
-
-    // Send email notifications to all users
-    try {
-      await sendNewServiceNotifications(
-        service.id,
-        service.name,
-        service.description || 'New service available'
-      );
-    } catch (emailError) {
-      // Don't fail the API if email fails
+      console.error('Service creation error:', error);
+      return NextResponse.json({ error: 'Failed to create service' }, { status: 500 });
     }
 
     return NextResponse.json({
@@ -205,12 +137,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-
-    return NextResponse.json({
-      success: false,
-      error: 'Internal server error',
-      details: errorMessage
-    }, { status: 500 });
+    console.error('Admin services POST API error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

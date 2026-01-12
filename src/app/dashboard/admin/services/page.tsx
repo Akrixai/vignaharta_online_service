@@ -10,6 +10,9 @@ import { UserRole } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import { showToast } from '@/lib/toast';
 import ServiceImageUpload from '@/components/admin/ServiceImageUpload';
+import StateSelector from '@/components/StateSelector';
+
+import { INDIAN_STATES } from '@/lib/states';
 
 export default function AdminServicesPage() {
   const { data: session, status } = useSession();
@@ -19,6 +22,32 @@ export default function AdminServicesPage() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingService, setEditingService] = useState<any>(null);
   const [mounted, setMounted] = useState(false);
+
+  // Helper function to format service availability
+  const formatAvailability = (availableStates: string[]) => {
+    if (!availableStates || availableStates.length === 0) {
+      return '❌ Not configured';
+    }
+    
+    if (availableStates.includes('ALL')) {
+      return '🇮🇳 All India';
+    }
+    
+    if (availableStates.length === 1) {
+      const state = INDIAN_STATES.find(s => s.code === availableStates[0]);
+      return `${state?.emoji || '📍'} ${state?.name || availableStates[0]}`;
+    }
+    
+    if (availableStates.length <= 3) {
+      const stateNames = availableStates.map(code => {
+        const state = INDIAN_STATES.find(s => s.code === code);
+        return state?.name || code;
+      }).join(', ');
+      return `📍 ${stateNames}`;
+    }
+    
+    return `📍 ${availableStates.length} states`;
+  };
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -33,7 +62,8 @@ export default function AdminServicesPage() {
     cashback_max_percentage: '3',
     image_url: '',
     show_to_customer: false,
-    customer_price: ''
+    customer_price: '',
+    available_states: ['ALL'] as string[]
   });
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -156,6 +186,7 @@ export default function AdminServicesPage() {
         cashback_min_percentage: parseFloat(formData.cashback_min_percentage) || 1,
         cashback_max_percentage: parseFloat(formData.cashback_max_percentage) || 3,
         documents: formData.documents.split(',').map(doc => doc.trim()).filter(doc => doc),
+        available_states: formData.available_states,
         dynamic_fields: dynamicFields,
         required_documents: requiredDocuments,
         image_url: imageUrl,
@@ -221,7 +252,8 @@ export default function AdminServicesPage() {
       cashback_max_percentage: service.cashback_max_percentage?.toString() || '3',
       image_url: service.image_url || '',
       show_to_customer: service.show_to_customer === true,
-      customer_price: service.customer_price?.toString() || ''
+      customer_price: service.customer_price?.toString() || '',
+      available_states: service.available_states || ['ALL']
     });
     setDynamicFields(service.dynamic_fields || []);
     setRequiredDocuments(service.required_documents || []);
@@ -324,7 +356,8 @@ export default function AdminServicesPage() {
       cashback_max_percentage: '3',
       image_url: '',
       show_to_customer: false,
-      customer_price: ''
+      customer_price: '',
+      available_states: ['ALL']
     });
     setDynamicFields([]);
     setRequiredDocuments([]);
@@ -493,6 +526,14 @@ export default function AdminServicesPage() {
                     <option value="Social Welfare">Social Welfare</option>
                     <option value="Revenue Services">Revenue Services</option>
                   </select>
+                </div>
+
+                <div className="md:col-span-2">
+                  <StateSelector
+                    selectedStates={formData.available_states}
+                    onStatesChange={(states) => setFormData(prev => ({ ...prev, available_states: states }))}
+                    placeholder="Select states where this service is available"
+                  />
                 </div>
 
                 <div>
@@ -970,6 +1011,22 @@ export default function AdminServicesPage() {
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-500">Documents:</span>
                       <span className="font-medium">{service.documents?.length || 0}</span>
+                    </div>
+                    <div className="flex justify-between items-start">
+                      <span className="text-sm text-gray-500">Availability:</span>
+                      <div className="text-right">
+                        <span className="font-medium text-blue-600">
+                          {formatAvailability(service.available_states)}
+                        </span>
+                        {service.available_states && service.available_states.length > 3 && !service.available_states.includes('ALL') && (
+                          <div className="text-xs text-gray-400 mt-1">
+                            {service.available_states.slice(0, 3).map(code => {
+                              const state = INDIAN_STATES.find(s => s.code === code);
+                              return state?.name || code;
+                            }).join(', ')} + {service.available_states.length - 3} more
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 

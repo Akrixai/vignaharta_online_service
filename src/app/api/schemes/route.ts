@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
     const search = searchParams.get('search');
+    const state = searchParams.get('state');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const offset = (page - 1) * limit;
@@ -33,9 +34,16 @@ export async function GET(request: NextRequest) {
       query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
     }
 
+    // State-based filtering
+    if (state && state !== 'ALL') {
+      // Filter services that are available in the specified state or available nationwide (ALL)
+      query = query.or(`available_states.cs.{${state}},available_states.cs.{ALL}`);
+    }
+
     const { data: schemes, error, count } = await query;
 
     if (error) {
+      console.error('Schemes fetch error:', error);
       return NextResponse.json({ error: 'Failed to fetch schemes' }, { status: 500 });
     }
 
@@ -63,6 +71,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
+    console.error('Schemes API error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -77,7 +86,24 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, description, price, category, documents, is_free } = body;
+    const { 
+      name, 
+      description, 
+      price, 
+      category, 
+      documents, 
+      is_free, 
+      available_states,
+      processing_time_days,
+      commission_rate,
+      dynamic_fields,
+      required_documents,
+      show_to_customer,
+      customer_price,
+      cashback_enabled,
+      cashback_min_percentage,
+      cashback_max_percentage
+    } = body;
 
     if (!name || !description || price === undefined) {
       return NextResponse.json(
@@ -85,6 +111,11 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Ensure available_states is properly formatted
+    const statesArray = available_states && Array.isArray(available_states) 
+      ? available_states 
+      : ['ALL'];
 
     const { data: scheme, error } = await supabaseAdmin
       .from('schemes')
@@ -94,12 +125,24 @@ export async function POST(request: NextRequest) {
         price: parseFloat(price),
         category,
         documents: documents || [],
-        is_free: is_free || false
+        is_free: is_free || false,
+        available_states: statesArray,
+        processing_time_days: processing_time_days || 7,
+        commission_rate: commission_rate || 0,
+        dynamic_fields: dynamic_fields || [],
+        required_documents: required_documents || [],
+        show_to_customer: show_to_customer || false,
+        customer_price: customer_price ? parseFloat(customer_price) : null,
+        cashback_enabled: cashback_enabled || false,
+        cashback_min_percentage: cashback_min_percentage || 0,
+        cashback_max_percentage: cashback_max_percentage || 0,
+        created_by: user.id
       })
       .select()
       .single();
 
     if (error) {
+      console.error('Scheme creation error:', error);
       return NextResponse.json({ error: 'Failed to create scheme' }, { status: 500 });
     }
 
@@ -110,6 +153,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
+    console.error('Schemes POST API error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
