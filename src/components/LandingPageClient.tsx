@@ -336,14 +336,14 @@ export default function LandingPageClient() {
 
           <div className="text-center relative z-10">
             {/* Enhanced SEO-optimized H1 and H2 tags with gradient */}
-            <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-red-700 to-red-900 bg-clip-text text-transparent mb-6 animate-fade-in">
+            <h1 className="text-4xl md:text-7xl font-black bg-gradient-to-r from-red-800 via-red-600 to-red-800 bg-clip-text text-transparent mb-6 animate-fade-in tracking-tight">
               Vighnaharta Online Services
             </h1>
-            <h2 className="text-xl md:text-2xl text-red-600 mb-4 max-w-3xl mx-auto animate-fade-in animate-delay-200">
-              India's Premier Digital Government Services Portal
+            <h2 className="text-xl md:text-3xl text-red-600 font-extrabold mb-6 max-w-4xl mx-auto animate-fade-in animate-delay-200">
+              India's Premier Digital Service Portal - Now Live with BBPS & NSDL PAN 🚀
             </h2>
-            <p className="text-lg md:text-xl text-gray-700 mb-8 max-w-4xl mx-auto animate-fade-in animate-delay-300">
-              Access <Link href="/register" className="text-red-600 hover:text-red-800 font-semibold underline">Aadhaar Card</Link>, <Link href="/register" className="text-red-600 hover:text-red-800 font-semibold underline">PAN Card</Link>, <Link href="/register" className="text-red-600 hover:text-red-800 font-semibold underline">Passport</Link>, <Link href="/register" className="text-red-600 hover:text-red-800 font-semibold underline">Birth Certificate</Link>, <Link href="/register" className="text-red-600 hover:text-red-800 font-semibold underline">Death Certificate</Link>, <Link href="/register" className="text-red-600 hover:text-red-800 font-semibold underline">Income Certificate</Link>, <Link href="/register" className="text-red-600 hover:text-red-800 font-semibold underline">Caste Certificate</Link>, and <Link href="/register" className="text-red-600 hover:text-red-800 font-semibold underline">100+ government services online</Link>. Fast, secure, and reliable government service portal with nationwide retailer network support.
+            <p className="text-lg md:text-xl text-slate-700 mb-10 max-w-5xl mx-auto animate-fade-in animate-delay-300 leading-relaxed font-medium">
+              Join India's fastest-growing network for <Link href="/register" className="text-red-600 hover:text-red-800 font-bold underline decoration-2 underline-offset-4">Aadhaar Services</Link>, <Link href="/register" className="text-red-600 hover:text-red-800 font-bold underline decoration-2 underline-offset-4">NSDL PAN Card</Link>, and <Link href="/register" className="text-red-600 hover:text-red-800 font-bold underline decoration-2 underline-offset-4">BBPS Bill Payments</Link>. Earn the highest commissions as a Retailer and get massive cashback as a Customer. Authorized, Secure, and 100% Digital.
             </p>
 
             {/* Enhanced CTA Buttons with icons and animations */}
@@ -736,100 +736,103 @@ export default function LandingPageClient() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
 
               {/* Recharge & Utility Section */}
-              <div className="group bg-gradient-to-br from-white to-orange-50 p-8 rounded-[2.5rem] shadow-2xl border border-orange-100 hover:shadow-orange-200/50 transition-all duration-500 transform hover:-translate-y-2">
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="w-16 h-16 bg-gradient-to-tr from-orange-500 to-red-500 rounded-2xl flex items-center justify-center text-white text-3xl shadow-lg transform group-hover:rotate-6 transition-transform">
+              <div className="group bg-gradient-to-br from-white to-red-50 p-10 rounded-[3rem] shadow-2xl border border-red-100 hover:shadow-red-500/20 transition-all duration-500 transform hover:-translate-y-2 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4">
+                  <span className="px-3 py-1 bg-green-500 text-white text-[10px] font-black rounded-full shadow-lg animate-pulse uppercase tracking-widest">Live Now</span>
+                </div>
+
+                <div className="flex items-center gap-5 mb-10">
+                  <div className="w-20 h-20 bg-gradient-to-tr from-orange-600 to-red-600 rounded-3xl flex items-center justify-center text-white text-4xl shadow-2xl transform group-hover:rotate-6 transition-transform">
                     ⚡
                   </div>
                   <div>
-                    <h3 className="text-2xl font-black text-gray-900 leading-none mb-1 text-left">RECHARGE & UTILITIES</h3>
-                    <p className="text-orange-600 font-bold text-sm tracking-widest uppercase text-left">Instant Profits • BBPS Powered</p>
+                    <h3 className="text-3xl font-black text-slate-900 leading-none mb-2 text-left">BBPS SERVICES</h3>
+                    <p className="text-orange-600 font-black text-xs tracking-[0.2em] uppercase text-left">All Categories • High Returns</p>
                   </div>
                 </div>
 
                 <div className="space-y-6 text-left">
-                  <div className="p-6 bg-white/60 backdrop-blur-md rounded-2xl border border-white shadow-sm group-hover:bg-white transition-colors">
-                    <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
-                      <span className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">🏪</span>
-                      For Our Retailer Partners
-                    </h4>
-                    <p className="text-gray-600 text-sm leading-relaxed">
-                      Scale your earnings with <span className="text-red-600 font-black">High Commissions</span> on Mobile Recharge, DTH, and Electricity Bill Payments. One-click processing with guaranteed profit on every transaction.
+                  <div className="p-6 bg-white rounded-3xl border border-slate-100 shadow-sm group-hover:border-orange-200 transition-all">
+                    <div className="flex items-center gap-3 mb-3">
+                      <span className="w-10 h-10 rounded-2xl bg-orange-100 flex items-center justify-center text-xl shadow-inner">🏪</span>
+                      <h4 className="font-black text-slate-900 uppercase tracking-tight">Earn High Commissions</h4>
+                    </div>
+                    <p className="text-slate-600 text-sm leading-relaxed font-medium">
+                      Retailers can earn the industry's highest <span className="text-red-600 font-bold">Commission Margins</span> on all Mobile Recharges, DTH, and Utility Bills. Join fast to maximize your profits!
                     </p>
                   </div>
 
-                  <div className="p-6 bg-white/60 backdrop-blur-md rounded-2xl border border-white shadow-sm group-hover:bg-white transition-colors">
-                    <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
-                      <span className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">👤</span>
-                      For Our Direct Customers
-                    </h4>
-                    <p className="text-gray-600 text-sm leading-relaxed">
-                      Experience the joy of saving! Get <span className="text-blue-600 font-black">Big Cashback</span> on every recharge and bill payment. Secure, fast, and rewarding digital payments made easy.
+                  <div className="p-6 bg-white rounded-3xl border border-slate-100 shadow-sm group-hover:border-blue-200 transition-all">
+                    <div className="flex items-center gap-3 mb-3">
+                      <span className="w-10 h-10 rounded-2xl bg-blue-100 flex items-center justify-center text-xl shadow-inner">💰</span>
+                      <h4 className="font-black text-slate-900 uppercase tracking-tight">Instant Cashback Rewards</h4>
+                    </div>
+                    <p className="text-slate-600 text-sm leading-relaxed font-medium">
+                      Customers get <span className="text-blue-600 font-bold">High Cashback</span> instantly in their wallet for every payment. Why pay elsewhere when you can earn while you pay?
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="bg-orange-500/10 p-3 rounded-xl border border-orange-200 text-center">
-                      <span className="block text-xl">📱</span>
-                      <span className="text-[10px] font-black text-orange-700 uppercase">Mobile</span>
-                    </div>
-                    <div className="bg-red-500/10 p-3 rounded-xl border border-red-200 text-center">
-                      <span className="block text-xl">📡</span>
-                      <span className="text-[10px] font-black text-red-700 uppercase">DTH</span>
-                    </div>
-                    <div className="bg-yellow-500/10 p-3 rounded-xl border border-yellow-200 text-center">
-                      <span className="block text-xl">💡</span>
-                      <span className="text-[10px] font-black text-yellow-700 uppercase">Electricity</span>
-                    </div>
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    {['Mobile', 'DTH', 'Electricity', 'Gas', 'Water', 'Insurance'].map((cat) => (
+                      <span key={cat} className="px-4 py-2 bg-slate-50 rounded-full text-[10px] font-black text-slate-500 border border-slate-100 uppercase tracking-wider group-hover:bg-red-50 group-hover:text-red-600 transition-colors">
+                        {cat}
+                      </span>
+                    ))}
                   </div>
                 </div>
               </div>
 
               {/* PAN Services Section */}
-              <div className="group bg-gradient-to-br from-white to-blue-50 p-8 rounded-[2.5rem] shadow-2xl border border-blue-100 hover:shadow-blue-200/50 transition-all duration-500 transform hover:-translate-y-2">
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="w-16 h-16 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center text-white text-3xl shadow-lg transform group-hover:-rotate-6 transition-transform">
+              <div className="group bg-gradient-to-br from-white to-blue-50 p-10 rounded-[3rem] shadow-2xl border border-blue-100 hover:shadow-blue-500/20 transition-all duration-500 transform hover:-translate-y-2 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4">
+                  <span className="px-3 py-1 bg-blue-600 text-white text-[10px] font-black rounded-full shadow-lg animate-pulse uppercase tracking-widest">NSDL Official</span>
+                </div>
+
+                <div className="flex items-center gap-5 mb-10">
+                  <div className="w-20 h-20 bg-gradient-to-tr from-blue-700 to-indigo-700 rounded-3xl flex items-center justify-center text-white text-4xl shadow-2xl transform group-hover:-rotate-6 transition-transform">
                     📄
                   </div>
                   <div>
-                    <h3 className="text-2xl font-black text-gray-900 leading-none mb-1 text-left">NSDL PAN SERVICES</h3>
-                    <p className="text-blue-600 font-bold text-sm tracking-widest uppercase text-left">Lowest Cost • Official Source</p>
+                    <h3 className="text-3xl font-black text-slate-900 leading-none mb-2 text-left">NSDL PAN CARD</h3>
+                    <p className="text-blue-600 font-black text-xs tracking-[0.2em] uppercase text-left">Lowest Cost • Integrated Portal</p>
                   </div>
                 </div>
 
                 <div className="space-y-4 text-left">
-                  <div className="flex gap-4 items-start p-4 bg-white/60 rounded-2xl hover:bg-white transition-all shadow-sm">
-                    <span className="text-2xl">✨</span>
+                  <div className="group/item flex gap-5 items-center p-5 bg-white rounded-3xl shadow-sm hover:shadow-md transition-all border border-slate-100">
+                    <span className="text-3xl filter grayscale group-hover/item:grayscale-0 transition-all">✨</span>
                     <div>
-                      <h4 className="font-bold text-gray-900">New PAN Application</h4>
-                      <p className="text-gray-600 text-sm">Apply for a fresh PAN card with paperless e-KYC technology. Fast, verified, and direct.</p>
+                      <h4 className="font-black text-slate-900 text-sm uppercase">New PAN Application</h4>
+                      <p className="text-slate-500 text-xs font-medium">Paperless e-KYC. Ultra-fast processing.</p>
                     </div>
                   </div>
 
-                  <div className="flex gap-4 items-start p-4 bg-white/60 rounded-2xl hover:bg-white transition-all shadow-sm">
-                    <span className="text-2xl">🔧</span>
+                  <div className="group/item flex gap-5 items-center p-5 bg-white rounded-3xl shadow-sm hover:shadow-md transition-all border border-slate-100">
+                    <span className="text-3xl filter grayscale group-hover/item:grayscale-0 transition-all">🔧</span>
                     <div>
-                      <h4 className="font-bold text-gray-900">PAN Correction / Update</h4>
-                      <p className="text-gray-600 text-sm">Correct name, DOB, or photo errors on your existing PAN card at the <span className="text-indigo-600 font-bold">Lowest Market Cost</span>.</p>
+                      <h4 className="font-black text-slate-900 text-sm uppercase">Easy PAN Correction</h4>
+                      <p className="text-slate-500 text-xs font-medium">Update name, DOB or photo at lowest cost.</p>
                     </div>
                   </div>
 
-                  <div className="flex gap-4 items-start p-4 bg-white/60 rounded-2xl hover:bg-white transition-all shadow-sm border-2 border-dashed border-blue-200">
-                    <span className="text-2xl">⏳</span>
+                  <div className="group/item flex gap-5 items-center p-5 bg-white rounded-3xl shadow-sm hover:shadow-md transition-all border border-blue-200 border-dashed bg-blue-50/30">
+                    <span className="text-3xl filter grayscale group-hover/item:grayscale-0 transition-all">⏳</span>
                     <div>
-                      <h4 className="font-bold text-gray-900">Resume Incomplete PAN</h4>
-                      <p className="text-gray-600 text-sm">Don't lose your progress! Resume and finish your incomplete applications instantly through our portal.</p>
+                      <h4 className="font-black text-slate-900 text-sm uppercase">Resume Incomplete PAN</h4>
+                      <p className="text-slate-500 text-xs font-medium">Continue your application from anywhere.</p>
                     </div>
                   </div>
 
-                  <div className="mt-6 flex flex-wrap gap-4 items-center justify-between">
+                  <div className="pt-6 flex justify-between items-center">
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                      <span className="text-xs font-bold text-gray-500 uppercase tracking-tighter">Authorized NSDL Integration</span>
+                      <span className="relative flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                      </span>
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Official Source</span>
                     </div>
-                    <Link href="/register" className="text-sm font-black text-indigo-600 hover:text-indigo-800 flex items-center gap-1 group/btn">
-                      Get Started Now
-                      <span className="group-hover/btn:translate-x-1 transition-transform">→</span>
+                    <Link href="/register" className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg hover:shadow-indigo-500/30">
+                      Join & Earn →
                     </Link>
                   </div>
                 </div>

@@ -7,155 +7,201 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
 export default function WhatsNewPage() {
-    const newFeatures = [
+    const categories = [
         {
-            title: 'Cashfree Payment Gateway',
-            description: 'Seamless wallet top-ups with our new secure payment gateway integration.',
+            title: 'BBPS Bill Payments',
+            description: 'Now live with all BBPS categories including Mobile Recharge, Electricity, Gas, Water, Broadband, Landline, FASTag, and Insurance.',
             icon: '💳',
-            color: 'from-blue-500 to-blue-600'
+            color: 'from-blue-600 to-indigo-700',
+            features: ['Mobile Recharge', 'Electricity Bills', 'Insurance Premium', 'FASTag']
         },
         {
-            title: 'Retailer Registration',
-            description: 'Streamlined onboarding process for new retailers to join our network.',
-            icon: '🏪',
-            color: 'from-green-500 to-green-600'
+            title: 'NSDL PAN Services',
+            description: 'Officially integrated NSDL PAN services for New PAN cards, PAN corrections, and resuming incomplete PAN applications.',
+            icon: '🆔',
+            color: 'from-emerald-600 to-teal-700',
+            features: ['New PAN Card', 'PAN Correction', 'Incomplete PAN', 'Fast Processing']
         },
         {
-            title: 'Customer System',
-            description: 'Dedicated portal for customers to track applications and services.',
-            icon: '👤',
-            color: 'from-purple-500 to-purple-600'
+            title: 'Retailer Commissions',
+            description: 'Earn the highest commissions in the industry on every mobile recharge and utility bill payment through our portal.',
+            icon: '💰',
+            color: 'from-orange-500 to-red-600',
+            features: ['Instant Credit', 'High Margins', 'Multiple Services', 'Daily Payouts']
         },
         {
-            title: 'Distribution System',
-            description: 'Advanced hierarchy management for distributors and supervisors.',
-            icon: '🏢',
-            color: 'from-orange-500 to-orange-600'
+            title: 'Customer Cashback',
+            description: 'Get exclusive cashback rewards as a customer on every application and payment you make through Vighnaharta.',
+            icon: '🎁',
+            color: 'from-pink-500 to-rose-600',
+            features: ['Real Cashback', 'Wallet Credit', 'Referral Rewards', 'Loyalty Points']
         },
         {
-            title: 'Forgot Password',
-            description: 'Secure account recovery with OTP verification.',
-            icon: '🔒',
-            color: 'from-red-500 to-red-600'
+            title: 'Advanced Dashboard',
+            description: 'New unified dashboard for retailers and customers to manage all services, applications, and transactions in one place.',
+            icon: '📊',
+            color: 'from-purple-600 to-fuchsia-700',
+            features: ['Real-time Stats', 'Transaction History', 'Digital Receipts', 'Analytics']
         },
         {
-            title: 'Google Recaptcha',
-            description: 'Enhanced security to prevent spam and bot attacks.',
-            icon: '🛡️',
-            color: 'from-yellow-500 to-yellow-600'
+            title: 'Express Onboarding',
+            description: 'Join our network instantly as a retailer or customer and start earning or saving from the very first minute.',
+            icon: '🚀',
+            color: 'from-cyan-500 to-blue-600',
+            features: ['Easy KYC', 'Instant Wallet', 'Dedicated Support', 'Training Videos']
         }
     ];
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-slate-50">
             <Header />
 
-            <main className="pt-8 pb-16">
-                {/* Hero Section */}
-                <div className="relative bg-gradient-to-r from-red-800 to-red-900 text-white py-20 px-4 sm:px-6 lg:px-8 mb-12 overflow-hidden">
-                    <div className="absolute inset-0 overflow-hidden">
-                        <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-                        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-yellow-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+            <main className="pt-0 overflow-hidden">
+                {/* Hero Section with Glassmorphism */}
+                <section className="relative bg-[#8b0000] text-white py-24 px-4 overflow-hidden">
+                    <div className="absolute inset-0">
+                        <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+                        <motion.div
+                            animate={{
+                                scale: [1, 1.2, 1],
+                                opacity: [0.3, 0.5, 0.3]
+                            }}
+                            transition={{ duration: 8, repeat: Infinity }}
+                            className="absolute -top-24 -right-24 w-[500px] h-[500px] bg-yellow-500/20 rounded-full blur-3xl"
+                        ></motion.div>
+                        <motion.div
+                            animate={{
+                                scale: [1, 1.3, 1],
+                                opacity: [0.2, 0.4, 0.2]
+                            }}
+                            transition={{ duration: 10, repeat: Infinity, delay: 1 }}
+                            className="absolute -bottom-24 -left-24 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-3xl"
+                        ></motion.div>
                     </div>
 
                     <div className="relative max-w-7xl mx-auto text-center z-10">
                         <motion.div
-                            initial={{ opacity: 0, y: 20 }}
+                            initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.6 }}
+                            transition={{ duration: 0.8 }}
                         >
-                            <span className="inline-block py-1 px-3 rounded-full bg-red-700/50 border border-red-500 text-red-100 text-sm font-semibold mb-4 backdrop-blur-sm">
-                                Latest Updates & Roadmap
+                            <span className="inline-block py-1.5 px-4 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-yellow-400 text-sm font-bold mb-6 tracking-wider uppercase">
+                                What's New & Trending
                             </span>
-                            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-red-100 to-red-200">
-                                What's New in Vighnaharta
+                            <h1 className="text-5xl md:text-7xl font-black mb-8 leading-tight tracking-tight">
+                                Our Latest <span className="text-yellow-400">Live</span> Services
                             </h1>
-                            <p className="text-xl text-red-100 max-w-3xl mx-auto leading-relaxed">
-                                Discover the latest features we've added to enhance your experience, and see what exciting developments are coming next.
+                            <p className="text-xl md:text-2xl text-red-50 max-w-4xl mx-auto leading-relaxed font-medium">
+                                We've expanded our horizons! Explore the new BBPS categories, NSDL PAN services, and high-earning opportunities now live on Vighnaharta Online Service.
                             </p>
+
+                            <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-6">
+                                <Link
+                                    href="/register"
+                                    className="px-10 py-4 bg-yellow-500 hover:bg-yellow-400 text-red-900 font-black rounded-full transition-all duration-300 shadow-2xl hover:shadow-yellow-500/40 transform hover:-translate-y-1 text-lg"
+                                >
+                                    Join Fast - Register Now
+                                </Link>
+                                <Link
+                                    href="/services"
+                                    className="px-10 py-4 bg-white/10 backdrop-blur-md border border-white/30 text-white font-bold rounded-full hover:bg-white/20 transition-all duration-300 text-lg"
+                                >
+                                    Explore Services
+                                </Link>
+                            </div>
                         </motion.div>
                     </div>
-                </div>
+                </section>
 
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    {/* New Features Grid */}
-                    <div className="mb-20">
-                        <div className="flex items-center mb-10">
-                            <span className="text-3xl mr-4">🚀</span>
-                            <h2 className="text-3xl font-bold text-gray-900">Recently Added Features</h2>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {newFeatures.map((feature, index) => (
-                                <motion.div
-                                    key={index}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ delay: index * 0.1 }}
-                                    className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 group hover:-translate-y-1"
-                                >
-                                    <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center text-3xl mb-6 shadow-md group-hover:scale-110 transition-transform duration-300`}>
-                                        {feature.icon}
-                                    </div>
-                                    <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-red-600 transition-colors">
-                                        {feature.title}
-                                    </h3>
-                                    <p className="text-gray-600 leading-relaxed">
-                                        {feature.description}
-                                    </p>
-                                </motion.div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Coming Soon Section */}
-                    <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-red-900 to-red-800 text-white p-8 md:p-16 shadow-2xl">
-                        <div className="absolute top-0 right-0 w-full h-full overflow-hidden opacity-20">
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500 rounded-full filter blur-3xl"></div>
-                            <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500 rounded-full filter blur-3xl"></div>
-                        </div>
-
-                        <div className="relative z-10 text-center">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 relative z-20 pb-24">
+                    {/* Live Services Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {categories.map((item, index) => (
                             <motion.div
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                whileInView={{ opacity: 1, scale: 1 }}
+                                key={index}
+                                initial={{ opacity: 0, y: 30 }}
+                                whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
+                                transition={{ delay: index * 0.1 }}
+                                className="bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 border border-slate-100 group relative overflow-hidden"
                             >
-                                <div className="inline-block p-3 rounded-full bg-white/10 backdrop-blur-md mb-6 animate-bounce">
-                                    <span className="text-4xl">✨</span>
+                                <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${item.color} opacity-5 group-hover:opacity-10 rounded-bl-full transition-opacity duration-500`}></div>
+
+                                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center text-3xl mb-8 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
+                                    <span className="drop-shadow-md">{item.icon}</span>
                                 </div>
-                                <h2 className="text-3xl md:text-5xl font-bold mb-6">Coming Soon</h2>
-                                <p className="text-xl text-red-100 max-w-2xl mx-auto mb-10">
-                                    We are constantly working to bring you more value. Stay tuned for these upcoming additions!
+
+                                <h3 className="text-2xl font-bold text-slate-900 mb-4 group-hover:text-[#8b0000] transition-colors duration-300">
+                                    {item.title}
+                                </h3>
+
+                                <p className="text-slate-600 mb-8 leading-relaxed font-medium">
+                                    {item.description}
                                 </p>
 
-                                <div className="flex flex-wrap justify-center gap-4 mb-12">
-                                    {['Mobile Recharge', 'DTH Services', 'Electricity Bill', 'Flight Booking', 'Train Tickets', 'Hotel Booking'].map((item, i) => (
-                                        <span key={i} className="px-6 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm text-sm font-medium hover:bg-white/20 transition-colors">
-                                            {item}
-                                        </span>
+                                <div className="space-y-3">
+                                    {item.features.map((feature, fidx) => (
+                                        <div key={fidx} className="flex items-center text-sm font-semibold text-slate-500">
+                                            <svg className="w-5 h-5 mr-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            {feature}
+                                        </div>
                                     ))}
-                                    <span className="px-6 py-3 rounded-full bg-gradient-to-r from-red-500 to-orange-500 text-sm font-bold shadow-lg">
-                                        + Many More
-                                    </span>
-                                </div>
-
-                                <div className="bg-white/5 rounded-2xl p-8 max-w-3xl mx-auto backdrop-blur-sm border border-white/10">
-                                    <h3 className="text-2xl font-bold mb-4">Stay Updated</h3>
-                                    <p className="text-red-100 mb-6">
-                                        Don't miss out on new features and announcements. Check back often!
-                                    </p>
-                                    <Link
-                                        href="/register"
-                                        className="inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white transition-all duration-200 bg-red-600 border border-transparent rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-lg hover:shadow-red-500/30 transform hover:scale-105"
-                                    >
-                                        Get Started Now
-                                    </Link>
                                 </div>
                             </motion.div>
-                        </div>
+                        ))}
                     </div>
+
+                    {/* Commissions & Cashback Callout - Red and White Theme */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true }}
+                        className="mt-24 rounded-[4rem] bg-white text-[#8b0000] p-10 md:p-20 shadow-[0_50px_100px_-20px_rgba(139,0,0,0.25)] relative overflow-hidden text-center md:text-left border-[12px] border-[#8b0000]"
+                    >
+                        <div className="absolute top-0 right-0 w-full h-full pointer-events-none opacity-20">
+                            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-red-500/20 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2"></div>
+                            <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-red-500/10 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2"></div>
+                        </div>
+
+                        <div className="relative z-10 grid lg:grid-cols-5 gap-12 items-center">
+                            <div className="lg:col-span-3 space-y-8">
+                                <h2 className="text-4xl md:text-7xl font-black leading-tight tracking-tighter italic">
+                                    EARN HIGH <br />
+                                    <span className="text-slate-900 bg-red-100 px-4 inline-block transform -skew-x-12">COMMISSIONS</span> <br />
+                                    & <span className="text-slate-900 bg-red-100 px-4 inline-block transform -skew-x-12">CASHBACK</span>
+                                </h2>
+                                <p className="text-xl md:text-2xl text-slate-700 leading-relaxed font-bold max-w-2xl">
+                                    Grow your business or save on every bill. Vighnaharta's new NSDL and BBPS official integrations offer the industry's <span className="text-red-600 underline decoration-red-500 decoration-4 underline-offset-8">Best Profit Margins</span>.
+                                </p>
+                                <div className="flex flex-col sm:flex-row gap-6 pt-4">
+                                    <div className="bg-red-50 rounded-[2rem] p-8 border-4 border-red-100 flex-1 shadow-sm hover:shadow-md transition-shadow">
+                                        <div className="text-4xl font-black text-[#8b0000] mb-3 tracking-tighter">RETAILER</div>
+                                        <div className="h-1 w-12 bg-[#8b0000] mb-4"></div>
+                                        <p className="text-slate-700 text-sm font-black uppercase tracking-wide">High Commission <br />+ High Margins</p>
+                                    </div>
+                                    <div className="bg-red-50 rounded-[2rem] p-8 border-4 border-red-100 flex-1 shadow-sm hover:shadow-md transition-shadow">
+                                        <div className="text-4xl font-black text-[#8b0000] mb-3 tracking-tighter">CUSTOMER</div>
+                                        <div className="h-1 w-12 bg-[#8b0000] mb-4"></div>
+                                        <p className="text-slate-700 text-sm font-black uppercase tracking-wide">Instant Cashback <br />+ Wallet Rewards</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="lg:col-span-2 flex justify-center lg:justify-end items-center">
+                                <Link
+                                    href="/register"
+                                    className="group relative transform hover:scale-110 transition-all duration-500 active:scale-95"
+                                >
+                                    <div className="absolute -inset-4 bg-red-600 rounded-[3rem] blur-2xl opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+                                    <button className="relative px-12 md:px-16 py-8 md:py-10 bg-[#8b0000] text-white rounded-[2.5rem] font-black text-3xl md:text-4xl tracking-tighter uppercase shadow-[0_20px_50px_rgba(139,0,0,0.4)] border-4 border-white group-hover:bg-red-700 hover:rotate-3 transition-all duration-300">
+                                        JOIN NOW <br />
+                                        & EARN 🚀
+                                    </button>
+                                </Link>
+                            </div>
+                        </div>
+                    </motion.div>
                 </div>
             </main>
 

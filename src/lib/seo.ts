@@ -11,7 +11,7 @@ export interface SEOConfig {
 
 const baseUrl = 'https://www.vighnahartaonlineservice.in';
 const siteName = 'Vighnaharta Online Services';
-const defaultDescription = 'Vighnaharta Online Services - Your trusted partner for all government services online. Apply for certificates, licenses, and government schemes digitally. Fast, secure, and reliable government service portal in India.';
+const defaultDescription = 'Vighnaharta Online Services - India\'s premier portal for BBPS Bill Payments (Electricity, Gas, Recharges), NSDL PAN Card Services (New/Correction), and 100+ Government Services. Retailers earn high commissions and customers get massive cashback. Fast, secure, and official integration.';
 
 export const defaultSEO: Metadata = {
   metadataBase: new URL(baseUrl),
@@ -23,35 +23,19 @@ export const defaultSEO: Metadata = {
   keywords: [
     'government services online',
     'digital india services',
-    'online certificate application',
-    'government portal india',
-    'vignaharta online services',
+    'bbps bill payment india',
+    'nsdl pan card online',
+    'recharge commission for retailers',
+    'electricity bill cashback',
+    'nsdl pan center registration',
+    'online pan correction',
     'vighnaharta online services',
-    'digital government services',
-    'online license application',
-    'government schemes online',
-    'e-governance services',
-    'digital certificates india',
-    'online government forms',
-    'government service portal',
-    'digital india initiative',
-    'online government applications',
-    'government document services',
-    'digital service provider',
-    'online government schemes',
-    'government services platform',
-    'digital government portal',
-    'online service center',
-    'vignaharta services',
-    'vighnaharta services',
-    'government service provider india',
-    'digital service provider india',
-    'online government service provider',
-    'nsdl partner',
-    'nsdl pan card services',
-    'bharat connect bill payments',
-    'bbps electricity bill payment',
-    'vighnaharta digital india partner'
+    'high commission recharge app',
+    'all in one bill payment portal',
+    'nsdl paperless pan card',
+    'bharat connect services',
+    'official government service portal',
+    'retailer business opportunity'
   ],
   authors: [{ name: 'Vighnaharta Online Services' }],
   creator: 'Vighnaharta Online Services',
@@ -151,8 +135,8 @@ export function generateSEO(config: SEOConfig): Metadata {
 // Page-specific SEO configurations
 export const pageSEO = {
   home: {
-    title: 'Vighnaharta Online Services - Government Portal India',
-    description: 'Access 100+ government services online. Apply for Aadhaar, PAN, Passport, Birth Certificate and more. Fast, secure digital government services in India.',
+    title: 'Vighnaharta Online Services - Live BBPS & NSDL PAN Portal',
+    description: 'Join India\'s fastest digital portal. Live with all BBPS categories (Recharges, Electricity, Gas) and Official NSDL PAN Services. High Retailer Commission & Customer Cashback guaranteed. Apply for 100+ Government services online.',
     keywords: [
       'government services online india',
       'digital india services',
@@ -606,10 +590,34 @@ export const structuredData = {
       },
       {
         '@type': 'Question',
-        name: 'Is my personal information secure?',
+        name: 'What are the BBPS categories available?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Yes, we use bank-level security with SSL encryption to protect your personal information. All data is stored securely and complies with Indian data protection regulations.'
+          text: 'We support all Bharat Bill Pay System (BBPS) categories including Mobile Recharge, DTH, Electricity, Piped Gas, Water, Broadband, Landline, FASTag, Insurance, and more. Retailers earn top commissions on every payment.'
+        }
+      },
+      {
+        '@type': 'Question',
+        name: 'Can I apply for a new PAN card or correction here?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes! Our portal is directly integrated with NSDL. You can apply for a New PAN Card (Paperless e-KYC), request PAN Corrections, or resume incomplete applications at the lowest market cost.'
+        }
+      },
+      {
+        '@type': 'Question',
+        name: 'How much commission do retailers earn on BBPS?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Retailers earn the highest industry margins on every BBPS transaction. Joining our network allows you to earn substantial profits on every mobile recharge, electricity bill, and water bill payment.'
+        }
+      },
+      {
+        '@type': 'Question',
+        name: 'Is there any cashback for customers on bill payments?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes, direct customers get attractive cashback rewards instantly in their wallet for every recharge and bill payment made through our secure portal.'
         }
       },
       {

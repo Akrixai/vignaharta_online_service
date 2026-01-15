@@ -82,6 +82,14 @@ export default function Header() {
                 {t.contact}
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
               </Link>
+              <Link href="/whats-new" className="text-white hover:text-red-200 px-2 py-2 rounded-lg text-xs xl:text-sm font-bold transform hover:scale-105 transition-all duration-200 hover:bg-red-700/50 relative group whitespace-nowrap flex items-center gap-1">
+                <span>What's New</span>
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
+                </span>
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
+              </Link>
             </nav>
 
             {/* New Features Notification Badge - Hidden on smaller desktops */}
@@ -260,6 +268,14 @@ export default function Header() {
                 onClick={() => setShowMobileMenu(false)}
               >
                 {t.contact}
+              </Link>
+              <Link
+                href="/whats-new"
+                className="text-white hover:bg-white/10 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-bold transition-colors flex items-center gap-2"
+                onClick={() => setShowMobileMenu(false)}
+              >
+                <span>What's New</span>
+                <span className="bg-yellow-500 text-red-900 text-[10px] px-2 py-0.5 rounded-full animate-pulse">LIVE</span>
               </Link>
 
               {/* Mobile Akrix Branding */}

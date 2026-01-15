@@ -116,43 +116,6 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* Coming Soon Services Teaser */}
-        <Link href="/dashboard/coming-soon">
-          <Card className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 border-none shadow-2xl hover:shadow-3xl transform hover:scale-[1.01] transition-all duration-300 cursor-pointer overflow-hidden relative group mb-6">
-            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-            <div className="absolute -right-20 -top-20 w-64 h-64 bg-white/20 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
-
-            <CardContent className="p-8 relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
-              <div className="space-y-4 text-center md:text-left">
-                <div className="inline-block px-4 py-1 bg-white/20 backdrop-blur-sm rounded-full text-white text-xs font-bold tracking-wider mb-2 border border-white/30">
-                  LAUNCHING SOON
-                </div>
-                <h3 className="text-3xl font-black text-white tracking-tight">
-                  New Premium Services
-                </h3>
-                <p className="text-indigo-100 max-w-xl text-lg">
-                  Get ready for Mobile Recharge, DTH, Bill Payments, Flight Booking, and much more! Experience the future of digital services.
-                </p>
-                <div className="flex flex-wrap gap-3 justify-center md:justify-start mt-4">
-                  {['📱 Mobile', '⚡ Electricity', '✈️ Travel', '🏦 Banking'].map((item, i) => (
-                    <span key={i} className="px-3 py-1 bg-white/10 rounded-lg text-white/90 text-sm font-medium border border-white/10">
-                      {item}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="relative">
-                <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-2xl animate-pulse">
-                  <span className="text-4xl">🚀</span>
-                </div>
-                <div className="absolute -bottom-4 -right-4 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full shadow-lg transform rotate-12">
-                  Click to View
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
 
         {/* Advertisement Carousel */}
         <Card className="bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-300 shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-[1.02]">
