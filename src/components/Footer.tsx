@@ -79,6 +79,26 @@ export default function Footer() {
                 </div>
               </div>
             </div>
+
+            {/* App Download Section */}
+            <div className="pt-6 space-y-3">
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">Download Our App</p>
+              <a
+                href="https://loadly.io/BfNgJcFj"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block transform hover:scale-105 transition-all active:scale-95"
+              >
+                <div className="relative w-36 h-12">
+                  <Image
+                    src="/goggle-play.png"
+                    alt="Get it on Google Play"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+              </a>
+            </div>
           </motion.div>
 
           {/* Quick Links */}

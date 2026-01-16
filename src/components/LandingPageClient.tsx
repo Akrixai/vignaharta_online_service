@@ -203,6 +203,68 @@ function StatsDisplay({ stats }: { stats: ServiceStat[] }) {
   );
 }
 
+// App Download Section Component
+function AppDownloadSection() {
+  return (
+    <div className="relative mb-24 group">
+      <div className="absolute inset-0 bg-gradient-to-r from-red-600/10 via-orange-600/10 to-red-600/10 blur-3xl rounded-[3rem] opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+      <div className="relative bg-gradient-to-br from-red-600 via-red-700 to-red-800 text-white rounded-[3rem] p-8 md:p-16 shadow-2xl shadow-red-900/20 overflow-hidden border border-red-500">
+        {/* Decorative Elements */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-yellow-400/10 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2"></div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center relative z-10">
+          <div className="text-left space-y-8">
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/20 border border-white/30 text-white text-xs font-bold tracking-widest uppercase">
+              🚀 Vighnaharta One Mobile App
+            </div>
+            <h2 className="text-4xl md:text-6xl font-black leading-tight text-white">
+              All Services in Your <br />
+              <span className="bg-gradient-to-r from-white via-red-100 to-white bg-clip-text text-transparent">Pocket Now!</span>
+            </h2>
+            <p className="text-red-50 text-lg font-medium leading-relaxed max-w-lg">
+              Download the <b>Vighnaharta One</b> app today. Apply for PAN cards, pay bills, and track your applications on the go with our lightning-fast mobile experience.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-6 pt-4">
+              <a
+                href="https://loadly.io/BfNgJcFj"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative inline-flex items-center justify-center transition-all transform hover:scale-105 active:scale-95 px-6 py-3 bg-white rounded-2xl shadow-xl"
+              >
+                <div className="relative w-40 h-10">
+                  <Image
+                    src="/goggle-play.png"
+                    alt="Download on Google Play"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+              </a>
+              <div className="flex flex-col justify-center">
+                <span className="text-yellow-300 text-xl">★★★★★</span>
+                <span className="text-sm text-red-100 font-bold uppercase tracking-tighter">Trusted by 50K+ Users</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="relative lg:block flex justify-center">
+            <div className="relative w-full max-w-[400px] aspect-[1/1.2] animate-float">
+              <Image
+                src="/images/vighnaharta-app-mockup.png"
+                alt="Vighnaharta One App Mockup"
+                fill
+                className="object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.3)]"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 export default function LandingPageClient() {
   const [, setConsentGiven] = useState(false);
@@ -579,6 +641,9 @@ export default function LandingPageClient() {
                 </div>
               </div>
             </div>
+
+            {/* App Download Section */}
+            <AppDownloadSection />
 
 
 
