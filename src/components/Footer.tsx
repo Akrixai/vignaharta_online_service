@@ -58,12 +58,29 @@ export default function Footer() {
               {clean(t.empoweringCitizens)}
             </p>
             <div className="flex gap-4">
-              <a href="#" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center hover:bg-red-50 transition-all border border-gray-200 group">
-                <Globe className="w-5 h-5 text-gray-600 group-hover:text-red-600 transition-colors" />
-              </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center hover:bg-red-50 transition-all border border-gray-200 group">
-                <Layers className="w-5 h-5 text-gray-600 group-hover:text-red-600 transition-colors" />
-              </a>
+              {[
+                { name: 'Facebook', icon: '/facebook.jpg', url: 'https://www.facebook.com/share/171jarrh5y/' },
+                { name: 'Instagram', icon: '/instagram.jpg', url: 'https://www.instagram.com/invites/contact/?utm_source=ig_contact_invite&utm_content=zrqm86t' },
+                { name: 'LinkedIn', icon: '/linkedin.png', url: 'https://www.linkedin.com/in/prem-sargar-802214390/?utm_source=share_via&utm_content=profile&utm_medium=member_android' },
+                { name: 'Twitter', icon: '/twitter.png', url: 'https://x.com/services6527?t=mPY7WesWRbXSCF5rXSiRCg&s=08' }
+              ].map((social) => (
+                <a
+                  key={social.name}
+                  href={social.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center hover:shadow-lg hover:scale-110 transition-all border border-gray-200 group overflow-hidden"
+                >
+                  <div className="relative w-6 h-6">
+                    <Image
+                      src={social.icon}
+                      alt={social.name}
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                </a>
+              ))}
             </div>
 
             {/* Integrated Partner Badges */}

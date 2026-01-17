@@ -337,22 +337,22 @@ export default function LandingPageClient() {
     {
       name: "Facebook",
       url: "https://www.facebook.com/share/171jarrh5y/",
-      icon: "📘"
+      icon: "/facebook.jpg"
     },
     {
       name: "LinkedIn",
       url: "https://www.linkedin.com/in/prem-sargar-802214390/?utm_source=share_via&utm_content=profile&utm_medium=member_android",
-      icon: "👔"
+      icon: "/linkedin.png"
     },
     {
       name: "Twitter",
       url: "https://x.com/services6527?t=mPY7WesWRbXSCF5rXSiRCg&s=08",
-      icon: "🐦"
+      icon: "/twitter.png"
     },
     {
       name: "Instagram",
       url: "https://www.instagram.com/invites/contact/?utm_source=ig_contact_invite&utm_content=zrqm86t",
-      icon: "📸"
+      icon: "/instagram.jpg"
     }
   ];
 
@@ -402,10 +402,10 @@ export default function LandingPageClient() {
               Vighnaharta Online Services
             </h1>
             <h2 className="text-xl md:text-3xl text-red-600 font-extrabold mb-6 max-w-4xl mx-auto animate-fade-in animate-delay-200">
-              India's Premier Digital Service Portal - Now Live with BBPS & NSDL PAN 🚀
+              Stop Waiting for CSC IDs! Upgrade to India's Best Digital Portal with Instant Onboarding 🚀
             </h2>
             <p className="text-lg md:text-xl text-slate-700 mb-10 max-w-5xl mx-auto animate-fade-in animate-delay-300 leading-relaxed font-medium">
-              Join India's fastest-growing network for <Link href="/register" className="text-red-600 hover:text-red-800 font-bold underline decoration-2 underline-offset-4">Aadhaar Services</Link>, <Link href="/register" className="text-red-600 hover:text-red-800 font-bold underline decoration-2 underline-offset-4">NSDL PAN Card</Link>, and <Link href="/register" className="text-red-600 hover:text-red-800 font-bold underline decoration-2 underline-offset-4">BBPS Bill Payments</Link>. Earn the highest commissions as a Retailer and get massive cashback as a Customer. Authorized, Secure, and 100% Digital.
+              Join India's fastest alternative to CSC. Get your <Link href="/register" className="text-red-600 hover:text-red-800 font-bold underline decoration-2 underline-offset-4">Retailer ID instantly</Link> and start processing <Link href="/register" className="text-red-600 hover:text-red-800 font-bold underline decoration-2 underline-offset-4">NSDL PAN Cards</Link> and <Link href="/register" className="text-red-600 hover:text-red-800 font-bold underline decoration-2 underline-offset-4">BBPS Bill Payments</Link> in minutes. Highest earning potential, lowest costs, and 100% digital transparency.
             </p>
 
             {/* Enhanced CTA Buttons with icons and animations */}
@@ -433,31 +433,31 @@ export default function LandingPageClient() {
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
                 <div className="flex items-start p-4 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
-                  <div className="text-2xl mr-4 text-red-600 flex-shrink-0">✅</div>
+                  <div className="text-2xl mr-4 text-red-600 flex-shrink-0">⚡</div>
                   <div>
-                    <h4 className="font-bold text-lg text-gray-900 mb-2">Digital India Initiative</h4>
-                    <p className="text-gray-700">Part of the Government of India's <Link href="/about" className="text-red-600 hover:text-red-800 font-semibold underline">Digital India program</Link> to transform India into a digitally empowered society and knowledge economy.</p>
+                    <h4 className="font-bold text-lg text-gray-900 mb-2">CSC Portal Alternative</h4>
+                    <p className="text-gray-700">Better features than CSC with zero waiting time. Get your <Link href="/register" className="text-red-600 hover:text-red-800 font-semibold underline">Partner ID activated instantly</Link> so you can start your business today.</p>
                   </div>
                 </div>
                 <div className="flex items-start p-4 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors">
-                  <div className="text-2xl mr-4 text-red-600 flex-shrink-0">✅</div>
+                  <div className="text-2xl mr-4 text-red-600 flex-shrink-0">💸</div>
                   <div>
-                    <h4 className="font-bold text-lg text-gray-900 mb-2">Nationwide Access</h4>
-                    <p className="text-gray-700">Access government services from anywhere in India through our extensive network of over <Link href="/about" className="text-red-600 hover:text-red-800 font-semibold underline">10,000+ service centers</Link>.</p>
+                    <h4 className="font-bold text-lg text-gray-900 mb-2">Maximum Earnings</h4>
+                    <p className="text-gray-700">Highest commission margins for retailers on <Link href="/services" className="text-red-600 hover:text-red-800 font-semibold underline">Mobile & DTH Recharge</Link> and BBPS Bill Payments. Fast payout guaranteed.</p>
                   </div>
                 </div>
                 <div className="flex items-start p-4 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors">
-                  <div className="text-2xl mr-4 text-red-600 flex-shrink-0">✅</div>
+                  <div className="text-2xl mr-4 text-red-600 flex-shrink-0">🆔</div>
                   <div>
-                    <h4 className="font-bold text-lg text-gray-900 mb-2">Fast Processing</h4>
-                    <p className="text-gray-700">Quick document verification and processing with <Link href="/services" className="text-red-600 hover:text-red-800 font-semibold underline">real-time application tracking</Link> and status updates.</p>
+                    <h4 className="font-bold text-lg text-gray-900 mb-2">Paperless PAN ID</h4>
+                    <p className="text-gray-700">Get official <Link href="/services" className="text-red-600 hover:text-red-800 font-semibold underline">NSDL PAN Center</Link> approval in record time. Apply for new PAN or Correction through official integration.</p>
                   </div>
                 </div>
                 <div className="flex items-start p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
-                  <div className="text-2xl mr-4 text-red-600 flex-shrink-0">✅</div>
+                  <div className="text-2xl mr-4 text-red-600 flex-shrink-0">🏛️</div>
                   <div>
-                    <h4 className="font-bold text-lg text-gray-900 mb-2">Secure & Reliable</h4>
-                    <p className="text-gray-700">Bank-level security with SSL encryption and compliance with <Link href="/privacy-policy" className="text-red-600 hover:text-red-800 font-semibold underline">Indian data protection regulations</Link>.</p>
+                    <h4 className="font-bold text-lg text-gray-900 mb-2">100+ Digital Services</h4>
+                    <p className="text-gray-700">One-stop hub for Aadhaar, Voter, Passport, and all state-specific certificates with <Link href="/services" className="text-red-600 hover:text-red-800 font-semibold underline">lightning-fast processing</Link>.</p>
                   </div>
                 </div>
               </div>
@@ -478,7 +478,14 @@ export default function LandingPageClient() {
                       className="group bg-white rounded-full p-4 shadow-lg hover:shadow-xl transform hover:scale-110 transition-all duration-300 border border-red-200 hover:border-red-400 hover:rotate-12"
                       title={`Follow us on ${social.name}`}
                     >
-                      <span className="text-2xl group-hover:animate-bounce">{social.icon}</span>
+                      <div className="relative w-8 h-8 group-hover:animate-bounce">
+                        <Image
+                          src={social.icon}
+                          alt={social.name}
+                          fill
+                          className="object-contain rounded-full"
+                        />
+                      </div>
                     </Link>
                   </Tooltip>
                 ))}
@@ -635,6 +642,68 @@ export default function LandingPageClient() {
                           <div className="text-xs font-bold text-red-600 uppercase tracking-tighter mb-1">Featured Solution</div>
                           <div className="text-sm font-bold text-gray-900">Custom Enterprise AI Dashboards</div>
                         </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* CSC Alternative Comparison Section */}
+              <div className="mb-24 relative overflow-hidden">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-red-600/5 rounded-full blur-[120px] pointer-events-none"></div>
+                <div className="max-w-5xl mx-auto">
+                  <div className="text-center mb-12">
+                    <h3 className="text-3xl md:text-5xl font-black text-gray-900 mb-4 tracking-tight">
+                      The Smart Alternative to CSC
+                    </h3>
+                    <p className="text-gray-600 text-lg font-bold">Why thousands of retailers are switching to Vighnaharta Online Services every month</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+                    <div className="bg-white border-2 border-gray-100 rounded-3xl p-8 shadow-xl hover:border-red-500/30 transition-all">
+                      <div className="flex items-center gap-4 mb-6">
+                        <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center text-2xl">🏛️</div>
+                        <h4 className="text-xl font-bold text-gray-400">Ordinary Portals (CSC)</h4>
+                      </div>
+                      <ul className="space-y-4">
+                        {[
+                          "Wait 3-6 months for ID approval",
+                          "Complex & slow registration process",
+                          "Limited support & slow response",
+                          "Lower commission margins",
+                          "Outdated technology interface"
+                        ].map((item, i) => (
+                          <li key={i} className="flex items-center gap-3 text-gray-500 font-medium">
+                            <span className="text-red-400">✕</span>
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-red-600 to-red-700 rounded-3xl p-8 shadow-2xl shadow-red-900/20 transform md:-rotate-1">
+                      <div className="flex items-center gap-4 mb-6">
+                        <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-2xl">🚀</div>
+                        <h4 className="text-xl font-bold text-white">Vighnaharta Portal</h4>
+                      </div>
+                      <ul className="space-y-4">
+                        {[
+                          "Instant ID Activation in 5 Minutes",
+                          "100% Paperless & Easy Registration",
+                          "24/7 Dedicated Support Executive",
+                          "Highest Commission in India",
+                          "Next-Gen Fast & Secure Interface"
+                        ].map((item, i) => (
+                          <li key={i} className="flex items-center gap-3 text-red-50 font-bold">
+                            <span className="text-yellow-400">✓</span>
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="mt-8 pt-8 border-t border-white/10 text-center">
+                        <Link href="/register" className="inline-block px-8 py-3 bg-yellow-400 text-red-700 rounded-xl font-black hover:bg-yellow-500 transition-all transform hover:scale-105 shadow-lg">
+                          Start Your Business Now
+                        </Link>
                       </div>
                     </div>
                   </div>

@@ -11,7 +11,7 @@ export interface SEOConfig {
 
 const baseUrl = 'https://www.vighnahartaonlineservice.in';
 const siteName = 'Vighnaharta Online Services';
-const defaultDescription = 'Vighnaharta Online Services - India\'s premier portal for BBPS Bill Payments (Electricity, Gas, Recharges), NSDL PAN Card Services (New/Correction), and 100+ Government Services. Retailers earn high commissions and customers get massive cashback. Fast, secure, and official integration.';
+const defaultDescription = 'Upgrade from CSC to Vighnaharta Online Services - India\'s fastest digital portal for BBPS Bill Payments, NSDL PAN, and 100+ Govt Services. Get instant IDs, start earning immediately with the highest commissions. No more waiting like CSC - 100% Digital, Swift & Profitable.';
 
 export const defaultSEO: Metadata = {
   metadataBase: new URL(baseUrl),
@@ -135,14 +135,23 @@ export function generateSEO(config: SEOConfig): Metadata {
 // Page-specific SEO configurations
 export const pageSEO = {
   home: {
-    title: 'Vighnaharta Online Services - Live BBPS & NSDL PAN Portal',
-    description: 'Join India\'s fastest digital portal. Live with all BBPS categories (Recharges, Electricity, Gas) and Official NSDL PAN Services. High Retailer Commission & Customer Cashback guaranteed. Apply for 100+ Government services online.',
+    title: 'Vighnaharta Online Services | Best CSC Alternative | Fast IDs & High Commissions',
+    description: 'Stop waiting for CSC IDs. Get instant access to NSDL PAN, BBPS, and 100+ Govt services. Vighnaharta Online Services is the fastest-growing digital portal for retailers. Start your digital shop today and earn more with India\'s premier service provider.',
     keywords: [
+      'best csc alternative',
+      'instant retailer id activation',
+      'fastest pan card center registration',
+      'high commission recharge portal',
+      'csc login alternative',
+      'government services business india',
+      'instant digital shop creation',
+      'vighnaharta vs csc',
+      'highest margins for retailers',
+      'one stop digital service hub',
       'government services online india',
       'digital india services',
       'online certificate application',
       'government portal',
-      'vighnaharta online services',
       'vighnaharta online services',
       'digital government services',
       'online license application',
@@ -160,8 +169,6 @@ export const pageSEO = {
       'birth certificate online',
       'income certificate online',
       'government services near me',
-      'digital india government services',
-      'vighnaharta services',
       'vighnaharta services',
       'government service provider india',
       'digital service provider india',
@@ -282,9 +289,10 @@ export const structuredData = {
       availableLanguage: ['English', 'Hindi', 'Marathi'],
     },
     sameAs: [
-      'https://www.facebook.com/vighnahartaonlineservices',
-      'https://www.twitter.com/VighnahartaOnline',
-      'https://www.linkedin.com/company/vighnaharta-online-services',
+      'https://www.facebook.com/share/171jarrh5y/',
+      'https://x.com/services6527?t=mPY7WesWRbXSCF5rXSiRCg&s=08',
+      'https://www.linkedin.com/in/prem-sargar-802214390/?utm_source=share_via&utm_content=profile&utm_medium=member_android',
+      'https://www.instagram.com/invites/contact/?utm_source=ig_contact_invite&utm_content=zrqm86t'
     ],
   },
   // Local Business structured data for better local SEO
@@ -303,9 +311,10 @@ export const structuredData = {
     },
     telephone: '+91-7499116527',
     sameAs: [
-      'https://www.facebook.com/vighnahartaonlineservices',
-      'https://www.twitter.com/VighnahartaOnline',
-      'https://www.linkedin.com/company/vighnaharta-online-services',
+      'https://www.facebook.com/share/171jarrh5y/',
+      'https://x.com/services6527?t=mPY7WesWRbXSCF5rXSiRCg&s=08',
+      'https://www.linkedin.com/in/prem-sargar-802214390/?utm_source=share_via&utm_content=profile&utm_medium=member_android',
+      'https://www.instagram.com/invites/contact/?utm_source=ig_contact_invite&utm_content=zrqm86t'
     ],
     areaServed: {
       '@type': 'Country',

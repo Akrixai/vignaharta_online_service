@@ -34,11 +34,11 @@ const defaultConfig: ContactConfig = {
   office_address_full: 'Bajrang Nagar, MIDC Kupwad, Maharashtra 416436, India',
   office_hours: 'Monday to Saturday, 9:00 AM to 6:00 PM',
   support_hours: 'Mon-Sat: 9:00 AM - 6:00 PM',
-  company_tagline: 'Your Trusted Partner for Government Services',
-  facebook_url: 'https://facebook.com/vighnaharta',
-  twitter_url: 'https://twitter.com/vighnaharta',
-  instagram_url: 'https://instagram.com/vighnaharta',
-  linkedin_url: 'https://linkedin.com/company/vighnaharta',
+  company_tagline: 'Best CSC Alternative | Instant Onboarding | Highest Retailer Commissions',
+  facebook_url: 'https://www.facebook.com/share/171jarrh5y/',
+  twitter_url: 'https://x.com/services6527?t=mPY7WesWRbXSCF5rXSiRCg&s=08',
+  instagram_url: 'https://www.instagram.com/invites/contact/?utm_source=ig_contact_invite&utm_content=zrqm86t',
+  linkedin_url: 'https://www.linkedin.com/in/prem-sargar-802214390/?utm_source=share_via&utm_content=profile&utm_medium=member_android',
   youtube_url: 'https://youtube.com/@vighnaharta'
 };
 
