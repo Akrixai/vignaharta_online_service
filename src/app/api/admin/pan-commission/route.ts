@@ -64,11 +64,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if config already exists
-    const { data: existingConfig } = await supabase
+    const { data: existingConfig, error: checkError } = await supabase
       .from('pan_commission_config')
       .select('id')
       .eq('service_type', service_type)
-      .single();
+      .maybeSingle();
+
+    if (checkError) {
+      console.error('Error checking existing PAN commission config:', checkError);
+      return NextResponse.json({ success: false, message: 'Failed to verify configuration' }, { status: 500 });
+    }
 
     if (existingConfig) {
       // Update existing config
@@ -80,18 +85,21 @@ export async function POST(request: NextRequest) {
           updated_at: new Date().toISOString()
         })
         .eq('service_type', service_type)
-        .select()
-        .single();
+        .select();
 
       if (error) {
         console.error('Error updating PAN commission config:', error);
         return NextResponse.json({ success: false, message: 'Failed to update configuration' }, { status: 500 });
       }
 
+      if (!updatedConfig || updatedConfig.length === 0) {
+        return NextResponse.json({ success: false, message: 'No configuration was updated' }, { status: 404 });
+      }
+
       return NextResponse.json({
         success: true,
         message: 'Configuration updated successfully',
-        data: updatedConfig
+        data: updatedConfig[0]
       });
     } else {
       // Create new config
@@ -138,6 +146,8 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const { id, service_type, price, is_active } = body;
 
+    console.log('PUT request body:', { id, service_type, price, is_active });
+
     if (!id || !service_type || price === undefined) {
       return NextResponse.json({ success: false, message: 'Missing required fields' }, { status: 400 });
     }
@@ -150,6 +160,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'Invalid price' }, { status: 400 });
     }
 
+    // Directly update the record
     const { data: updatedConfig, error } = await supabase
       .from('pan_commission_config')
       .update({
@@ -159,18 +170,23 @@ export async function PUT(request: NextRequest) {
         updated_at: new Date().toISOString()
       })
       .eq('id', id)
-      .select()
-      .single();
+      .select();
+
+    console.log('Update result:', { updatedConfig, error, affectedRows: updatedConfig?.length });
 
     if (error) {
       console.error('Error updating PAN commission config:', error);
       return NextResponse.json({ success: false, message: 'Failed to update configuration' }, { status: 500 });
     }
 
+    if (!updatedConfig || updatedConfig.length === 0) {
+      return NextResponse.json({ success: false, message: 'No configuration was updated. Record may not exist.' }, { status: 404 });
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Configuration updated successfully',
-      data: updatedConfig
+      data: updatedConfig[0]
     });
 
   } catch (error) {
@@ -196,6 +212,22 @@ export async function DELETE(request: NextRequest) {
 
     if (!id) {
       return NextResponse.json({ success: false, message: 'Configuration ID is required' }, { status: 400 });
+    }
+
+    // First check if the record exists
+    const { data: existingRecord, error: checkError } = await supabase
+      .from('pan_commission_config')
+      .select('id')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (checkError) {
+      console.error('Error checking existing PAN commission config:', checkError);
+      return NextResponse.json({ success: false, message: 'Failed to verify configuration' }, { status: 500 });
+    }
+
+    if (!existingRecord) {
+      return NextResponse.json({ success: false, message: 'Configuration not found' }, { status: 404 });
     }
 
     const { error } = await supabase
