@@ -33,7 +33,7 @@ interface MonitoringStats {
 
 interface UsePanServiceMonitorOptions {
   enabled?: boolean;
-  interval?: number; // milliseconds (fallback for polling)
+  interval?: number;
   onStatusChange?: (service: PanService, oldStatus: string) => void;
   onSuccess?: (service: PanService) => void;
   onFailure?: (service: PanService) => void;
@@ -44,7 +44,7 @@ interface UsePanServiceMonitorOptions {
 export function usePanServiceMonitor(options: UsePanServiceMonitorOptions = {}) {
   const {
     enabled = true,
-    interval = 30000, // 30 seconds fallback polling (reduced since we have real-time)
+    interval = 30000,
     onStatusChange,
     onSuccess,
     onFailure,
@@ -65,7 +65,6 @@ export function usePanServiceMonitor(options: UsePanServiceMonitorOptions = {}) 
   const [isMonitoring, setIsMonitoring] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
-  const [isRealTimeConnected, setIsRealTimeConnected] = useState(false);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const previousServicesRef = useRef<Map<string, PanService>>(new Map());
@@ -95,10 +94,8 @@ export function usePanServiceMonitor(options: UsePanServiceMonitorOptions = {}) 
             if (previousService.status !== service.status) {
               console.log(`🔄 Status change detected for ${service.order_id}: ${previousService.status} → ${service.status}`);
               
-              // Call status change callback
               onStatusChange?.(service, previousService.status);
               
-              // Call specific callbacks
               if (service.status === 'SUCCESS') {
                 onSuccess?.(service);
               } else if (service.status === 'FAILURE') {
@@ -116,16 +113,6 @@ export function usePanServiceMonitor(options: UsePanServiceMonitorOptions = {}) 
             if (previousService.callback_processed_at !== service.callback_processed_at && service.callback_processed_at) {
               console.log(`📞 New callback received for ${service.order_id}`);
               onCallbackReceived?.(service);
-            }
-            
-            // Check for acknowledgement number updates
-            if (!previousService.acknowledgement_number && service.acknowledgement_number && service.acknowledgement_number !== 'Order is under process') {
-              console.log(`🎯 Acknowledgement number received for ${service.order_id}: ${service.acknowledgement_number}`);
-            }
-            
-            // Check for callback updates
-            if (!previousService.webhook_received_at && service.webhook_received_at) {
-              console.log(`📞 Callback received for ${service.order_id} at ${service.webhook_received_at}`);
             }
           }
         });
@@ -159,11 +146,11 @@ export function usePanServiceMonitor(options: UsePanServiceMonitorOptions = {}) 
     }
   }, [onStatusChange, onSuccess, onFailure, onPaymentStatusChange, onCallbackReceived]);
 
-  // Set up real-time subscription
+  // Set up monitoring
   useEffect(() => {
     if (!enabled || !session?.user?.id) return;
 
-    console.log('🔄 Setting up PAN services real-time monitoring...');
+    console.log('🔄 Setting up PAN services monitoring...');
     setIsMonitoring(true);
 
     // Initial fetch
@@ -174,7 +161,7 @@ export function usePanServiceMonitor(options: UsePanServiceMonitorOptions = {}) 
       supabase.removeChannel(channelRef.current);
     }
 
-    // Set up real-time subscription for pan_services table
+    // Set up real-time subscription
     const channel = supabase
       .channel(`pan-services-${session.user.id}-${Date.now()}`)
       .on(
@@ -187,31 +174,21 @@ export function usePanServiceMonitor(options: UsePanServiceMonitorOptions = {}) 
         },
         (payload) => {
           console.log('📡 Real-time PAN service update received:', payload);
-          setIsRealTimeConnected(true);
           
-          // Immediately fetch fresh data when any change occurs
+          // Fetch fresh data immediately
           setTimeout(() => {
             fetchServices();
-          }, 100); // Small delay to ensure database consistency
+          }, 100);
         }
       )
       .subscribe((status) => {
         console.log('📡 Real-time subscription status:', status);
-        setIsRealTimeConnected(status === 'SUBSCRIBED');
-        
-        if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
-          setIsRealTimeConnected(false);
-          console.log('⚠️ Real-time connection lost, falling back to polling');
-        }
       });
 
     channelRef.current = channel;
 
-    // Fallback polling for when real-time is not available or for extra reliability
+    // Fallback polling every 30 seconds
     const pollInterval = setInterval(() => {
-      // Always poll, but less frequently when real-time is connected
-      const pollFrequency = isRealTimeConnected ? interval * 2 : interval;
-      console.log(`🔄 Polling for updates (real-time: ${isRealTimeConnected ? 'connected' : 'disconnected'})`);
       fetchServices();
     }, interval);
 
@@ -234,7 +211,7 @@ export function usePanServiceMonitor(options: UsePanServiceMonitorOptions = {}) 
   }, [enabled, session?.user?.id, interval, fetchServices]);
 
   const refreshNow = useCallback(() => {
-    console.log('🔄 Manual refresh requested');
+    console.log('� Manual refresh requested');
     fetchServices();
   }, [fetchServices]);
 
@@ -242,7 +219,6 @@ export function usePanServiceMonitor(options: UsePanServiceMonitorOptions = {}) 
     services,
     stats,
     isMonitoring,
-    isRealTimeConnected,
     error,
     lastUpdate,
     refreshNow

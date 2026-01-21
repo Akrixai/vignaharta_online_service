@@ -78,7 +78,6 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
     services: monitoredServices,
     stats: monitoringStats,
     isMonitoring,
-    isRealTimeConnected,
     error: monitoringError,
     lastUpdate,
     refreshNow
@@ -352,16 +351,14 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Real-time Status Indicator */}
+            {/* Simple Live Updates Indicator */}
             {isMonitoring && (
               <div className="flex items-center gap-2 text-sm">
-                <div className={`w-2 h-2 rounded-full ${isRealTimeConnected ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`}></div>
-                <span className={`font-medium ${isRealTimeConnected ? 'text-green-600' : 'text-yellow-600'}`}>
-                  {isRealTimeConnected ? 'Real-time Connected' : 'Polling Mode'}
-                </span>
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-green-600 font-medium">Live Updates Active</span>
                 {lastUpdate && (
                   <span className="text-xs text-gray-500">
-                    (Last update: {new Date(lastUpdate).toLocaleTimeString()})
+                    (Updated: {new Date(lastUpdate).toLocaleTimeString()})
                   </span>
                 )}
               </div>
@@ -371,7 +368,6 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
               <div className="flex items-center gap-2 text-sm">
                 <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                 <span className="text-red-600 font-medium">Connection Error</span>
-                <span className="text-xs text-red-500">{monitoringError}</span>
               </div>
             )}
 

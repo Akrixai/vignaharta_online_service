@@ -46,7 +46,6 @@ export default function IncompletePanTab({ walletBalance, onWalletUpdate, router
   const {
     services: monitoredServices,
     isMonitoring,
-    isRealTimeConnected,
     error: monitoringError,
     lastUpdate,
     refreshNow
