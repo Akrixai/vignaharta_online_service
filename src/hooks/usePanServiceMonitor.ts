@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { supabase } from '@/lib/supabase';
+import { useSession } from 'next-auth/react';
 
 interface PanService {
   id: string;
@@ -14,6 +16,10 @@ interface PanService {
   acknowledgement_number?: string;
   inspay_txid?: string;
   inspay_opid?: string;
+  webhook_received_at?: string;
+  callback_processed_at?: string;
+  payment_charged_at?: string;
+  refund_processed_at?: string;
 }
 
 interface MonitoringStats {
@@ -27,21 +33,26 @@ interface MonitoringStats {
 
 interface UsePanServiceMonitorOptions {
   enabled?: boolean;
-  interval?: number; // milliseconds
+  interval?: number; // milliseconds (fallback for polling)
   onStatusChange?: (service: PanService, oldStatus: string) => void;
   onSuccess?: (service: PanService) => void;
   onFailure?: (service: PanService) => void;
+  onPaymentStatusChange?: (service: PanService, oldPaymentStatus: string) => void;
+  onCallbackReceived?: (service: PanService) => void;
 }
 
 export function usePanServiceMonitor(options: UsePanServiceMonitorOptions = {}) {
   const {
     enabled = true,
-    interval = 10000, // 10 seconds default for faster updates
+    interval = 30000, // 30 seconds fallback polling (reduced since we have real-time)
     onStatusChange,
     onSuccess,
-    onFailure
+    onFailure,
+    onPaymentStatusChange,
+    onCallbackReceived
   } = options;
 
+  const { data: session } = useSession();
   const [services, setServices] = useState<PanService[]>([]);
   const [stats, setStats] = useState<MonitoringStats>({
     total: 0,
@@ -54,9 +65,11 @@ export function usePanServiceMonitor(options: UsePanServiceMonitorOptions = {}) 
   const [isMonitoring, setIsMonitoring] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [isRealTimeConnected, setIsRealTimeConnected] = useState(false);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const previousServicesRef = useRef<Map<string, PanService>>(new Map());
+  const channelRef = useRef<any>(null);
 
   const fetchServices = useCallback(async () => {
     try {
@@ -77,25 +90,32 @@ export function usePanServiceMonitor(options: UsePanServiceMonitorOptions = {}) 
         newServices.forEach((service: PanService) => {
           const previousService = previousServices.get(service.id);
           
-          if (previousService && previousService.status !== service.status) {
-            console.log(`🔄 Status change detected for ${service.order_id}: ${previousService.status} → ${service.status}`);
-            
-            // Call status change callback
-            onStatusChange?.(service, previousService.status);
-            
-            // Call specific callbacks
-            if (service.status === 'SUCCESS') {
-              onSuccess?.(service);
-            } else if (service.status === 'FAILURE') {
-              onFailure?.(service);
-            }
-          }
-          
-          // Also check for other important changes
           if (previousService) {
+            // Check for status changes
+            if (previousService.status !== service.status) {
+              console.log(`🔄 Status change detected for ${service.order_id}: ${previousService.status} → ${service.status}`);
+              
+              // Call status change callback
+              onStatusChange?.(service, previousService.status);
+              
+              // Call specific callbacks
+              if (service.status === 'SUCCESS') {
+                onSuccess?.(service);
+              } else if (service.status === 'FAILURE') {
+                onFailure?.(service);
+              }
+            }
+            
             // Check for payment status changes
             if (previousService.payment_status !== service.payment_status) {
               console.log(`💳 Payment status change for ${service.order_id}: ${previousService.payment_status} → ${service.payment_status}`);
+              onPaymentStatusChange?.(service, previousService.payment_status);
+            }
+            
+            // Check for new callbacks
+            if (previousService.callback_processed_at !== service.callback_processed_at && service.callback_processed_at) {
+              console.log(`📞 New callback received for ${service.order_id}`);
+              onCallbackReceived?.(service);
             }
             
             // Check for acknowledgement number updates
@@ -137,66 +157,94 @@ export function usePanServiceMonitor(options: UsePanServiceMonitorOptions = {}) 
       console.error('Error fetching PAN services:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
     }
-  }, [onStatusChange, onSuccess, onFailure]);
+  }, [onStatusChange, onSuccess, onFailure, onPaymentStatusChange, onCallbackReceived]);
 
-  const startMonitoring = useCallback(() => {
-    if (!enabled) return;
-    
-    console.log('🚀 Starting PAN service monitoring...');
+  // Set up real-time subscription
+  useEffect(() => {
+    if (!enabled || !session?.user?.id) return;
+
+    console.log('🔄 Setting up PAN services real-time monitoring...');
     setIsMonitoring(true);
-    
+
     // Initial fetch
     fetchServices();
-    
-    // Set up interval
-    intervalRef.current = setInterval(fetchServices, interval);
-  }, [enabled, fetchServices, interval]);
 
-  const stopMonitoring = useCallback(() => {
-    console.log('⏹️ Stopping PAN service monitoring...');
-    setIsMonitoring(false);
-    
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-  }, []);
-
-  const refreshNow = useCallback(() => {
-    console.log('🔄 Manual refresh triggered...');
-    fetchServices();
-  }, [fetchServices]);
-
-  // Start/stop monitoring based on enabled flag
-  useEffect(() => {
-    if (enabled) {
-      startMonitoring();
-    } else {
-      stopMonitoring();
+    // Clean up existing channel
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
     }
 
-    return () => {
-      stopMonitoring();
-    };
-  }, [enabled, startMonitoring, stopMonitoring]);
+    // Set up real-time subscription for pan_services table
+    const channel = supabase
+      .channel(`pan-services-${session.user.id}-${Date.now()}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'pan_services',
+          filter: `user_id=eq.${session.user.id}`
+        },
+        (payload) => {
+          console.log('📡 Real-time PAN service update received:', payload);
+          setIsRealTimeConnected(true);
+          
+          // Immediately fetch fresh data when any change occurs
+          setTimeout(() => {
+            fetchServices();
+          }, 100); // Small delay to ensure database consistency
+        }
+      )
+      .subscribe((status) => {
+        console.log('📡 Real-time subscription status:', status);
+        setIsRealTimeConnected(status === 'SUBSCRIBED');
+        
+        if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+          setIsRealTimeConnected(false);
+          console.log('⚠️ Real-time connection lost, falling back to polling');
+        }
+      });
 
-  // Cleanup on unmount
-  useEffect(() => {
+    channelRef.current = channel;
+
+    // Fallback polling for when real-time is not available or for extra reliability
+    const pollInterval = setInterval(() => {
+      // Always poll, but less frequently when real-time is connected
+      const pollFrequency = isRealTimeConnected ? interval * 2 : interval;
+      console.log(`🔄 Polling for updates (real-time: ${isRealTimeConnected ? 'connected' : 'disconnected'})`);
+      fetchServices();
+    }, interval);
+
+    intervalRef.current = pollInterval;
+
     return () => {
+      console.log('🛑 Cleaning up PAN services monitoring...');
+      setIsMonitoring(false);
+      
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+      
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
     };
-  }, []);
+  }, [enabled, session?.user?.id, interval, fetchServices]);
+
+  const refreshNow = useCallback(() => {
+    console.log('🔄 Manual refresh requested');
+    fetchServices();
+  }, [fetchServices]);
 
   return {
     services,
     stats,
     isMonitoring,
+    isRealTimeConnected,
     error,
     lastUpdate,
-    refreshNow,
-    startMonitoring,
-    stopMonitoring
+    refreshNow
   };
 }

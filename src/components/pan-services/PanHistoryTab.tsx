@@ -78,21 +78,22 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
     services: monitoredServices,
     stats: monitoringStats,
     isMonitoring,
+    isRealTimeConnected,
     error: monitoringError,
     lastUpdate,
     refreshNow
   } = usePanServiceMonitor({
     enabled: true,
-    interval: 10000, // 10 seconds for faster updates
+    interval: 15000, // 15 seconds for polling fallback
     onStatusChange: (service, oldStatus) => {
       console.log(`Status changed for ${service.order_id}: ${oldStatus} → ${service.status}`);
       // Show toast notification for status changes
       if (service.status === 'SUCCESS') {
-        toast.success(`PAN application ${service.order_id} completed successfully!`, { duration: 5000 });
+        toast.success(`🎉 PAN application ${service.order_id} completed successfully!`, { duration: 8000 });
       } else if (service.status === 'FAILURE') {
-        toast.error(`PAN application ${service.order_id} failed. Please check details.`, { duration: 5000 });
+        toast.error(`❌ PAN application ${service.order_id} failed. Please check details.`, { duration: 8000 });
       } else if (service.status === 'PROCESSING') {
-        toast(`PAN application ${service.order_id} is in progress.`, { duration: 3000 });
+        toast(`⏳ PAN application ${service.order_id} is now being processed.`, { duration: 5000 });
       }
       // Refresh the full services list when status changes
       fetchServices();
@@ -100,7 +101,16 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
     onSuccess: (service) => {
       // Refresh wallet balance when payment is charged
       onWalletUpdate();
-      toast.success(`Payment charged for ${service.order_id}. Receipt available for download.`, { duration: 5000 });
+      toast.success(`💰 Payment charged for ${service.order_id}. Receipt available for download.`, { duration: 8000 });
+    },
+    onCallbackReceived: (service) => {
+      toast(`📞 Status update received for ${service.order_id}`, { duration: 3000 });
+    },
+    onPaymentStatusChange: (service, oldPaymentStatus) => {
+      console.log(`Payment status changed for ${service.order_id}: ${oldPaymentStatus} → ${service.payment_status}`);
+      if (service.payment_status === 'CHARGED') {
+        onWalletUpdate();
+      }
     }
   });
 
@@ -345,11 +355,13 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
             {/* Real-time Status Indicator */}
             {isMonitoring && (
               <div className="flex items-center gap-2 text-sm">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-green-600 font-medium">Live Monitoring Active</span>
+                <div className={`w-2 h-2 rounded-full ${isRealTimeConnected ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`}></div>
+                <span className={`font-medium ${isRealTimeConnected ? 'text-green-600' : 'text-yellow-600'}`}>
+                  {isRealTimeConnected ? 'Real-time Connected' : 'Polling Mode'}
+                </span>
                 {lastUpdate && (
                   <span className="text-xs text-gray-500">
-                    (Last check: {new Date(lastUpdate).toLocaleTimeString()})
+                    (Last update: {new Date(lastUpdate).toLocaleTimeString()})
                   </span>
                 )}
               </div>
@@ -358,7 +370,7 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
             {monitoringError && (
               <div className="flex items-center gap-2 text-sm">
                 <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                <span className="text-red-600 font-medium">Monitoring Error</span>
+                <span className="text-red-600 font-medium">Connection Error</span>
                 <span className="text-xs text-red-500">{monitoringError}</span>
               </div>
             )}

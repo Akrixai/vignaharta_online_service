@@ -150,10 +150,14 @@ export async function GET(request: NextRequest) {
       await processFailedPanApplication(panService, updateData);
     }
 
-    // Update the PAN service record
+    // Update the PAN service record with immediate timestamp
     const { error: updateError } = await supabase
       .from('pan_services')
-      .update(updateData)
+      .update({
+        ...updateData,
+        // Ensure updated_at is set to trigger real-time updates
+        updated_at: new Date().toISOString()
+      })
       .eq('id', panService.id);
 
     if (updateError) {
@@ -164,7 +168,18 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.log('✅ PAN service updated successfully:', panService.order_id);
+    console.log('✅ PAN service updated successfully:', panService.order_id, 'Status:', newStatus);
+
+    // Log the successful callback processing for debugging
+    console.log('📊 Callback Summary:', {
+      order_id: panService.order_id,
+      user_id: panService.user_id,
+      old_status: previousStatus,
+      new_status: newStatus,
+      payment_status: updateData.payment_status || panService.payment_status,
+      acknowledgement_number: updateData.acknowledgement_number,
+      callback_time: callbackData.received_at
+    });
 
     return NextResponse.json({
       success: true,

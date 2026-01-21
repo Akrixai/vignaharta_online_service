@@ -95,7 +95,7 @@ export default function PanServicesHistoryPage() {
     }
   }, [session]);
 
-  // Auto-refresh every 10 seconds for pending/processing orders
+  // Auto-refresh every 15 seconds for pending/processing orders with real-time fallback
   useEffect(() => {
     if (!autoRefresh || loading) return;
 
@@ -107,7 +107,7 @@ export default function PanServicesHistoryPage() {
       const interval = setInterval(() => {
         console.log('🔄 Auto-refreshing PAN services history...');
         fetchServices();
-      }, 10000); // 10 seconds for faster updates
+      }, 15000); // 15 seconds for better performance
 
       return () => clearInterval(interval);
     }

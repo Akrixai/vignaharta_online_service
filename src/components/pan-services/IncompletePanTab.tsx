@@ -46,21 +46,22 @@ export default function IncompletePanTab({ walletBalance, onWalletUpdate, router
   const {
     services: monitoredServices,
     isMonitoring,
+    isRealTimeConnected,
     error: monitoringError,
     lastUpdate,
     refreshNow
   } = usePanServiceMonitor({
     enabled: true,
-    interval: 10000, // 10 seconds for faster updates
+    interval: 15000, // 15 seconds for faster updates
     onStatusChange: (service, oldStatus) => {
       console.log(`Status changed for ${service.order_id}: ${oldStatus} → ${service.status}`);
       // Show toast notification for status changes
       if (service.status === 'SUCCESS') {
-        toast.success(`PAN application ${service.order_id} completed successfully!`, { duration: 5000 });
+        toast.success(`🎉 PAN application ${service.order_id} completed successfully!`, { duration: 8000 });
       } else if (service.status === 'FAILURE') {
-        toast.error(`PAN application ${service.order_id} failed. Please check details.`, { duration: 5000 });
+        toast.error(`❌ PAN application ${service.order_id} failed. Please check details.`, { duration: 8000 });
       } else if (service.status === 'PROCESSING') {
-        toast(`PAN application ${service.order_id} is now being processed.`, { duration: 3000 });
+        toast(`⏳ PAN application ${service.order_id} is now being processed.`, { duration: 5000 });
       }
       // Refresh pending applications when status changes
       fetchPendingApplications();
@@ -68,7 +69,11 @@ export default function IncompletePanTab({ walletBalance, onWalletUpdate, router
     onSuccess: (service) => {
       // Refresh wallet balance when payment is charged
       onWalletUpdate();
-      toast.success(`Payment charged for ${service.order_id}. Receipt available for download.`, { duration: 5000 });
+      toast.success(`💰 Payment charged for ${service.order_id}. Receipt available for download.`, { duration: 8000 });
+    },
+    onCallbackReceived: (service) => {
+      toast(`📞 Status update received for ${service.order_id}`, { duration: 3000 });
+      fetchPendingApplications();
     }
   });
 
