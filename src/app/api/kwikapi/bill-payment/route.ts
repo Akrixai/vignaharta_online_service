@@ -52,6 +52,7 @@ export async function POST(request: NextRequest) {
       opt8,
       opt9,
       opt10,
+      number, // Add direct number support for remapped fields
     } = body;
 
     // Validate inputs
@@ -87,27 +88,39 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get operator configuration from recharge_operators table
-    const { data: rechargeOperator } = await supabase
-      .from('recharge_operators')
-      .select('*')
-      .eq('kwikapi_opid', parseInt(operator_code))
-      .eq('service_type', service_type.toUpperCase())
-      .eq('is_active', true)
-      .single();
+    // Map service types for consistency
+    const serviceTypeMapping: Record<string, string> = {
+      'ELECTRICITY': 'ELC',
+      'POSTPAID': 'Postpaid',
+      'GAS': 'Gas',
+      'WATER': 'Water',
+      'DTH': 'DTH',
+      'BROADBAND': 'Broadband',
+      'LANDLINE': 'Landline'
+    };
 
-    if (!rechargeOperator) {
+    const mappedServiceType = serviceTypeMapping[service_type.toUpperCase()] || service_type;
+
+    // Check if operator exists and is active in kwikapi_billers
+    if (operator.service_type !== mappedServiceType) {
+      return NextResponse.json(
+        { success: false, message: `Service type mismatch. Expected ${mappedServiceType}, got ${operator.service_type}` },
+        { status: 400 }
+      );
+    }
+
+    if (!operator.is_active) {
       return NextResponse.json(
         { success: false, message: 'Operator not configured or inactive in admin settings' },
         { status: 400 }
       );
     }
 
-    // Use admin-configured rates from recharge_operators table
-    const commissionRate = rechargeOperator.commission_rate || 2.0;
-    const cashbackEnabled = rechargeOperator.cashback_enabled || false;
-    const cashbackMinPercentage = rechargeOperator.cashback_min_percentage || 0.5;
-    const cashbackMaxPercentage = rechargeOperator.cashback_max_percentage || 2.0;
+    // Use default commission and cashback rates since we're using kwikapi_billers directly
+    const commissionRate = 2.0; // Default 2% commission for retailers
+    const cashbackEnabled = true; // Enable cashback for customers
+    const cashbackMinPercentage = 0.5; // Default 0.5% minimum cashback
+    const cashbackMaxPercentage = 2.0; // Default 2% maximum cashback
 
     // Calculate initial reward amount (will be randomized for customers if successful)
     let rewardAmount = 0;
@@ -152,7 +165,7 @@ export async function POST(request: NextRequest) {
       .from('recharge_transactions')
       .insert({
         user_id: dbUser.id,
-        operator_id: rechargeOperator.id, // Use the correct ID from recharge_operators
+        operator_id: null, // Not using recharge_operators table anymore
         service_type: service_type.toUpperCase(),
         mobile_number,
         consumer_number,
@@ -199,16 +212,28 @@ export async function POST(request: NextRequest) {
     // Process payment using KwikAPI
     let paymentResponse;
 
+    console.log('🔍 [BILL-PAYMENT] Debug parameters:', {
+      consumer_number,
+      mobile_number,
+      selected_number: consumer_number || mobile_number,
+      opt1,
+      ref_id,
+      amount: parseFloat(amount),
+      operator_name: operator.operator_name
+    });
+
+    // Note: ref_id validation removed as KwikAPI can work without it for some operators
+
     try {
       // Use utility bill payment API for all bills
       paymentResponse = await kwikapi.payUtilityBill({
         opid: parseInt(opid),
-        number: mobile_number || consumer_number,
-        amount,
+        number: number || consumer_number || mobile_number, // Use remapped number first, then consumer_number
+        amount: parseFloat(amount), // Ensure amount is a number, not string
         order_id: kwikApiOrderId, // Use KwikAPI-compatible order ID
         mobile: mobile_number || dbUser.email,
         refrence_id: ref_id,
-        opt1: opt1,
+        opt1: opt1 || consumer_number || mobile_number, // Ensure opt1 has the consumer number
         opt2: opt2,
         opt3: opt3,
         opt4: opt4,
@@ -229,8 +254,10 @@ export async function POST(request: NextRequest) {
         status = 'SUCCESS';
       } else if (responseStatus === 'FAILURE' || responseStatus === 'FAILED') {
         status = 'FAILED';
+      } else if (responseStatus === 'PENDING') {
+        status = 'PENDING';
       } else {
-        // Default to PENDING for unknown statuses
+        // Default to PENDING for unknown statuses (safer than FAILED)
         status = 'PENDING';
       }
 
@@ -252,8 +279,11 @@ export async function POST(request: NextRequest) {
         })
         .eq('id', transaction.id);
 
-      // If successful, deduct from wallet and add commission/cashback
-      if (status === 'SUCCESS') {
+      // If successful OR pending with charged_amount > 0, deduct from wallet and add commission/cashback
+      const chargedAmount = parseFloat(paymentResponse.data?.charged_amount || '0');
+      const shouldProcessPayment = status === 'SUCCESS' || (status === 'PENDING' && chargedAmount > 0);
+
+      if (shouldProcessPayment) {
         const finalReward = rewardAmount;
 
         // Perform settlement: Deduct amount AND Add reward
@@ -299,21 +329,40 @@ export async function POST(request: NextRequest) {
             .eq('id', transaction.id);
         }
 
-        return NextResponse.json({
-          success: true,
-          data: {
-            transaction_id: transaction.id,
-            transaction_ref: transactionRef,
-            status: 'SUCCESS',
-            amount,
-            reward_amount: finalReward,
-            reward_label: rewardLabel,
-            message: `✅ Bill payment successful!`,
-            kwikapi_status: responseStatus,
-            operator_ref: paymentResponse.data?.opr_id,
-            balance: paymentResponse.data?.balance,
-          },
-        });
+        if (status === 'SUCCESS') {
+          return NextResponse.json({
+            success: true,
+            data: {
+              transaction_id: transaction.id,
+              transaction_ref: transactionRef,
+              status: 'SUCCESS',
+              amount,
+              reward_amount: finalReward,
+              reward_label: rewardLabel,
+              message: `✅ Bill payment successful!`,
+              kwikapi_status: responseStatus,
+              operator_ref: paymentResponse.data?.opr_id,
+              balance: paymentResponse.data?.balance,
+            },
+          });
+        } else {
+          // PENDING but processed (charged_amount > 0)
+          return NextResponse.json({
+            success: true,
+            data: {
+              transaction_id: transaction.id,
+              transaction_ref: transactionRef,
+              status: 'PENDING',
+              amount,
+              reward_amount: finalReward,
+              reward_label: rewardLabel,
+              message: `✅ ${paymentResponse.data?.message || paymentResponse.data?.operator_message || 'Bill payment submitted successfully! You will receive confirmation within 24 hours.'}`,
+              kwikapi_status: responseStatus,
+              operator_ref: paymentResponse.data?.opr_id,
+              balance: paymentResponse.data?.balance,
+            },
+          });
+        }
       } else if (status === 'PENDING') {
         return NextResponse.json({
           success: true,

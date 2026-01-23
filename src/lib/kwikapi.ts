@@ -116,7 +116,7 @@ class KwikAPIClient {
       const queryParams: any = {
         api_key: KWIKAPI_API_KEY,
         number: params.number,
-        amount: params.amount || '10',
+        amount: params.amount ? Number(params.amount).toFixed(2) : '10.00',
         opid: params.opid.toString(),
         order_id: params.order_id || this.generateOrderId(),
         opt8: params.opt8 || 'Bills', // Required literal - CRITICAL!
@@ -149,7 +149,7 @@ class KwikAPIClient {
 
       // Check if the response indicates success
       const isSuccess = response.data.status === 'SUCCESS' || response.data.STATUS === 'SUCCESS';
-      
+
       if (isSuccess) {
         console.log('✅ [KWIKAPI] Bill validation successful:', {
           customer_name: response.data.customer_name || response.data.customername,
@@ -178,7 +178,7 @@ class KwikAPIClient {
 
       // Provide more specific error messages
       let errorMessage = 'Failed to validate bill details';
-      
+
       if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
         errorMessage = 'Network connection failed. Please check your internet connection and try again.';
       } else if (error.code === 'ETIMEDOUT') {
@@ -273,7 +273,7 @@ class KwikAPIClient {
 
       // Check if the response indicates success
       const isSuccess = response.data.status === 'SUCCESS' || response.data.STATUS === 'SUCCESS';
-      
+
       if (isSuccess) {
         console.log('✅ [KWIKAPI] Bill fetch successful:', {
           customer_name: response.data.customer_name || response.data.customername,
@@ -302,7 +302,7 @@ class KwikAPIClient {
 
       // Provide more specific error messages
       let errorMessage = 'Failed to fetch bill details';
-      
+
       if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
         errorMessage = 'Network connection failed. Please check your internet connection and try again.';
       } else if (error.code === 'ETIMEDOUT') {
@@ -452,7 +452,7 @@ class KwikAPIClient {
       console.log('📦 [KWIKAPI] Prepaid Recharge Response:', response.data);
 
       const isSuccess = response.data.status === 'SUCCESS' || response.data.STATUS === 'SUCCESS';
-      
+
       if (isSuccess) {
         console.log('✅ [KWIKAPI] Prepaid recharge successful:', {
           order_id: response.data.order_id,
@@ -482,7 +482,7 @@ class KwikAPIClient {
 
       // Provide more specific error messages
       let errorMessage = 'Failed to process prepaid recharge';
-      
+
       if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
         errorMessage = 'Network connection failed. Please check your internet connection and try again.';
       } else if (error.code === 'ETIMEDOUT') {
@@ -545,7 +545,7 @@ class KwikAPIClient {
         ...(params.opt3 && { opt3: params.opt3 }),
         ...(params.opt4 && { opt4: params.opt4 }),
         ...(params.opt5 && { opt5: params.opt5 }),
-        ...(params.opt6 && { opt6: params.opt7 }),
+        ...(params.opt6 && { opt6: params.opt6 }),
         ...(params.opt7 && { opt7: params.opt7 }),
         ...(params.opt8 && { opt8: params.opt8 }),
         ...(params.opt9 && { opt9: params.opt9 }),
@@ -595,35 +595,43 @@ class KwikAPIClient {
         account_number: params.number,
         amount: params.amount,
         refrence_id: params.refrence_id,
-        mobile: params.mobile
+        mobile: params.mobile,
+        order_id: params.order_id
       });
 
       const queryParams: any = {
         api_key: KWIKAPI_API_KEY,
         number: params.number,
-        amount: params.amount.toString(),
+        amount: Number(params.amount).toFixed(2),
         opid: params.opid.toString(),
         order_id: params.order_id || this.generateOrderId(),
-        opt8: params.opt8 || 'Bills', // Required literal for utility payments
         mobile: params.mobile,
       };
 
-      // Add refrence_id if provided (critical for BBPS payments)
-      // Note: KWIKAPI uses "refrence_id" (typo in their API)
+      // Add reference ID if provided (critical for BBPS payments)
       if (params.refrence_id) {
         queryParams.refrence_id = params.refrence_id;
+        queryParams.ref_id = params.refrence_id;
       }
 
-      // Add optional parameters only if they have values
-      if (params.opt1) queryParams.opt1 = params.opt1;
-      if (params.opt2) queryParams.opt2 = params.opt2;
-      if (params.opt3) queryParams.opt3 = params.opt3;
-      if (params.opt4) queryParams.opt4 = params.opt4;
-      if (params.opt5) queryParams.opt5 = params.opt5;
-      if (params.opt6) queryParams.opt6 = params.opt6;
-      if (params.opt7) queryParams.opt7 = params.opt7;
-      if (params.opt9) queryParams.opt9 = params.opt9;
-      if (params.opt10) queryParams.opt10 = params.opt10;
+      // CRITICAL FIX: For MSEDC Maharashtra (opid 76), use minimal parameters only
+      // Adding optional parameters causes the payment to fail
+      if (params.opid === 76) {
+        console.log('🔧 [KWIKAPI] Using minimal parameters for MSEDC Maharashtra (opid 76)');
+        // Only send essential parameters for MSEDC Maharashtra
+      } else {
+        // For other operators, add optional parameters if they have values
+        queryParams.opt8 = params.opt8 || 'Bills'; // Required literal for utility payments
+        if (params.opt1) queryParams.opt1 = params.opt1;
+        if (params.opt2) queryParams.opt2 = params.opt2;
+        if (params.opt3) queryParams.opt3 = params.opt3;
+        if (params.opt4) queryParams.opt4 = params.opt4;
+        if (params.opt5) queryParams.opt5 = params.opt5;
+        if (params.opt6) queryParams.opt6 = params.opt6;
+        if (params.opt7) queryParams.opt7 = params.opt7;
+        if (params.opt9) queryParams.opt9 = params.opt9;
+        if (params.opt10) queryParams.opt10 = params.opt10;
+      }
 
       console.log('📡 [KWIKAPI] Utility Payment API Call:', {
         url: '/api/v2/bills/payments.php',
@@ -631,6 +639,9 @@ class KwikAPIClient {
         baseURL: KWIKAPI_BASE_URL
       });
 
+      // Try POST first as per documentation, but fallback to GET if needed
+      // Actually, many KwikAPI integrators use GET for everything.
+      // But let's try to be more robust.
       const response = await this.client.get('/api/v2/bills/payments.php', {
         params: queryParams,
         timeout: 45000, // 45 second timeout for utility payments
@@ -639,7 +650,7 @@ class KwikAPIClient {
       console.log('📦 [KWIKAPI] Utility Payment Response:', response.data);
 
       const isSuccess = response.data.status === 'SUCCESS' || response.data.STATUS === 'SUCCESS';
-      
+
       if (isSuccess) {
         console.log('✅ [KWIKAPI] Utility payment successful:', {
           order_id: response.data.order_id,
@@ -650,7 +661,11 @@ class KwikAPIClient {
       } else {
         console.warn('⚠️ [KWIKAPI] Utility payment failed:', {
           status: response.data.status || response.data.STATUS,
-          message: response.data.message || response.data.MESSAGE
+          message: response.data.message || response.data.MESSAGE,
+          operator_message: response.data.operator_message,
+          order_id: response.data.order_id,
+          opr_id: response.data.opr_id,
+          balance: response.data.balance
         });
       }
 
@@ -669,7 +684,7 @@ class KwikAPIClient {
 
       // Provide more specific error messages
       let errorMessage = 'Failed to process utility bill payment';
-      
+
       if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
         errorMessage = 'Network connection failed. Please check your internet connection and try again.';
       } else if (error.code === 'ETIMEDOUT') {

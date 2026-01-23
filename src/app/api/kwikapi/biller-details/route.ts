@@ -20,7 +20,7 @@ async function handleBillerDetailsRequest(request: NextRequest) {
     }
 
     let opid;
-    
+
     if (request.method === 'GET') {
       const { searchParams } = new URL(request.url);
       opid = searchParams.get('opid');
@@ -59,7 +59,7 @@ async function handleBillerDetailsRequest(request: NextRequest) {
     }
 
     const data = await response.json();
-    
+
     console.log('🔧 [Biller Details API] Raw KwikAPI response:', JSON.stringify(data, null, 2));
 
     if (!data.success) {
@@ -73,27 +73,17 @@ async function handleBillerDetailsRequest(request: NextRequest) {
     const parameters = [];
     if (data.parameters && Array.isArray(data.parameters)) {
       console.log('🔧 [Biller Details API] Processing parameters:', data.parameters);
-      
+
       data.parameters.forEach((param: any, index: number) => {
         // KwikAPI returns parameters as objects like {"opt1/param1": "Mobile Number"}
         Object.keys(param).forEach(key => {
           const value = param[key];
           console.log(`🔧 [Biller Details API] Parameter ${key}:`, value);
-          
+
           // Only add non-null, non-empty values
           if (value && value !== null && value !== '' && value.trim() !== '') {
             const paramNumber = key.split('/')[0]; // Extract opt1, opt2, etc.
-            
-            // Special handling for Torrent Power parameter mapping
-            let finalParamNumber = paramNumber;
-            if (value.trim().toLowerCase() === 'city' && paramNumber === 'opt2') {
-              // For Torrent Power, City should be opt1, not opt2
-              finalParamNumber = 'opt1';
-            } else if (value.trim().toLowerCase() === 'service number' && paramNumber === 'opt1') {
-              // Service Number goes to the main 'number' parameter, not opt1
-              finalParamNumber = 'number';
-            }
-            
+
             const paramField = {
               key: `param_${index + 1}`,
               name: value.trim(),
@@ -102,7 +92,7 @@ async function handleBillerDetailsRequest(request: NextRequest) {
               required: true,
               order: index + 1,
               type: 'text',
-              kwikapi_param: finalParamNumber, // Use corrected parameter
+              kwikapi_param: paramNumber, // Use original parameter mapping (opt1, opt2, etc.)
               description: `Required parameter: ${value.trim()}`,
               options: []
             };
@@ -112,9 +102,9 @@ async function handleBillerDetailsRequest(request: NextRequest) {
         });
       });
     }
-    
+
     console.log('🔧 [Biller Details API] Total parameters processed:', parameters.length);
-    
+
     console.log('🔧 [Biller Details API] Final parameters array:', parameters);
 
     // Transform the response to match our expected format

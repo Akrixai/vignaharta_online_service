@@ -415,15 +415,17 @@ export default function ElectricityBillPage() {
     console.log('🔍 [Bill Fetch] Dynamic fields:', dynamicFields);
     console.log('🔍 [Bill Fetch] Dynamic field values:', dynamicFieldValues);
 
-    // Get consumer number from dynamic fields - try multiple possible field names
-    const consumerNumberValue = dynamicFieldValues['Consumer Number'] ||
+    // Get consumer number from dynamic fields - prioritize fields mapped to 'number'
+    const numberMappedField = dynamicFields.find(f => f.kwikapi_param === 'number');
+    const consumerNumberValue = (numberMappedField ? dynamicFieldValues[numberMappedField.name] : null) ||
+      dynamicFieldValues['Consumer Number'] ||
       dynamicFieldValues['Consumer Number / Meter ID'] ||
       dynamicFieldValues['Service Number'] ||
       dynamicFieldValues['Account Number'] ||
       dynamicFieldValues['consumer_number'] ||
-      Object.values(dynamicFieldValues).find(v => v && v.trim() !== '' && !v.toLowerCase().includes('city'));
+      Object.values(dynamicFieldValues).find(v => v && typeof v === 'string' && v.trim() !== '' && !v.toLowerCase().includes('city'));
 
-    if (!consumerNumberValue || consumerNumberValue.trim() === '') {
+    if (!consumerNumberValue || (typeof consumerNumberValue === 'string' && consumerNumberValue.trim() === '')) {
       setMessage('Please enter consumer/service number');
       setMessageType('error');
       console.error('❌ [Bill Fetch] No consumer number found. Available fields:', Object.keys(dynamicFieldValues));
@@ -438,15 +440,16 @@ export default function ElectricityBillPage() {
 
     console.log('✅ [Bill Fetch] Consumer number found:', consumerNumberValue);
 
-    // For Torrent Power, check if city is provided
+    // For operators requiring city/unit, check if those fields are filled
     const operator = operators.find(op => op.id === selectedOperator);
-    if (operator?.operator_name.includes('Torrent Power')) {
-      const cityValue = dynamicFieldValues['City'];
-      if (!cityValue || cityValue.trim() === '') {
-        setMessage('Please select city for Torrent Power');
-        setMessageType('error');
-        return;
-      }
+    if (!operator) return;
+
+    // Validate required dynamic fields
+    const missingFields = dynamicFields.filter(f => f.required && !dynamicFieldValues[f.name]);
+    if (missingFields.length > 0) {
+      setMessage(`Please enter ${missingFields[0].label}`);
+      setMessageType('error');
+      return;
     }
 
     setFetchingBill(true);
@@ -467,18 +470,14 @@ export default function ElectricityBillPage() {
       dynamicFields.forEach((field: DynamicField) => {
         const value = dynamicFieldValues[field.name];
         if (value && field.kwikapi_param && field.kwikapi_param !== 'number') {
-          // Don't add 'number' parameter to opt params as it goes to account_number
           optParams[field.kwikapi_param] = value;
         }
       });
 
-      // Special handling for Torrent Power - City goes to opt2 as per error logs
-      if (operator?.operator_name.includes('Torrent Power')) {
-        const cityValue = dynamicFieldValues['City'];
-        if (cityValue) {
-          optParams.opt2 = cityValue; // City goes to opt2 for Torrent Power
-          optParams.opt1 = ''; // Clear opt1 if set by dynamic fields
-        }
+      // CRITICAL FIX: For MSEDC Maharashtra and similar operators, opt1 MUST contain the consumer number
+      // This ensures consistent parameter mapping regardless of dynamic field configuration
+      if (consumerNumberValue) {
+        optParams.opt1 = consumerNumberValue;
       }
 
       console.log('📋 [Bill Fetch] Dynamic fields:', dynamicFields);
@@ -607,18 +606,14 @@ export default function ElectricityBillPage() {
       dynamicFields.forEach((field: DynamicField) => {
         const value = dynamicFieldValues[field.name];
         if (value && field.kwikapi_param && field.kwikapi_param !== 'number') {
-          // Don't add 'number' parameter to opt params as it goes to account_number
           optParams[field.kwikapi_param] = value;
         }
       });
 
-      // Special handling for Torrent Power - City goes to opt2 as per error logs
-      if (operator?.operator_name.includes('Torrent Power')) {
-        const cityValue = dynamicFieldValues['City'];
-        if (cityValue) {
-          optParams.opt2 = cityValue; // City goes to opt2 for Torrent Power
-          optParams.opt1 = ''; // Clear opt1 if set by dynamic fields
-        }
+      // CRITICAL FIX: For MSEDC Maharashtra and similar operators, opt1 MUST contain the consumer number
+      // This ensures consistent parameter mapping regardless of dynamic field configuration
+      if (consumerNumberValue) {
+        optParams.opt1 = consumerNumberValue;
       }
 
       console.log('💳 [Payment] Dynamic fields:', dynamicFields);
@@ -631,6 +626,7 @@ export default function ElectricityBillPage() {
         amount: totalAmount,
         customer_name: customerName || billDetails?.consumer_name,
         consumer_number: consumerNumberValue,
+        number: consumerNumberValue, // Explicitly send 'number' field
         mobile_number: customerMobile,
         customer_mobile: customerMobile,
         ref_id: billDetails?.ref_id,

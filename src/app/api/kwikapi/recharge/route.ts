@@ -50,31 +50,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get operator details from recharge_operators table (this is the correct table for foreign key)
-    const { data: rechargeOperator } = await supabase
-      .from('recharge_operators')
-      .select('*')
-      .eq('kwikapi_opid', parseInt(opid))
-      .eq('is_active', true)
-      .single();
-
-    if (!rechargeOperator) {
-      return NextResponse.json(
-        { success: false, message: 'Operator not configured or inactive' },
-        { status: 400 }
-      );
-    }
-
-    // Get operator details from kwikapi_billers table for validation
+    // Get operator details from kwikapi_billers table
     const { data: operator } = await supabase
       .from('kwikapi_billers')
       .select('*')
       .eq('operator_id', parseInt(opid))
+      .eq('is_active', true)
       .single();
 
     if (!operator) {
       return NextResponse.json(
-        { success: false, message: 'Invalid operator in KwikAPI billers' },
+        { success: false, message: 'Operator not configured or inactive in admin settings' },
         { status: 400 }
       );
     }
@@ -90,11 +76,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Use admin-configured rates from recharge_operators table
-    const commissionRate = rechargeOperator.commission_rate || 2.0;
-    const cashbackEnabled = rechargeOperator.cashback_enabled || false;
-    const cashbackMinPercentage = rechargeOperator.cashback_min_percentage || 0.5;
-    const cashbackMaxPercentage = rechargeOperator.cashback_max_percentage || 2.0;
+    // Use default commission and cashback rates since we're using kwikapi_billers directly
+    const commissionRate = 2.0; // Default 2% commission for retailers
+    const cashbackEnabled = true; // Enable cashback for customers
+    const cashbackMinPercentage = 0.5; // Default 0.5% minimum cashback
+    const cashbackMaxPercentage = 2.0; // Default 2% maximum cashback
 
     // Calculate commission/cashback based on user role and admin configuration
     let rewardAmount = 0;
@@ -151,12 +137,12 @@ export async function POST(request: NextRequest) {
       circleId = circle?.id;
     }
 
-    // Create transaction record using recharge_operators table ID
+    // Create transaction record using kwikapi_billers directly
     const { data: transaction, error: txnError } = await supabase
       .from('recharge_transactions')
       .insert({
         user_id: dbUser.id,
-        operator_id: rechargeOperator.id, // Use recharge_operators table ID
+        operator_id: null, // Not using recharge_operators table anymore
         circle_id: circleId,
         service_type: serviceType.toUpperCase(),
         mobile_number: serviceType === 'DTH' ? mobile : number,
@@ -171,6 +157,7 @@ export async function POST(request: NextRequest) {
         status: 'PENDING',
         transaction_ref: transactionRef,
         plan_details: plan_details ? JSON.stringify(plan_details) : null,
+        kwikapi_provider: operator.operator_name,
       })
       .select()
       .single();
