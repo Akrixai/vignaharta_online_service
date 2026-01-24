@@ -58,7 +58,7 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
     if (service?.dynamic_fields) {
       const requiredDynamicFields = service.dynamic_fields.filter((field: any) => field.required);
       totalFields += requiredDynamicFields.length;
-      
+
       requiredDynamicFields.forEach((field: any) => {
         const value = formData.service_specific_data[`dynamic_${field.id}`];
         if (value && value.toString().trim()) {
@@ -69,23 +69,17 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
 
     const progress = Math.round((filledFields / totalFields) * 100);
     const isFormComplete = filledFields === totalFields;
-    
+
     return { progress, isFormComplete, filledFields, totalFields };
   };
 
   // Check if we can proceed to step 2 (Document Upload)
   const canProceedToStep2 = () => {
-    const { isFormComplete } = calculateFormCompletion();
-    return isFormComplete;
+    return true;
   };
 
   // Check if we can proceed to step 3 (Payment Summary)
   const canProceedToStep3 = () => {
-    // Check if all required documents are uploaded
-    if (service?.required_documents && service.required_documents.length > 0) {
-      return documents.length >= service.required_documents.length;
-    }
-    // If no required documents, allow proceeding
     return true;
   };
 
@@ -262,7 +256,7 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
     const breakdown = calculateFeeBreakdown();
     if (breakdown && breakdown.total_amount > 0) {
       setFeeBreakdown(breakdown);
-      
+
       // Check wallet balance
       const balanceCheckPassed = await checkWalletBalance(breakdown.total_amount);
       if (!balanceCheckPassed) {
@@ -279,23 +273,23 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
       // Fetch current wallet balance
       const response = await fetch('/api/wallet/balance');
       const data = await response.json();
-      
+
       if (!data.success) {
         toast.error('Failed to check wallet balance');
         return false;
       }
-      
+
       const currentBalance = data.balance || 0;
-      
+
       if (currentBalance < requiredAmount) {
         // Show insufficient balance dialog
         const shouldAddMoney = await showInsufficientBalanceDialog(requiredAmount, currentBalance);
         return shouldAddMoney;
       }
-      
+
       // Show balance confirmation dialog
       return await showBalanceConfirmationDialog(requiredAmount, currentBalance);
-      
+
     } catch (error) {
       console.error('Error checking wallet balance:', error);
       toast.error('Failed to check wallet balance');
@@ -306,7 +300,7 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
   const showInsufficientBalanceDialog = (requiredAmount: number, currentBalance: number): Promise<boolean> => {
     return new Promise((resolve) => {
       const shortfall = requiredAmount - currentBalance;
-      
+
       // Create and show modal
       const modal = document.createElement('div');
       modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100000]';
@@ -362,21 +356,21 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
           </div>
         </div>
       `;
-      
+
       document.body.appendChild(modal);
-      
+
       const cancelBtn = modal.querySelector('#cancel-btn');
       const addMoneyBtn = modal.querySelector('#add-money-btn');
-      
+
       const cleanup = () => {
         document.body.removeChild(modal);
       };
-      
+
       cancelBtn?.addEventListener('click', () => {
         cleanup();
         resolve(false);
       });
-      
+
       addMoneyBtn?.addEventListener('click', () => {
         cleanup();
         // Navigate to wallet page
@@ -389,7 +383,7 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
   const showBalanceConfirmationDialog = (requiredAmount: number, currentBalance: number): Promise<boolean> => {
     return new Promise((resolve) => {
       const remainingBalance = currentBalance - requiredAmount;
-      
+
       // Create and show modal
       const modal = document.createElement('div');
       modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100000]';
@@ -445,21 +439,21 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
           </div>
         </div>
       `;
-      
+
       document.body.appendChild(modal);
-      
+
       const cancelBtn = modal.querySelector('#cancel-btn');
       const confirmBtn = modal.querySelector('#confirm-btn');
-      
+
       const cleanup = () => {
         document.body.removeChild(modal);
       };
-      
+
       cancelBtn?.addEventListener('click', () => {
         cleanup();
         resolve(false);
       });
-      
+
       confirmBtn?.addEventListener('click', () => {
         cleanup();
         resolve(true);
@@ -563,8 +557,8 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
       });
 
       if (response.ok) {
-        const successMessage = service.is_free 
-          ? 'Application submitted successfully!' 
+        const successMessage = service.is_free
+          ? 'Application submitted successfully!'
           : 'Application submitted successfully! Payment has been deducted from your wallet.';
         toast.success(successMessage);
         setShowPaymentModal(false);
@@ -840,6 +834,7 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
   // Reset form when modal closes
   useEffect(() => {
     if (!isOpen) {
+      setCurrentStep(1);
       // Only reset if not loading from draft
       if (!draftData) {
         setFormData({
@@ -927,29 +922,29 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
                 <div className="flex flex-col items-center flex-1">
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${currentStep >= 1
-                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                        : 'bg-gray-200 text-gray-500'
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                      : 'bg-gray-200 text-gray-500'
                       }`}
                   >
                     1
                   </div>
                   <span className="text-xs font-medium text-gray-600 mt-1">Service Details</span>
                 </div>
-                
+
                 <div className="flex-1 h-1 bg-gray-200 mx-2">
-                  <div 
-                    className={`h-full transition-all duration-500 ${currentStep >= 2 
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-500' 
+                  <div
+                    className={`h-full transition-all duration-500 ${currentStep >= 2
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500'
                       : 'bg-gray-200'
-                    }`}
+                      }`}
                   ></div>
                 </div>
-                
+
                 <div className="flex flex-col items-center flex-1">
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${currentStep >= 2
-                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                        : 'bg-gray-200 text-gray-500'
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                      : 'bg-gray-200 text-gray-500'
                       }`}
                   >
                     2
@@ -958,19 +953,19 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
                 </div>
 
                 <div className="flex-1 h-1 bg-gray-200 mx-2">
-                  <div 
-                    className={`h-full transition-all duration-500 ${currentStep >= 3 
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-500' 
+                  <div
+                    className={`h-full transition-all duration-500 ${currentStep >= 3
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500'
                       : 'bg-gray-200'
-                    }`}
+                      }`}
                   ></div>
                 </div>
-                
+
                 <div className="flex flex-col items-center flex-1">
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${currentStep >= 3
-                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                        : 'bg-gray-200 text-gray-500'
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                      : 'bg-gray-200 text-gray-500'
                       }`}
                   >
                     3
@@ -1005,185 +1000,178 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
                       Personal Information
                     </h3>
                   </div>
-                <div className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Full Name */}
-                    <div>
-                      <label className="block text-sm font-medium text-red-700 mb-2">
-                        Full Name *
-                      </label>
-                      <input
-                        type="text"
-                        name="customer_name"
-                        value={formData.customer_name}
-                        onChange={handleInputChange}
-                        placeholder="Enter full name as per documents"
-                        required
-                        className="w-full p-3 border border-red-300 rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 bg-yellow-50 text-red-800 placeholder-red-400"
-                      />
-                    </div>
-
-                    {/* Phone Number */}
-                    <div>
-                      <label className="block text-sm font-medium text-red-700 mb-2">
-                        Phone Number *
-                      </label>
-                      <input
-                        type="tel"
-                        name="customer_phone"
-                        value={formData.customer_phone}
-                        onChange={handleInputChange}
-                        placeholder="Enter 10-digit mobile number (without 0)"
-                        required
-                        maxLength={10}
-                        className={`w-full p-3 border rounded-md focus:ring-2 bg-yellow-50 text-red-800 placeholder-red-400 ${formData.customer_phone && formData.customer_phone.length !== 10
-                            ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-                            : 'border-red-300 focus:ring-yellow-500 focus:border-yellow-500'
-                          }`}
-                      />
-                      {formData.customer_phone && formData.customer_phone.length !== 10 && (
-                        <p className="text-red-600 text-xs mt-1">
-                          Phone number must be exactly 10 digits (currently {formData.customer_phone.length} digits)
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Email */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Email Address
-                      </label>
-                      <input
-                        type="email"
-                        name="customer_email"
-                        value={formData.customer_email}
-                        onChange={handleInputChange}
-                        placeholder="Enter email address"
-                        className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                      />
-                    </div>
-
-                    {/* Address */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Address *
-                      </label>
-                      <input
-                        type="text"
-                        name="customer_address"
-                        value={formData.customer_address}
-                        onChange={handleInputChange}
-                        placeholder="Enter complete address"
-                        required
-                        className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Additional Information */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                <div className="p-6 border-b border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-800">
-                    Additional Information
-                  </h3>
-                </div>
-                <div className="p-6 space-y-6">
-                  {/* Purpose */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Purpose of Application
-                    </label>
-                    <textarea
-                      name="purpose"
-                      value={formData.purpose}
-                      onChange={handleInputChange}
-                      placeholder="Explain why you need this service"
-                      rows={3}
-                      className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none"
-                    />
-                  </div>
-
-                  {/* Remarks */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Additional Remarks
-                    </label>
-                    <textarea
-                      name="remarks"
-                      value={formData.remarks}
-                      onChange={handleInputChange}
-                      placeholder="Any additional information or special requests"
-                      rows={2}
-                      className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Service-specific fields */}
-              {service.dynamic_fields && service.dynamic_fields.length > 0 && (
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                  <div className="p-6 border-b border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                      <span className="text-red-600">⚙️</span>
-                      Service-Specific Information
-                    </h3>
-                  </div>
                   <div className="p-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {renderServiceSpecificFields()}
+                      {/* Full Name */}
+                      <div>
+                        <label className="block text-sm font-medium text-red-700 mb-2">
+                          Full Name *
+                        </label>
+                        <input
+                          type="text"
+                          name="customer_name"
+                          value={formData.customer_name}
+                          onChange={handleInputChange}
+                          placeholder="Enter full name as per documents"
+                          required
+                          className="w-full p-3 border border-red-300 rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 bg-yellow-50 text-red-800 placeholder-red-400"
+                        />
+                      </div>
+
+                      {/* Phone Number */}
+                      <div>
+                        <label className="block text-sm font-medium text-red-700 mb-2">
+                          Phone Number *
+                        </label>
+                        <input
+                          type="tel"
+                          name="customer_phone"
+                          value={formData.customer_phone}
+                          onChange={handleInputChange}
+                          placeholder="Enter 10-digit mobile number (without 0)"
+                          required
+                          maxLength={10}
+                          className={`w-full p-3 border rounded-md focus:ring-2 bg-yellow-50 text-red-800 placeholder-red-400 ${formData.customer_phone && formData.customer_phone.length !== 10
+                            ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                            : 'border-red-300 focus:ring-yellow-500 focus:border-yellow-500'
+                            }`}
+                        />
+                        {formData.customer_phone && formData.customer_phone.length !== 10 && (
+                          <p className="text-red-600 text-xs mt-1">
+                            Phone number must be exactly 10 digits (currently {formData.customer_phone.length} digits)
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Email */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Email Address
+                        </label>
+                        <input
+                          type="email"
+                          name="customer_email"
+                          value={formData.customer_email}
+                          onChange={handleInputChange}
+                          placeholder="Enter email address"
+                          className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                        />
+                      </div>
+
+                      {/* Address */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Address *
+                        </label>
+                        <input
+                          type="text"
+                          name="customer_address"
+                          value={formData.customer_address}
+                          onChange={handleInputChange}
+                          placeholder="Enter complete address"
+                          required
+                          className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
-              )}
 
-              {/* Step 1 Navigation Buttons */}
-              <div className="flex gap-4 pt-6 border-t border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-lg">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="flex-1 px-6 py-3 border border-red-300 text-red-700 rounded-md hover:bg-red-50 font-medium transition-all duration-200 hover:shadow-md"
-                  disabled={loading || savingDraft}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSaveDraft}
-                  disabled={savingDraft || loading}
-                  className="flex-1 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-medium disabled:opacity-50 transition-all duration-200 hover:shadow-lg"
-                >
-                  {savingDraft ? (
+                {/* Additional Information */}
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                  <div className="p-6 border-b border-gray-200">
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      Additional Information
+                    </h3>
+                  </div>
+                  <div className="p-6 space-y-6">
+                    {/* Purpose */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Purpose of Application
+                      </label>
+                      <textarea
+                        name="purpose"
+                        value={formData.purpose}
+                        onChange={handleInputChange}
+                        placeholder="Explain why you need this service"
+                        rows={3}
+                        className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none"
+                      />
+                    </div>
+
+                    {/* Remarks */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Additional Remarks
+                      </label>
+                      <textarea
+                        name="remarks"
+                        value={formData.remarks}
+                        onChange={handleInputChange}
+                        placeholder="Any additional information or special requests"
+                        rows={2}
+                        className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Service-specific fields */}
+                {service.dynamic_fields && service.dynamic_fields.length > 0 && (
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div className="p-6 border-b border-gray-200">
+                      <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                        <span className="text-red-600">⚙️</span>
+                        Service-Specific Information
+                      </h3>
+                    </div>
+                    <div className="p-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {renderServiceSpecificFields()}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 1 Navigation Buttons */}
+                <div className="flex gap-4 pt-6 border-t border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-lg">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="flex-1 px-6 py-3 border border-red-300 text-red-700 rounded-md hover:bg-red-50 font-medium transition-all duration-200 hover:shadow-md"
+                    disabled={loading || savingDraft}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveDraft}
+                    disabled={savingDraft || loading}
+                    className="flex-1 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-medium disabled:opacity-50 transition-all duration-200 hover:shadow-lg"
+                  >
+                    {savingDraft ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        Saving Draft...
+                      </span>
+                    ) : (
+                      <span className="flex items-center justify-center gap-2">
+                        💾 Save Draft
+                      </span>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep(2)}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-md hover:from-blue-700 hover:to-purple-700 font-medium transition-all duration-200 hover:shadow-lg hover:scale-105 transform"
+                  >
                     <span className="flex items-center justify-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Saving Draft...
+                      Next: Upload Documents →
                     </span>
-                  ) : (
-                    <span className="flex items-center justify-center gap-2">
-                      💾 Save Draft
-                    </span>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (canProceedToStep2()) {
-                      setCurrentStep(2);
-                    } else {
-                      toast.error('Please fill in all required fields before proceeding to document upload');
-                    }
-                  }}
-                  disabled={!canProceedToStep2()}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-md hover:from-blue-700 hover:to-purple-700 font-medium disabled:opacity-50 transition-all duration-200 hover:shadow-lg hover:scale-105 transform"
-                >
-                  <span className="flex items-center justify-center gap-2">
-                    Next: Upload Documents →
-                  </span>
-                </button>
-              </div>
-            </form>
+                  </button>
+                </div>
+              </form>
             ) : currentStep === 2 ? (
               // Step 2: Document Upload
               <div className="space-y-6">
@@ -1202,7 +1190,7 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200">
                   <div className="p-6">
                     <h3 className="text-lg font-semibold text-gray-800 mb-4">Upload Documents</h3>
-                    
+
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors relative">
                       <div className="flex flex-col items-center">
                         <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
@@ -1293,15 +1281,8 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
                   </button>
                   <button
                     type="button"
-                    onClick={() => {
-                      if (canProceedToStep3()) {
-                        setCurrentStep(3);
-                      } else {
-                        toast.error('Please upload all required documents before proceeding to payment summary');
-                      }
-                    }}
-                    disabled={!canProceedToStep3()}
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-md hover:from-blue-700 hover:to-purple-700 font-medium disabled:opacity-50 transition-all duration-200 hover:shadow-lg hover:scale-105 transform"
+                    onClick={() => setCurrentStep(3)}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-md hover:from-blue-700 hover:to-purple-700 font-medium transition-all duration-200 hover:shadow-lg hover:scale-105 transform"
                   >
                     <span className="flex items-center justify-center gap-2">
                       Next: Payment Summary →
@@ -1371,238 +1352,238 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
                     )}
                   </div>
                 </div>
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                <div className="p-6 border-b border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                    <span className="text-red-600">💳</span>
-                    Payment Summary
-                  </h3>
-                </div>
-                <div className="p-6">
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-700">Service Fee:</span>
-                      <span className={`text-xl font-bold ${service.is_free ? 'text-green-600' : 'text-red-600'}`}>
-                        {service.is_free ? 'FREE' : formatCurrency(service.price)}
-                      </span>
-                    </div>
-                    {!service.is_free && (
-                      <p className="text-xs text-gray-500 mt-2">
-                        Amount will be deducted from your wallet upon submission. Full refund if rejected.
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Payment Summary Section */}
-              {!service.is_free && service.price > 0 ? (() => {
-                const breakdown = calculateFeeBreakdown();
-                if (!breakdown) return (
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                    <div className="p-6 border-b border-gray-200">
-                      <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                        <span className="text-red-600">💳</span>
-                        Payment Summary
-                      </h3>
-                    </div>
-                    <div className="p-6">
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium text-gray-700">Service Fee:</span>
-                          <span className="text-xl font-bold text-red-600">
-                            {formatCurrency(service.price)}
-                          </span>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-2">
-                          Amount will be deducted from your wallet upon submission
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                );
-                
-                return (
-                  <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 rounded-2xl border-2 border-blue-300 shadow-lg overflow-hidden">
-                    <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4">
-                      <h3 className="text-xl font-bold text-white flex items-center">
-                        <span className="mr-2">💳</span>
-                        Payment Summary
-                      </h3>
-                      <p className="text-blue-100 text-sm mt-1">Review the charges for this service</p>
-                    </div>
-                    
-                    <div className="p-6 space-y-4">
-                      {/* Fee Breakdown */}
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center pb-3 border-b border-blue-200">
-                          <div className="flex items-center space-x-2">
-                            <span className="text-blue-600 text-lg">💰</span>
-                            <span className="text-gray-700 font-medium">Service Fee</span>
-                          </div>
-                          <span className="text-lg font-bold text-gray-900">₹{breakdown.base_amount.toFixed(2)}</span>
-                        </div>
-                        
-                        <div className="flex justify-between items-center pb-3 border-b border-blue-200">
-                          <div className="flex items-center space-x-2">
-                            <span className="text-green-600 text-lg">📈</span>
-                            <span className="text-gray-700 font-medium">GST ({breakdown.gst_percentage}%)</span>
-                          </div>
-                          <span className="text-lg font-bold text-gray-900">₹{breakdown.gst_amount.toFixed(2)}</span>
-                        </div>
-                        
-                        <div className="flex justify-between items-center pb-3 border-b border-blue-200">
-                          <div className="flex items-center space-x-2">
-                            <span className="text-purple-600 text-lg">⚡</span>
-                            <span className="text-gray-700 font-medium">Platform Fee</span>
-                          </div>
-                          <span className="text-lg font-bold text-gray-900">₹{breakdown.platform_fee.toFixed(2)}</span>
-                        </div>
-                        
-                        <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 rounded-xl shadow-md">
-                          <div className="flex justify-between items-center">
-                            <div className="flex items-center space-x-2">
-                              <span className="text-white text-xl">💎</span>
-                              <span className="text-lg font-bold text-white">Total Amount</span>
-                            </div>
-                            <span className="text-2xl font-extrabold text-white">₹{breakdown.total_amount.toFixed(2)}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Calculation Details */}
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                        <p className="text-xs text-blue-800 font-medium mb-2 flex items-center">
-                          <span className="mr-1">ℹ️</span>
-                          Calculation:
-                        </p>
-                        <div className="text-xs text-blue-700 space-y-1">
-                          <p>• Service Fee: ₹{breakdown.base_amount.toFixed(2)}</p>
-                          <p>• GST ({breakdown.gst_percentage}%): ₹{breakdown.base_amount.toFixed(2)} × {breakdown.gst_percentage}% = ₹{breakdown.gst_amount.toFixed(2)}</p>
-                          <p>• Platform Fee: ₹{breakdown.platform_fee.toFixed(2)} (Fixed)</p>
-                          <p className="font-bold pt-1 border-t border-blue-300">
-                            • Total: ₹{breakdown.base_amount.toFixed(2)} + ₹{breakdown.gst_amount.toFixed(2)} + ₹{breakdown.platform_fee.toFixed(2)} = ₹{breakdown.total_amount.toFixed(2)}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Important Notice */}
-                      <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
-                        <div className="flex items-start space-x-3">
-                          <span className="text-yellow-600 text-xl flex-shrink-0">⚠️</span>
-                          <div>
-                            <p className="text-sm text-yellow-900 font-bold mb-1">
-                              Payment on Submission
-                            </p>
-                            <p className="text-xs text-yellow-800 leading-relaxed">
-                              Amount will be deducted from your wallet when you submit the application. If your application is rejected, the full amount will be refunded automatically.
-                            </p>
-                            <p className="text-xs text-yellow-800 leading-relaxed">
-                              The total amount of <strong>₹{breakdown.total_amount.toFixed(2)}</strong> will be immediately debited from your wallet upon submission. If your application is rejected, the full amount will be automatically refunded to your wallet.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })() : (
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200">
                   <div className="p-6 border-b border-gray-200">
                     <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                      <span className="text-green-600">🎉</span>
-                      Free Service
+                      <span className="text-red-600">💳</span>
+                      Payment Summary
                     </h3>
                   </div>
                   <div className="p-6">
-                    <div className="bg-green-50 p-4 rounded-lg">
+                    <div className="bg-gray-50 p-4 rounded-lg">
                       <div className="flex justify-between items-center">
                         <span className="text-sm font-medium text-gray-700">Service Fee:</span>
-                        <span className="text-xl font-bold text-green-600">FREE</span>
+                        <span className={`text-xl font-bold ${service.is_free ? 'text-green-600' : 'text-red-600'}`}>
+                          {service.is_free ? 'FREE' : formatCurrency(service.price)}
+                        </span>
                       </div>
-                      <p className="text-xs text-gray-500 mt-2">
-                        No payment required for this service
-                      </p>
+                      {!service.is_free && (
+                        <p className="text-xs text-gray-500 mt-2">
+                          Amount will be deducted from your wallet upon submission. Full refund if rejected.
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
-              )}
 
-              {/* reCAPTCHA Notice */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <span className="text-2xl">🔒</span>
-                  <div className="flex-1">
-                    <h4 className="text-sm font-semibold text-blue-900 mb-1">
-                      Security Verification
-                    </h4>
-                    <p className="text-xs text-blue-700">
-                      This form is protected by reCAPTCHA Enterprise to prevent spam and abuse.
-                      Your submission will be automatically verified when you click Submit.
-                    </p>
-                    <p className="text-xs text-gray-500 mt-2">
-                      Protected by reCAPTCHA. Google{' '}
-                      <a
-                        href="https://policies.google.com/privacy"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline"
-                      >
-                        Privacy Policy
-                      </a>
-                      {' '}and{' '}
-                      <a
-                        href="https://policies.google.com/terms"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline"
-                      >
-                        Terms of Service
-                      </a>
-                      {' '}apply.
-                    </p>
+                {/* Payment Summary Section */}
+                {!service.is_free && service.price > 0 ? (() => {
+                  const breakdown = calculateFeeBreakdown();
+                  if (!breakdown) return (
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                      <div className="p-6 border-b border-gray-200">
+                        <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                          <span className="text-red-600">💳</span>
+                          Payment Summary
+                        </h3>
+                      </div>
+                      <div className="p-6">
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-medium text-gray-700">Service Fee:</span>
+                            <span className="text-xl font-bold text-red-600">
+                              {formatCurrency(service.price)}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-2">
+                            Amount will be deducted from your wallet upon submission
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+
+                  return (
+                    <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 rounded-2xl border-2 border-blue-300 shadow-lg overflow-hidden">
+                      <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4">
+                        <h3 className="text-xl font-bold text-white flex items-center">
+                          <span className="mr-2">💳</span>
+                          Payment Summary
+                        </h3>
+                        <p className="text-blue-100 text-sm mt-1">Review the charges for this service</p>
+                      </div>
+
+                      <div className="p-6 space-y-4">
+                        {/* Fee Breakdown */}
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center pb-3 border-b border-blue-200">
+                            <div className="flex items-center space-x-2">
+                              <span className="text-blue-600 text-lg">💰</span>
+                              <span className="text-gray-700 font-medium">Service Fee</span>
+                            </div>
+                            <span className="text-lg font-bold text-gray-900">₹{breakdown.base_amount.toFixed(2)}</span>
+                          </div>
+
+                          <div className="flex justify-between items-center pb-3 border-b border-blue-200">
+                            <div className="flex items-center space-x-2">
+                              <span className="text-green-600 text-lg">📈</span>
+                              <span className="text-gray-700 font-medium">GST ({breakdown.gst_percentage}%)</span>
+                            </div>
+                            <span className="text-lg font-bold text-gray-900">₹{breakdown.gst_amount.toFixed(2)}</span>
+                          </div>
+
+                          <div className="flex justify-between items-center pb-3 border-b border-blue-200">
+                            <div className="flex items-center space-x-2">
+                              <span className="text-purple-600 text-lg">⚡</span>
+                              <span className="text-gray-700 font-medium">Platform Fee</span>
+                            </div>
+                            <span className="text-lg font-bold text-gray-900">₹{breakdown.platform_fee.toFixed(2)}</span>
+                          </div>
+
+                          <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 rounded-xl shadow-md">
+                            <div className="flex justify-between items-center">
+                              <div className="flex items-center space-x-2">
+                                <span className="text-white text-xl">💎</span>
+                                <span className="text-lg font-bold text-white">Total Amount</span>
+                              </div>
+                              <span className="text-2xl font-extrabold text-white">₹{breakdown.total_amount.toFixed(2)}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Calculation Details */}
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                          <p className="text-xs text-blue-800 font-medium mb-2 flex items-center">
+                            <span className="mr-1">ℹ️</span>
+                            Calculation:
+                          </p>
+                          <div className="text-xs text-blue-700 space-y-1">
+                            <p>• Service Fee: ₹{breakdown.base_amount.toFixed(2)}</p>
+                            <p>• GST ({breakdown.gst_percentage}%): ₹{breakdown.base_amount.toFixed(2)} × {breakdown.gst_percentage}% = ₹{breakdown.gst_amount.toFixed(2)}</p>
+                            <p>• Platform Fee: ₹{breakdown.platform_fee.toFixed(2)} (Fixed)</p>
+                            <p className="font-bold pt-1 border-t border-blue-300">
+                              • Total: ₹{breakdown.base_amount.toFixed(2)} + ₹{breakdown.gst_amount.toFixed(2)} + ₹{breakdown.platform_fee.toFixed(2)} = ₹{breakdown.total_amount.toFixed(2)}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Important Notice */}
+                        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
+                          <div className="flex items-start space-x-3">
+                            <span className="text-yellow-600 text-xl flex-shrink-0">⚠️</span>
+                            <div>
+                              <p className="text-sm text-yellow-900 font-bold mb-1">
+                                Payment on Submission
+                              </p>
+                              <p className="text-xs text-yellow-800 leading-relaxed">
+                                Amount will be deducted from your wallet when you submit the application. If your application is rejected, the full amount will be refunded automatically.
+                              </p>
+                              <p className="text-xs text-yellow-800 leading-relaxed">
+                                The total amount of <strong>₹{breakdown.total_amount.toFixed(2)}</strong> will be immediately debited from your wallet upon submission. If your application is rejected, the full amount will be automatically refunded to your wallet.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })() : (
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div className="p-6 border-b border-gray-200">
+                      <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                        <span className="text-green-600">🎉</span>
+                        Free Service
+                      </h3>
+                    </div>
+                    <div className="p-6">
+                      <div className="bg-green-50 p-4 rounded-lg">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium text-gray-700">Service Fee:</span>
+                          <span className="text-xl font-bold text-green-600">FREE</span>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2">
+                          No payment required for this service
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  {isReady && (
-                    <span className="text-green-500 text-sm">✓</span>
-                  )}
+                )}
+
+                {/* reCAPTCHA Notice */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl">🔒</span>
+                    <div className="flex-1">
+                      <h4 className="text-sm font-semibold text-blue-900 mb-1">
+                        Security Verification
+                      </h4>
+                      <p className="text-xs text-blue-700">
+                        This form is protected by reCAPTCHA Enterprise to prevent spam and abuse.
+                        Your submission will be automatically verified when you click Submit.
+                      </p>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Protected by reCAPTCHA. Google{' '}
+                        <a
+                          href="https://policies.google.com/privacy"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          Privacy Policy
+                        </a>
+                        {' '}and{' '}
+                        <a
+                          href="https://policies.google.com/terms"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          Terms of Service
+                        </a>
+                        {' '}apply.
+                      </p>
+                    </div>
+                    {isReady && (
+                      <span className="text-green-500 text-sm">✓</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Step 3 Navigation Buttons */}
+                <div className="flex gap-4 pt-6 border-t border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-lg">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep(2)}
+                    className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 font-medium transition-all duration-200 hover:shadow-md"
+                    disabled={loading}
+                  >
+                    ← Back to Documents
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="flex-1 px-6 py-3 border border-red-300 text-red-700 rounded-md hover:bg-red-50 font-medium transition-all duration-200 hover:shadow-md"
+                    disabled={loading}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSubmit}
+                    className="flex-2 px-6 py-3 bg-gradient-to-r from-red-600 via-red-500 to-yellow-500 text-white rounded-md hover:from-red-700 hover:via-red-600 hover:to-yellow-600 font-medium disabled:opacity-50 transition-all duration-200 hover:shadow-lg hover:scale-105 transform"
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        Submitting...
+                      </span>
+                    ) : (
+                      'Submit Application'
+                    )}
+                  </button>
                 </div>
               </div>
-
-              {/* Step 3 Navigation Buttons */}
-              <div className="flex gap-4 pt-6 border-t border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-lg">
-                <button
-                  type="button"
-                  onClick={() => setCurrentStep(2)}
-                  className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 font-medium transition-all duration-200 hover:shadow-md"
-                  disabled={loading}
-                >
-                  ← Back to Documents
-                </button>
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="flex-1 px-6 py-3 border border-red-300 text-red-700 rounded-md hover:bg-red-50 font-medium transition-all duration-200 hover:shadow-md"
-                  disabled={loading}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSubmit}
-                  className="flex-2 px-6 py-3 bg-gradient-to-r from-red-600 via-red-500 to-yellow-500 text-white rounded-md hover:from-red-700 hover:via-red-600 hover:to-yellow-600 font-medium disabled:opacity-50 transition-all duration-200 hover:shadow-lg hover:scale-105 transform"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Submitting...
-                    </span>
-                  ) : (
-                    'Submit Application'
-                  )}
-                </button>
-              </div>
-            </div>
             )}
           </div>
         </div>
