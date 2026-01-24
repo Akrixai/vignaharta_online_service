@@ -1,14 +1,14 @@
 // Email templates for various notifications
 
 export interface EmailTemplate {
-  subject: string;
-  html: string;
-  text: string;
+    subject: string;
+    html: string;
+    text: string;
 }
 
 // Akrix branding footer for all emails
 function getAkrixBrandingFooter(): string {
-  return `
+    return `
     <div style="background-color: #1f2937; padding: 20px; text-align: center; margin-top: 30px;">
       <p style="color: #9ca3af; font-size: 14px; margin: 0 0 10px 0;">
         Powered by
@@ -28,7 +28,7 @@ function getAkrixBrandingFooter(): string {
 
 // Text version of Akrix branding
 function getAkrixBrandingText(): string {
-  return `
+    return `
 
 ---
 Powered by Akrix Solutions
@@ -39,14 +39,14 @@ Advanced AI Solutions for Modern Applications
 
 // New Service Added Template
 export function getNewServiceEmailTemplate(
-  serviceName: string,
-  serviceDescription: string,
-  recipientName: string,
-  recipientType: 'retailer' | 'employee' | 'admin'
+    serviceName: string,
+    serviceDescription: string,
+    recipientName: string,
+    recipientType: 'retailer' | 'employee' | 'admin'
 ): EmailTemplate {
-  const subject = `🎉 New Service Available: ${serviceName}`;
-  
-  const html = `
+    const subject = `🎉 New Service Available: ${serviceName}`;
+
+    const html = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -87,10 +87,10 @@ export function getNewServiceEmailTemplate(
                 
                 <div style="background-color: white; padding: 15px; border-radius: 8px; border-left: 4px solid #dc2626;">
                     <strong>📋 What this means for you:</strong><br>
-                    ${recipientType === 'retailer' 
-                      ? '• You can now offer this service to your customers<br>• Start earning commission from day one<br>• Help more people access government services'
-                      : '• You can now assist customers with this service<br>• New service to help citizens<br>• Expand your service knowledge'
-                    }
+                    ${recipientType === 'retailer'
+            ? '• You can now offer this service to your customers<br>• Start earning commission from day one<br>• Help more people access government services'
+            : '• You can now assist customers with this service<br>• New service to help citizens<br>• Expand your service knowledge'
+        }
                 </div>
             </div>
             
@@ -122,7 +122,7 @@ export function getNewServiceEmailTemplate(
 </body>
 </html>`;
 
-  const text = `
+    const text = `
 New Service Available: ${serviceName}
 
 Hello ${recipientName}!
@@ -134,11 +134,11 @@ Description: ${serviceDescription}
 
 What this means for you:
 ${recipientType === 'retailer'
-  ? '- You can now offer this service to your customers\n- Start earning commission from day one\n- Help more people access government services'
-  : recipientType === 'employee'
-  ? '- You can now assist customers with this service\n- New service to help citizens\n- Expand your service knowledge'
-  : '- New service has been added to the platform\n- Monitor service performance and user feedback\n- Manage service operations and support'
-}
+            ? '- You can now offer this service to your customers\n- Start earning commission from day one\n- Help more people access government services'
+            : recipientType === 'employee'
+                ? '- You can now assist customers with this service\n- New service to help citizens\n- Expand your service knowledge'
+                : '- New service has been added to the platform\n- Monitor service performance and user feedback\n- Manage service operations and support'
+        }
 
 Visit your dashboard to view service details: https://www.vighnahartaonlineservice.in/dashboard/services
 
@@ -146,18 +146,18 @@ Best regards,
 विघ्नहर्ता ऑनलाईन सर्विसेस Team
 ${getAkrixBrandingText()}`;
 
-  return { subject, html, text };
+    return { subject, html, text };
 }
 
 // Welcome Email for New Retailer
 export function getWelcomeRetailerEmailTemplate(
-  name: string,
-  email: string,
-  password: string
+    name: string,
+    email: string,
+    password: string
 ): EmailTemplate {
-  const subject = `🎉 Welcome to विघ्नहर्ता ऑनलाईन सर्विसेस - Your Retailer Account is Ready!`;
-  
-  const html = `
+    const subject = `🎉 Welcome to विघ्नहर्ता ऑनलाईन सर्विसेस - Your Retailer Account is Ready!`;
+
+    const html = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -290,7 +290,7 @@ export function getWelcomeRetailerEmailTemplate(
 </body>
 </html>`;
 
-  const text = `
+    const text = `
 🎉 Welcome to विघ्नहर्ता ऑनलाईन सर्विसेस!
 
 Congratulations ${name}!
@@ -330,18 +330,18 @@ Best regards,
 Making government services accessible to everyone
 ${getAkrixBrandingText()}`;
 
-  return { subject, html, text };
+    return { subject, html, text };
 }
 
 // Welcome Email for New Employee
 export function getWelcomeEmployeeEmailTemplate(
-  name: string,
-  email: string,
-  password: string
+    name: string,
+    email: string,
+    password: string
 ): EmailTemplate {
-  const subject = `🎉 Welcome to विघ्नहर्ता ऑनलाईन सर्विसेस - Your Employee Account is Ready!`;
+    const subject = `🎉 Welcome to विघ्नहर्ता ऑनलाईन सर्विसेस - Your Employee Account is Ready!`;
 
-  const html = `
+    const html = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -424,7 +424,7 @@ export function getWelcomeEmployeeEmailTemplate(
 </body>
 </html>`;
 
-  const text = `
+    const text = `
 Welcome to विघ्नहर्ता ऑनलाईन सर्विसेस!
 
 Hello ${name}!
@@ -455,17 +455,17 @@ Best regards,
 विघ्नहर्ता ऑनलाईन सर्विसेस Team
 ${getAkrixBrandingText()}`;
 
-  return { subject, html, text };
+    return { subject, html, text };
 }
 
 // Registration Success Email Template
 export function getRegistrationSuccessEmailTemplate(
-  name: string,
-  email: string
+    name: string,
+    email: string
 ): EmailTemplate {
-  const subject = `✅ Registration Submitted Successfully - विघ्नहर्ता ऑनलाईन सर्विसेस`;
-  
-  const html = `
+    const subject = `✅ Registration Submitted Successfully - विघ्नहर्ता ऑनलाईन सर्विसेस`;
+
+    const html = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -543,7 +543,7 @@ export function getRegistrationSuccessEmailTemplate(
 </body>
 </html>`;
 
-  const text = `
+    const text = `
 Registration Submitted Successfully - विघ्नहर्ता ऑनलाईन सर्विसेस
 
 Hello ${name}!
@@ -576,18 +576,18 @@ Best regards,
 विघ्नहर्ता ऑनलाईन सर्विसेस Team
 ${getAkrixBrandingText()}`;
 
-  return { subject, html, text };
+    return { subject, html, text };
 }
 
 // Registration Rejection Email Template
 export function getRegistrationRejectionEmailTemplate(
-  name: string,
-  email: string,
-  rejectionReason: string
+    name: string,
+    email: string,
+    rejectionReason: string
 ): EmailTemplate {
-  const subject = `❌ Registration Update - विघ्नहर्ता ऑनलाईन सर्विसेस`;
-  
-  const html = `
+    const subject = `❌ Registration Update - विघ्नहर्ता ऑनलाईन सर्विसेस`;
+
+    const html = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -669,7 +669,7 @@ export function getRegistrationRejectionEmailTemplate(
 </body>
 </html>`;
 
-  const text = `
+    const text = `
 Registration Update - विघ्नहर्ता ऑनलाईन सर्विसेस
 
 Hello ${name},
@@ -702,5 +702,106 @@ Best regards,
 विघ्नहर्ता ऑनलाईन सर्विसेस Team
 ${getAkrixBrandingText()}`;
 
-  return { subject, html, text };
+    return { subject, html, text };
+}
+
+// Password Reset Email Template
+export function getPasswordResetEmailTemplate(
+    name: string,
+    resetUrl: string
+): EmailTemplate {
+    const subject = `🔐 Reset Your Password - विघ्नहर्ता ऑनलाईन सर्विसेस`;
+
+    const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Your Password</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f8f9fa; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-radius: 12px; overflow: hidden; margin-top: 30px; margin-bottom: 30px; }
+        .header { background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; padding: 40px 30px; text-align: center; }
+        .logo { font-size: 28px; font-weight: bold; margin-bottom: 10px; }
+        .content { padding: 40px 30px; }
+        .cta-button { background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; padding: 16px 40px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; margin: 25px 0; font-size: 16px; box-shadow: 0 4px 6px rgba(220, 38, 38, 0.3); }
+        .footer { background-color: #f3f4f6; padding: 30px; text-align: center; color: #6b7280; font-size: 14px; }
+        .info-box { background-color: #fef2f2; border-left: 4px solid #dc2626; padding: 20px; border-radius: 8px; margin: 25px 0; }
+        .link-text { background-color: #f9fafb; padding: 12px; border-radius: 6px; word-break: break-all; font-size: 12px; color: #4b5563; border: 1px solid #e5e7eb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🏛️ विघ्नहर्ता ऑनलाईन सर्विसेस</div>
+            <h1>Password Reset Request</h1>
+        </div>
+        
+        <div class="content">
+            <p style="font-size: 16px; color: #374151; line-height: 1.6;">
+                Hello <strong>${name}</strong>,
+            </p>
+            
+            <p style="font-size: 16px; color: #374151; line-height: 1.6;">
+                We received a request to reset your password for your account. Click the button below to create a new password:
+            </p>
+            
+            <div style="text-align: center;">
+                <a href="${resetUrl}" class="cta-button">
+                    Reset My Password
+                </a>
+            </div>
+            
+            <div class="info-box">
+                <p style="color: #991b1b; font-weight: bold; margin-top: 0;">⏰ Important Information:</p>
+                <ul style="color: #7f1d1d; margin: 0; padding-left: 20px;">
+                    <li>This link will expire in <strong>1 hour</strong>.</li>
+                    <li>If you didn't request this, please ignore this email.</li>
+                    <li>Your password won't change until you create a new one.</li>
+                </ul>
+            </div>
+            
+            <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
+                If the button doesn't work, copy and paste this link into your browser:
+            </p>
+            <div class="link-text">
+                ${resetUrl}
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><strong>विघ्नहर्ता ऑनलाईन सर्विसेस</strong></p>
+            <p>Making government services accessible to everyone</p>
+            <p style="font-size: 12px; margin-top: 15px; color: #9ca3af;">
+                📞 +91-7499116527 | 📧 vighnahartaenterprises.sangli@gmail.com
+            </p>
+            <p style="font-size: 11px; margin-top: 10px; color: #d1d5db;">
+                © ${new Date().getFullYear()} Vighnaharta Online Services. All rights reserved.
+            </p>
+        </div>
+        ${getAkrixBrandingFooter()}
+    </div>
+</body>
+</html>`;
+
+    const text = `
+Hello ${name},
+
+We received a request to reset your password for your Vighnaharta Online Services account. Click the link below to create a new password:
+
+${resetUrl}
+
+Important Information:
+- This link will expire in 1 hour.
+- If you didn't request this, please ignore this email.
+- Your password won't change until you create a new one.
+
+If you have any questions, please contact us at vighnahartaenterprises.sangli@gmail.com
+
+Best regards,
+Vighnaharta Online Services Team
+${getAkrixBrandingText()}`;
+
+    return { subject, html, text };
 }

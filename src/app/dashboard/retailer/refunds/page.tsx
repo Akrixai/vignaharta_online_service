@@ -95,7 +95,7 @@ export default function RefundsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.amount || !formData.reason) {
       showToast.error('Amount and reason are required');
       return;
@@ -286,7 +286,7 @@ export default function RefundsPage() {
                     <Label htmlFor="qr_screenshot_url">UTR number or Transaction ID</Label>
                     <Input
                       id="qr_screenshot_url"
-                      type="url"
+                      type="text"
                       value={formData.qr_screenshot_url}
                       onChange={(e) => setFormData(prev => ({ ...prev, qr_screenshot_url: e.target.value }))}
                       placeholder="Transaction ID or UTR number"

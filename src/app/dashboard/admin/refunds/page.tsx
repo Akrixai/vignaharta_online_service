@@ -215,7 +215,7 @@ export default function AdminRefundsPage() {
                           </Badge>
                         </div>
                         <p className="text-gray-600 mb-2">{refund.reason}</p>
-                        
+
                         <div className="flex items-center space-x-6 text-sm text-gray-500">
                           <span className="flex items-center">
                             <User className="w-4 h-4 mr-1" />
@@ -340,8 +340,8 @@ export default function AdminRefundsPage() {
                   )}
                 </div>
 
-                {selectedRefund.status === 'PENDING' && (
-                  <div className="space-y-4">
+                <div className="space-y-4">
+                  {(selectedRefund.status === 'PENDING' || selectedRefund.status === 'REJECTED') && (
                     <div>
                       <Label htmlFor="admin-response">Admin Response (Optional)</Label>
                       <Textarea
@@ -352,49 +352,54 @@ export default function AdminRefundsPage() {
                         rows={3}
                       />
                     </div>
+                  )}
 
-                    <div className="flex space-x-4">
-                      <Button
-                        onClick={() => handleStatusUpdate(selectedRefund.id, 'APPROVED')}
-                        disabled={processing === selectedRefund.id}
-                        className="bg-green-600 hover:bg-green-700 text-white"
-                      >
-                        {processing === selectedRefund.id ? (
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        ) : (
-                          <CheckCircle className="w-4 h-4 mr-2" />
-                        )}
-                        Approve
-                      </Button>
-                      <Button
-                        onClick={() => handleStatusUpdate(selectedRefund.id, 'REJECTED')}
-                        disabled={processing === selectedRefund.id}
-                        className="bg-red-600 hover:bg-red-700 text-white"
-                      >
-                        {processing === selectedRefund.id ? (
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        ) : (
-                          <X className="w-4 h-4 mr-2" />
-                        )}
-                        Reject
-                      </Button>
-                      {selectedRefund.status === 'APPROVED' && (
+                  <div className="flex space-x-4">
+                    {selectedRefund.status === 'PENDING' && (
+                      <>
                         <Button
-                          onClick={() => handleStatusUpdate(selectedRefund.id, 'PROCESSED')}
+                          onClick={() => handleStatusUpdate(selectedRefund.id, 'APPROVED')}
                           disabled={processing === selectedRefund.id}
-                          className="bg-blue-600 hover:bg-blue-700 text-white"
+                          className="bg-green-600 hover:bg-green-700 text-white"
                         >
                           {processing === selectedRefund.id ? (
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                           ) : (
                             <CheckCircle className="w-4 h-4 mr-2" />
                           )}
-                          Mark as Processed
+                          Approve
                         </Button>
-                      )}
-                    </div>
+                        <Button
+                          onClick={() => handleStatusUpdate(selectedRefund.id, 'REJECTED')}
+                          disabled={processing === selectedRefund.id}
+                          className="bg-red-600 hover:bg-red-700 text-white"
+                        >
+                          {processing === selectedRefund.id ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          ) : (
+                            <X className="w-4 h-4 mr-2" />
+                          )}
+                          Reject
+                        </Button>
+                      </>
+                    )}
+
+                    {selectedRefund.status === 'APPROVED' && (
+                      <Button
+                        onClick={() => handleStatusUpdate(selectedRefund.id, 'PROCESSED')}
+                        disabled={processing === selectedRefund.id}
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                      >
+                        {processing === selectedRefund.id ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        ) : (
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                        )}
+                        Mark as Processed
+                      </Button>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
             </div>
           </div>

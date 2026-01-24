@@ -1,11 +1,12 @@
 import nodemailer from 'nodemailer';
-import { 
-  getNewServiceEmailTemplate, 
-  getWelcomeRetailerEmailTemplate, 
+import {
+  getNewServiceEmailTemplate,
+  getWelcomeRetailerEmailTemplate,
   getWelcomeEmployeeEmailTemplate,
   getRegistrationSuccessEmailTemplate,
   getRegistrationRejectionEmailTemplate,
-  EmailTemplate 
+  getPasswordResetEmailTemplate,
+  EmailTemplate
 } from './email-templates';
 
 // Email configuration
@@ -15,7 +16,7 @@ const emailConfig = {
   secure: false, // true for 465, false for other ports
   auth: {
     user: process.env.SMTP_USER || 'your-email@gmail.com',
-    pass: process.env.SMTP_PASS || 'your-app-password'
+    pass: process.env.SMTP_PASSWORD || 'your-app-password'
   }
 };
 
@@ -47,7 +48,7 @@ export async function sendEmail(
 ): Promise<boolean> {
   try {
     const recipients = Array.isArray(to) ? to : [to];
-    
+
     const mailOptions = {
       from: `"${fromName}" <${emailConfig.auth.user}>`,
       to: recipients.join(', '),
@@ -92,7 +93,7 @@ export async function sendNewServiceNotifications(
     }
 
     // Send emails to all users
-    const emailPromises = users.map(async (user) => {
+    const emailPromises = users.map(async (user: any) => {
       try {
         const template = getNewServiceEmailTemplate(
           serviceName,
@@ -146,7 +147,7 @@ export async function sendNewFreeServiceNotifications(
     }
 
     // Send emails to employees and admin only
-    const emailPromises = users.map(async (user) => {
+    const emailPromises = users.map(async (user: any) => {
       try {
         const template = getNewServiceEmailTemplate(
           serviceName,
@@ -178,10 +179,10 @@ export async function sendWelcomeRetailerEmail(
   password: string
 ): Promise<boolean> {
   try {
-    
+
     const template = getWelcomeRetailerEmailTemplate(name, email, password);
     const success = await sendEmail(email, template);
-    
+
     return success;
   } catch (error) {
     return false;
@@ -195,10 +196,10 @@ export async function sendWelcomeEmployeeEmail(
   password: string
 ): Promise<boolean> {
   try {
-    
+
     const template = getWelcomeEmployeeEmailTemplate(name, email, password);
     const success = await sendEmail(email, template);
-    
+
     return success;
   } catch (error) {
     return false;
@@ -226,6 +227,20 @@ export async function sendRegistrationRejectionEmail(
 ): Promise<boolean> {
   try {
     const template = getRegistrationRejectionEmailTemplate(name, email, reason);
+    return await sendEmail(email, template);
+  } catch (error) {
+    return false;
+  }
+}
+
+// Send password reset email
+export async function sendPasswordResetEmail(
+  name: string,
+  email: string,
+  resetUrl: string
+): Promise<boolean> {
+  try {
+    const template = getPasswordResetEmailTemplate(name, resetUrl);
     return await sendEmail(email, template);
   } catch (error) {
     return false;

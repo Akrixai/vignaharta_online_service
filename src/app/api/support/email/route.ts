@@ -5,7 +5,7 @@ import nodemailer from 'nodemailer';
 
 // Akrix branding footer for emails
 function getAkrixBrandingFooter(): string {
-  return `
+    return `
     <div style="background-color: #1f2937; padding: 20px; text-align: center; margin-top: 30px;">
       <p style="color: #9ca3af; font-size: 14px; margin: 0 0 10px 0;">
         Powered by
@@ -24,37 +24,37 @@ function getAkrixBrandingFooter(): string {
 }
 
 export async function POST(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    try {
+        const session = await getServerSession(authOptions);
 
-    const { subject, message, priority } = await request.json();
+        if (!session) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
 
-    if (!subject || !message) {
-      return NextResponse.json({ 
-        error: 'Subject and message are required' 
-      }, { status: 400 });
-    }
+        const { subject, message, priority } = await request.json();
 
-    // Create transporter (configure with your email service)
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: false, // true for 465, false for other ports
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
+        if (!subject || !message) {
+            return NextResponse.json({
+                error: 'Subject and message are required'
+            }, { status: 400 });
+        }
 
-    // Admin email address
-    const adminEmail = process.env.ADMIN_EMAIL || 'vighnahartaenterprises.sangli@gmail.com';
+        // Create transporter (configure with your email service)
+        const transporter = nodemailer.createTransport({
+            host: process.env.SMTP_HOST || 'smtp.gmail.com',
+            port: parseInt(process.env.SMTP_PORT || '587'),
+            secure: false, // true for 465, false for other ports
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASSWORD,
+            },
+        });
 
-    // Create email content
-    const htmlContent = `
+        // Admin email address
+        const adminEmail = process.env.ADMIN_EMAIL || 'vighnahartaenterprises.sangli@gmail.com';
+
+        // Create email content
+        const htmlContent = `
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -252,32 +252,32 @@ export async function POST(request: NextRequest) {
     </html>
     `;
 
-    // Send email
-    const mailOptions = {
-      from: `"${session.user.name}" <${process.env.SMTP_USER}>`,
-      to: adminEmail,
-      subject: `🆘 Support Request: ${subject}`,
-      html: htmlContent,
-      replyTo: session.user.email,
-    };
+        // Send email
+        const mailOptions = {
+            from: `"${session.user.name}" <${process.env.SMTP_USER}>`,
+            to: adminEmail,
+            subject: `🆘 Support Request: ${subject}`,
+            html: htmlContent,
+            replyTo: session.user.email,
+        };
 
-    // Try to send email, but don't fail if SMTP is not configured
-    try {
-      await transporter.sendMail(mailOptions);
-      // Support email sent successfully
-    } catch (emailError) {
-      // Email sending failed (SMTP not configured)
+        // Try to send email, but don't fail if SMTP is not configured
+        try {
+            await transporter.sendMail(mailOptions);
+            // Support email sent successfully
+        } catch (emailError) {
+            // Email sending failed (SMTP not configured)
+        }
+
+        return NextResponse.json({
+            success: true,
+            message: 'Support email sent successfully'
+        });
+
+    } catch (error) {
+        // Email sending error occurred
+        return NextResponse.json({
+            error: 'Failed to send email'
+        }, { status: 500 });
     }
-
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Support email sent successfully' 
-    });
-
-  } catch (error) {
-    // Email sending error occurred
-    return NextResponse.json({ 
-      error: 'Failed to send email' 
-    }, { status: 500 });
-  }
 }

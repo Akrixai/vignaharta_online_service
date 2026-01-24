@@ -52,7 +52,7 @@ export async function PATCH(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session || (session.user.role !== UserRole.ADMIN && session.user.role !== UserRole.EMPLOYEE)) {
       return NextResponse.json({ error: 'Unauthorized - Admin/Employee access required' }, { status: 401 });
     }
@@ -78,7 +78,55 @@ export async function PATCH(
       return NextResponse.json({ error: 'Refund not found' }, { status: 404 });
     }
 
-    // Update refund
+    // Handle refund approval via atomic RPC if status is APPROVED
+    if (status === 'APPROVED') {
+      const { data: rpcResult, error: rpcError } = await supabaseAdmin.rpc('approve_refund', {
+        p_refund_id: id,
+        p_admin_id: session.user.id,
+        p_admin_response: admin_response || null
+      });
+
+      if (rpcError || !rpcResult?.success) {
+        console.error('Refund approval RPC failed:', rpcError || rpcResult?.error);
+        return NextResponse.json({
+          error: rpcResult?.error || 'Failed to process refund approval'
+        }, { status: 500 });
+      }
+
+      // Fetch the updated refund to return in response
+      const { data: updatedRefund } = await supabaseAdmin
+        .from('refunds')
+        .select(`
+          *,
+          user:users!refunds_user_id_fkey(id, name, email, phone),
+          application:applications(id, scheme_id, customer_name),
+          processed_by_user:users!refunds_processed_by_fkey(id, name, email)
+        `)
+        .eq('id', id)
+        .single();
+
+      const refund = updatedRefund;
+
+      // Create notification for retailer
+      await supabaseAdmin
+        .from('notifications')
+        .insert({
+          title: `Refund APPROVED`,
+          message: `Your refund request for ₹${currentRefund.amount} has been approved and credited to your wallet balance.` + (admin_response ? `\n\nResponse: ${admin_response}` : ''),
+          type: `REFUND_APPROVED`,
+          data: { refund_id: id, amount: currentRefund.amount, status: 'APPROVED' },
+          target_users: [currentRefund.user_id],
+          created_by: session.user.id
+        });
+
+      return NextResponse.json({
+        success: true,
+        refund,
+        message: `Refund approved and ₹${currentRefund.amount} credited to retailer wallet`
+      });
+    }
+
+    // Handle other status updates (REJECTED, PROCESSED)
     const updateData: any = {
       status,
       processed_by: session.user.id,
@@ -105,10 +153,8 @@ export async function PATCH(
       return NextResponse.json({ error: 'Failed to update refund' }, { status: 500 });
     }
 
-    // Create notification for retailer
-    const notificationMessage = status === 'APPROVED' 
-      ? `Your refund request for ₹${currentRefund.amount} has been approved`
-      : status === 'REJECTED'
+    // Create notification for retailer for other status updates
+    const notificationMessage = status === 'REJECTED'
       ? `Your refund request for ₹${currentRefund.amount} has been rejected`
       : `Your refund request for ₹${currentRefund.amount} has been processed`;
 
@@ -126,10 +172,13 @@ export async function PATCH(
     return NextResponse.json({
       success: true,
       refund,
-      message: `Refund ${status.toLowerCase()} successfully`
+      message: status === 'APPROVED'
+        ? `Refund approved and ₹${currentRefund.amount} credited to retailer wallet`
+        : `Refund ${status.toLowerCase()} successfully`
     });
 
   } catch (error) {
+    console.error('Refund update error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
