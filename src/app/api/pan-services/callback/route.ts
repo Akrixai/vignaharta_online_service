@@ -208,15 +208,36 @@ async function processSuccessfulPanApplication(panService: any, updateData: any)
   try {
     const user = panService.user;
     if (!user) {
-      console.error('❌ No user found for PAN service:', panService.id);
+      console.error('❌ [CRITICAL] No user found for PAN service:', panService.id);
       return;
     }
 
+    console.log('🔄 [PAYMENT] Starting payment processing for order:', panService.order_id);
+    console.log('📊 [PAYMENT] Current payment_status:', panService.payment_status);
+
     // Check if payment was already charged to avoid double deduction
     if (panService.payment_status === 'CHARGED') {
-      console.log('💰 Payment already charged for:', panService.order_id);
+      console.log('💰 [SKIP] Payment already charged for:', panService.order_id, '- Skipping deduction');
       return;
     }
+
+    // Additional safety check: verify no existing WITHDRAWAL transaction exists
+    const { data: existingTransaction } = await supabase
+      .from('transactions')
+      .select('id, amount, status')
+      .eq('reference', panService.order_id)
+      .eq('type', 'WITHDRAWAL')
+      .eq('status', 'COMPLETED')
+      .maybeSingle();
+
+    if (existingTransaction) {
+      console.log('⚠️ [SKIP] Withdrawal transaction already exists for:', panService.order_id, '- Marking as CHARGED');
+      updateData.payment_status = 'CHARGED';
+      updateData.payment_charged_at = new Date().toISOString();
+      return;
+    }
+
+    console.log('✅ [PAYMENT] No existing transaction found - proceeding with deduction');
 
     // Get current wallet balance - ALWAYS fetch fresh balance before update
     const { data: wallet, error: walletError } = await supabase
@@ -226,13 +247,21 @@ async function processSuccessfulPanApplication(panService: any, updateData: any)
       .single();
 
     if (walletError || !wallet) {
-      console.error('❌ Wallet not found for user:', panService.user_id);
+      console.error('❌ [CRITICAL] Wallet not found for user:', panService.user_id, 'Error:', walletError);
+      // Log to a separate error tracking table or file
+      await logCriticalError('WALLET_NOT_FOUND', {
+        order_id: panService.order_id,
+        user_id: panService.user_id,
+        error: walletError
+      });
       return;
     }
 
+    console.log('💰 [WALLET] Found wallet:', wallet.id, 'Current balance:', wallet.balance);
+
     const amountToCharge = parseFloat(panService.amount || '0');
     if (amountToCharge <= 0) {
-      console.log('⚠️ No amount to charge for PAN service:', panService.order_id);
+      console.log('⚠️ [SKIP] No amount to charge for PAN service:', panService.order_id);
       return;
     }
 
@@ -240,8 +269,10 @@ async function processSuccessfulPanApplication(panService: any, updateData: any)
     const currentBalance = parseFloat(wallet.balance.toString());
     const newBalance = currentBalance - amountToCharge;
 
-    console.log(`💸 Charging ₹${amountToCharge} from wallet. Balance: ${currentBalance} -> ${newBalance}`);
+    console.log(`💸 [DEDUCTION] Charging ₹${amountToCharge} from wallet`);
+    console.log(`💸 [DEDUCTION] Balance change: ₹${currentBalance} -> ₹${newBalance}`);
 
+    // Update wallet balance
     const { error: balanceUpdateError } = await supabase
       .from('wallets')
       .update({
@@ -251,35 +282,83 @@ async function processSuccessfulPanApplication(panService: any, updateData: any)
       .eq('id', wallet.id);
 
     if (balanceUpdateError) {
-      console.error('❌ Failed to update wallet balance:', balanceUpdateError);
+      console.error('❌ [CRITICAL] Failed to update wallet balance:', balanceUpdateError);
+      await logCriticalError('WALLET_UPDATE_FAILED', {
+        order_id: panService.order_id,
+        wallet_id: wallet.id,
+        amount: amountToCharge,
+        error: balanceUpdateError
+      });
       throw balanceUpdateError;
     }
 
+    console.log('✅ [WALLET] Balance updated successfully');
+
     // Record formal withdrawal transaction
-    await supabase.from('transactions').insert({
-      user_id: panService.user_id,
-      wallet_id: wallet.id,
-      type: 'WITHDRAWAL',
-      amount: amountToCharge,
-      status: 'COMPLETED',
-      description: `Payment for ${getServiceTypeName(panService.service_type)} application - ${panService.order_id}`,
-      reference: panService.order_id,
-      metadata: {
-        pan_service_id: panService.id,
-        service_type: panService.service_type,
-        mobile_number: panService.mobile_number,
-        payment_mode: panService.mode
-      }
-    });
+    const { data: transaction, error: transactionError } = await supabase
+      .from('transactions')
+      .insert({
+        user_id: panService.user_id,
+        wallet_id: wallet.id,
+        type: 'WITHDRAWAL',
+        amount: amountToCharge,
+        status: 'COMPLETED',
+        description: `Payment for ${getServiceTypeName(panService.service_type)} application - ${panService.order_id}`,
+        reference: panService.order_id,
+        metadata: {
+          pan_service_id: panService.id,
+          service_type: panService.service_type,
+          mobile_number: panService.mobile_number,
+          payment_mode: panService.mode,
+          acknowledgement_number: updateData.acknowledgement_number,
+          previous_balance: currentBalance,
+          new_balance: newBalance
+        }
+      })
+      .select()
+      .single();
+
+    if (transactionError) {
+      console.error('❌ [CRITICAL] Failed to create transaction record:', transactionError);
+      // This is critical - wallet was debited but transaction wasn't recorded
+      await logCriticalError('TRANSACTION_INSERT_FAILED', {
+        order_id: panService.order_id,
+        wallet_id: wallet.id,
+        amount: amountToCharge,
+        error: transactionError,
+        note: 'WALLET WAS DEBITED BUT TRANSACTION RECORD FAILED'
+      });
+      // Don't throw - wallet was already debited
+    } else {
+      console.log('✅ [TRANSACTION] Transaction record created:', transaction?.id);
+    }
 
     // Update payment status for the main PAN service record
     updateData.payment_status = 'CHARGED';
     updateData.payment_charged_at = new Date().toISOString();
 
-    console.log('✅ Payment charged and transaction recorded successfully for:', panService.order_id);
+    console.log('✅ [SUCCESS] Payment processing completed for:', panService.order_id);
+    console.log('📊 [SUMMARY] Amount: ₹' + amountToCharge + ', New Balance: ₹' + newBalance);
 
   } catch (error) {
-    console.error('❌ Error in processSuccessfulPanApplication:', error);
+    console.error('❌ [ERROR] Exception in processSuccessfulPanApplication:', error);
+    await logCriticalError('PAYMENT_PROCESSING_EXCEPTION', {
+      order_id: panService.order_id,
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    });
+  }
+}
+
+/**
+ * Log critical errors for monitoring and debugging
+ */
+async function logCriticalError(errorType: string, details: any) {
+  try {
+    console.error('🚨 [CRITICAL ERROR]', errorType, JSON.stringify(details, null, 2));
+    // You could also insert into a dedicated error_logs table if needed
+  } catch (e) {
+    console.error('Failed to log critical error:', e);
   }
 }
 
