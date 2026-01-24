@@ -63,52 +63,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get operator details from kwikapi_billers table
+    // Get operator details from recharge_operators table (contains admin-set commissions)
     const { data: operator } = await supabase
-      .from('kwikapi_billers')
+      .from('recharge_operators')
       .select('*')
-      .eq('operator_id', parseInt(operator_code))
+      .eq('kwikapi_opid', parseInt(operator_code))
+      .eq('service_type', service_type.toUpperCase())
       .single();
 
     if (!operator) {
       return NextResponse.json(
-        { success: false, message: 'Invalid operator' },
+        { success: false, message: 'Invalid operator configuration' },
         { status: 400 }
       );
     }
 
     // Validate amount range
-    if (amount < operator.amount_minimum || amount > operator.amount_maximum) {
+    const minAmt = parseFloat(operator.min_amount || '1');
+    const maxAmt = parseFloat(operator.max_amount || '50000');
+
+    if (amount < minAmt || amount > maxAmt) {
       return NextResponse.json(
         {
           success: false,
-          message: `Amount must be between ₹${operator.amount_minimum} and ₹${operator.amount_maximum}`,
+          message: `Amount must be between ₹${minAmt} and ₹${maxAmt}`,
         },
         { status: 400 }
       );
     }
 
-    // Map service types for consistency
-    const serviceTypeMapping: Record<string, string> = {
-      'ELECTRICITY': 'ELC',
-      'POSTPAID': 'Postpaid',
-      'GAS': 'Gas',
-      'WATER': 'Water',
-      'DTH': 'DTH',
-      'BROADBAND': 'Broadband',
-      'LANDLINE': 'Landline'
-    };
-
-    const mappedServiceType = serviceTypeMapping[service_type.toUpperCase()] || service_type;
-
-    // Check if operator exists and is active in kwikapi_billers
-    if (operator.service_type !== mappedServiceType) {
-      return NextResponse.json(
-        { success: false, message: `Service type mismatch. Expected ${mappedServiceType}, got ${operator.service_type}` },
-        { status: 400 }
-      );
-    }
-
+    // Check if operator is active
     if (!operator.is_active) {
       return NextResponse.json(
         { success: false, message: 'Operator not configured or inactive in admin settings' },
@@ -116,21 +100,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Use default commission and cashback rates since we're using kwikapi_billers directly
-    const commissionRate = 2.0; // Default 2% commission for retailers
-    const cashbackEnabled = true; // Enable cashback for customers
-    const cashbackMinPercentage = 0.5; // Default 0.5% minimum cashback
-    const cashbackMaxPercentage = 2.0; // Default 2% maximum cashback
+    // Use admin-configured commission and cashback rates
+    const commissionRate = parseFloat(operator.commission_rate || '0');
+    const cashbackEnabled = operator.cashback_enabled;
+    const cashbackMinPercentage = parseFloat(operator.cashback_min_percentage || '0');
+    const cashbackMaxPercentage = parseFloat(operator.cashback_max_percentage || '0');
 
-    // Calculate initial reward amount (will be randomized for customers if successful)
+    // Calculate reward amount based on role and admin settings
     let rewardAmount = 0;
     if (dbUser.role === 'CUSTOMER') {
       if (cashbackEnabled) {
         // Generate random cashback percentage between min and max
-        const randomCashbackPercentage = (Math.random() * (cashbackMaxPercentage - cashbackMinPercentage) + cashbackMinPercentage);
+        const range = cashbackMaxPercentage - cashbackMinPercentage;
+        const randomCashbackPercentage = range > 0
+          ? (Math.random() * range + cashbackMinPercentage)
+          : cashbackMinPercentage;
         rewardAmount = (amount * randomCashbackPercentage) / 100;
       }
     } else {
+      // For RETAILER/DISTRIBUTOR, use commission rate
       rewardAmount = (amount * commissionRate) / 100;
     }
 
@@ -165,7 +153,7 @@ export async function POST(request: NextRequest) {
       .from('recharge_transactions')
       .insert({
         user_id: dbUser.id,
-        operator_id: null, // Not using recharge_operators table anymore
+        operator_id: operator.id, // Linking to recharge_operators table correctly
         service_type: service_type.toUpperCase(),
         mobile_number,
         consumer_number,
@@ -233,14 +221,14 @@ export async function POST(request: NextRequest) {
         order_id: kwikApiOrderId, // Use KwikAPI-compatible order ID
         mobile: mobile_number || dbUser.email,
         refrence_id: ref_id,
-        opt1: opt1 || consumer_number || mobile_number, // Ensure opt1 has the consumer number
+        opt1: opt1,
         opt2: opt2,
         opt3: opt3,
         opt4: opt4,
         opt5: opt5,
         opt6: opt6,
         opt7: opt7,
-        opt8: opt8 || 'Bills',
+        opt8: opt8 || 'Billls',
         opt9: opt9,
         opt10: opt10,
       });
@@ -356,7 +344,7 @@ export async function POST(request: NextRequest) {
               amount,
               reward_amount: finalReward,
               reward_label: rewardLabel,
-              message: `✅ ${paymentResponse.data?.message || paymentResponse.data?.operator_message || 'Bill payment submitted successfully! You will receive confirmation within 24 hours.'}`,
+              message: `✅ ${paymentResponse.data?.operator_message || paymentResponse.data?.message || 'Bill payment submitted successfully!'}`,
               kwikapi_status: responseStatus,
               operator_ref: paymentResponse.data?.opr_id,
               balance: paymentResponse.data?.balance,

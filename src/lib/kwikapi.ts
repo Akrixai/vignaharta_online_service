@@ -611,27 +611,21 @@ class KwikAPIClient {
       // Add reference ID if provided (critical for BBPS payments)
       if (params.refrence_id) {
         queryParams.refrence_id = params.refrence_id;
-        queryParams.ref_id = params.refrence_id;
+        // removed redundant ref_id which can cause issues with some operators
       }
 
-      // CRITICAL FIX: For MSEDC Maharashtra (opid 76), use minimal parameters only
-      // Adding optional parameters causes the payment to fail
-      if (params.opid === 76) {
-        console.log('🔧 [KWIKAPI] Using minimal parameters for MSEDC Maharashtra (opid 76)');
-        // Only send essential parameters for MSEDC Maharashtra
-      } else {
-        // For other operators, add optional parameters if they have values
-        queryParams.opt8 = params.opt8 || 'Bills'; // Required literal for utility payments
-        if (params.opt1) queryParams.opt1 = params.opt1;
-        if (params.opt2) queryParams.opt2 = params.opt2;
-        if (params.opt3) queryParams.opt3 = params.opt3;
-        if (params.opt4) queryParams.opt4 = params.opt4;
-        if (params.opt5) queryParams.opt5 = params.opt5;
-        if (params.opt6) queryParams.opt6 = params.opt6;
-        if (params.opt7) queryParams.opt7 = params.opt7;
-        if (params.opt9) queryParams.opt9 = params.opt9;
-        if (params.opt10) queryParams.opt10 = params.opt10;
-      }
+      // Add optional parameters - according to user's successful request,
+      // all opt1-opt10 should be present, and opt8 should be "Billls" (3 'l's)
+      queryParams.opt1 = params.opt1 || 'opt1';
+      queryParams.opt2 = params.opt2 || 'opt2';
+      queryParams.opt3 = params.opt3 || 'opt3';
+      queryParams.opt4 = params.opt4 || 'opt4';
+      queryParams.opt5 = params.opt5 || 'opt5';
+      queryParams.opt6 = params.opt6 || 'opt6';
+      queryParams.opt7 = params.opt7 || 'opt7';
+      queryParams.opt8 = params.opt8 || 'Billls'; // 3 'l's as per user manual request success
+      queryParams.opt9 = params.opt9 || 'opt9';
+      queryParams.opt10 = params.opt10 || 'opt10';
 
       console.log('📡 [KWIKAPI] Utility Payment API Call:', {
         url: '/api/v2/bills/payments.php',
@@ -649,14 +643,16 @@ class KwikAPIClient {
 
       console.log('📦 [KWIKAPI] Utility Payment Response:', response.data);
 
-      const isSuccess = response.data.status === 'SUCCESS' || response.data.STATUS === 'SUCCESS';
+      const responseStatus = (response.data.status || response.data.STATUS || '').toUpperCase();
+      const isSuccess = responseStatus === 'SUCCESS' || responseStatus === 'PENDING';
 
       if (isSuccess) {
-        console.log('✅ [KWIKAPI] Utility payment successful:', {
+        console.log(`✅ [KWIKAPI] Utility payment ${responseStatus === 'SUCCESS' ? 'successful' : 'submitted'}:`, {
           order_id: response.data.order_id,
           operator_ref: response.data.opr_id || response.data.operator_ref,
           amount: response.data.amount,
-          balance: response.data.balance
+          balance: response.data.balance,
+          status: responseStatus
         });
       } else {
         console.warn('⚠️ [KWIKAPI] Utility payment failed:', {
@@ -722,13 +718,13 @@ class KwikAPIClient {
     amount: number;
     order_id?: string;
     mobile: string;
-    ref_id?: string;
+    refrence_id?: string;
   }): Promise<KwikAPIResponse> {
     console.log('📱 [KWIKAPI] Processing postpaid mobile payment:', {
       opid: params.opid,
       number: params.number,
       amount: params.amount,
-      ref_id: params.ref_id
+      refrence_id: params.refrence_id
     });
 
     // Use utility payment for postpaid mobile (no circle required)
@@ -738,7 +734,7 @@ class KwikAPIClient {
       amount: params.amount,
       order_id: params.order_id,
       mobile: params.mobile,
-      ref_id: params.ref_id,
+      refrence_id: params.refrence_id,
     });
   }
 
@@ -751,6 +747,7 @@ class KwikAPIClient {
     amount: number;
     order_id?: string;
     ref_id?: string;
+    refrence_id?: string;
     mobile: string;
     circle?: string;
     opt1?: string;
@@ -762,7 +759,7 @@ class KwikAPIClient {
       number: params.consumer_number,
       amount: params.amount,
       order_id: params.order_id,
-      ref_id: params.ref_id,
+      refrence_id: params.refrence_id || params.ref_id,
       mobile: params.mobile,
       opt1: params.opt1 || params.circle,
       opt2: params.opt2,

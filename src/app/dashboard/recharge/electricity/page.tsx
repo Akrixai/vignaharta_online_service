@@ -680,9 +680,17 @@ export default function ElectricityBillPage() {
           }
         } else if (status === 'PENDING') {
           setMessage(
-            `⏳ ${message}${operatorRef ? `\nRef: ${operatorRef}` : ''}\nKwikAPI Status: ${kwikApiStatus}\nTransaction is being processed. You will be notified once completed.`
+            `⏳ ${message}${operatorRef ? `\nRef: ${operatorRef}` : ''}. Redirecting to status...`
           );
           setMessageType('info');
+
+          // Redirect to receipt page even for pending if it was processed
+          const transactionId = responseData.transaction_id;
+          if (transactionId) {
+            setTimeout(() => {
+              router.push(`/dashboard/recharge/electricity/receipt?txn=${transactionId}`);
+            }, 3000);
+          }
         } else {
           setMessage(
             `❌ ${message}${operatorRef ? `\nRef: ${operatorRef}` : ''}\nKwikAPI Status: ${kwikApiStatus}`

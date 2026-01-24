@@ -50,12 +50,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get operator details from kwikapi_billers table
+    // Get operator details from recharge_operators table (contains admin-set commissions)
     const { data: operator } = await supabase
-      .from('kwikapi_billers')
+      .from('recharge_operators')
       .select('*')
-      .eq('operator_id', parseInt(opid))
-      .eq('is_active', true)
+      .eq('kwikapi_opid', parseInt(opid))
       .single();
 
     if (!operator) {
@@ -66,21 +65,24 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate amount range
-    if (amount < operator.amount_minimum || amount > operator.amount_maximum) {
+    const minAmt = parseFloat(operator.min_amount || '1');
+    const maxAmt = parseFloat(operator.max_amount || '50000');
+
+    if (amount < minAmt || amount > maxAmt) {
       return NextResponse.json(
         {
           success: false,
-          message: `Amount must be between ₹${operator.amount_minimum} and ₹${operator.amount_maximum}`,
+          message: `Amount must be between ₹${minAmt} and ₹${maxAmt}`,
         },
         { status: 400 }
       );
     }
 
-    // Use default commission and cashback rates since we're using kwikapi_billers directly
-    const commissionRate = 2.0; // Default 2% commission for retailers
-    const cashbackEnabled = true; // Enable cashback for customers
-    const cashbackMinPercentage = 0.5; // Default 0.5% minimum cashback
-    const cashbackMaxPercentage = 2.0; // Default 2% maximum cashback
+    // Use admin-configured commission and cashback rates
+    const commissionRate = parseFloat(operator.commission_rate || '0');
+    const cashbackEnabled = operator.cashback_enabled;
+    const cashbackMinPercentage = parseFloat(operator.cashback_min_percentage || '0');
+    const cashbackMaxPercentage = parseFloat(operator.cashback_max_percentage || '0');
 
     // Calculate commission/cashback based on user role and admin configuration
     let rewardAmount = 0;
@@ -90,7 +92,10 @@ export async function POST(request: NextRequest) {
       // Customer gets cashback only if enabled for this operator
       if (cashbackEnabled) {
         // Generate random cashback percentage between min and max
-        const randomCashbackPercentage = (Math.random() * (cashbackMaxPercentage - cashbackMinPercentage) + cashbackMinPercentage);
+        const range = cashbackMaxPercentage - cashbackMinPercentage;
+        const randomCashbackPercentage = range > 0
+          ? (Math.random() * range + cashbackMinPercentage)
+          : cashbackMinPercentage;
         rewardAmount = (amount * randomCashbackPercentage) / 100;
       }
     } else {
@@ -142,7 +147,7 @@ export async function POST(request: NextRequest) {
       .from('recharge_transactions')
       .insert({
         user_id: dbUser.id,
-        operator_id: null, // Not using recharge_operators table anymore
+        operator_id: operator.id, // Linking to recharge_operators table
         circle_id: circleId,
         service_type: serviceType.toUpperCase(),
         mobile_number: serviceType === 'DTH' ? mobile : number,
