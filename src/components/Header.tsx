@@ -207,17 +207,15 @@ export default function Header() {
               </div>
             )}
 
-            {/* Akrix Solutions Branding */}
-            <div className="hidden xl:flex items-center space-x-0.5 xl:space-x-1 animate-pulse flex-shrink-0">
-              <span className="text-pink-400 text-xs xl:text-sm animate-bounce">💖</span>
-              <a
-                href="https://akrixsolutions.in/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 font-bold text-[10px] xl:text-xs hover:from-pink-500 hover:via-purple-500 hover:to-blue-500 transition-all duration-300 whitespace-nowrap"
-              >
-                Akrix Solutions
-              </a>
+            {/* Professional Red Theme Branding */}
+            <div className="hidden xl:flex items-center space-x-1 flex-shrink-0 group">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full blur opacity-30 group-hover:opacity-50 transition-opacity"></div>
+                <div className="relative flex items-center space-x-1 bg-gradient-to-r from-red-700/80 to-red-800/80 backdrop-blur-sm px-3 py-1 rounded-full border border-yellow-400/50 shadow-lg">
+                  <div className="w-2 h-2 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 animate-pulse"></div>
+                  <span className="text-yellow-200 text-xs font-bold tracking-wider whitespace-nowrap">INDIA'S DIGITAL GATEWAY</span>
+                </div>
+              </div>
             </div>
 
             {/* Mobile Menu Button */}
@@ -243,52 +241,47 @@ export default function Header() {
             <nav className="flex flex-col space-y-1.5 sm:space-y-2">
               <Link
                 href={language === 'en' ? '/about' : `/${language}/about`}
-                className="text-white hover:bg-white/10 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-medium transition-colors"
+                className="text-white hover:bg-red-700/50 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-medium transition-colors"
                 onClick={() => setShowMobileMenu(false)}
               >
                 {t.about}
               </Link>
               <Link
                 href={language === 'en' ? '/services' : `/${language}/services`}
-                className="text-white hover:bg-white/10 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-medium transition-colors"
+                className="text-white hover:bg-red-700/50 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-medium transition-colors"
                 onClick={() => setShowMobileMenu(false)}
               >
                 {t.services}
               </Link>
               <Link
                 href="/products"
-                className="text-white hover:bg-white/10 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-medium transition-colors"
+                className="text-white hover:bg-red-700/50 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-medium transition-colors"
                 onClick={() => setShowMobileMenu(false)}
               >
                 Products
               </Link>
               <Link
                 href={language === 'en' ? '/contact' : `/${language}/contact`}
-                className="text-white hover:bg-white/10 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-medium transition-colors"
+                className="text-white hover:bg-red-700/50 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-medium transition-colors"
                 onClick={() => setShowMobileMenu(false)}
               >
                 {t.contact}
               </Link>
               <Link
                 href="/whats-new"
-                className="text-white hover:bg-white/10 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-bold transition-colors flex items-center gap-2"
+                className="text-white hover:bg-red-700/50 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-bold transition-colors flex items-center gap-2"
                 onClick={() => setShowMobileMenu(false)}
               >
                 <span>What's New</span>
                 <span className="bg-yellow-500 text-red-900 text-[10px] px-2 py-0.5 rounded-full animate-pulse">LIVE</span>
               </Link>
 
-              {/* Mobile Akrix Branding */}
-              <div className="lg:hidden flex items-center justify-center space-x-2 pt-3 sm:pt-4 border-t border-white/20">
-                <span className="text-pink-400 text-xs sm:text-sm animate-bounce">💖</span>
-                <a
-                  href="https://akrixsolutions.in/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 font-bold text-[10px] sm:text-xs"
-                >
-                  Akrix Solutions
-                </a>
+              {/* Mobile Red Theme Branding */}
+              <div className="lg:hidden flex items-center justify-center pt-3 sm:pt-4 border-t border-white/20">
+                <div className="flex items-center space-x-2 bg-gradient-to-r from-red-700/80 to-red-800/80 backdrop-blur-sm px-3 py-1.5 rounded-full border border-yellow-400/50">
+                  <div className="w-2 h-2 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 animate-pulse"></div>
+                  <span className="text-yellow-200 text-[10px] font-bold tracking-wide">DIGITAL GATEWAY</span>
+                </div>
               </div>
             </nav>
           </div>
