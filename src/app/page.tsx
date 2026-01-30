@@ -68,6 +68,7 @@ export default function DashboardPage() {
     switch (type) {
       case 'DEPOSIT': return 'text-green-600';
       case 'SCHEME_PAYMENT': return 'text-red-600';
+      case 'WITHDRAWAL': return 'text-orange-600';
       case 'REFUND': return 'text-blue-600';
       default: return 'text-gray-600';
     }
@@ -311,7 +312,9 @@ export default function DashboardPage() {
                     </p>
                   </div>
                   <div className={`font-bold ${getTransactionColor(transaction.type)}`}>
-                    {transaction.amount > 0 ? '+' : ''}{formatCurrency(Math.abs(transaction.amount))}
+                    {transaction.type === 'WITHDRAWAL' || transaction.type === 'SCHEME_PAYMENT' 
+                      ? `-${formatCurrency(transaction.amount)}` 
+                      : `+${formatCurrency(transaction.amount)}`}
                   </div>
                 </div>
               ))}

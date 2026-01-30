@@ -1308,7 +1308,9 @@ export default function WalletPage() {
                   </div>
                   <div className="text-right">
                     <div className={`font-bold ${getTransactionColor(transaction.type)}`}>
-                      {transaction.amount > 0 ? '+' : ''}{formatCurrency(Math.abs(transaction.amount))}
+                      {transaction.type === 'WITHDRAWAL' || transaction.type === 'SCHEME_PAYMENT' 
+                        ? `-${formatCurrency(transaction.amount)}` 
+                        : `+${formatCurrency(transaction.amount)}`}
                     </div>
                     <div className="text-xs text-gray-500 capitalize">
                       {transaction.status.toLowerCase()}

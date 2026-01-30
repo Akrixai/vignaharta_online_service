@@ -173,9 +173,11 @@ export default function TransactionsPage() {
                     </div>
                     <div className="text-right">
                       <div className={`text-lg font-bold ${
-                        transaction.amount > 0 ? 'text-green-600' : 'text-red-600'
+                        transaction.type === 'WITHDRAWAL' || transaction.type === 'SCHEME_PAYMENT' ? 'text-red-600' : 'text-green-600'
                       }`}>
-                        {transaction.amount > 0 ? '+' : ''}{formatCurrency(Math.abs(transaction.amount))}
+                        {transaction.type === 'WITHDRAWAL' || transaction.type === 'SCHEME_PAYMENT' 
+                          ? `-${formatCurrency(transaction.amount)}` 
+                          : `+${formatCurrency(transaction.amount)}`}
                       </div>
                       <div className="flex items-center space-x-2 mt-1">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTransactionColor(transaction.type)}`}>
