@@ -33,6 +33,15 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    console.log('📥 [Bill Payment] Received request body:', {
+      service_type: body.service_type,
+      operator_code: body.operator_code,
+      amount: body.amount,
+      consumer_number: body.consumer_number,
+      ref_id: body.ref_id,
+      has_bill_details: !!body.bill_details
+    });
+    
     const {
       service_type, // 'POSTPAID' or 'ELECTRICITY' or 'GAS' or 'WATER'
       operator_code,
@@ -57,32 +66,161 @@ export async function POST(request: NextRequest) {
 
     // Validate inputs
     if (!service_type || !operator_code || !amount) {
+      console.error('❌ [Bill Payment] Missing required fields:', {
+        service_type: !!service_type,
+        operator_code: !!operator_code,
+        amount: !!amount,
+        received_body: body
+      });
       return NextResponse.json(
         { success: false, message: 'Missing required fields' },
         { status: 400 }
       );
     }
 
+    // CRITICAL FIX: For electricity bills, ensure we have a fresh ref_id
+    let finalRefId = ref_id;
+    let finalBillDetails = bill_details;
+    let billFetchSessionId = null;
+
+    if (service_type.toUpperCase() === 'ELECTRICITY' && consumer_number) {
+      console.log('🔍 [Bill Payment] Checking for fresh ref_id for electricity payment...');
+      
+      // Look for the most recent valid bill fetch session
+      const { data: billSession } = await supabase
+        .from('bill_fetch_sessions')
+        .select('*')
+        .eq('user_id', dbUser.id)
+        .eq('consumer_number', consumer_number)
+        .eq('used_for_payment', false)
+        .gt('expires_at', new Date().toISOString())
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (billSession) {
+        console.log('✅ [Bill Payment] Found valid bill fetch session:', {
+          session_id: billSession.id,
+          ref_id: billSession.ref_id,
+          expires_at: billSession.expires_at
+        });
+        
+        finalRefId = billSession.ref_id;
+        finalBillDetails = billSession.bill_data;
+        billFetchSessionId = billSession.id;
+        
+        // Mark session as used
+        await supabase
+          .from('bill_fetch_sessions')
+          .update({ used_for_payment: true })
+          .eq('id', billSession.id);
+          
+      } else if (ref_id) {
+        console.warn('⚠️ [Bill Payment] No valid session found, but ref_id provided. This may cause payment failure.');
+        console.warn('⚠️ [Bill Payment] Recommendation: Fetch fresh bill details before payment.');
+      } else if (service_type.toUpperCase() === 'ELECTRICITY') {
+        // CRITICAL FIX: If no ref_id for electricity, attempt fresh bill fetch
+        console.log('🔄 [Bill Payment] No ref_id for electricity payment. Attempting fresh bill fetch...');
+        
+        try {
+          // Attempt to fetch fresh bill details
+          const billFetchResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/kwikapi/bill-fetch`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              opid: parseInt(operator_code),
+              account_number: consumer_number,
+              consumer_number: consumer_number,
+              mobile_number: mobile_number,
+              mobile: mobile_number,
+              opt1: opt1,
+              opt2: opt2,
+              opt3: opt3,
+              opt4: opt4,
+              opt5: opt5,
+            }),
+          });
+
+          const billFetchData = await billFetchResponse.json();
+          
+          if (billFetchData.success && billFetchData.data?.ref_id) {
+            console.log('✅ [Bill Payment] Fresh bill fetch successful, using new ref_id:', billFetchData.data.ref_id);
+            finalRefId = billFetchData.data.ref_id;
+            finalBillDetails = billFetchData.data;
+            
+            // The bill fetch API will have created a new session, so let's get it
+            const { data: newSession } = await supabase
+              .from('bill_fetch_sessions')
+              .select('id')
+              .eq('user_id', dbUser.id)
+              .eq('consumer_number', consumer_number)
+              .eq('ref_id', finalRefId)
+              .eq('used_for_payment', false)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .single();
+              
+            if (newSession) {
+              billFetchSessionId = newSession.id;
+              // Mark as used
+              await supabase
+                .from('bill_fetch_sessions')
+                .update({ used_for_payment: true })
+                .eq('id', newSession.id);
+            }
+          } else {
+            console.warn('⚠️ [Bill Payment] Fresh bill fetch failed, proceeding without ref_id');
+          }
+        } catch (billFetchError) {
+          console.error('❌ [Bill Payment] Fresh bill fetch error:', billFetchError);
+          console.warn('⚠️ [Bill Payment] Proceeding without ref_id - payment may fail for BBPS operators');
+        }
+      } else {
+        console.warn('⚠️ [Bill Payment] No ref_id available for electricity payment. Payment may fail for BBPS operators.');
+      }
+    }
+
     // Get operator details from recharge_operators table (contains admin-set commissions)
-    const { data: operator } = await supabase
+    const { data: operators } = await supabase
       .from('recharge_operators')
       .select('*')
       .eq('kwikapi_opid', parseInt(operator_code))
       .eq('service_type', service_type.toUpperCase())
-      .single();
+      .eq('is_active', true)
+      .limit(1);
 
-    if (!operator) {
+    console.log('🔍 [BILL-PAYMENT] Operator lookup:', {
+      operator_code: parseInt(operator_code),
+      service_type: service_type.toUpperCase(),
+      found_operators: operators?.length || 0,
+      operators: operators
+    });
+
+    if (!operators || operators.length === 0) {
+      console.error('❌ [Bill Payment] No active operator found:', {
+        operator_code: parseInt(operator_code),
+        service_type: service_type.toUpperCase(),
+        searched_kwikapi_opid: parseInt(operator_code)
+      });
       return NextResponse.json(
         { success: false, message: 'Invalid operator configuration' },
         { status: 400 }
       );
     }
 
+    const operator = operators[0]; // Use the first active operator
+
     // Validate amount range
     const minAmt = parseFloat(operator.min_amount || '1');
     const maxAmt = parseFloat(operator.max_amount || '50000');
 
     if (amount < minAmt || amount > maxAmt) {
+      console.error('❌ [Bill Payment] Amount validation failed:', {
+        amount,
+        minAmt,
+        maxAmt,
+        operator_name: operator.operator_name
+      });
       return NextResponse.json(
         {
           success: false,
@@ -94,6 +232,11 @@ export async function POST(request: NextRequest) {
 
     // Check if operator is active
     if (!operator.is_active) {
+      console.error('❌ [Bill Payment] Operator not active:', {
+        operator_id: operator.id,
+        operator_name: operator.operator_name,
+        is_active: operator.is_active
+      });
       return NextResponse.json(
         { success: false, message: 'Operator not configured or inactive in admin settings' },
         { status: 400 }
@@ -134,6 +277,12 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (!wallet || wallet.balance < totalAmount) {
+      console.error('❌ [Bill Payment] Insufficient wallet balance:', {
+        user_id: dbUser.id,
+        wallet_balance: wallet?.balance || 0,
+        required_amount: totalAmount,
+        has_wallet: !!wallet
+      });
       return NextResponse.json(
         { success: false, message: 'Insufficient wallet balance' },
         { status: 402 }
@@ -166,9 +315,10 @@ export async function POST(request: NextRequest) {
         total_amount: totalAmount,
         status: 'PENDING',
         transaction_ref: transactionRef,
-        bill_details: bill_details || {},
+        bill_details: finalBillDetails || {},
         dynamic_fields: { opt1, opt2, opt3, opt4, opt5, opt6, opt7, opt8, opt9, opt10 },
         kwikapi_provider: operator.operator_name,
+        bill_fetch_session_id: billFetchSessionId, // Link to bill fetch session
       })
       .select()
       .single();
@@ -183,11 +333,13 @@ export async function POST(request: NextRequest) {
 
     // NO UPFRONT DEDUCTION ANYMORE - Deduct only on SUCCESS (initial or callback)
 
-    // Use the operator_id from the kwikapi_billers record
-    const opid = operator.operator_id;
+    // Use the kwikapi_opid from the recharge_operators record
+    const opid = operator.kwikapi_opid;
 
     console.log('💳 [BILL-PAYMENT] Processing payment:', {
       opid,
+      opid_type: typeof opid,
+      opid_valid: !isNaN(opid),
       amount,
       service_type,
       operator_name: operator.operator_name,
@@ -197,6 +349,20 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ [BILL-PAYMENT] Proceeding with payment...');
 
+    // Validate opid before making API call
+    if (!opid || isNaN(opid)) {
+      console.error('❌ [BILL-PAYMENT] Invalid operator ID:', {
+        opid,
+        opid_type: typeof opid,
+        operator_name: operator.operator_name,
+        operator_kwikapi_opid: operator.kwikapi_opid
+      });
+      return NextResponse.json(
+        { success: false, message: 'Invalid operator configuration - missing operator ID' },
+        { status: 400 }
+      );
+    }
+
     // Process payment using KwikAPI
     let paymentResponse;
 
@@ -205,9 +371,10 @@ export async function POST(request: NextRequest) {
       mobile_number,
       selected_number: consumer_number || mobile_number,
       opt1,
-      ref_id,
+      ref_id: finalRefId, // Use the fresh ref_id
       amount: parseFloat(amount),
-      operator_name: operator.operator_name
+      operator_name: operator.operator_name,
+      bill_fetch_session_id: billFetchSessionId
     });
 
     // Note: ref_id validation removed as KwikAPI can work without it for some operators
@@ -215,12 +382,12 @@ export async function POST(request: NextRequest) {
     try {
       // Use utility bill payment API for all bills
       paymentResponse = await kwikapi.payUtilityBill({
-        opid: parseInt(opid),
+        opid: opid, // opid is already a number from database
         number: number || consumer_number || mobile_number, // Use remapped number first, then consumer_number
         amount: parseFloat(amount), // Ensure amount is a number, not string
         order_id: kwikApiOrderId, // Use KwikAPI-compatible order ID
         mobile: mobile_number || dbUser.email,
-        refrence_id: ref_id,
+        refrence_id: finalRefId, // Use the fresh ref_id from session
         opt1: opt1,
         opt2: opt2,
         opt3: opt3,

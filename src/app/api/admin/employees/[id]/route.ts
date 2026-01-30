@@ -8,7 +8,7 @@ import bcrypt from 'bcryptjs';
 // PATCH - Update employee (Admin only)
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -17,7 +17,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const employeeId = params.id;
+    const { id: employeeId } = await params;
     const { name, email, phone, password, employee_id, department, is_active } = await request.json();
 
     // Check if employee exists
@@ -94,7 +94,7 @@ export async function PATCH(
 // DELETE - Delete employee (Admin only)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -103,7 +103,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const employeeId = params.id;
+    const { id: employeeId } = await params;
 
     // Check if employee exists
     const { data: existingEmployee, error: fetchError } = await supabaseAdmin

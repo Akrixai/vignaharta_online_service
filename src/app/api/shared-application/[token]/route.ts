@@ -11,10 +11,11 @@ const supabase = createClient(
 // GET - Access shareable application link
 export async function GET(
   request: NextRequest,
-  { params }: { params: { token: string } }
+  { params }: { params: Promise<{ token: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
+    const { token } = await params;
 
     // Fetch the shareable link
     const { data: link, error: linkError } = await supabase
@@ -23,7 +24,7 @@ export async function GET(
         *,
         scheme:schemes(*)
       `)
-      .eq('link_token', params.token)
+      .eq('link_token', token)
       .single();
 
     if (linkError || !link) {

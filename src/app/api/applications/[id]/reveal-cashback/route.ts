@@ -5,7 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -17,7 +17,7 @@ export async function POST(
       );
     }
 
-    const applicationId = params.id;
+    const { id: applicationId } = await params;
 
     // Get application details
     const { data: application, error: appError } = await supabaseAdmin

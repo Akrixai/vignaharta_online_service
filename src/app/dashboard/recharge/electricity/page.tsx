@@ -620,19 +620,90 @@ export default function ElectricityBillPage() {
       console.log('💳 [Payment] Dynamic field values:', dynamicFieldValues);
       console.log('💳 [Payment] Mapped opt params:', optParams);
 
+      // CRITICAL FIX: For operators that support bill fetch, get fresh ref_id before payment
+      let currentRefId = billDetails?.ref_id;
+      let currentBillDetails = billDetails;
+
+      if (operator?.metadata?.bill_fetch === 'YES' && billDetails) {
+        console.log('🔄 [Payment] Getting fresh bill details to ensure current ref_id...');
+        setMessage('🔄 Getting fresh bill details for payment...');
+        
+        try {
+          // Build opt parameters for bill fetch (same as payment)
+          const billFetchOptParams: any = {};
+          dynamicFields.forEach((field: DynamicField) => {
+            const value = dynamicFieldValues[field.name];
+            if (value && field.kwikapi_param && field.kwikapi_param !== 'number') {
+              billFetchOptParams[field.kwikapi_param] = value;
+            }
+          });
+
+          // For MSEDC Maharashtra and similar operators, opt1 MUST contain the consumer number
+          if (consumerNumberValue) {
+            billFetchOptParams.opt1 = consumerNumberValue;
+          }
+
+          const freshBillRes = await fetch('/api/kwikapi/bill-fetch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              opid: operator?.kwikapi_opid,
+              account_number: consumerNumberValue,
+              consumer_number: consumerNumberValue,
+              mobile_number: customerMobile,
+              mobile: customerMobile,
+              ...billFetchOptParams,
+            }),
+          });
+
+          const freshBillData = await freshBillRes.json();
+
+          if (freshBillData.success && freshBillData.data?.ref_id) {
+            console.log('✅ [Payment] Fresh ref_id obtained:', freshBillData.data.ref_id);
+            currentRefId = freshBillData.data.ref_id;
+            
+            // Update bill details with fresh data
+            currentBillDetails = {
+              consumer_name: freshBillData.data.customer_name || freshBillData.data.customername || billDetails.consumer_name,
+              bill_number: freshBillData.data.bill_number || freshBillData.data.billnumber || billDetails.bill_number,
+              due_amount: freshBillData.data.due_amount || freshBillData.data.dueamount || billDetails.due_amount,
+              due_date: freshBillData.data.due_date || freshBillData.data.duedate || billDetails.due_date,
+              bill_date: freshBillData.data.bill_date || freshBillData.data.billdate || billDetails.bill_date,
+              bill_period: freshBillData.data.bill_period || freshBillData.data.billperiod || billDetails.bill_period,
+              bill_amount: freshBillData.data.bill_amount || freshBillData.data.due_amount || billDetails.bill_amount,
+              ref_id: freshBillData.data.ref_id,
+            };
+
+            setMessage('✅ Fresh bill details obtained. Processing payment...');
+          } else {
+            console.warn('⚠️ [Payment] Could not get fresh ref_id, using existing:', currentRefId);
+            setMessage('⚠️ Using existing bill details for payment...');
+          }
+        } catch (billFetchError) {
+          console.warn('⚠️ [Payment] Fresh bill fetch failed, using existing ref_id:', billFetchError);
+          setMessage('⚠️ Using existing bill details for payment...');
+        }
+      }
+
       const payload = {
         service_type: 'ELECTRICITY',
         operator_code: operator?.kwikapi_opid || operator?.operator_code,
         amount: totalAmount,
-        customer_name: customerName || billDetails?.consumer_name,
+        customer_name: customerName || currentBillDetails?.consumer_name,
         consumer_number: consumerNumberValue,
         number: consumerNumberValue, // Explicitly send 'number' field
         mobile_number: customerMobile,
         customer_mobile: customerMobile,
-        ref_id: billDetails?.ref_id,
-        bill_details: billDetails,
+        ref_id: currentRefId, // Use fresh ref_id
+        bill_details: currentBillDetails, // Use fresh bill details
         ...optParams, // Spread the opt parameters
       };
+
+      console.log('💳 [Payment] Final payload with fresh ref_id:', {
+        ...payload,
+        ref_id: currentRefId,
+        bill_details_ref_id: currentBillDetails?.ref_id
+      });
 
       const res = await fetch('/api/kwikapi/bill-payment', {
         method: 'POST',

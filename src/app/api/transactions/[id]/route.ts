@@ -9,7 +9,7 @@ const supabase = createClient(
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         // Get authenticated user
@@ -21,7 +21,7 @@ export async function GET(
             );
         }
 
-        const transactionId = params.id;
+        const { id: transactionId } = await params;
 
         // Fetch transaction from recharge_transactions table with operator details
         const { data: transaction, error } = await supabase

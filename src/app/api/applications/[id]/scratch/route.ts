@@ -6,7 +6,7 @@ import { authOptions } from '@/lib/auth';
 // POST /api/applications/[id]/scratch - Reveal scratch card and credit cashback
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -15,7 +15,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const applicationId = params.id;
+    const { id: applicationId } = await params;
 
     // Get the application
     const { data: application, error: appError } = await supabaseAdmin

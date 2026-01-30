@@ -4,10 +4,10 @@ import { supabaseAdmin } from '@/lib/supabase';
 // GET /api/shared/application/[token] - Get shared application details (public)
 export async function GET(
   request: NextRequest,
-  { params }: { params: { token: string } }
+  { params }: { params: Promise<{ token: string }> }
 ) {
   try {
-    const shareToken = params.token;
+    const { token: shareToken } = await params;
 
     // Fetch application with share token
     const { data: application, error } = await supabaseAdmin

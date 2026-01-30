@@ -7,7 +7,7 @@ import { UserRole } from '@/types';
 // POST /api/applications/[id]/approve - Approve application and debit payment
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -16,7 +16,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const applicationId = params.id;
+    const { id: applicationId } = await params;
 
     // Get application details
     const { data: application, error: appError } = await supabaseAdmin

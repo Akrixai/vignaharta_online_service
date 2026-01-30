@@ -34,6 +34,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Import Supabase client for session management
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    // Get user from database
+    const { data: dbUser } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', user.email)
+      .single();
+
+    if (!dbUser) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
     const body = await request.json();
     console.log('📥 [Bill Fetch] Received request body:', body);
     
@@ -156,22 +174,59 @@ export async function POST(request: NextRequest) {
 
     // Check if the response is successful
     if (data.status === 'SUCCESS') {
+      const billData = {
+        status: data.status,
+        message: data.message || 'Bill fetched successfully',
+        customer_name: data.customer_name || data.customername,
+        bill_number: data.bill_number || data.billnumber,
+        due_amount: data.due_amount || data.dueamount,
+        due_date: data.due_date || data.duedate,
+        bill_date: data.bill_date || data.billdate,
+        bill_period: data.bill_period || data.billperiod,
+        ref_id: data.ref_id || data.refid,
+        refrence_id: data.ref_id || data.refid, // Alternative spelling
+        order_id: orderId,
+        kwikapi_response: data
+      };
+
+      // CRITICAL FIX: Store bill fetch session for ref_id tracking
+      try {
+        // Clean up any existing sessions for this user/consumer combination
+        await supabase
+          .from('bill_fetch_sessions')
+          .delete()
+          .eq('user_id', dbUser.id)
+          .eq('consumer_number', accountNumber)
+          .eq('used_for_payment', false);
+
+        // Create new bill fetch session
+        const { data: session, error: sessionError } = await supabase
+          .from('bill_fetch_sessions')
+          .insert({
+            user_id: dbUser.id,
+            consumer_number: accountNumber,
+            mobile_number: mobile || mobile_number || '9999999999',
+            ref_id: billData.ref_id,
+            bill_data: billData,
+            expires_at: new Date(Date.now() + 30 * 60 * 1000).toISOString(), // 30 minutes from now
+          })
+          .select()
+          .single();
+
+        if (sessionError) {
+          console.error('❌ [Bill Fetch] Failed to store session:', sessionError);
+          // Continue anyway - don't fail the bill fetch
+        } else {
+          console.log('✅ [Bill Fetch] Session stored with ref_id:', billData.ref_id);
+        }
+      } catch (sessionStoreError) {
+        console.error('❌ [Bill Fetch] Session storage error:', sessionStoreError);
+        // Continue anyway - don't fail the bill fetch
+      }
+
       return NextResponse.json({
         success: true,
-        data: {
-          status: data.status,
-          message: data.message || 'Bill fetched successfully',
-          customer_name: data.customer_name || data.customername,
-          bill_number: data.bill_number || data.billnumber,
-          due_amount: data.due_amount || data.dueamount,
-          due_date: data.due_date || data.duedate,
-          bill_date: data.bill_date || data.billdate,
-          bill_period: data.bill_period || data.billperiod,
-          ref_id: data.ref_id || data.refid,
-          refrence_id: data.ref_id || data.refid, // Alternative spelling
-          order_id: orderId,
-          kwikapi_response: data
-        }
+        data: billData
       });
     } else {
       // Handle specific KwikAPI error types

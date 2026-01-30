@@ -7,7 +7,7 @@ import { UserRole } from '@/types';
 // GET - Fetch single order by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -16,7 +16,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const orderId = params.id;
+    const { id: orderId } = await params;
 
     if (!orderId) {
       return NextResponse.json({ 
@@ -127,7 +127,7 @@ export async function GET(
 // PATCH - Update order status
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
