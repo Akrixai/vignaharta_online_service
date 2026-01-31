@@ -739,10 +739,6 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
                     >
                       {resuming === service.order_id ? 'Resuming...' : 'Resume Application'}
                     </button>
-                  )}r disabled:opacity-50"
-                    >
-                      {resuming === service.order_id ? 'Resuming...' : 'Resume Application'}
-                    </button>
                   )}
 
                   {service.inspay_url && service.status === 'PROCESSING' && (
