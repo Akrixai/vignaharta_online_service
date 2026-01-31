@@ -72,6 +72,7 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
   const [filter, setFilter] = useState<string>('ALL');
   const [resuming, setResuming] = useState<string | null>(null);
   const [downloadingReceipt, setDownloadingReceipt] = useState<string | null>(null);
+  const [checkingStatus, setCheckingStatus] = useState<string | null>(null);
 
   // Real-time monitoring hook
   const {
@@ -254,6 +255,53 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
       toast.error('Failed to connect to service');
     } finally {
       setResuming(null);
+    }
+  };
+
+  const handleCheckStatus = async (orderId: string) => {
+    try {
+      setCheckingStatus(orderId);
+      toast('🔍 Checking status with InsPay...', { duration: 3000 });
+
+      const response = await fetch('/api/pan-services/check-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_id: orderId })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        const { new_status, acknowledgement_number, payment_charged } = data.data;
+        
+        if (new_status === 'SUCCESS') {
+          toast.success(`🎉 Great news! Your PAN application ${orderId} is now SUCCESSFUL!`, { duration: 8000 });
+          if (acknowledgement_number) {
+            toast.success(`📋 Acknowledgement Number: ${acknowledgement_number}`, { duration: 10000 });
+          }
+          if (payment_charged) {
+            toast.success(`💰 Payment of ₹${data.data.inspay_response?.amount || 'N/A'} has been charged.`, { duration: 6000 });
+            onWalletUpdate(); // Refresh wallet balance
+          }
+        } else if (new_status === 'FAILURE') {
+          toast.error(`❌ Unfortunately, your PAN application ${orderId} has failed.`, { duration: 8000 });
+          if (data.data.inspay_response?.opid && data.data.inspay_response.opid !== '0') {
+            toast.error(`Reason: ${data.data.inspay_response.opid}`, { duration: 8000 });
+          }
+        } else if (new_status === 'PENDING') {
+          toast(`⏳ Your PAN application ${orderId} is still being processed. Please check again later.`, { duration: 5000 });
+        }
+
+        // Refresh the services list to show updated status
+        fetchServices();
+      } else {
+        toast.error(data.message || 'Failed to check status');
+      }
+    } catch (error) {
+      console.error('Status check error:', error);
+      toast.error('Failed to check status. Please try again.');
+    } finally {
+      setCheckingStatus(null);
     }
   };
 
@@ -661,11 +709,37 @@ export default function PanHistoryTab({ walletBalance, onWalletUpdate, router }:
                 </div>
 
                 <div className="ml-6 flex flex-col space-y-2">
-                  {service.status === 'PENDING' && (
+                  {service.status === 'PENDING' && service.inspay_txid && (
+                    <button
+                      onClick={() => handleCheckStatus(service.order_id)}
+                      disabled={checkingStatus === service.order_id}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm text-center disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {checkingStatus === service.order_id ? (
+                        <>
+                          <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Checking...
+                        </>
+                      ) : (
+                        <>
+                          <span>🔍</span> Check Status
+                        </>
+                      )}
+                    </button>
+                  )}
+
+                  {service.status === 'PENDING' && !service.inspay_txid && (
                     <button
                       onClick={() => handleResume(service.order_id)}
                       disabled={resuming === service.order_id}
                       className="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors text-sm text-center disabled:opacity-50"
+                    >
+                      {resuming === service.order_id ? 'Resuming...' : 'Resume Application'}
+                    </button>
+                  )}r disabled:opacity-50"
                     >
                       {resuming === service.order_id ? 'Resuming...' : 'Resume Application'}
                     </button>

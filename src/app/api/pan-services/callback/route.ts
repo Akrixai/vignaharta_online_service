@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
     // First try to find by order_id (most common case)
     const { data: panServiceByOrderId, error: orderIdError } = await supabase
       .from('pan_services')
-      .select('*, user:users(id, email, name, role)')
+      .select('*, user:users!pan_services_user_id_fkey(id, email, name, role)')
       .eq('order_id', txid)
       .single();
 
@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
       // Fallback: try to find by inspay_txid
       const { data: panServiceByInspayTxid, error: inspayTxidError } = await supabase
         .from('pan_services')
-        .select('*, user:users(id, email, name, role)')
+        .select('*, user:users!pan_services_user_id_fkey(id, email, name, role)')
         .eq('inspay_txid', txid)
         .single();
 
@@ -82,6 +82,23 @@ export async function GET(request: NextRequest) {
 
     if (!panService) {
       console.error('❌ PAN service not found for txid:', txid, 'Errors:', { orderIdError, inspayTxidError: findError });
+      
+      // Log this as a potential callback failure for investigation
+      try {
+        await supabase
+          .from('callback_failures')
+          .insert({
+            pan_service_id: null, // We don't have the service ID
+            order_id: txid,
+            callback_data: callbackData,
+            failure_reason: `PAN service record not found for transaction ID: ${txid}`,
+            retry_count: 0,
+            created_at: new Date().toISOString()
+          });
+      } catch (logError) {
+        console.error('Failed to log callback failure:', logError);
+      }
+      
       return NextResponse.json(
         { success: false, message: 'PAN service not found for transaction ID: ' + txid },
         { status: 404 }

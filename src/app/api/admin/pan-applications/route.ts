@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
             .from('pan_services')
             .select(`
         *,
-        user:users(id, name, email, phone)
+        user:users!pan_services_user_id_fkey(id, name, email, phone)
       `, { count: 'exact' })
             .order('created_at', { ascending: false })
             .range(offset, offset + limit - 1);
