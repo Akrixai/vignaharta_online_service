@@ -69,12 +69,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Call InsPay status API
-    const statusResult = await checkInspayStatus(panService.inspay_txid);
+    // Call InsPay status API - try with both inspay_txid and order_id
+    let statusResult = await checkInspayStatus(panService.inspay_txid);
+    
+    // If inspay_txid doesn't work, try with our order_id
+    if (!statusResult.success || !statusResult.data?.txid) {
+      console.log('🔄 Retrying with order_id instead of inspay_txid...');
+      statusResult = await checkInspayStatus(panService.order_id);
+    }
 
     if (!statusResult.success) {
       return NextResponse.json(
-        { success: false, message: statusResult.error },
+        { 
+          success: false, 
+          message: statusResult.error || 'Failed to check status with InsPay',
+          details: 'The transaction may not exist in InsPay system or the service is temporarily unavailable.'
+        },
         { status: 500 }
       );
     }
@@ -117,7 +127,7 @@ export async function POST(request: NextRequest) {
 /**
  * Call InsPay status API
  */
-async function checkInspayStatus(inspayTxid: string): Promise<{ success: boolean; data?: any; error?: string }> {
+async function checkInspayStatus(orderId: string): Promise<{ success: boolean; data?: any; error?: string }> {
   try {
     const username = process.env.INSPAY_USERNAME;
     const token = process.env.INSPAY_API_TOKEN;
@@ -126,9 +136,9 @@ async function checkInspayStatus(inspayTxid: string): Promise<{ success: boolean
       throw new Error('InsPay credentials not configured');
     }
 
-    const statusUrl = `https://www.connect.inspay.in/v3/recharge/status?username=${username}&token=${token}&orderid=${inspayTxid}&format=json`;
+    const statusUrl = `https://www.connect.inspay.in/v3/recharge/status?username=${username}&token=${token}&orderid=${orderId}&format=json`;
 
-    console.log('🌐 Calling InsPay status API for txid:', inspayTxid);
+    console.log('🌐 Calling InsPay status API for order:', orderId);
 
     const response = await fetch(statusUrl, {
       method: 'GET',
@@ -145,12 +155,31 @@ async function checkInspayStatus(inspayTxid: string): Promise<{ success: boolean
     const data = await response.json();
     console.log('📥 InsPay status response:', data);
 
-    // Validate response structure
-    if (!data.txid || !data.status) {
-      throw new Error('Invalid response from InsPay status API');
+    // Handle different response scenarios
+    if (!data || typeof data !== 'object') {
+      throw new Error('Invalid response format from InsPay API');
     }
 
-    return { success: true, data };
+    // If all fields are null, it means the transaction was not found
+    if (!data.txid && !data.status && !data.opid) {
+      return {
+        success: false,
+        error: `Transaction not found in InsPay system for order: ${orderId}`
+      };
+    }
+
+    // If we have at least txid and status, consider it valid
+    if (data.txid && data.status) {
+      return { success: true, data };
+    }
+
+    // If we have status but no txid, still try to process it
+    if (data.status) {
+      return { success: true, data: { ...data, txid: orderId } };
+    }
+
+    // Otherwise, it's an invalid response
+    throw new Error('Incomplete response from InsPay status API');
 
   } catch (error) {
     console.error('❌ InsPay status API error:', error);
@@ -172,15 +201,26 @@ async function processStatusResponse(
   try {
     const { txid, status, opid, number, amount, orderid } = statusData;
 
+    // Validate that we have at least a status
+    if (!status) {
+      return {
+        success: false,
+        error: 'No status information received from InsPay API'
+      };
+    }
+
     // Map InsPay status to our status
     const statusMap: { [key: string]: string } = {
       'Success': 'SUCCESS',
       'Failure': 'FAILURE',
-      'Pending': 'PENDING'
+      'Pending': 'PENDING',
+      'Failed': 'FAILURE'
     };
 
     const newStatus = statusMap[status] || 'PENDING';
     
+    console.log(`📊 Status check for ${panService.order_id}: PENDING → ${newStatus} (InsPay status: ${status})`);
+
     // If still pending, no update needed
     if (newStatus === 'PENDING') {
       return {

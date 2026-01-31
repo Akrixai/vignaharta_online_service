@@ -282,7 +282,14 @@ export default function PanServicesHistoryPage() {
         // Refresh the services list to show updated status
         fetchServices();
       } else {
-        toast.error(data.message || 'Failed to check status');
+        // Handle specific error messages
+        if (data.message?.includes('Transaction not found')) {
+          toast.error(`❌ Transaction not found in InsPay system. This may happen if:\n• The application was not submitted to InsPay\n• The transaction ID is incorrect\n• The application is too old`, { duration: 10000 });
+        } else if (data.message?.includes('InsPay transaction ID not found')) {
+          toast.error(`❌ Cannot check status: No InsPay transaction ID found for this application.`, { duration: 8000 });
+        } else {
+          toast.error(data.message || 'Failed to check status');
+        }
       }
     } catch (error) {
       console.error('Status check error:', error);
