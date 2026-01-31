@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
 async function checkInspayStatus(inspayTxid: string): Promise<{ success: boolean; data?: any; error?: string }> {
   try {
     const username = process.env.INSPAY_USERNAME;
-    const token = process.env.INSPAY_TOKEN;
+    const token = process.env.INSPAY_API_TOKEN;
 
     if (!username || !token) {
       throw new Error('InsPay credentials not configured');
