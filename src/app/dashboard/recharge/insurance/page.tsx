@@ -208,8 +208,20 @@ export default function InsurancePremiumPage() {
   };
 
   const fetchBill = async () => {
-    if (!consumerNumber || !selectedOperator) {
-      setMessage('Please enter policy number and select insurance company');
+    // Check if we have the required data - either consumerNumber or dynamic fields filled
+    const hasConsumerNumber = consumerNumber.trim() !== '';
+    const hasDynamicFields = dynamicFields.length > 0 && dynamicFields.some(field => 
+      field.required && dynamicFieldValues[field.key]?.trim()
+    );
+    
+    if (!selectedOperator) {
+      setMessage('Please select insurance company first');
+      setMessageType('error');
+      return;
+    }
+
+    if (!hasConsumerNumber && !hasDynamicFields) {
+      setMessage('Please enter policy number and fill required fields');
       setMessageType('error');
       return;
     }
@@ -232,6 +244,7 @@ export default function InsurancePremiumPage() {
       console.log('🔍 [Frontend] Fetching premium for:', {
         operator: operator.operator_name,
         consumer: consumerNumber,
+        dynamicFields: dynamicFieldValues,
         service_type: 'INSURANCE'
       });
 
@@ -244,14 +257,17 @@ export default function InsurancePremiumPage() {
         }
       });
 
+      // Use the first dynamic field value as the number if consumerNumber is empty
+      const numberToUse = consumerNumber || Object.values(dynamicFieldValues)[0] || '';
+
       // Use KwikAPI bill fetch endpoint
       const res = await fetch('/api/kwikapi/bill-fetch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           opid: operator?.kwikapi_opid,
-          number: consumerNumber,
-          mobile: customerMobile || consumerNumber,
+          number: numberToUse,
+          mobile: customerMobile || numberToUse,
           amount: parseFloat(amount) || 10, // Default amount for bill fetch
           ...dynamicParams
         }),
@@ -304,19 +320,29 @@ export default function InsurancePremiumPage() {
     }
 
     // Validation
-    if (!selectedOperator || !consumerNumber || !amount) {
+    if (!selectedOperator || !amount) {
       setMessage('⚠️ Please fill all required fields.');
       setMessageType('error');
       return;
     }
 
-    // Validate dynamic fields
-    const missingFields = dynamicFields.filter(field => 
-      field.required && !dynamicFieldValues[field.key]
+    // Check if we have either consumerNumber or required dynamic fields filled
+    const hasConsumerNumber = consumerNumber.trim() !== '';
+    const hasRequiredDynamicFields = dynamicFields.length === 0 || dynamicFields.every(field => 
+      !field.required || (field.required && dynamicFieldValues[field.key]?.trim())
     );
-    
-    if (missingFields.length > 0) {
+
+    if (!hasConsumerNumber && dynamicFields.length > 0 && !hasRequiredDynamicFields) {
+      const missingFields = dynamicFields.filter(field => 
+        field.required && !dynamicFieldValues[field.key]?.trim()
+      );
       setMessage(`⚠️ Please fill required fields: ${missingFields.map(f => f.label).join(', ')}`);
+      setMessageType('error');
+      return;
+    }
+
+    if (!hasConsumerNumber && dynamicFields.length === 0) {
+      setMessage('⚠️ Please enter policy number.');
       setMessageType('error');
       return;
     }
@@ -336,12 +362,15 @@ export default function InsurancePremiumPage() {
         }
       });
 
+      // Use the first dynamic field value as the number if consumerNumber is empty
+      const numberToUse = consumerNumber || Object.values(dynamicFieldValues)[0] || '';
+
       // Use KwikAPI bill payment endpoint
       const payload: any = {
         opid: operator?.kwikapi_opid || operator?.operator_code,
-        number: consumerNumber,
+        number: numberToUse,
         amount: parseFloat(amount),
-        mobile: customerMobile || consumerNumber,
+        mobile: customerMobile || numberToUse,
         customer_name: customerName,
         ...dynamicParams
       };
@@ -371,7 +400,7 @@ export default function InsurancePremiumPage() {
           let cleanMessage = message.replace(/Your Balance is.*$/i, '').trim();
           if (cleanMessage.endsWith('.')) cleanMessage = cleanMessage.slice(0, -1);
 
-          const finalSuccessMsg = `✅ ${cleanMessage}! Your insurance premium payment for ${consumerNumber} was successful.${operatorRef ? `\nRef: ${operatorRef}` : ''}`;
+          const finalSuccessMsg = `✅ ${cleanMessage}! Your insurance premium payment for ${numberToUse} was successful.${operatorRef ? `\nRef: ${operatorRef}` : ''}`;
 
           setMessage(finalSuccessMsg);
           setMessageType('success');
@@ -593,7 +622,12 @@ export default function InsurancePremiumPage() {
                   <button
                     type="button"
                     onClick={fetchBill}
-                    disabled={fetchingBill || (!consumerNumber && dynamicFields.length === 0) || !selectedOperator}
+                    disabled={fetchingBill || !selectedOperator || (
+                      !consumerNumber && 
+                      (dynamicFields.length === 0 || !dynamicFields.some(field => 
+                        field.required && dynamicFieldValues[field.key]?.trim()
+                      ))
+                    )}
                     className="w-full px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
                   >
                     {fetchingBill ? '⏳ Fetching Premium...' : '🔍 Fetch Premium Details'}
