@@ -142,11 +142,37 @@ export async function POST(request: NextRequest) {
         'User-Agent': 'VighnahartaOnlineServices/1.0',
         'Accept': 'application/json',
       },
+      // Add timeout to prevent hanging requests
+      signal: AbortSignal.timeout(30000) // 30 second timeout
     });
 
     if (!response.ok) {
       console.error('KwikAPI HTTP Error:', response.status, response.statusText);
-      throw new Error(`KwikAPI request failed: ${response.status} ${response.statusText}`);
+      
+      // Handle specific HTTP error codes with user-friendly messages
+      let userMessage = 'Unable to fetch bill details at the moment. Please try again.';
+      let errorType = 'KWIKAPI_ERROR';
+      
+      if (response.status === 522) {
+        userMessage = 'The bill fetch service is temporarily slow. Please try again in a few moments.';
+        errorType = 'TIMEOUT_ERROR';
+      } else if (response.status === 503 || response.status === 502) {
+        userMessage = 'The bill fetch service is temporarily unavailable. Please try again later.';
+        errorType = 'SERVICE_UNAVAILABLE';
+      } else if (response.status === 404) {
+        userMessage = 'Bill fetch service not found for this operator. Please enter the amount manually.';
+        errorType = 'SERVICE_NOT_FOUND';
+      } else if (response.status >= 500) {
+        userMessage = 'Server error occurred while fetching bill details. Please try again.';
+        errorType = 'SERVER_ERROR';
+      }
+      
+      return NextResponse.json({
+        success: false,
+        message: userMessage,
+        error: errorType,
+        http_status: response.status
+      }, { status: 200 }); // Return 200 so frontend can handle gracefully
     }
 
     const responseText = await response.text();
@@ -186,7 +212,7 @@ export async function POST(request: NextRequest) {
         ref_id: data.ref_id || data.refid,
         refrence_id: data.ref_id || data.refid, // Alternative spelling
         order_id: orderId,
-        kwikapi_response: data
+        kwikapi_response: data // Store the complete raw response
       };
 
       // CRITICAL FIX: Store bill fetch session for ref_id tracking
@@ -257,10 +283,26 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('❌ [KwikAPI] Bill fetch error:', error);
     
+    // Handle different types of errors with user-friendly messages
+    let userMessage = 'Unable to fetch bill details at the moment. Please try again.';
+    let errorType = 'INTERNAL_ERROR';
+    
+    if (error.name === 'AbortError' || error.message?.includes('timeout')) {
+      userMessage = 'Request timed out. The bill fetch service is taking too long to respond. Please try again.';
+      errorType = 'TIMEOUT_ERROR';
+    } else if (error.message?.includes('fetch')) {
+      userMessage = 'Network error occurred while fetching bill details. Please check your connection and try again.';
+      errorType = 'NETWORK_ERROR';
+    } else if (error.message?.includes('KwikAPI request failed')) {
+      userMessage = 'The bill fetch service is temporarily unavailable. Please try again later or enter the amount manually.';
+      errorType = 'SERVICE_ERROR';
+    }
+    
     return NextResponse.json({
       success: false,
-      message: error.message || 'Internal server error',
-      error: 'INTERNAL_ERROR'
-    }, { status: 500 });
+      message: userMessage,
+      error: errorType,
+      debug_message: error.message // Keep for debugging
+    }, { status: 200 }); // Return 200 so frontend can handle gracefully
   }
 }

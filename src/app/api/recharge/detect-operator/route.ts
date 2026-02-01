@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
 
     if (cachedResult) {
       const { data: operator } = await supabase
-        .from('recharge_operators')
+        .from('kwikapi_billers')
         .select('*')
         .eq('id', cachedResult.operator_id)
         .single();
@@ -59,12 +59,12 @@ export async function POST(request: NextRequest) {
           success: true,
           data: {
             mobile_number,
-            operator_code: operator.operator_code,
+            operator_code: `KWIKAPI_${operator.operator_id}`,
             operator_name: operator.operator_name,
-            kwikapi_opid: operator.kwikapi_opid,
+            kwikapi_opid: operator.operator_id,
             circle_code: circle.circle_code,
             circle_name: circle.circle_name,
-            source: 'cache'
+            detection_method: 'cache'
           }
         });
       }
@@ -101,12 +101,12 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Find matching operator in our database
+    // Find matching operator in our database using kwikapi_billers table
     const { data: operators } = await supabase
-      .from('recharge_operators')
+      .from('kwikapi_billers')
       .select('*')
-      .eq('kwikapi_opid', parseInt(details.opid))
-      .eq('service_type', 'PREPAID')
+      .eq('operator_id', parseInt(details.opid))
+      .eq('service_type', 'Prepaid')
       .eq('is_active', true);
 
     let matchedOperator = null;
@@ -115,9 +115,9 @@ export async function POST(request: NextRequest) {
     } else {
       // Try to find by name matching
       const { data: allOperators } = await supabase
-        .from('recharge_operators')
+        .from('kwikapi_billers')
         .select('*')
-        .eq('service_type', 'PREPAID')
+        .eq('service_type', 'Prepaid')
         .eq('is_active', true);
 
       if (allOperators) {
@@ -178,12 +178,12 @@ export async function POST(request: NextRequest) {
       success: true,
       data: {
         mobile_number,
-        operator_code: matchedOperator.operator_code,
+        operator_code: `KWIKAPI_${matchedOperator.operator_id}`,
         operator_name: matchedOperator.operator_name,
-        kwikapi_opid: matchedOperator.kwikapi_opid,
+        kwikapi_opid: matchedOperator.operator_id,
         circle_code: matchedCircle.circle_code,
         circle_name: matchedCircle.circle_name,
-        source: 'kwikapi',
+        detection_method: 'kwikapi',
         raw_response: data
       }
     });

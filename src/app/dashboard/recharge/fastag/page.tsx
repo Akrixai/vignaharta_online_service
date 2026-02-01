@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/dashboard/layout';
 import SearchableSelect from '@/components/SearchableSelect';
 import RechargeBrandingFooter from '@/components/recharge/RechargeBrandingFooter';
+import FasTagBillDetails from '@/components/recharge/FasTagBillDetails';
 
 interface Operator {
   id: string;
@@ -20,14 +21,37 @@ interface Operator {
 }
 
 interface BillDetails {
-  consumer_name: string;
+  status: string;
+  message: string;
+  customer_name: string;
   bill_number: string;
-  bill_date: string;
-  bill_period: string;
-  bill_amount: string;
   due_amount: string;
   due_date: string;
+  bill_date: string;
+  bill_period: string;
   ref_id: string;
+  order_id: string;
+  kwikapi_response?: {
+    status?: string;
+    provider?: string;
+    message?: string;
+    due_amount?: string;
+    due_date?: string;
+    customer_name?: string;
+    bill_number?: string;
+    bill_date?: string;
+    bill_period?: string;
+    ref_id?: string;
+    service?: string;
+    Additional?: {
+      'Available Recharge Limit'?: string;
+      vehicleClass?: string;
+      vehicleClassDesc?: string;
+      status?: string;
+      'Available Balance'?: string;
+      tagId?: string;
+    };
+  };
 }
 
 interface FieldOption {
@@ -185,6 +209,156 @@ export default function FASTagPage() {
     } catch (error) {
       console.error('🔧 [Biller Details] Error fetching biller details:', error);
       setDynamicFields([]);
+    }
+  };
+
+  const fetchBill = async () => {
+    // Get the primary identifier from dynamic fields or fallback to vehicleNumber
+    let primaryNumber = '';
+    
+    if (dynamicFields.length > 0) {
+      // Find the primary number field (usually the first required field)
+      const primaryField = dynamicFields.find(field => 
+        field.required && (
+          field.name.toLowerCase().includes('vehicle') ||
+          field.name.toLowerCase().includes('number') ||
+          field.name.toLowerCase().includes('tag') ||
+          field.name.toLowerCase().includes('id')
+        )
+      );
+      
+      if (primaryField) {
+        primaryNumber = dynamicFieldValues[primaryField.key] || '';
+      }
+      
+      // Check if all required fields are filled
+      const missingFields = dynamicFields.filter(field => 
+        field.required && !dynamicFieldValues[field.key]
+      );
+      
+      if (missingFields.length > 0) {
+        setMessage(`⚠️ Please fill required fields: ${missingFields.map(f => f.label).join(', ')}`);
+        setMessageType('error');
+        return;
+      }
+    } else {
+      primaryNumber = vehicleNumber;
+      if (!primaryNumber) {
+        setMessage('Please enter vehicle number');
+        setMessageType('error');
+        return;
+      }
+    }
+
+    if (!selectedOperator) {
+      setMessage('Please select FASTag bank');
+      setMessageType('error');
+      return;
+    }
+
+    const operator = operators.find(op => op.id === selectedOperator);
+
+    // Check if operator supports bill fetch
+    if (operator?.metadata?.bill_fetch !== 'YES') {
+      setMessage('⚠️ Bill fetch not supported for this operator. Please enter the amount manually.');
+      setMessageType('info');
+      return;
+    }
+
+    setFetchingBill(true);
+    setMessage('🔍 Fetching your FASTag balance...');
+    setMessageType('info');
+    setBillDetails(null);
+
+    try {
+      console.log('🔍 [Frontend] Fetching bill for:', {
+        operator: operator.operator_name,
+        vehicle: primaryNumber,
+        service_type: 'FASTAG'
+      });
+
+      // Prepare dynamic parameters
+      const dynamicParams: { [key: string]: string } = {};
+      dynamicFields.forEach(field => {
+        const value = dynamicFieldValues[field.key];
+        if (value) {
+          dynamicParams[field.kwikapi_param] = value;
+        }
+      });
+
+      // Use KwikAPI bill fetch endpoint
+      const res = await fetch('/api/kwikapi/bill-fetch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          opid: operator?.kwikapi_opid,
+          number: primaryNumber,
+          mobile: customerMobile || primaryNumber,
+          amount: parseFloat(amount) || 100, // Default amount for bill fetch
+          ...dynamicParams
+        }),
+      });
+
+      const data = await res.json();
+
+      console.log('📦 [Frontend] Bill fetch response:', data);
+
+      if (data.success) {
+        const billData = data.data;
+        
+        console.log('📦 [Frontend] Received bill data:', billData);
+        console.log('📦 [Frontend] KwikAPI response:', billData.kwikapi_response);
+        
+        // Store the complete bill response for the new component
+        setBillDetails(billData);
+        
+        // Update form fields
+        setAmount(billData.due_amount || '100');
+        setCustomerName(billData.customer_name || '');
+        
+        // Show success message with FasTag specific information
+        const kwikApiResponse = billData.kwikapi_response || {};
+        const balanceInfo = kwikApiResponse.Additional?.['Available Balance'] ? 
+          `Current Balance: ₹${kwikApiResponse.Additional['Available Balance']}` : '';
+        const statusInfo = kwikApiResponse.Additional?.status ? 
+          `Status: ${kwikApiResponse.Additional.status}` : '';
+        
+        setMessage(`✅ FasTag details found for ${billData.customer_name || 'vehicle'}. ${balanceInfo}${statusInfo ? ` | ${statusInfo}` : ''}`);
+        setMessageType('success');
+      } else {
+        // Handle different types of errors with user-friendly messages
+        let errorMessage = data.message || 'Unable to fetch FASTag details';
+        
+        if (data.error === 'TIMEOUT_ERROR') {
+          errorMessage = '⏳ The request is taking longer than usual. Please try again in a moment.';
+        } else if (data.error === 'SERVICE_UNAVAILABLE' || data.error === 'SERVER_ERROR') {
+          errorMessage = '⚠️ The bill fetch service is temporarily unavailable. You can enter the amount manually and proceed.';
+        } else if (data.error === 'NETWORK_ERROR') {
+          errorMessage = '🌐 Network error. Please check your connection and try again.';
+        } else if (data.error === 'SERVICE_NOT_FOUND') {
+          errorMessage = '⚠️ Bill fetch not available for this operator. Please enter the amount manually.';
+        }
+        
+        setMessage(errorMessage);
+        setMessageType('error');
+      }
+    } catch (error: any) {
+      console.error('❌ [Frontend] Bill fetch error:', error);
+      
+      let errorMessage = '❌ Error fetching FASTag details';
+      
+      if (error.name === 'TypeError' && error.message?.includes('fetch')) {
+        errorMessage = '🌐 Network error. Please check your connection and try again.';
+      } else if (error.message?.includes('timeout')) {
+        errorMessage = '⏳ Request timed out. Please try again.';
+      } else {
+        errorMessage = `❌ Error fetching FASTag details: ${error.message}`;
+      }
+      
+      setMessage(errorMessage);
+      setMessageType('error');
+    } finally {
+      setFetchingBill(false);
     }
   };
 
@@ -527,6 +701,28 @@ export default function FASTagPage() {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   />
                 </div>
+
+                {/* Fetch Bill Button */}
+                <div className="flex items-end">
+                  <button
+                    type="button"
+                    onClick={fetchBill}
+                    disabled={fetchingBill || (!vehicleNumber && dynamicFields.length === 0) || !selectedOperator}
+                    className="w-full px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
+                  >
+                    {fetchingBill ? '⏳ Fetching Details...' : '🔍 Fetch FASTag Details'}
+                  </button>
+                </div>
+
+                {/* Bill Details Display */}
+                {billDetails && (
+                  <div className="md:col-span-2">
+                    <FasTagBillDetails 
+                      billData={billDetails} 
+                      onAmountUpdate={setAmount}
+                    />
+                  </div>
+                )}
 
                 {/* Amount */}
                 <div className="md:col-span-2">

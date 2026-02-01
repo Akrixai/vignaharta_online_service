@@ -18,26 +18,33 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Map service types for consistency
-    const serviceTypeMapping: { [key: string]: string } = {
-      'ELECTRICITY': 'ELC',
-      'POSTPAID': 'Postpaid',
-      'PREPAID': 'Prepaid',
-      'DTH': 'DTH',
-      'GAS': 'Gas',
-      'WATER': 'Water',
-      'BROADBAND': 'Broadband',
-      'LANDLINE': 'Landline',
-      'DATACARD': 'DataCard'
+    // Map service types for consistency - handle all variations
+    const serviceTypeMapping: { [key: string]: string[] } = {
+      'ELECTRICITY': ['ELC'],
+      'POSTPAID': ['Postpaid'],
+      'PREPAID': ['Prepaid'],
+      'DTH': ['DTH'],
+      'GAS': ['GAS', 'Gas', 'GAS_Cylinder'], // Handle all gas-related service types
+      'WATER': ['Water'],
+      'BROADBAND': ['Broadband'],
+      'LANDLINE': ['Landline'],
+      'DATACARD': ['DataCard', 'DATACARD'],
+      'CABLETV': ['CableTV', 'Cable TV'],
+      'FASTAG': ['FASTag'],
+      'INSURANCE': ['Insurance'],
+      'CREDITCARD': ['CreditCard'],
+      'MONEYTRANSFER': ['MoneyTransfer'],
+      'PAN': ['PAN'],
+      'PAYMENTS': ['PAYMENTS']
     };
 
-    const mappedServiceType = serviceTypeMapping[serviceType.toUpperCase()] || serviceType;
+    const mappedServiceTypes = serviceTypeMapping[serviceType.toUpperCase()] || [serviceType];
 
-    // Fetch operators from kwikapi_billers table
+    // Fetch operators from kwikapi_billers table - handle multiple service types
     const { data: operators, error } = await supabase
       .from('kwikapi_billers')
       .select('*')
-      .eq('service_type', mappedServiceType)
+      .in('service_type', mappedServiceTypes)
       .eq('is_active', true)
       .order('operator_name');
 
