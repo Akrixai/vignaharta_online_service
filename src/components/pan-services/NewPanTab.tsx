@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import toast from 'react-hot-toast';
 import PanConfirmationModal from './PanConfirmationModal';
+import PanServiceValidation from './PanServiceValidation';
 
 interface PanConfig {
   price: number;
@@ -53,16 +54,9 @@ export default function NewPanTab({ walletBalance, onWalletUpdate, router }: New
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleValidationSuccess = async () => {
     if (!config) {
       toast.error('Configuration not loaded. Please refresh the page.');
-      return;
-    }
-
-    if (walletBalance < config.price) {
-      toast.error(`Insufficient wallet balance. Required: ₹${config.price}. Please add money to your wallet first.`);
       return;
     }
 
@@ -74,6 +68,8 @@ export default function NewPanTab({ walletBalance, onWalletUpdate, router }: New
     setLoading(true);
 
     try {
+      console.log('🚀 Submitting PAN application:', formData);
+
       const response = await fetch('/api/pan-services/new-pan', {
         method: 'POST',
         headers: {
@@ -115,6 +111,11 @@ export default function NewPanTab({ walletBalance, onWalletUpdate, router }: New
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    // This is now handled by the validation component
   };
 
   const handleConfirmRedirect = () => {
@@ -202,25 +203,17 @@ export default function NewPanTab({ walletBalance, onWalletUpdate, router }: New
             </div>
 
             <div className="flex justify-end pt-6 border-t border-gray-200">
-              <button
-                type="submit"
-                disabled={loading || configLoading || !config || walletBalance < (config?.price || 0)}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200 flex items-center justify-center"
-              >
-                {loading ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Processing...
-                  </>
-                ) : configLoading ? (
-                  'Loading...'
-                ) : (
-                  'Start Application'
-                )}
-              </button>
+              <PanServiceValidation
+                walletBalance={walletBalance}
+                onValidationSuccess={handleValidationSuccess}
+                onValidationError={(errors) => {
+                  console.error('Validation failed:', errors);
+                }}
+                buttonText="Start Application"
+                disabled={loading || configLoading || !config}
+                className="w-full"
+                showRequirements={true}
+              />
             </div>
           </form>
         </div>

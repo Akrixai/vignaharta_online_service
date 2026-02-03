@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import toast from 'react-hot-toast';
 import PanConfirmationModal from './PanConfirmationModal';
+import PanServiceValidation from './PanServiceValidation';
 
 interface PanConfig {
   price: number;
@@ -51,16 +52,9 @@ export default function PanCorrectionTab({ walletBalance, onWalletUpdate, router
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleValidationSuccess = async () => {
     if (!config) {
       toast.error('Configuration not loaded');
-      return;
-    }
-
-    if (walletBalance < config.price) {
-      toast.error(`Insufficient wallet balance. Required: ₹${config.price}`);
       return;
     }
 
@@ -72,6 +66,8 @@ export default function PanCorrectionTab({ walletBalance, onWalletUpdate, router
     setLoading(true);
 
     try {
+      console.log('🚀 Submitting PAN correction:', formData);
+
       const response = await fetch('/api/pan-services/pan-correction', {
         method: 'POST',
         headers: {
@@ -113,6 +109,11 @@ export default function PanCorrectionTab({ walletBalance, onWalletUpdate, router
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    // This is now handled by the validation component
   };
 
   const handleConfirmRedirect = () => {
@@ -212,13 +213,17 @@ export default function PanCorrectionTab({ walletBalance, onWalletUpdate, router
             </div>
 
             <div className="flex justify-end pt-6 border-t border-gray-200">
-              <button
-                type="submit"
-                disabled={loading || configLoading || !config || walletBalance < (config?.price || 0)}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
-              >
-                {loading ? 'Processing...' : 'Start Correction'}
-              </button>
+              <PanServiceValidation
+                walletBalance={walletBalance}
+                onValidationSuccess={handleValidationSuccess}
+                onValidationError={(errors) => {
+                  console.error('Validation failed:', errors);
+                }}
+                buttonText="Start Correction"
+                disabled={loading || configLoading || !config}
+                className="w-full"
+                showRequirements={true}
+              />
             </div>
           </form>
         </div>

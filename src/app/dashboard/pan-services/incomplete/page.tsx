@@ -8,6 +8,8 @@ import toast from 'react-hot-toast';
 import DashboardLayout from '@/components/dashboard/layout';
 import PanConfirmationModal from '@/components/pan-services/PanConfirmationModal';
 import PanBrandingFooter from '@/components/pan-services/PanBrandingFooter';
+import PanServiceValidation from '@/components/pan-services/PanServiceValidation';
+import ResumeApplicationButton from '@/components/pan-services/ResumeApplicationButton';
 
 interface PanService {
   id: string;
@@ -26,6 +28,8 @@ export default function IncompletePanPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [walletBalance, setWalletBalance] = useState<number>(0);
+  const [walletLoading, setWalletLoading] = useState(true);
   const [pendingApplications, setPendingApplications] = useState<PanService[]>([]);
   const [loadingApplications, setLoadingApplications] = useState(true);
   const [resuming, setResuming] = useState<string | null>(null);
@@ -40,6 +44,7 @@ export default function IncompletePanPage() {
 
   useEffect(() => {
     if (hasAccess) {
+      fetchWalletBalance();
       fetchPendingApplications();
 
       // Auto-refresh every 30 seconds for pending applications
@@ -47,6 +52,28 @@ export default function IncompletePanPage() {
       return () => clearInterval(interval);
     }
   }, [hasAccess]);
+
+  const fetchWalletBalance = async () => {
+    setWalletLoading(true);
+    try {
+      const response = await fetch('/api/wallet');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setWalletBalance(data.data.balance || 0);
+        } else {
+          toast.error('Failed to load wallet balance');
+        }
+      } else {
+        toast.error('Failed to load wallet balance');
+      }
+    } catch (error) {
+      console.error('Wallet fetch error:', error);
+      toast.error('Failed to load wallet balance');
+    } finally {
+      setWalletLoading(false);
+    }
+  };
 
   const fetchPendingApplications = async () => {
     try {
@@ -118,9 +145,7 @@ export default function IncompletePanPage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleValidationSuccess = async () => {
     if (!formData.existing_order_id.trim()) {
       toast.error('Please enter your existing order ID');
       return;
@@ -176,6 +201,11 @@ export default function IncompletePanPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    // This is now handled by the validation component
   };
 
   const handleConfirmRedirect = () => {
@@ -289,13 +319,16 @@ export default function IncompletePanPage() {
                       </div>
 
                       <div className="ml-4">
-                        <button
-                          onClick={() => handleResumeFromList(app.order_id, app)}
-                          disabled={resuming === app.order_id}
-                          className="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors text-sm disabled:opacity-50"
-                        >
-                          {resuming === app.order_id ? 'Resuming...' : 'Resume Now'}
-                        </button>
+                        <ResumeApplicationButton
+                          walletBalance={walletBalance}
+                          onValidationSuccess={() => handleResumeFromList(app.order_id, app)}
+                          onValidationError={(errors) => {
+                            console.error('Resume validation failed:', errors);
+                          }}
+                          disabled={false}
+                          isResuming={resuming === app.order_id}
+                          className="transition-colors"
+                        />
                       </div>
                     </div>
                   </div>
@@ -368,13 +401,19 @@ export default function IncompletePanPage() {
                   ← Back
                 </button>
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
-                >
-                  {loading ? 'Processing...' : 'Resume Application'}
-                </button>
+                <div className="flex-1 ml-4">
+                  <PanServiceValidation
+                    walletBalance={walletBalance}
+                    onValidationSuccess={handleValidationSuccess}
+                    onValidationError={(errors) => {
+                      console.error('Validation failed:', errors);
+                    }}
+                    buttonText="Resume Application"
+                    disabled={loading || walletLoading || !formData.existing_order_id.trim()}
+                    className="w-full"
+                    showRequirements={false}
+                  />
+                </div>
               </div>
             </form>
           </div>

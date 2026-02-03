@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import toast from 'react-hot-toast';
 import PanConfirmationModal from './PanConfirmationModal';
+import PanServiceValidation from './PanServiceValidation';
+import ResumeApplicationButton from './ResumeApplicationButton';
 import { usePanServiceMonitor } from '@/hooks/usePanServiceMonitor';
 
 interface PanService {
@@ -119,6 +121,9 @@ export default function IncompletePanTab({ walletBalance, onWalletUpdate, router
   const handleResumeFromList = async (orderId: string, application: PanService) => {
     try {
       setResuming(orderId);
+      
+      console.log('🚀 Resuming application:', orderId);
+
       const res = await fetch('/api/pan-services/incomplete-pan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -157,9 +162,7 @@ export default function IncompletePanTab({ walletBalance, onWalletUpdate, router
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleValidationSuccess = async () => {
     if (!formData.existing_order_id.trim()) {
       toast.error('Please enter your existing Order ID');
       return;
@@ -222,6 +225,11 @@ export default function IncompletePanTab({ walletBalance, onWalletUpdate, router
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    // This is now handled by the validation component
   };
 
   const handleConfirmRedirect = () => {
@@ -360,13 +368,16 @@ export default function IncompletePanTab({ walletBalance, onWalletUpdate, router
                     </div>
 
                     <div className="ml-4">
-                      <button
-                        onClick={() => handleResumeFromList(app.order_id, app)}
-                        disabled={resuming === app.order_id}
-                        className="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors text-sm disabled:opacity-50"
-                      >
-                        {resuming === app.order_id ? 'Resuming...' : 'Resume Now'}
-                      </button>
+                      <ResumeApplicationButton
+                        walletBalance={walletBalance}
+                        onValidationSuccess={() => handleResumeFromList(app.order_id, app)}
+                        onValidationError={(errors) => {
+                          console.error('Resume validation failed:', errors);
+                        }}
+                        disabled={false}
+                        isResuming={resuming === app.order_id}
+                        className="transition-colors"
+                      />
                     </div>
                   </div>
                 </div>
@@ -433,13 +444,17 @@ export default function IncompletePanTab({ walletBalance, onWalletUpdate, router
               </div>
 
               <div className="flex justify-end pt-6 border-t border-gray-200">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
-                >
-                  {loading ? 'Processing...' : 'Resume Application'}
-                </button>
+                <PanServiceValidation
+                  walletBalance={walletBalance}
+                  onValidationSuccess={handleValidationSuccess}
+                  onValidationError={(errors) => {
+                    console.error('Validation failed:', errors);
+                  }}
+                  buttonText="Resume Application"
+                  disabled={loading || !formData.existing_order_id.trim()}
+                  className="w-full"
+                  showRequirements={true}
+                />
               </div>
             </form>
           </div>
