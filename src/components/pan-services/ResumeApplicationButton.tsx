@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { usePanServiceValidation } from '@/hooks/usePanServiceValidation';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, MapPin } from 'lucide-react';
+import { RefreshCw, Wallet } from 'lucide-react';
 
 interface ResumeApplicationButtonProps {
   walletBalance: number;
@@ -24,17 +24,12 @@ export default function ResumeApplicationButton({
 }: ResumeApplicationButtonProps) {
   const {
     validateBeforeStart,
-    isValidating,
-    geolocationError,
-    clearGeolocationError
+    isValidating
   } = usePanServiceValidation(walletBalance, {
-    minWalletBalance: 100,
-    requireGeolocation: true
+    minWalletBalance: 100
   });
 
   const handleValidateAndResume = async () => {
-    clearGeolocationError();
-
     const result = await validateBeforeStart();
 
     if (result.isValid) {
@@ -66,7 +61,7 @@ export default function ResumeApplicationButton({
         </>
       ) : (
         <>
-          <MapPin className="mr-2 h-4 w-4" />
+          <Wallet className="mr-2 h-4 w-4" />
           Resume Now
         </>
       )}
