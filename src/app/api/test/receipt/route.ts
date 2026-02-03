@@ -13,11 +13,11 @@ export async function GET(request: NextRequest) {
       .from('pan_services')
       .select(`
         *,
-        users!inner(
+        users!pan_services_user_id_fkey(
           id,
           name,
           email,
-          mobile_number,
+          phone,
           role
         )
       `)
@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
       user: {
         name: panService.users.name,
         email: panService.users.email,
-        mobile: panService.users.mobile_number,
+        mobile: panService.users.phone,
         role: panService.users.role
       },
       

@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       .from('pan_services')
       .select(`
         *,
-        users!inner(
+        users!pan_services_user_id_fkey(
           id,
           name,
           email,

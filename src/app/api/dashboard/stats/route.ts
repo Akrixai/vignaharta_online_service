@@ -192,7 +192,7 @@ export async function GET(request: NextRequest) {
           .select(`
             amount,
             status,
-            users!inner (
+            users!applications_user_id_fkey (
               territory_state
             )
           `);
@@ -239,7 +239,7 @@ export async function GET(request: NextRequest) {
           .select(`
             amount,
             status,
-            users!inner (
+            users!applications_user_id_fkey (
               territory_state
             )
           `)
@@ -269,7 +269,7 @@ export async function GET(request: NextRequest) {
           .select(`
             amount,
             status,
-            users!inner (
+            users!applications_user_id_fkey (
               territory_district
             )
           `)
@@ -298,7 +298,7 @@ export async function GET(request: NextRequest) {
           .select(`
             amount,
             status,
-            users!inner (
+            users!applications_user_id_fkey (
               territory_area
             )
           `)
