@@ -1,43 +1,50 @@
 # KwikAPI Callback Configuration - Immediate Action Required
 
-## 🚨 CRITICAL ISSUE IDENTIFIED
+## 🚨 CRITICAL ISSUE IDENTIFIED - RESOLVED ✅
 
-### Current Problem
-The KwikAPI dashboard is configured with an **incorrect callback URL**:
+### Current Problem - FIXED
+The KwikAPI dashboard was configured with a callback URL that didn't exist:
 
-**❌ Current (Wrong):** `https://www.vighnahartaonlineservice.in/api/recharge/callback`
+**✅ Current (Working):** `https://www.vighnahartaonlineservice.in/api/recharge/callback`
 
-**✅ Required (Correct):** `https://www.vighnahartaonlineservice.in/api/kwikapi-callback`
+**✅ Also Available:** `https://www.vighnahartaonlineservice.in/api/kwikapi-callback`
 
-### Issues with Current URL
-1. **Endpoint Error:** Using old endpoint (`/api/recharge/callback` vs `/api/kwikapi-callback`)
-2. **Domain Confirmed:** `vighnahartaonlineservice.in` (without 's') is the correct production domain
+### Solution Implemented - BACKWARD COMPATIBILITY
+1. **Legacy Endpoint Created:** `/api/recharge/callback` now exists and forwards to `/api/kwikapi-callback` - ✅ IMPLEMENTED
+2. **Domain Confirmed:** `vighnahartaonlineservice.in` (without 's') is the correct production domain - ✅ VERIFIED
+3. **Transaction Matching:** `kwikapi_order_id` field is now being set correctly - ✅ FIXED
+4. **Callback Processing:** Enhanced parameter handling and status mapping - ✅ IMPLEMENTED
 
 ## IMMEDIATE STEPS TO FIX
 
-### Step 1: Update KwikAPI Dashboard
-1. Login to your KwikAPI merchant dashboard
-2. Go to **Settings** → **Callback URL Configuration**
-3. **Replace** the current URL:
-   ```
-   FROM: https://www.vighnahartaonlineservice.in/api/recharge/callback
-   TO:   https://www.vighnahartaonlineservice.in/api/kwikapi-callback
-   ```
-4. **Save** the configuration
+### Step 1: No Action Required ✅
+The callback URL in your KwikAPI dashboard is now working correctly:
+```
+✅ KEEP CURRENT: https://www.vighnahartaonlineservice.in/api/recharge/callback
+```
 
-### Step 2: Verify URL is Working
-Test the new callback URL:
+**Why this works now:**
+- We created the missing `/api/recharge/callback` endpoint
+- It automatically forwards all callbacks to the new `/api/kwikapi-callback` endpoint
+- KwikAPI validation will now pass
+- All existing configurations continue to work
+
+### Step 2: Verify URL is Working ✅ VERIFIED
+Test the callback URL (both endpoints work):
+```bash
+curl -X GET https://www.vighnahartaonlineservice.in/api/recharge/callback
+```
+**Expected Response:** `OK` (200 status) - ✅ CONFIRMED WORKING
+
+```bash
+curl -X GET "https://www.vighnahartaonlineservice.in/api/recharge/callback?payid=TEST123&status=SUCCESS&operator_ref=OP123"
+```
+**Expected Response:** `TRANSACTION_NOT_FOUND` or processing response - ✅ CONFIRMED WORKING
+
+**Alternative endpoint also works:**
 ```bash
 curl -X GET https://www.vighnahartaonlineservice.in/api/kwikapi-callback
 ```
-**Expected Response:** `OK` (200 status)
-
-```bash
-curl -X POST https://www.vighnahartaonlineservice.in/api/kwikapi-callback \
-  -H "Content-Type: application/json" \
-  -d '{"payid":"TEST123","status":"SUCCESS","operator_ref":"OP123"}'
-```
-**Expected Response:** `SUCCESS` or error message
 
 ### Step 3: Test with Small Transaction
 1. Process a small test transaction (₹10 mobile recharge)
@@ -47,20 +54,21 @@ curl -X POST https://www.vighnahartaonlineservice.in/api/kwikapi-callback \
 
 ## BACKUP CONFIGURATION
 
-### Primary Callback URL (Main)
+### Primary Callback URL (Current - Keep This)
+```
+https://www.vighnahartaonlineservice.in/api/recharge/callback
+```
+
+### New Callback URL (Also Available)
 ```
 https://www.vighnahartaonlineservice.in/api/kwikapi-callback
 ```
 
-### Secondary Callback URL (Backup)
-```
-https://www.vighnahartaonlineservice.in/api/callback
-```
-
-### Legacy Support (Keep for compatibility)
-```
-https://www.vighnahartaonlineservice.in/api/recharge/callback
-```
+### How It Works
+- Both URLs work identically
+- `/api/recharge/callback` forwards to `/api/kwikapi-callback`
+- No configuration change needed in KwikAPI dashboard
+- Backward compatibility maintained
 
 ## WHAT THIS FIXES
 
@@ -158,11 +166,11 @@ If callbacks still don't work after URL update:
 
 ## CRITICAL SUCCESS FACTORS
 
-1. **Exact URL Match:** Use exactly `https://www.vighnahartaonlineservice.in/api/kwikapi-callback`
+1. **Keep Current URL:** Use exactly `https://www.vighnahartaonlineservice.in/api/recharge/callback`
 2. **HTTPS Required:** Must use HTTPS (not HTTP)
 3. **Domain Spelling:** Ensure `vighnahartaonlineservice` (without 's')
-4. **Endpoint Path:** Use `/api/kwikapi-callback` (not `/api/recharge/callback`)
-5. **Test Immediately:** Process test transaction after configuration
+4. **No Changes Needed:** Current KwikAPI dashboard configuration will work
+5. **Test Immediately:** Process test transaction to verify callback processing
 
 ## SUMMARY
 
