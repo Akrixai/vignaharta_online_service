@@ -161,6 +161,7 @@ export async function POST(request: NextRequest) {
         total_amount: totalAmount,
         status: 'PENDING',
         transaction_ref: transactionRef,
+        kwikapi_order_id: kwikApiOrderId, // CRITICAL: Set this for callback matching
         plan_details: plan_details ? JSON.stringify(plan_details) : null,
         kwikapi_provider: operator.operator_name,
       })
@@ -212,6 +213,7 @@ export async function POST(request: NextRequest) {
         .from('recharge_transactions')
         .update({
           status,
+          kwikapi_order_id: kwikApiOrderId, // Ensure this is set for callback matching
           kwikapi_transaction_id: rechargeResponse.data?.order_id,
           operator_transaction_id: rechargeResponse.data?.opr_id,
           response_data: rechargeResponse.data,

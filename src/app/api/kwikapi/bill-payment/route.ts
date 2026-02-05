@@ -315,6 +315,7 @@ export async function POST(request: NextRequest) {
         total_amount: totalAmount,
         status: 'PENDING',
         transaction_ref: transactionRef,
+        kwikapi_order_id: kwikApiOrderId, // CRITICAL: Set this for callback matching
         bill_details: finalBillDetails || {},
         dynamic_fields: { opt1, opt2, opt3, opt4, opt5, opt6, opt7, opt8, opt9, opt10 },
         kwikapi_provider: operator.operator_name,
@@ -421,7 +422,7 @@ export async function POST(request: NextRequest) {
         .from('recharge_transactions')
         .update({
           status,
-          kwikapi_order_id: paymentResponse.data?.order_id,
+          kwikapi_order_id: kwikApiOrderId, // Ensure this is set for callback matching
           kwikapi_transaction_id: paymentResponse.data?.transaction_id,
           operator_transaction_id: paymentResponse.data?.opr_id,
           kwikapi_opr_id: paymentResponse.data?.opr_id,
