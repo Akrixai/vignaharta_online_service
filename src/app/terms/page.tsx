@@ -6,12 +6,12 @@ import InternalLink from "@/components/blog/InternalLink";
 import OutboundLink from "@/components/blog/OutboundLink";
 
 export const metadata: Metadata = {
-  title: "Terms & Conditions - VIGHNAHARTA ONLINE SERVICES | Government Service Portal",
-  description: "Read our terms and conditions to understand the rules and guidelines for using VIGHNAHARTA ONLINE SERVICES government service portal.",
+  title: "Terms & Conditions - VIGHNAHARTA ONLINE SERVICES | Private Service Assistance Platform",
+  description: "Read our terms and conditions. Vighnaharta Online Services is a private platform NOT affiliated with any government entity. We provide guidance to access official government portals.",
   keywords: "terms and conditions, terms of service, user agreement, vighnaharta online services, legal terms",
   openGraph: {
     title: "Terms & Conditions - VIGHNAHARTA ONLINE SERVICES",
-    description: "Read our terms and conditions for using the government service portal.",
+    description: "Read our terms and conditions for using the service assistance platform.",
     type: "website",
   },
 };
@@ -26,16 +26,43 @@ export default function TermsPage() {
       publishDate="2025-12-01"
       lastUpdated="2025-12-01"
       readingTime="8 min read"
-      tldrSummary="These Terms & Conditions govern your use of the Vighnaharta Online Services platform. By accessing and using our services, you agree to be bound by these terms which include user responsibilities, service descriptions, payment terms, and privacy provisions."
+      tldrSummary="These Terms & Conditions govern your use of Vighnaharta Online Services, a private service assistance platform. We are NOT affiliated with any government entity. By using our services, you agree to these terms which include user responsibilities, service descriptions, and privacy provisions."
       tldrPoints={[
+        "We are a PRIVATE platform NOT affiliated with any government entity",
+        "We provide guidance to help you access official government portals",
         "Users must provide accurate information and maintain account security",
-        "Services are provided 'as is' with no guarantees of uninterrupted access",
-        "All fees are non-refundable unless otherwise stated",
+        "Services are provided 'as is' with no guarantees of government approval",
         "Users are responsible for complying with applicable laws and regulations"
       ]}
       keywords={["terms and conditions", "terms of service", "user agreement", "vighnaharta online services", "legal terms"]}
     >
       <div className="prose max-w-none">
+        {/* Important Disclaimer */}
+        <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-6 mb-8 not-prose">
+          <div className="flex items-start gap-3">
+            <div className="bg-amber-100 p-2 rounded-full mt-1">
+              <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-amber-900 mb-2">Important Disclaimer</h3>
+              <p className="text-gray-800 mb-3 font-semibold">
+                ⚠️ Vighnaharta Online Services is a PRIVATE service assistance platform and is NOT affiliated with, endorsed by, or representing any government entity or department.
+              </p>
+              <p className="text-gray-700 text-sm">
+                We provide guidance and assistance to help citizens access official government websites. We do NOT issue any government documents, certificates, or approvals. All government services are processed by official government departments:
+              </p>
+              <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                <a href="https://uidai.gov.in" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">🔗 UIDAI - uidai.gov.in</a>
+                <a href="https://incometax.gov.in" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">🔗 Income Tax - incometax.gov.in</a>
+                <a href="https://passportindia.gov.in" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">🔗 Passport Seva - passportindia.gov.in</a>
+                <a href="https://www.india.gov.in" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">🔗 India Portal - india.gov.in</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <section className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">1. Acceptance of Terms</h2>
           <div className="space-y-4 text-gray-600">
@@ -46,14 +73,17 @@ export default function TermsPage() {
         <section className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">2. Service Description</h2>
           <div className="space-y-4 text-gray-600">
-            <p>Vighnaharta Online Services is a government service portal that provides:</p>
+            <p>Vighnaharta Online Services is a private service assistance platform that provides:</p>
             <ul className="list-disc list-inside space-y-2 ml-4">
-              <li>Digital access to government services</li>
-              <li>Application processing and tracking</li>
-              <li>Document verification and submission</li>
-              <li>Retailer network for service delivery</li>
+              <li>Guidance and information to access official government portals</li>
+              <li>Assistance in navigating government websites and services</li>
+              <li>Support in understanding application processes</li>
+              <li>Help with document preparation and submission guidance</li>
               <li>Customer support and assistance</li>
             </ul>
+            <p className="font-semibold text-amber-800 bg-amber-50 p-3 rounded">
+              ⚠️ IMPORTANT: We do NOT issue any government documents, certificates, or approvals. All government services are processed exclusively by official government departments through their official portals.
+            </p>
             <p>For specific services, please refer to our <InternalLink href="/services" title="View All Services">services page</InternalLink> and <InternalLink href="/privacy" title="Privacy Policy">privacy policy</InternalLink>.</p>
           </div>
         </section>

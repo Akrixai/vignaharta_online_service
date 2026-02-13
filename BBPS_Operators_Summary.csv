@@ -1,0 +1,10 @@
+Service Type,Total Operators,Active Operators,Total Transactions,Successful Transactions,Total Success Amount (INR),Status
+PREPAID (Mobile Recharge),362,362,16,11,1863.00,OPERATIONAL - Tested & Working
+POSTPAID (Mobile Bill Payment),9,9,0,0,0.00,READY - Awaiting Activation
+DTH (DTH Recharge),12,12,3,1,308.00,OPERATIONAL - Tested & Working
+ELECTRICITY (Electricity Bill Payment),102,102,4,3,3390.00,OPERATIONAL - Tested & Working
+GAS (Gas Bill Payment),Multiple,Multiple,0,0,0.00,READY - Awaiting Activation
+WATER (Water Bill Payment),Multiple,Multiple,0,0,0.00,READY - Awaiting Activation
+BROADBAND (Broadband Bill Payment),Multiple,Multiple,0,0,0.00,READY - Awaiting Activation
+LANDLINE (Landline Bill Payment),Multiple,Multiple,0,0,0.00,READY - Awaiting Activation
+INSURANCE (Insurance Premium),Multiple,Multiple,0,0,0.00,READY - Awaiting Activation

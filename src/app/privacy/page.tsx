@@ -6,8 +6,8 @@ import InternalLink from "@/components/blog/InternalLink";
 import OutboundLink from "@/components/blog/OutboundLink";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy - Vighnaharta Online Services | Government Service Portal",
-  description: "Read our comprehensive privacy policy to understand how Vighnaharta Online Services protects and handles your personal information and data.",
+  title: "Privacy Policy - Vighnaharta Online Services | Private Service Assistance Platform",
+  description: "Read our privacy policy. Vighnaharta Online Services is a private platform NOT affiliated with any government entity. We help citizens access official government portals like uidai.gov.in, incometax.gov.in.",
   keywords: "privacy policy, data protection, personal information, security, vighnaharta online services",
   openGraph: {
     title: "Privacy Policy - Vighnaharta Online Services",
@@ -26,16 +26,43 @@ export default function PrivacyPage() {
       publishDate="2025-12-01"
       lastUpdated="2025-12-01"
       readingTime="7 min read"
-      tldrSummary="This Privacy Policy explains how Vighnaharta Online Services collects, uses, and protects your personal information when you use our government service portal. We are committed to safeguarding your data and complying with Indian data protection regulations."
+      tldrSummary="This Privacy Policy explains how Vighnaharta Online Services, a private service assistance platform, collects, uses, and protects your personal information. We are NOT affiliated with any government entity and only provide guidance to access official government portals."
       tldrPoints={[
-        "We collect information you provide directly to us for service applications",
-        "Your data is used only for processing government services and communication",
+        "We are a PRIVATE platform NOT affiliated with any government entity",
+        "We collect information you provide to help you access official government portals",
+        "Your data is used only for providing assistance and guidance services",
         "We implement robust security measures to protect your information",
         "You have rights to access, correct, and delete your personal data"
       ]}
       keywords={["privacy policy", "data protection", "personal information", "security", "vighnaharta online services"]}
     >
       <div className="prose max-w-none">
+        {/* Important Disclaimer */}
+        <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-6 mb-8 not-prose">
+          <div className="flex items-start gap-3">
+            <div className="bg-amber-100 p-2 rounded-full mt-1">
+              <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-amber-900 mb-2">Important Disclaimer</h3>
+              <p className="text-gray-800 mb-3 font-semibold">
+                ⚠️ Vighnaharta Online Services is a PRIVATE service assistance platform and is NOT affiliated with, endorsed by, or representing any government entity or department.
+              </p>
+              <p className="text-gray-700 text-sm">
+                We provide guidance to help citizens access official government websites. All government services are processed by official government departments through their official portals:
+              </p>
+              <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                <a href="https://uidai.gov.in" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">🔗 UIDAI - uidai.gov.in</a>
+                <a href="https://incometax.gov.in" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">🔗 Income Tax - incometax.gov.in</a>
+                <a href="https://passportindia.gov.in" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">🔗 Passport Seva - passportindia.gov.in</a>
+                <a href="https://www.india.gov.in" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">🔗 India Portal - india.gov.in</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <section className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">1. Information We Collect</h2>
           <div className="space-y-4 text-gray-600">

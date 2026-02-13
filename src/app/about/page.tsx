@@ -4,9 +4,9 @@ import Footer from "@/components/Footer";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "About Us - VIGHNAHARTA ONLINE SERVICES | Digital India Initiative",
-  description: "Learn about Vighnaharta Online Services - India's premier digital government services portal with 10,000+ service centers nationwide. Part of Digital India initiative.",
-  keywords: "about vighnaharta, digital india, government services portal, service centers india",
+  title: "About Us - VIGHNAHARTA ONLINE SERVICES | Private Service Assistance Platform",
+  description: "Vighnaharta Online Services is a private service assistance platform helping citizens access official government portals. NOT affiliated with any government entity. We provide guidance to official sources like uidai.gov.in, incometax.gov.in, passportindia.gov.in.",
+  keywords: "about vighnaharta, service assistance, government portal guidance, private service platform",
 };
 
 export default function AboutPage() {
@@ -21,7 +21,10 @@ export default function AboutPage() {
             About Vighnaharta Online Services
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto animate-slide-in-up">
-            Empowering India through digital transformation of government services
+            A private service assistance platform helping citizens access official government portals
+          </p>
+          <p className="text-sm text-amber-700 font-semibold mt-4 bg-amber-50 inline-block px-6 py-2 rounded-full">
+            ⚠️ NOT affiliated with any government entity
           </p>
         </div>
 
@@ -31,8 +34,9 @@ export default function AboutPage() {
             <div className="text-5xl mb-4">🎯</div>
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Mission</h2>
             <p className="text-gray-700 leading-relaxed">
-              To make government services accessible to every Indian citizen through our nationwide network of service centers, 
-              leveraging technology to simplify processes and reduce bureaucratic hurdles.
+              To help citizens access official government services by providing guidance, information, and assistance 
+              in navigating official government portals and websites. We act as a private service assistance platform 
+              to simplify the process of accessing government services online.
             </p>
           </div>
           
@@ -40,8 +44,75 @@ export default function AboutPage() {
             <div className="text-5xl mb-4">👁️</div>
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Vision</h2>
             <p className="text-gray-700 leading-relaxed">
-              To become India's most trusted and comprehensive digital government services platform, 
-              reaching every corner of the nation and empowering citizens with seamless access to essential services.
+              To become India's most trusted private service assistance platform, helping citizens across the nation 
+              easily access and navigate official government portals and services with confidence and ease.
+            </p>
+          </div>
+        </div>
+
+        {/* Important Disclaimer - Required for Play Store Compliance */}
+        <div className="bg-amber-50 border-2 border-amber-300 rounded-xl shadow-lg p-8 mb-16">
+          <div className="flex items-start gap-4 mb-6">
+            <div className="bg-amber-100 p-3 rounded-full">
+              <svg className="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-3xl font-bold text-amber-900 mb-4">Important Disclaimer</h2>
+              <div className="space-y-3 text-gray-800 text-lg">
+                <p className="font-semibold">
+                  ⚠️ Vighnaharta Online Services is a PRIVATE service assistance platform and is NOT affiliated with, endorsed by, or representing any government entity or department.
+                </p>
+                <p>
+                  We provide guidance and assistance to help citizens access official government services by redirecting them to the appropriate official government websites and portals. We do NOT issue any government documents, certificates, or approvals.
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-lg p-6 mt-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Official Government Sources We Reference:</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-gray-700">
+              <div className="flex items-center gap-2">
+                <span className="text-blue-600">🔗</span>
+                <a href="https://uidai.gov.in" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  UIDAI (Aadhaar) - uidai.gov.in
+                </a>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-blue-600">🔗</span>
+                <a href="https://incometax.gov.in" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  Income Tax Department (PAN) - incometax.gov.in
+                </a>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-blue-600">🔗</span>
+                <a href="https://passportindia.gov.in" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  Passport Seva - passportindia.gov.in
+                </a>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-blue-600">🔗</span>
+                <a href="https://www.india.gov.in" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  National Portal of India - india.gov.in
+                </a>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-blue-600">🔗</span>
+                <a href="https://meity.gov.in" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  MeitY (Digital India) - meity.gov.in
+                </a>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-blue-600">🔗</span>
+                <a href="https://digitalindia.gov.in" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  Digital India Portal - digitalindia.gov.in
+                </a>
+              </div>
+            </div>
+            <p className="mt-4 text-sm text-gray-600 italic">
+              All government services, applications, and document issuance are processed exclusively by the respective official government departments through their official portals listed above.
             </p>
           </div>
         </div>
@@ -56,14 +127,14 @@ export default function AboutPage() {
               in accessing essential government documents and services due to complex procedures, long queues, and limited accessibility.
             </p>
             <p>
-              Starting with a handful of service centers, we've grown into a nationwide network of over 10,000+ centers 
-              across India. Our platform has successfully processed millions of applications, helping citizens obtain 
-              Aadhaar cards, PAN cards, passports, certificates, and access to 100+ government services.
+              Starting with a handful of service centers, we've grown into a nationwide network of service centers 
+              across India. Our platform helps citizens by providing guidance and assistance to access 
+              official government portals for Aadhaar cards, PAN cards, passports, certificates, and other government services.
             </p>
             <p>
-              As part of the Digital India initiative, we're committed to transforming India into a digitally empowered 
-              society and knowledge economy. Our technology-driven approach ensures transparency, efficiency, and 
-              accessibility for all.
+              We support the Digital India initiative by helping citizens navigate digital government services. 
+              Our technology-driven approach focuses on providing information, guidance, and assistance to help 
+              citizens access official government portals efficiently.
             </p>
           </div>
         </div>
