@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
@@ -144,7 +144,7 @@ export default function OrdersPage() {
 
       doc.setFontSize(14);
       doc.setFont('helvetica', 'normal');
-      doc.text('Government Service Portal', 105, 32, { align: 'center' });
+      doc.text('Digital Service Portal', 105, 32, { align: 'center' });
 
       doc.setFontSize(18);
       doc.setFont('helvetica', 'bold');

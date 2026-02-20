@@ -34,7 +34,7 @@ export default function PanBrandingFooter() {
                     {/* NSDL Branding */}
                     <div className="flex items-center space-x-4 bg-gradient-to-br from-white to-gray-50 px-6 py-3 rounded-2xl shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-md hover:border-blue-100 group">
                         <div className="flex flex-col items-start leading-none">
-                            <span className="text-[10px] uppercase tracking-[0.2em] text-gray-400 font-bold mb-1">Official Portal Partner</span>
+                            <span className="text-[10px] uppercase tracking-[0.2em] text-gray-400 font-bold mb-1">Authorized Service Partner</span>
                             <span className="text-sm font-bold text-gray-800 group-hover:text-blue-600 transition-colors">NSDL e-Gov</span>
                         </div>
                         <div className="relative w-16 h-10 transform transition-transform group-hover:scale-110">

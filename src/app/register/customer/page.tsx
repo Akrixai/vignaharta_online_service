@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -178,7 +178,7 @@ export default function CustomerRegisterPage() {
               <span className="text-xl font-bold">Register as Customer</span>
             </div>
             <p className="text-blue-100 text-sm">
-              Get instant access to government services with cashback rewards!
+              Get instant access to digital services with cashback rewards!
             </p>
           </div>
         </div>

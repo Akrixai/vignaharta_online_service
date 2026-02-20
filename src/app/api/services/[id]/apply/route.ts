@@ -42,7 +42,7 @@ export async function POST(
       }, { status: 400 });
     }
 
-    // Get service details from schemes table (both government and other services)
+    // Get service details from schemes table (both digital and other services)
     const { data: service, error: serviceError } = await supabaseAdmin
       .from('schemes')
       .select('*')
@@ -93,7 +93,7 @@ export async function POST(
       scheme_id: serviceId,
       form_data: {
         service_name: service.name,
-        service_type: service.category || 'government_service',
+        service_type: service.category || 'digital_service',
         service_category: service.category,
         processing_time: service.processing_time_days,
         commission_rate: service.commission_rate,

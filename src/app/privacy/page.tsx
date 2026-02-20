@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import Logo from "@/components/ui/logo";
 import { Metadata } from "next";
 import BlogPostTemplate from "@/components/blog/BlogPostTemplate";
@@ -6,8 +6,8 @@ import InternalLink from "@/components/blog/InternalLink";
 import OutboundLink from "@/components/blog/OutboundLink";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy - Vighnaharta Online Services | Private Service Assistance Platform",
-  description: "Read our privacy policy. Vighnaharta Online Services is a private platform NOT affiliated with any government entity. We help citizens access official government portals like uidai.gov.in, incometax.gov.in.",
+  title: "Privacy Policy - Vighnaharta Online Services | Digital Services Platform",
+  description: "Read our privacy policy. Vighnaharta Online Services is a private digital services platform providing BBPS bill payments, NSDL PAN card services, mobile recharge and more.",
   keywords: "privacy policy, data protection, personal information, security, vighnaharta online services",
   openGraph: {
     title: "Privacy Policy - Vighnaharta Online Services",
@@ -26,11 +26,11 @@ export default function PrivacyPage() {
       publishDate="2025-12-01"
       lastUpdated="2025-12-01"
       readingTime="7 min read"
-      tldrSummary="This Privacy Policy explains how Vighnaharta Online Services, a private service assistance platform, collects, uses, and protects your personal information. We are NOT affiliated with any government entity and only provide guidance to access official government portals."
+      tldrSummary="This Privacy Policy explains how Vighnaharta Online Services, a private digital services platform, collects, uses, and protects your personal information when you use our bill payment, recharge, and PAN card services."
       tldrPoints={[
-        "We are a PRIVATE platform NOT affiliated with any government entity",
-        "We collect information you provide to help you access official government portals",
-        "Your data is used only for providing assistance and guidance services",
+        "We are a private digital services platform by Vighnaharta Online Services Pvt. Ltd.",
+        "We collect information you provide to process your service requests",
+        "Your data is used only for providing digital services and processing transactions",
         "We implement robust security measures to protect your information",
         "You have rights to access, correct, and delete your personal data"
       ]}
@@ -38,27 +38,21 @@ export default function PrivacyPage() {
     >
       <div className="prose max-w-none">
         {/* Important Disclaimer */}
-        <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-6 mb-8 not-prose">
+        <div className="bg-blue-50 border-2 border-blue-300 rounded-xl p-6 mb-8 not-prose">
           <div className="flex items-start gap-3">
-            <div className="bg-amber-100 p-2 rounded-full mt-1">
-              <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="bg-blue-100 p-2 rounded-full mt-1">
+              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <div>
-              <h3 className="text-xl font-bold text-amber-900 mb-2">Important Disclaimer</h3>
+              <h3 className="text-xl font-bold text-blue-900 mb-2">About Our Platform</h3>
               <p className="text-gray-800 mb-3 font-semibold">
-                ⚠️ Vighnaharta Online Services is a PRIVATE service assistance platform and is NOT affiliated with, endorsed by, or representing any government entity or department.
+                🏢 Vighnaharta Online Services Pvt. Ltd. is a private digital services company providing bill payments, recharge, PAN card services, and more.
               </p>
               <p className="text-gray-700 text-sm">
-                We provide guidance to help citizens access official government websites. All government services are processed by official government departments through their official portals:
+                This privacy policy applies to all services offered through our platform, including BBPS bill payments, NSDL PAN card services, mobile recharge, and other digital services.
               </p>
-              <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                <a href="https://uidai.gov.in" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">🔗 UIDAI - uidai.gov.in</a>
-                <a href="https://www.incometax.gov.in/iec/foportal/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">🔗 Income Tax (PAN) - incometax.gov.in/iec/foportal</a>
-                <a href="https://passportindia.gov.in" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">🔗 Passport Seva - passportindia.gov.in</a>
-                <a href="https://www.india.gov.in" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">🔗 India Portal - india.gov.in</a>
-              </div>
             </div>
           </div>
         </div>
@@ -76,7 +70,7 @@ export default function PrivacyPage() {
             <p>This may include:</p>
             <ul className="list-disc list-inside space-y-2 ml-4">
               <li>Personal identification information (name, address, phone number, email)</li>
-              <li>Government identification numbers (Aadhaar, PAN, etc.)</li>
+              <li>Identification numbers (Aadhaar, PAN, etc.)</li>
               <li>Documents and photographs</li>
               <li>Payment information</li>
               <li>Usage data and preferences</li>
@@ -105,13 +99,12 @@ export default function PrivacyPage() {
           <div className="space-y-4 text-gray-600">
             <p>We may share your information with:</p>
             <ul className="list-disc list-inside space-y-2 ml-4">
-              <li><strong>Government Agencies:</strong> As required for processing your applications</li>
+              <li><strong>Service Partners:</strong> As required for processing your applications</li>
               <li><strong>Authorized Retailers:</strong> To facilitate service delivery</li>
               <li><strong>Service Providers:</strong> Who help us operate our platform</li>
               <li><strong>Legal Authorities:</strong> When required by law or to protect rights</li>
             </ul>
             <p>We do not sell, rent, or trade your personal information to third parties for marketing purposes.</p>
-            <p>For more information about government data sharing practices, visit the <OutboundLink href="https://meity.gov.in" title="Ministry of Electronics and Information Technology">Ministry of Electronics and Information Technology</OutboundLink> website.</p>
           </div>
         </section>
 
@@ -124,7 +117,7 @@ export default function PrivacyPage() {
               <li>Secure servers with regular security updates</li>
               <li>Access controls and authentication systems</li>
               <li>Regular security audits and monitoring</li>
-              <li>Compliance with government security standards</li>
+              <li>Compliance with industry security standards</li>
             </ul>
           </div>
         </section>
@@ -200,7 +193,7 @@ export default function PrivacyPage() {
               <p><strong>Phone:</strong> +91-7499116527</p>
               <p><strong>Address:</strong> Bajrang Nagar, MIDC Kupwad, Maharashtra 416436, India</p>
             </div>
-            <p>For information about India's data protection laws, visit the <OutboundLink href="https://meity.gov.in/content/data-protection" title="Indian Data Protection Laws">Data Protection section</OutboundLink> of the Ministry of Electronics and Information Technology website.</p>
+            <p>For information about India's data protection laws, you can refer to the relevant sections on the Digital Personal Data Protection Act, 2023.</p>
           </div>
         </section>
 

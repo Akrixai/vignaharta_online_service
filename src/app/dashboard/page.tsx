@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -111,7 +111,7 @@ export default function DashboardPage() {
             {user.role === UserRole.ADMIN && "Manage the entire system, employees, retailers, and monitor all activities."}
             {user.role === UserRole.EMPLOYEE && designation && `Oversee your team and manage ${designation.toLowerCase().replace('_', ' ')} operations.`}
             {user.role === UserRole.EMPLOYEE && !designation && "Process applications, verify documents, and assist retailers."}
-            {user.role === UserRole.RETAILER && "Provide government services to customers and earn commissions."}
+            {user.role === UserRole.RETAILER && "Provide digital services to customers and earn commissions."}
             {user.role === UserRole.CUSTOMER && "Apply for services and earn cashback rewards on every application!"}
           </p>
         </div>
@@ -396,7 +396,7 @@ export default function DashboardPage() {
             <div className="mb-6 flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">📝 Apply Services</h2>
-                <p className="text-gray-600">Government services and schemes</p>
+                <p className="text-gray-600">digital services and schemes</p>
               </div>
               <Link href="/dashboard/services">
                 <button className="bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-200 flex items-center gap-2 shadow-lg">
@@ -409,7 +409,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-              {/* Quick Access to Government Services */}
+              {/* Quick Access to digital services */}
               <Link href="/dashboard/services">
                 <div className="group bg-gradient-to-br from-red-500 to-red-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
                   <div className="absolute top-2 right-2 bg-white text-red-600 text-[8px] font-bold px-2 py-1 rounded-full">
@@ -455,7 +455,7 @@ export default function DashboardPage() {
                 </div>
               </Link>
 
-              <Link href="/dashboard/services?category=Government Schemes">
+              <Link href="/dashboard/services?category=service plans">
                 <div className="group bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer p-6 text-center relative overflow-hidden">
                   <div className="absolute top-2 right-2 bg-white text-indigo-600 text-[8px] font-bold px-2 py-1 rounded-full">
                     LIVE
@@ -606,7 +606,7 @@ export default function DashboardPage() {
                     LIVE
                   </div>
                   <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">�</div>
-                  <h3 className="text-white font-bold text-sm mb-1">Government</h3>
+                  <h3 className="text-white font-bold text-sm mb-1">Services</h3>
                   <p className="text-blue-100 text-xs">Gov Services</p>
                 </div>
               </Link>
@@ -852,7 +852,7 @@ export default function DashboardPage() {
         <Card className="bg-white shadow-lg">
           <CardHeader>
             <CardTitle className="text-gray-900 text-base sm:text-lg md:text-xl">Featured Services</CardTitle>
-            <CardDescription className="text-gray-600 text-xs sm:text-sm">Discover our popular government services</CardDescription>
+            <CardDescription className="text-gray-600 text-xs sm:text-sm">Discover our popular digital services</CardDescription>
           </CardHeader>
           <CardContent>
             <AdvertisementCarousel

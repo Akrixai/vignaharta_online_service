@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -102,7 +102,7 @@ export default function ServiceCenterMap() {
             Find Service Centers Near You
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            10,000+ service centers across India. Find the nearest one to access government services.
+            10,000+ service centers across India. Find the nearest one to access digital services.
           </p>
         </div>
 
@@ -252,7 +252,7 @@ export default function ServiceCenterMap() {
             Want to Become a Service Center Partner?
           </h3>
           <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-            Join our network of 10,000+ retailers and start earning by providing government services in your area.
+            Join our network of 10,000+ retailers and start earning by providing digital services in your area.
           </p>
           <Link
             href="/register"

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -104,7 +104,7 @@ export default function PaymentSuccess({
               <div className="text-left">
                 <p className="text-sm font-medium text-blue-900">What's Next?</p>
                 <p className="text-xs text-blue-700 mt-1">
-                  You can now use your wallet balance to pay for government services, schemes, and applications.
+                  You can now use your wallet balance to pay for digital services, schemes, and applications.
                 </p>
               </div>
             </div>

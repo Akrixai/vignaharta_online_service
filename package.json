@@ -1,8 +1,8 @@
 {
-  "name": "vignaharta-janseva",
+  "name": "vighnaharta-online-services",
   "version": "1.0.0",
   "private": true,
-  "description": "Vignaharta Jan Seva - Government Services Portal",
+  "description": "Vighnaharta Online Services - Digital Services & Bill Payments Platform",
   "author": "RajNakti",
   "license": "MIT",
   "scripts": {

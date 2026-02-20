@@ -1,15 +1,15 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import Logo from "@/components/ui/logo";
 import Footer from "@/components/Footer";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Services - VIGHNAHARTA ONLINE SERVICES | Government Service Portal",
-  description: "Explore comprehensive government services available through VIGHNAHARTA ONLINE SERVICES including Aadhaar, PAN, passport, certificates, and more.",
-  keywords: "government services, aadhaar, pan, passport, certificates, online services, vighnaharta online services",
+  title: "Services - VIGHNAHARTA ONLINE SERVICES | Digital Service Portal",
+  description: "Explore comprehensive digital services available through VIGHNAHARTA ONLINE SERVICES including Aadhaar, PAN, passport, certificates, and more.",
+  keywords: "digital services, aadhaar, pan, passport, certificates, online services, vighnaharta online services",
   openGraph: {
-    title: "Government Services - VIGHNAHARTA ONLINE SERVICES",
-    description: "Access a wide range of government services through our secure digital platform.",
+    title: "digital services - VIGHNAHARTA ONLINE SERVICES",
+    description: "Access a wide range of digital services through our secure digital platform.",
     type: "website",
   },
 };
@@ -48,7 +48,7 @@ const services = [
     services: [
       { name: "Bank Account Opening", description: "Assistance with bank account opening", price: "₹100" },
       { name: "Insurance Services", description: "Life and health insurance applications", price: "₹200" },
-      { name: "Loan Applications", description: "Government loan scheme applications", price: "₹300" },
+      { name: "Loan Applications", description: "Loan scheme applications", price: "₹300" },
     ]
   },
   {
@@ -64,7 +64,7 @@ const services = [
     category: "Education Services",
     icon: "🎓",
     services: [
-      { name: "Scholarship Applications", description: "Government scholarship applications", price: "₹50" },
+      { name: "Scholarship Applications", description: "Scholarship applications", price: "₹50" },
       { name: "Educational Certificates", description: "Educational document verification", price: "₹75" },
     ]
   }
@@ -80,7 +80,7 @@ export default function ServicesPage() {
             <Link href="/" className="flex items-center">
               <Logo size="lg" showText={true} animated={true} />
               <span className="ml-4 text-sm text-red-100">
-                Government Service Portal
+                Digital Service Portal
               </span>
             </Link>
             <nav className="hidden md:flex space-x-8">
@@ -109,7 +109,7 @@ export default function ServicesPage() {
             Our Services
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto animate-slide-in-up">
-            Access a comprehensive range of government services through our secure digital platform. 
+            Access a comprehensive range of digital services through our secure digital platform. 
             Fast, reliable, and available at your nearest retailer.
           </p>
         </div>
@@ -208,7 +208,7 @@ export default function ServicesPage() {
         <div className="mt-16 text-center">
           <h2 className="text-3xl font-bold text-gray-900 mb-6">Ready to Get Started?</h2>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Join thousands of satisfied customers who trust us for their government service needs.
+            Join thousands of satisfied customers who trust us for their Digital Service needs.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link

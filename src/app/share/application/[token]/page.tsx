@@ -52,17 +52,17 @@ export default function SharedApplicationPage() {
       // Add page numbers and branding footer function
       const addFooter = (pageNum: number, totalPages: number) => {
         const footerY = pageHeight - 15;
-        
+
         // Decorative line
         pdf.setDrawColor(220, 38, 38);
         pdf.setLineWidth(0.5);
         pdf.line(20, footerY - 5, pageWidth - 20, footerY - 5);
-        
+
         // Page number
         pdf.setFontSize(9);
         pdf.setTextColor(100, 100, 100);
         pdf.text(`Page ${pageNum} of ${totalPages}`, 20, footerY);
-        
+
         // Powered by Akrix Solutions with link
         pdf.setTextColor(220, 38, 38);
         pdf.setFont('helvetica', 'bold');
@@ -91,7 +91,7 @@ export default function SharedApplicationPage() {
       pdf.setFontSize(28);
       pdf.setFont('helvetica', 'bold');
       pdf.text('Vighnaharta Online Services', pageWidth / 2, 20, { align: 'center' });
-      
+
       pdf.setFontSize(14);
       pdf.setFont('helvetica', 'normal');
       pdf.text('Application Details Report', pageWidth / 2, 30, { align: 'center' });
@@ -106,7 +106,7 @@ export default function SharedApplicationPage() {
       // Application Status Badge with icon
       pdf.setFontSize(12);
       pdf.setFont('helvetica', 'bold');
-      
+
       let statusColor;
       if (application.status === 'APPROVED') {
         statusColor = [34, 197, 94]; // Green
@@ -115,7 +115,7 @@ export default function SharedApplicationPage() {
       } else {
         statusColor = [239, 68, 68]; // Red
       }
-      
+
       pdf.setFillColor(...statusColor);
       pdf.roundedRect(pageWidth - 55, yPos - 5, 45, 12, 3, 3, 'F');
       pdf.setTextColor(255, 255, 255);
@@ -134,17 +134,17 @@ export default function SharedApplicationPage() {
       // Service Information Section with colored background
       pdf.setFillColor(239, 246, 255); // Light blue background
       pdf.roundedRect(15, yPos - 5, pageWidth - 30, 35, 3, 3, 'F');
-      
+
       // Section icon and title
       pdf.setFontSize(16);
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(37, 99, 235); // Blue
       pdf.text('SERVICE INFORMATION', 20, yPos + 2);
-      
+
       yPos += 12;
       pdf.setFontSize(10);
       pdf.setTextColor(0, 0, 0);
-      
+
       if (application.scheme) {
         // Service details in a grid-like format
         pdf.setFont('helvetica', 'bold');
@@ -170,18 +170,18 @@ export default function SharedApplicationPage() {
         pdf.setFont('helvetica', 'normal');
         yPos += 6;
       }
-      
+
       yPos += 8;
 
       // Customer Information Section with colored background
       pdf.setFillColor(240, 253, 244); // Light green background
       pdf.roundedRect(15, yPos - 5, pageWidth - 30, 40, 3, 3, 'F');
-      
+
       pdf.setFontSize(16);
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(22, 163, 74); // Green
       pdf.text('CUSTOMER INFORMATION', 20, yPos + 2);
-      
+
       yPos += 12;
       pdf.setFontSize(10);
       pdf.setTextColor(0, 0, 0);
@@ -222,12 +222,12 @@ export default function SharedApplicationPage() {
       // Application Timeline Section
       pdf.setFillColor(254, 243, 199); // Light yellow background
       pdf.roundedRect(15, yPos - 5, pageWidth - 30, 30, 3, 3, 'F');
-      
+
       pdf.setFontSize(16);
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(217, 119, 6); // Orange
       pdf.text('APPLICATION TIMELINE', 20, yPos + 2);
-      
+
       yPos += 12;
       pdf.setFontSize(10);
       pdf.setTextColor(0, 0, 0);
@@ -265,7 +265,7 @@ export default function SharedApplicationPage() {
         // Form Data Section Header
         pdf.setFillColor(243, 232, 255); // Light purple background
         pdf.roundedRect(15, yPos - 5, pageWidth - 30, 12, 3, 3, 'F');
-        
+
         pdf.setFontSize(16);
         pdf.setFont('helvetica', 'bold');
         pdf.setTextColor(147, 51, 234); // Purple
@@ -284,7 +284,7 @@ export default function SharedApplicationPage() {
 
           // Get user-friendly label for dynamic fields
           let displayLabel = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-          
+
           // Check if this is a dynamic field and get its label from scheme
           if (key.startsWith('dynamic_field_') && application.scheme?.dynamic_fields) {
             const fieldId = key.replace('dynamic_', '');
@@ -314,7 +314,7 @@ export default function SharedApplicationPage() {
               }
 
               let subLabel = subKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-              
+
               // Get label for dynamic fields inside service_specific_data
               if (subKey.startsWith('dynamic_field_') && application.scheme?.dynamic_fields) {
                 const fieldId = subKey.replace('dynamic_', '');
@@ -327,7 +327,7 @@ export default function SharedApplicationPage() {
               pdf.setFont('helvetica', 'bold');
               pdf.text(`${subLabel}:`, 20, yPos);
               pdf.setFont('helvetica', 'normal');
-              
+
               const subDisplayValue = String(subValue || 'N/A');
               const subValueLines = pdf.splitTextToSize(subDisplayValue, pageWidth - 90);
               pdf.text(subValueLines, 70, yPos);
@@ -339,7 +339,7 @@ export default function SharedApplicationPage() {
           pdf.setFont('helvetica', 'bold');
           pdf.text(`${displayLabel}:`, 20, yPos);
           pdf.setFont('helvetica', 'normal');
-          
+
           let displayValue = 'N/A';
           if (typeof value === 'object' && value !== null) {
             if (Array.isArray(value)) {
@@ -359,7 +359,7 @@ export default function SharedApplicationPage() {
 
       // Count total pages (we'll add footer to all pages)
       const totalPages = pdf.getNumberOfPages();
-      
+
       // Add footer to all pages
       for (let i = 1; i <= totalPages; i++) {
         pdf.setPage(i);
@@ -371,7 +371,7 @@ export default function SharedApplicationPage() {
         title: `Application - ${application.customer_name}`,
         subject: `${application.scheme?.name || 'Service'} Application`,
         author: 'Vighnaharta Online Services',
-        keywords: 'application, government services, vighnaharta',
+        keywords: 'application, digital services, vighnaharta',
         creator: 'Powered by Akrix Solutions'
       });
 
@@ -573,7 +573,7 @@ export default function SharedApplicationPage() {
                 {Object.entries(application.form_data).map(([key, value]) => {
                   // Get user-friendly label for dynamic fields
                   let displayLabel = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                  
+
                   // Check if this is a dynamic field and get its label from scheme
                   if (key.startsWith('dynamic_field_') && application.scheme?.dynamic_fields) {
                     const fieldId = key.replace('dynamic_', '');
@@ -592,7 +592,7 @@ export default function SharedApplicationPage() {
                         </h4>
                         {Object.entries(value).map(([subKey, subValue]) => {
                           let subLabel = subKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                          
+
                           // Get label for dynamic fields inside service_specific_data
                           if (subKey.startsWith('dynamic_field_') && application.scheme?.dynamic_fields) {
                             const fieldId = subKey.replace('dynamic_', '');

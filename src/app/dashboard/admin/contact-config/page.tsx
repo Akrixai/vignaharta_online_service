@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
@@ -65,7 +65,7 @@ export default function ContactConfigPage() {
       setLoading(true);
       const response = await fetch('/api/contact-config');
       const result = await response.json();
-      
+
       if (result.success && result.data) {
         setConfig(result.data as ContactConfig);
       }
@@ -149,7 +149,7 @@ export default function ContactConfigPage() {
                     id="company_tagline"
                     value={config.company_tagline}
                     onChange={(e) => setConfig({ ...config, company_tagline: e.target.value })}
-                    placeholder="Your Trusted Partner for Government Services"
+                    placeholder="Your Trusted Partner for digital services"
                   />
                 </div>
               </CardContent>
@@ -213,7 +213,7 @@ export default function ContactConfigPage() {
                       type="email"
                       value={config.contact_email}
                       onChange={(e) => setConfig({ ...config, contact_email: e.target.value })}
-                      placeholder="info@vignahartajanseva.com"
+                      placeholder="info@vighnahartaonlineservice.in"
                     />
                   </div>
 

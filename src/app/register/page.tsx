@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -70,7 +70,7 @@ function RegisterSelection() {
                 <div className="text-7xl mb-6 group-hover:scale-110 transition-transform duration-300 animate-bounce-gentle">👤</div>
                 <h3 className="text-3xl font-bold text-blue-800 mb-4 animate-gradient-shift bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Customer</h3>
                 <p className="text-gray-600 mb-6 animate-fade-in animate-delay-100">
-                  Register to access government services and earn cashback rewards
+                  Register to access digital services and earn cashback rewards
                 </p>
 
                 {/* Benefits */}
@@ -109,7 +109,7 @@ function RegisterSelection() {
                 <div className="text-7xl mb-6 group-hover:scale-110 transition-transform duration-300 animate-bounce-gentle">🏪</div>
                 <h3 className="text-3xl font-bold text-red-800 mb-4 animate-gradient-shift bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">Retailer</h3>
                 <p className="text-gray-600 mb-6 animate-fade-in animate-delay-100">
-                  Join our network and earn commission by providing government services
+                  Join our network and earn commission by providing digital services
                 </p>
 
                 {/* Benefits */}

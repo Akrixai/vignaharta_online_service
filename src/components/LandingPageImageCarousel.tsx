@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -13,24 +13,24 @@ interface LandingPageImageCarouselProps {
 const fallbackImages = [
   {
     id: 'fallback-1',
-    image_url: '/images/government-services-1.jpg',
+    image_url: '/images/digital-services-1.jpg',
     title: 'Digital India Services',
     is_active: true,
-    alt_text: 'Indian citizen accessing digital government services online through Vighnaharta portal'
+    alt_text: 'Indian citizen accessing digital services online through Vighnaharta portal'
   },
   {
     id: 'fallback-2', 
-    image_url: '/images/government-services-2.jpg',
-    title: 'Online Government Portal',
+    image_url: '/images/digital-services-2.jpg',
+    title: 'Online digital services portal',
     is_active: true,
-    alt_text: 'Government service portal interface with document processing and secure authentication'
+    alt_text: 'Digital Service portal interface with document processing and secure authentication'
   },
   {
     id: 'fallback-3',
-    image_url: '/images/government-services-3.jpg', 
+    image_url: '/images/digital-services-3.jpg', 
     title: 'Secure Digital Services',
     is_active: true,
-    alt_text: 'Secure digital government services with encryption protection and data privacy'
+    alt_text: 'Secure digital services with encryption protection and data privacy'
   }
 ];
 
@@ -126,7 +126,7 @@ export default function LandingPageImageCarousel({ className = '' }: LandingPage
         {currentAd.image_url ? (
           <Image
             src={currentAd.image_url}
-            alt={currentAd.alt_text || currentAd.title || 'Government Service'}
+            alt={currentAd.alt_text || currentAd.title || 'Digital Service'}
             fill
             sizes="100vw"
             className="object-cover transition-all duration-700 ease-in-out"

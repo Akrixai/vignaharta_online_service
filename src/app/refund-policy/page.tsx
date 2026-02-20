@@ -1,14 +1,14 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import Logo from "@/components/ui/logo";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Refund Policy - Vighnaharta Online Services | Government Service Portal",
-  description: "Learn about our refund policy and money-back guarantee for government services through Vighnaharta Online Services.",
-  keywords: "refund policy, money back guarantee, vighnaharta online services, government services refund",
+  title: "Refund Policy - Vighnaharta Online Services | Digital Service Portal",
+  description: "Learn about our refund policy and money-back guarantee for digital services through Vighnaharta Online Services.",
+  keywords: "refund policy, money back guarantee, vighnaharta online services, digital services refund",
   openGraph: {
     title: "Refund Policy - Vighnaharta Online Services",
-    description: "Understand our refund policy for government services.",
+    description: "Understand our refund policy for digital services.",
     type: "website",
   },
 };
@@ -61,7 +61,7 @@ export default function RefundPolicyPage() {
                 <li>Service was not delivered within the promised timeframe due to our error</li>
                 <li>Technical issues on our platform prevented service completion</li>
                 <li>Duplicate payment was made for the same service</li>
-                <li>Service was cancelled by government authorities</li>
+                <li>Service was cancelled by relevant authorities</li>
               </ul>
             </div>
           </section>
@@ -72,10 +72,10 @@ export default function RefundPolicyPage() {
               <p>The following are generally not eligible for refunds:</p>
               <ul className="list-disc list-inside space-y-2 ml-4">
                 <li>Services that have been successfully completed and delivered</li>
-                <li>Applications rejected by government authorities due to incorrect information provided by the customer</li>
+                <li>Applications rejected by relevant authorities due to incorrect information provided by the customer</li>
                 <li>Services cancelled by the customer after processing has begun</li>
                 <li>Free services and consultations</li>
-                <li>Processing fees for government applications</li>
+                <li>Processing fees for service applications</li>
               </ul>
             </div>
           </section>
@@ -114,7 +114,7 @@ export default function RefundPolicyPage() {
               <ul className="list-disc list-inside space-y-2 ml-4">
                 <li>When part of the service has been completed</li>
                 <li>Processing fees may be deducted for administrative costs</li>
-                <li>Third-party charges (government fees) are non-refundable</li>
+                <li>Third-party charges (Official fees) are non-refundable</li>
               </ul>
             </div>
           </section>
@@ -177,7 +177,7 @@ export default function RefundPolicyPage() {
               <Logo size="md" showText={true} animated={false} className="justify-center" />
             </div>
             <p className="text-red-200 mb-6 text-lg">
-              Empowering citizens with digital government services through our retailer network
+              Empowering citizens with digital services through our retailer network
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
               <div>

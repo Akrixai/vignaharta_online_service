@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -27,24 +27,24 @@ const fallbackAds: Advertisement[] = [
   {
     id: 'fallback-1',
     title: 'विघ्नहर्ता ऑनलाईन सर्विसेस',
-    description: 'Your trusted partner for all government services. Fast, reliable, and secure.',
+    description: 'Your trusted partner for all digital services. Fast, reliable, and secure.',
     image_url: null,
     link_url: '#',
     is_active: true,
     background: 'from-red-500 to-red-700',
     icon: '🏛️',
-    alt_text: 'Vighnaharta Online Services - Government Service Portal'
+    alt_text: 'Vighnaharta Online Services - Digital Service Portal'
   },
   {
     id: 'fallback-2', 
     title: 'Digital India Initiative',
-    description: 'Empowering citizens with digital government services. Join the digital revolution.',
+    description: 'Empowering citizens with digital services. Join the digital revolution.',
     image_url: null,
     link_url: '#',
     is_active: true,
     background: 'from-blue-500 to-blue-700',
     icon: '🇮🇳',
-    alt_text: 'Digital India Government Services Initiative'
+    alt_text: 'Digital India digital services Initiative'
   },
   {
     id: 'fallback-3',
@@ -55,7 +55,7 @@ const fallbackAds: Advertisement[] = [
     is_active: true,
     background: 'from-green-500 to-green-700',
     icon: '🔒',
-    alt_text: 'Secure and Fast Government Document Processing'
+    alt_text: 'Secure and Fast Digital Document Processing'
   }
 ];
 

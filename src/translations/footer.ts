@@ -18,7 +18,7 @@ export const footerTranslations: Record<Language, {
   developedWith: string;
 }> = {
   en: {
-    empoweringCitizens: '🌟 Empowering citizens with digital government services through our retailer network 🌟',
+    empoweringCitizens: '🌟 Your one-stop platform for recharge, bill payments & digital services with guaranteed rewards 🌟',
     quickLinks: '🔗 Quick Links',
     aboutUs: '📖 About Us',
     services: '🛠️ Services',
@@ -35,7 +35,7 @@ export const footerTranslations: Record<Language, {
     developedWith: 'Developed with ❤️ by',
   },
   mr: {
-    empoweringCitizens: '🌟 आमच्या रिटेलर नेटवर्कद्वारे नागरिकांना डिजिटल सरकारी सेवांसह सशक्त करणे 🌟',
+    empoweringCitizens: '🌟 रिचार्ज, बिल पेमेंट आणि डिजिटल सेवांसाठी तुमचे एकमेव व्यासपीठ 🌟',
     quickLinks: '🔗 द्रुत दुवे',
     aboutUs: '📖 आमच्याबद्दल',
     services: '🛠️ सेवा',
@@ -52,7 +52,7 @@ export const footerTranslations: Record<Language, {
     developedWith: 'यांनी ❤️ सह विकसित केले',
   },
   hi: {
-    empoweringCitizens: '🌟 हमारे रिटेलर नेटवर्क के माध्यम से नागरिकों को डिजिटल सरकारी सेवाओं के साथ सशक्त बनाना 🌟',
+    empoweringCitizens: '🌟 रिचार्ज, बिल भुगतान और डिजिटल सेवाओं के लिए आपका एकमात्र मंच 🌟',
     quickLinks: '🔗 त्वरित लिंक',
     aboutUs: '📖 हमारे बारे में',
     services: '🛠️ सेवाएं',

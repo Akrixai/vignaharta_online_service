@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 
 // GET endpoint for testing
@@ -38,7 +38,7 @@ export async function POST() {
 
     // Sample services data
     const sampleServices = [
-      // Government Services
+      // digital services
       {
         name: 'PAN Card Application',
         description: 'Apply for new PAN card or update existing PAN card details. Required for income tax purposes.',
@@ -53,7 +53,7 @@ export async function POST() {
       },
       {
         name: 'Birth Certificate',
-        description: 'Official birth certificate issued by municipal corporation. Required for various government services.',
+        description: 'Official birth certificate issued by municipal corporation. Required for various digital services.',
         price: 50,
         is_free: false,
         category: 'certificates',
@@ -65,7 +65,7 @@ export async function POST() {
       },
       {
         name: 'Income Certificate',
-        description: 'Certificate showing annual income. Required for various government schemes and admissions.',
+        description: 'Certificate showing annual income. Required for various service plans and admissions.',
         price: 30,
         is_free: false,
         category: 'certificates',

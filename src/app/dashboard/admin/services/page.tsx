@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
@@ -454,7 +454,7 @@ export default function AdminServicesPage() {
         <div className="bg-gradient-to-r from-red-600 to-red-700 rounded-xl p-8 text-white shadow-xl">
           <h1 className="text-4xl font-bold mb-3">Service Management</h1>
           <p className="text-red-100 text-xl">
-            Manage government services and schemes available to citizens
+            Manage digital services and schemes available to citizens
           </p>
         </div>
 

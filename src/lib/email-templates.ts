@@ -1,4 +1,4 @@
-// Email templates for various notifications
+﻿// Email templates for various notifications
 
 export interface EmailTemplate {
     subject: string;
@@ -88,7 +88,7 @@ export function getNewServiceEmailTemplate(
                 <div style="background-color: white; padding: 15px; border-radius: 8px; border-left: 4px solid #dc2626;">
                     <strong>📋 What this means for you:</strong><br>
                     ${recipientType === 'retailer'
-            ? '• You can now offer this service to your customers<br>• Start earning commission from day one<br>• Help more people access government services'
+            ? '• You can now offer this service to your customers<br>• Start earning commission from day one<br>• Help more people access digital services'
             : '• You can now assist customers with this service<br>• New service to help citizens<br>• Expand your service knowledge'
         }
                 </div>
@@ -112,7 +112,7 @@ export function getNewServiceEmailTemplate(
         
         <div class="footer">
             <p><strong>विघ्नहर्ता ऑनलाईन सर्विसेस</strong></p>
-            <p>Making government services accessible to everyone</p>
+            <p>Making digital services accessible to everyone</p>
             <p style="font-size: 12px; margin-top: 20px;">
                 This is an automated notification. Please do not reply to this email.
             </p>
@@ -134,7 +134,7 @@ Description: ${serviceDescription}
 
 What this means for you:
 ${recipientType === 'retailer'
-            ? '- You can now offer this service to your customers\n- Start earning commission from day one\n- Help more people access government services'
+            ? '- You can now offer this service to your customers\n- Start earning commission from day one\n- Help more people access digital services'
             : recipientType === 'employee'
                 ? '- You can now assist customers with this service\n- New service to help citizens\n- Expand your service knowledge'
                 : '- New service has been added to the platform\n- Monitor service performance and user feedback\n- Manage service operations and support'
@@ -205,7 +205,7 @@ export function getWelcomeRetailerEmailTemplate(
             </div>
             
             <p style="font-size: 18px; line-height: 1.6; color: #374151;">
-                Welcome to <span class="highlight">विघ्नहर्ता ऑनलाईन सर्विसेस</span>! You are now officially part of our trusted network of service providers, helping citizens access government services with ease and efficiency.
+                Welcome to <span class="highlight">विघ्नहर्ता ऑनलाईन सर्विसेस</span>! You are now officially part of our trusted network of service providers, helping citizens access digital services with ease and efficiency.
             </p>
             
             <div class="credentials-box">
@@ -235,8 +235,8 @@ export function getWelcomeRetailerEmailTemplate(
                 <h3 style="color: #1e40af; margin-top: 0; font-size: 20px;">🎯 What You Can Do Now:</h3>
                 <div class="feature-grid">
                     <div class="feature-item">
-                        <strong>🏛️ Government Services</strong><br>
-                        <small>Help customers with 100+ government applications</small>
+                        <strong>🏛️ digital services</strong><br>
+                        <small>Help customers with 100+ service applications</small>
                     </div>
                     <div class="feature-item">
                         <strong>💰 Earn Commission</strong><br>
@@ -279,7 +279,7 @@ export function getWelcomeRetailerEmailTemplate(
         
         <div class="footer">
             <p style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">विघ्नहर्ता ऑनलाईन सर्विसेस</p>
-            <p style="margin-bottom: 20px;">Making government services accessible to everyone</p>
+            <p style="margin-bottom: 20px;">Making digital services accessible to everyone</p>
             <p style="font-size: 12px; color: #9ca3af;">
                 Need help? Contact our support team at <strong>vighnahartaenterprises.sangli@gmail.com</strong><br>
                 or use the chat feature in your dashboard for instant assistance.
@@ -308,7 +308,7 @@ Please change your password immediately after your first login for account secur
 ${process.env.NEXTAUTH_URL || 'https://www.vighnahartaonlineservice.in'}/login?role=retailer
 
 🎯 WHAT YOU CAN DO NOW:
-• Government Services: Help customers with 100+ government applications
+• digital services: Help customers with 100+ service applications
 • Earn Commission: Get paid up to 15% for every successful service
 • Digital Wallet: Track your earnings and manage payments easily
 • 24/7 Support: Get help from our employee team anytime
@@ -327,7 +327,7 @@ Need help? Contact our support team at vighnahartaenterprises.sangli@gmail.com o
 Best regards,
 विघ्नहर्ता ऑनलाईन सर्विसेस Team
 
-Making government services accessible to everyone
+Making digital services accessible to everyone
 ${getAkrixBrandingText()}`;
 
     return { subject, html, text };
@@ -414,7 +414,7 @@ export function getWelcomeEmployeeEmailTemplate(
 
         <div class="footer">
             <p><strong>विघ्नहर्ता ऑनलाईन सर्विसेस</strong></p>
-            <p>Making government services accessible to everyone</p>
+            <p>Making digital services accessible to everyone</p>
             <p style="font-size: 12px; margin-top: 20px;">
                 Need help? Contact the admin team or use the internal communication channels.
             </p>
@@ -523,7 +523,7 @@ export function getRegistrationSuccessEmailTemplate(
             <div style="background-color: #f0fdf4; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #22c55e;">
                 <h3 style="color: #15803d; margin-top: 0;">🎯 What You Can Expect:</h3>
                 <ul style="color: #15803d; margin: 0;">
-                    <li><strong>Access to Government Services:</strong> Help customers with various applications</li>
+                    <li><strong>Access to digital services:</strong> Help customers with various applications</li>
                     <li><strong>Commission Earnings:</strong> Earn money for every successful service</li>
                     <li><strong>Digital Wallet:</strong> Manage your earnings and payments</li>
                     <li><strong>24/7 Support:</strong> Get help whenever you need it</li>
@@ -533,7 +533,7 @@ export function getRegistrationSuccessEmailTemplate(
         
         <div class="footer">
             <p><strong>विघ्नहर्ता ऑनलाईन सर्विसेस</strong></p>
-            <p>Making government services accessible to everyone</p>
+            <p>Making digital services accessible to everyone</p>
             <p style="font-size: 12px; margin-top: 20px;">
                 Questions? Contact us at vighnahartaenterprises.sangli@gmail.com
             </p>
@@ -565,7 +565,7 @@ Processing Time:
 We typically review applications within 24-48 hours. You'll receive an email notification as soon as your application is processed.
 
 What You Can Expect:
-- Access to Government Services: Help customers with various applications
+- Access to digital services: Help customers with various applications
 - Commission Earnings: Earn money for every successful service
 - Digital Wallet: Manage your earnings and payments
 - 24/7 Support: Get help whenever you need it
@@ -659,7 +659,7 @@ export function getRegistrationRejectionEmailTemplate(
         
         <div class="footer">
             <p><strong>विघ्नहर्ता ऑनलाईन सर्विसेस</strong></p>
-            <p>Making government services accessible to everyone</p>
+            <p>Making digital services accessible to everyone</p>
             <p style="font-size: 12px; margin-top: 20px;">
                 Need help? Contact us at vighnahartaenterprises.sangli@gmail.com
             </p>
@@ -772,7 +772,7 @@ export function getPasswordResetEmailTemplate(
         
         <div class="footer">
             <p><strong>विघ्नहर्ता ऑनलाईन सर्विसेस</strong></p>
-            <p>Making government services accessible to everyone</p>
+            <p>Making digital services accessible to everyone</p>
             <p style="font-size: 12px; margin-top: 15px; color: #9ca3af;">
                 📞 +91-7499116527 | 📧 vighnahartaenterprises.sangli@gmail.com
             </p>

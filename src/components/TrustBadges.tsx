@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 interface Badge {
   icon: string;
@@ -32,10 +32,10 @@ const badges: Badge[] = [
   },
   {
     icon: "✅",
-    title: "Government Authorized",
+    title: "Certified & Authorized",
     description: "Licensed Service Provider",
     details: [
-      "Authorized by government departments",
+      "Authorized by relevant departments",
       "Official NSDL PAN Service Partner",
       "Integrated with Bharat Connect (BBPS)",
       "Registered under Indian Companies Act",

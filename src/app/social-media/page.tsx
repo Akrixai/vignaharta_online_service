@@ -1,12 +1,12 @@
-import { generateSEO } from "@/lib/seo";
+﻿import { generateSEO } from "@/lib/seo";
 import Link from "next/link";
 
 const socialMediaSEO = {
   title: 'Follow Us on Social Media - Vighnaharta Online Services',
-  description: 'Connect with Vighnaharta Online Services on Facebook, Twitter, Instagram, and LinkedIn. Stay updated with the latest government services, announcements, and digital initiatives.',
+  description: 'Connect with Vighnaharta Online Services on Facebook, Twitter, Instagram, and LinkedIn. Stay updated with the latest digital services, announcements, and digital initiatives.',
   keywords: [
     'vignaharta social media',
-    'government services social media',
+    'digital services social media',
     'digital india social media',
     'follow vignaharta',
     'vignaharta facebook',
@@ -25,7 +25,7 @@ export default function SocialMediaPage() {
       name: "Facebook",
       url: "https://www.facebook.com/share/171jarrh5y/",
       icon: "📘",
-      description: "Follow us for updates on government services and digital initiatives"
+      description: "Follow us for updates on digital services and digital initiatives"
     },
     {
       name: "Twitter",
@@ -55,7 +55,7 @@ export default function SocialMediaPage() {
             Connect With Us
           </h1>
           <p className="text-xl text-gray-700 max-w-2xl mx-auto">
-            Follow Vighnaharta Online Services on social media to stay updated with the latest government services, announcements, and digital initiatives.
+            Follow Vighnaharta Online Services on social media to stay updated with the latest digital services, announcements, and digital initiatives.
           </p>
         </div>
 
@@ -89,7 +89,7 @@ export default function SocialMediaPage() {
           <ul className="space-y-4 text-gray-700">
             <li className="flex items-start">
               <span className="text-red-600 mr-2">✓</span>
-              <span>Get real-time updates on new government services and schemes</span>
+              <span>Get real-time updates on new digital services and schemes</span>
             </li>
             <li className="flex items-start">
               <span className="text-red-600 mr-2">✓</span>
@@ -97,11 +97,11 @@ export default function SocialMediaPage() {
             </li>
             <li className="flex items-start">
               <span className="text-red-600 mr-2">✓</span>
-              <span>Access helpful tips and guides for government service applications</span>
+              <span>Access helpful tips and guides for Digital Service applications</span>
             </li>
             <li className="flex items-start">
               <span className="text-red-600 mr-2">✓</span>
-              <span>Learn about digital initiatives and e-governance developments</span>
+              <span>Learn about digital initiatives and e-services developments</span>
             </li>
             <li className="flex items-start">
               <span className="text-red-600 mr-2">✓</span>

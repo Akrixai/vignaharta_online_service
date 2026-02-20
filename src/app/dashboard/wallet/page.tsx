@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
@@ -1361,7 +1361,7 @@ export default function WalletPage() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-600">
-                Use your wallet balance for all government service payments.
+                Use your wallet balance for all Digital Service payments.
               </p>
             </CardContent>
           </Card>

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 
@@ -21,7 +21,7 @@ const testimonials: Testimonial[] = [
     role: 'Retailer Partner',
     location: 'Mumbai, Maharashtra',
     rating: 5,
-    comment: 'Joining Vighnaharta as a retailer was the best business decision. I earn ₹25,000+ monthly commission by helping my community access government services.',
+    comment: 'Joining Vighnaharta as a retailer was the best business decision. I earn ₹25,000+ monthly commission by helping my community access digital services.',
     service: 'Retailer Partnership',
     date: 'January 2024',
     avatar: '👨‍💼'

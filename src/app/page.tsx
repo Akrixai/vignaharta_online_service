@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
@@ -98,7 +98,7 @@ export default function DashboardPage() {
           <p className="text-red-100 text-md animate-slide-in-right">
             {user.role === UserRole.ADMIN && "Manage the entire system, employees, retailers, and monitor all activities."}
             {user.role === UserRole.EMPLOYEE && "Process applications, verify documents, and assist retailers."}
-            {user.role === UserRole.RETAILER && "Provide government services to customers and earn commissions."}
+            {user.role === UserRole.RETAILER && "Provide digital services to customers and earn commissions."}
           </p>
         </div>
 
@@ -106,7 +106,7 @@ export default function DashboardPage() {
         <Card className="bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-300 shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-[1.02]">
           {/* <CardHeader className="bg-gradient-to-r from-red-600 to-red-700 text-white rounded-t-lg">
             <CardTitle className="text-white text-xl font-bold flex items-center">
-              📢 Featured Government Announcements
+              📢 Featured Service Announcements
             </CardTitle>
             <CardDescription className="text-red-100 text-sm">
               Latest schemes, updates, and important notifications
@@ -279,7 +279,7 @@ export default function DashboardPage() {
         <Card className="bg-white shadow-lg">
           <CardHeader>
             <CardTitle className="text-gray-900">Featured Services</CardTitle>
-            <CardDescription className="text-gray-600">Discover our popular government services</CardDescription>
+            <CardDescription className="text-gray-600">Discover our popular digital services</CardDescription>
           </CardHeader>
           <CardContent>
             <AdvertisementCarousel

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -149,7 +149,7 @@ function LoginPageContent() {
                   Welcome to विघ्नहर्ता ऑनलाईन सर्विसेस
                 </h2>
                 <p className="text-lg text-red-600 mb-8">
-                  Your gateway to seamless government services
+                  Your gateway to seamless digital services
                 </p>
               </div>
               <div className="bg-gradient-to-br from-red-100 to-orange-100 p-6 rounded-2xl shadow-xl border border-red-200">
@@ -179,7 +179,7 @@ function LoginPageContent() {
               <div className="text-center">
                 <h3 className="font-bold text-base sm:text-lg mb-2">🔐 Secure Login Portal</h3>
                 <p className="text-red-100 text-xs sm:text-sm">
-                  Access your dashboard and manage government services securely
+                  Access your dashboard and manage digital services securely
                 </p>
               </div>
             </div>

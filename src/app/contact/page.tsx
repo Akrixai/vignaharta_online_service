@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from "next/link";
 import Logo from "@/components/ui/logo";
@@ -76,7 +76,7 @@ ${formData.message}
             <Link href="/" className="flex items-center">
               <Logo size="md" showText={true} animated={true} />
               <span className="ml-2 sm:ml-4 text-xs sm:text-sm text-red-100 hidden sm:block">
-                Government Service Portal
+                Digital Service Portal
               </span>
             </Link>
             <nav className="hidden md:flex space-x-8">
@@ -105,7 +105,7 @@ ${formData.message}
             Contact Us
           </h1>
           <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto animate-slide-in-up px-4">
-            Get in touch with us for any queries, support, or feedback. We're here to help you with all your government service needs.
+            Get in touch with us for any queries, support, or feedback. We're here to help you with all your Digital Service needs.
           </p>
         </div>
 
@@ -338,7 +338,7 @@ ${formData.message}
               <Logo size="md" showText={true} animated={false} className="justify-center" />
             </div>
             <p className="text-red-200 mb-6 text-lg">
-              Empowering citizens with digital government services through our retailer network
+              Empowering citizens with digital services through our retailer network
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
               <div>

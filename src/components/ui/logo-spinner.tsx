@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { cn } from '@/lib/utils';
@@ -65,7 +65,7 @@ const LogoSpinner: React.FC<LogoSpinnerProps> = ({
                 <div className="h-1 bg-red-300 rounded w-1/2"></div>
                 <div className="h-1 bg-red-300 rounded w-2/3"></div>
               </div>
-              {/* Government seal */}
+              {/* Service seal */}
               <div className="absolute bottom-1 right-1 w-3 h-3 bg-red-500 rounded-full opacity-60"></div>
             </div>
           </div>

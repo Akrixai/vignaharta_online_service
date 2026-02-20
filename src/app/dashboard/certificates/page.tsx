@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
@@ -303,7 +303,7 @@ export default function CertificatesPage() {
                   <div className="text-center py-6">
                     <p className="text-lg text-gray-700 leading-relaxed">
                       This certificate hereby authorizes <strong>{certificate.retailer_name}</strong> to act as an
-                      official retailer for <strong>{certificate.company_name}</strong> and to provide government
+                      official retailer for <strong>{certificate.company_name}</strong> and to provide digital
                       services to customers on behalf of the company. This authorization is valid from the date
                       of issue and remains active as long as the retailer maintains good standing with the company.
                     </p>
@@ -364,7 +364,7 @@ export default function CertificatesPage() {
                 <ul className="space-y-1 text-red-700">
                   <li>• Unique certificate number for verification</li>
                   <li>• Official company authorization</li>
-                  <li>• Valid for all government services</li>
+                  <li>• Valid for all digital services</li>
                   <li>• Printable and downloadable PDF format</li>
                 </ul>
               </div>

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
@@ -12,8 +12,8 @@ import { showToast } from '@/lib/toast';
 const faqData = [
   {
     id: '1',
-    question: 'How do I apply for a government service?',
-    answer: 'To apply for a government service, go to the "Apply Services" section, choose your desired service, ensure you have sufficient wallet balance, and click "Apply Now". You will be guided through the application process.',
+    question: 'How do I apply for a Digital Service?',
+    answer: 'To apply for a Digital Service, go to the "Apply Services" section, choose your desired service, ensure you have sufficient wallet balance, and click "Apply Now". You will be guided through the application process.',
     category: 'Applications'
   },
   {

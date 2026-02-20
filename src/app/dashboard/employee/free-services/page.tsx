@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
@@ -110,7 +110,7 @@ export default function EmployeeFreeServicesPage() {
         <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-6 text-white">
           <h1 className="text-2xl font-bold mb-2">Free Services & External Links</h1>
           <p className="text-blue-100">
-            Access free government information services and external resources for customer assistance.
+            Access free information services and external resources for customer assistance.
           </p>
           <div className="mt-4 bg-white/20 rounded-lg p-3">
             <div className="flex items-center justify-between">
@@ -217,12 +217,12 @@ export default function EmployeeFreeServicesPage() {
               <div className="text-center">
                 <div className="text-2xl mb-2">🆓</div>
                 <h4 className="font-medium text-blue-900 mb-1">Free Access</h4>
-                <p className="text-blue-700">Help customers access free government services</p>
+                <p className="text-blue-700">Help customers access free digital services</p>
               </div>
               <div className="text-center">
                 <div className="text-2xl mb-2">🔗</div>
                 <h4 className="font-medium text-blue-900 mb-1">External Resources</h4>
-                <p className="text-blue-700">Direct links to official government portals</p>
+                <p className="text-blue-700">Direct links to official digital services portals</p>
               </div>
               <div className="text-center">
                 <div className="text-2xl mb-2">👥</div>

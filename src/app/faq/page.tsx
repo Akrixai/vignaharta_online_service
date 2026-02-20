@@ -1,11 +1,11 @@
-import Header from "@/components/Header";
+﻿import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import FAQ from "@/components/FAQ";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "FAQ - VIGHNAHARTA ONLINE SERVICES",
-  description: "Frequently asked questions about Vighnaharta Online Services and government services.",
+  description: "Frequently asked questions about Vighnaharta Online Services and digital services.",
 };
 
 export default function FAQPage() {

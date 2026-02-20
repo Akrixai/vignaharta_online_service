@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -345,7 +345,7 @@ export default function RetailerRegisterPage() {
               <span className="text-xl font-bold">Retailer Registration</span>
             </div>
             <p className="text-red-100 text-sm">
-              Join our network and start earning by providing government services
+              Join our network and start earning by providing digital services
             </p>
           </div>
         </div>
@@ -690,7 +690,7 @@ export default function RetailerRegisterPage() {
                 <div>
                   <h5 className="font-bold text-orange-800 mb-1">What You Get:</h5>
                   <ul className="text-sm text-orange-700 space-y-1">
-                    <li>• Access to 100+ government services</li>
+                    <li>• Access to 100+ digital services</li>
                     <li>• Earn up to 15% commission on every service</li>
                     <li>• Professional dashboard & tools</li>
                     <li>• 24/7 customer support</li>

@@ -6,66 +6,66 @@ import { UserRole } from '@/types';
 
 // GET - Download certificate (Retailer only)
 export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session || session.user.role !== UserRole.RETAILER) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    try {
+        const session = await getServerSession(authOptions);
+
+        if (!session || session.user.role !== UserRole.RETAILER) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const { id: certificateId } = await params;
+
+        // Get certificate record
+        const { data: certificate, error } = await supabaseAdmin
+            .from('certificate_generations')
+            .select('*')
+            .eq('id', certificateId)
+            .eq('user_id', session.user.id) // Ensure user can only download their own certificates
+            .single();
+
+        if (error || !certificate) {
+            return NextResponse.json({ error: 'Certificate not found' }, { status: 404 });
+        }
+
+        // In a real implementation, this would:
+        // 1. Generate PDF from template and data
+        // 2. Return the PDF file as response
+
+        // For demo purposes, return certificate data as JSON
+        const pdfContent = generateCertificatePDF(certificate);
+
+        return new NextResponse(pdfContent, {
+            headers: {
+                'Content-Type': 'text/html',
+                'Content-Disposition': `inline; filename="${certificate.template_name}-${certificate.id}.html"`
+            }
+        });
+
+    } catch (error) {
+        return NextResponse.json({
+            error: 'Internal server error'
+        }, { status: 500 });
     }
-
-    const { id: certificateId } = await params;
-
-    // Get certificate record
-    const { data: certificate, error } = await supabaseAdmin
-      .from('certificate_generations')
-      .select('*')
-      .eq('id', certificateId)
-      .eq('user_id', session.user.id) // Ensure user can only download their own certificates
-      .single();
-
-    if (error || !certificate) {
-      return NextResponse.json({ error: 'Certificate not found' }, { status: 404 });
-    }
-
-    // In a real implementation, this would:
-    // 1. Generate PDF from template and data
-    // 2. Return the PDF file as response
-    
-    // For demo purposes, return certificate data as JSON
-    const pdfContent = generateCertificatePDF(certificate);
-    
-    return new NextResponse(pdfContent, {
-      headers: {
-        'Content-Type': 'text/html',
-        'Content-Disposition': `inline; filename="${certificate.template_name}-${certificate.id}.html"`
-      }
-    });
-
-  } catch (error) {
-    return NextResponse.json({ 
-      error: 'Internal server error' 
-    }, { status: 500 });
-  }
 }
 
 // Generate proper PDF certificate
 function generateCertificatePDF(certificate: {
-  id: string;
-  employee_name: string;
-  issue_date: string;
-  certificate_data?: any;
+    id: string;
+    employee_name: string;
+    issue_date: string;
+    certificate_data?: any;
 }): Buffer {
-  // Create a simple PDF-like content with proper formatting
-  // In production, you would use a proper PDF library like PDFKit or puppeteer
+    // Create a simple PDF-like content with proper formatting
+    // In production, you would use a proper PDF library like PDFKit or puppeteer
 
-  const certificateData = certificate.certificate_data || {};
-  const templateName = certificate.template_name || 'Certificate';
+    const certificateData = certificate.certificate_data || {};
+    const templateName = certificate.template_name || 'Certificate';
 
-  // Create HTML content for the certificate
-  const htmlContent = `
+    // Create HTML content for the certificate
+    const htmlContent = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -161,7 +161,7 @@ function generateCertificatePDF(certificate: {
     <div class="certificate">
         <div class="header">
             <div class="logo">🏛️ VIGHNAHARTA ONLINE SERVICES KENDRA</div>
-            <div style="font-size: 14px; color: #7f8c8d;">Government of India</div>
+            <div style="font-size: 14px; color: #7f8c8d;">Vighnaharta Online Services Pvt. Ltd.</div>
         </div>
 
         <div class="title">Certificate of Authorization</div>
@@ -200,7 +200,7 @@ function generateCertificatePDF(certificate: {
 </body>
 </html>`;
 
-  // For now, return HTML content as PDF (browsers can print this as PDF)
-  // In production, use puppeteer or similar to convert HTML to PDF
-  return Buffer.from(htmlContent, 'utf-8');
+    // For now, return HTML content as PDF (browsers can print this as PDF)
+    // In production, use puppeteer or similar to convert HTML to PDF
+    return Buffer.from(htmlContent, 'utf-8');
 }

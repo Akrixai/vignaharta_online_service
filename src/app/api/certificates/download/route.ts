@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { UserRole } from '@/types';
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
       // Authorization text
       doc.setFontSize(11);
       doc.setFont('helvetica', 'normal');
-      const authText = `This certificate hereby authorizes ${certificate.retailer_name} to act as an official retailer for ${certificate.company_name} at ${certificate.branch || 'Main Branch'} branch and to provide government services to customers on behalf of the company. This authorization is valid from the date of issue and remains active as long as the retailer maintains good standing with the company.`;
+      const authText = `This certificate hereby authorizes ${certificate.retailer_name} to act as an official retailer for ${certificate.company_name} at ${certificate.branch || 'Main Branch'} branch and to provide digital services to customers on behalf of the company. This authorization is valid from the date of issue and remains active as long as the retailer maintains good standing with the company.`;
 
       const splitText = doc.splitTextToSize(authText, 160);
       doc.text(splitText, 25, 185);

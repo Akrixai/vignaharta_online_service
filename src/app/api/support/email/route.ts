@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import nodemailer from 'nodemailer';
@@ -242,7 +242,7 @@ export async function POST(request: NextRequest) {
             </div>
             
             <div class="footer">
-                <p class="footer-text">🏛️ विघ्नहर्ता ऑनलाईन सर्विसेस - Government Services Portal</p>
+                <p class="footer-text">🏛️ विघ्नहर्ता ऑनलाईन सर्विसेस - digital services Portal</p>
                 <p class="footer-text">📞 Support: +91-7499116527 | 📧 vighnahartaenterprises.sangli@gmail.com</p>
                 <p class="footer-text">🌐 Serving citizens with dedication and transparency</p>
             </div>

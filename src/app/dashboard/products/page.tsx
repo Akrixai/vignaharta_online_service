@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
@@ -73,7 +73,7 @@ export default function ProductsPage() {
         <div className="bg-gradient-to-r from-red-600 to-red-700 rounded-xl p-8 text-white shadow-xl">
           <h1 className="text-4xl font-bold mb-3">Products & Services</h1>
           <p className="text-red-100 text-xl">
-            Discover products and tools to enhance your government service experience
+            Discover products and tools to enhance your Digital Service experience
           </p>
           <div className="mt-4 flex items-center gap-4 text-red-100">
             <span>🛍️ {products.length} Products Available</span>

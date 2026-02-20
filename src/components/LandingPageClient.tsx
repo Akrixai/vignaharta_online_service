@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from "next/link";
 import Logo from "@/components/ui/logo";
@@ -322,7 +322,7 @@ export default function LandingPageClient() {
   // Service statistics
   const serviceStats: ServiceStat[] = [
     {
-      title: "Government Services",
+      title: "digital services",
       value: "100",
       icon: "🏛️",
       description: "Available online"
@@ -441,7 +441,7 @@ export default function LandingPageClient() {
               </Link>
             </div>
 
-            {/* Enhanced Government Services Benefits Section */}
+            {/* Enhanced digital services Benefits Section */}
             <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 mb-12 shadow-xl border border-red-100 max-w-4xl mx-auto hover:shadow-2xl transition-all duration-300">
               <h3 className="text-2xl font-bold text-red-800 mb-6 flex items-center">
                 <span className="mr-3">🏆</span> Why Choose Vighnaharta Online Services?
@@ -507,10 +507,10 @@ export default function LandingPageClient() {
               </div>
             </div>
 
-            {/* Enhanced Popular Government Services Section */}
+            {/* Enhanced Popular digital services Section */}
             <div className="bg-gradient-to-r from-red-50 to-orange-50 rounded-2xl p-8 mb-12 shadow-lg border border-red-100 max-w-6xl mx-auto hover:shadow-xl transition-all duration-300">
               <h3 className="text-2xl font-bold text-red-800 mb-6 text-center flex items-center justify-center">
-                <span className="mr-3">🏛️</span> Popular Government Services
+                <span className="mr-3">🏛️</span> Popular digital services
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow border border-red-100 hover:border-red-200">
@@ -608,7 +608,7 @@ export default function LandingPageClient() {
                       <span className="bg-gradient-to-r from-red-600 via-orange-600 to-red-700 bg-clip-text text-transparent">Next-Gen Technology</span>
                     </h2>
                     <p className="text-gray-600 text-lg font-bold leading-relaxed max-w-lg">
-                      Beyond government services, we now provide end-to-end IT solutions. From stunning websites to powerful mobile apps and AI-driven insights.
+                      Beyond digital services, we now provide end-to-end IT solutions. From stunning websites to powerful mobile apps and AI-driven insights.
                     </p>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -738,8 +738,8 @@ export default function LandingPageClient() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 animate-fade-in animate-delay-500">
               <AnimatedServiceCard
                 icon="🏛️"
-                title="100+ Government Services Online"
-                description="Access Aadhaar, PAN, Passport, Birth Certificate, Death Certificate, Income Certificate, Caste Certificate, and all government schemes digitally"
+                title="100+ digital services Online"
+                description="Access Aadhaar, PAN, Passport, Birth Certificate, Death Certificate, Income Certificate, Caste Certificate, and all service plans digitally"
                 delay="0s"
               />
               <AnimatedServiceCard
@@ -750,7 +750,7 @@ export default function LandingPageClient() {
               />
               <AnimatedServiceCard
                 icon="⚡"
-                title="Fast Government Service Processing"
+                title="Fast Digital Service Processing"
                 description="Quick document processing with user-friendly interface and nationwide retailer network support"
                 delay="0.4s"
               />
@@ -776,7 +776,7 @@ export default function LandingPageClient() {
                 />
                 <ServiceCategory
                   icon="🏛️"
-                  title="Government Schemes"
+                  title="service plans"
                   subtitle="PM Kisan, Ayushman Bharat"
                   services={["PM Kisan Yojana", "Ayushman Bharat", "Pradhan Mantri Awas Yojana", "Atal Pension Yojana"]}
                 />
@@ -795,7 +795,7 @@ export default function LandingPageClient() {
                 href="/login?role=retailer"
                 icon="🏪"
                 title="Retailer Login"
-                description="Manage customer services, process applications, and earn commissions from government services"
+                description="Manage customer services, process applications, and earn commissions from digital services"
                 delay="0s"
               />
               <LoginCard
@@ -809,7 +809,7 @@ export default function LandingPageClient() {
                 href="/login?role=customer"
                 icon="👤"
                 title="Customer Login"
-                description="Login as a customer to access government services and track your applications"
+                description="Login as a customer to access digital services and track your applications"
                 delay="0.2s"
               />
             </div>
@@ -832,7 +832,7 @@ export default function LandingPageClient() {
                     Become a Retailer Partner
                   </h3>
                   <p className="text-xl text-red-100 mb-8 max-w-2xl mx-auto leading-relaxed">
-                    Join our network of <span className="font-bold text-yellow-300">10,000+ retailers</span> and start earning by providing government services to customers in your area
+                    Join our network of <span className="font-bold text-yellow-300">10,000+ retailers</span> and start earning by providing digital services to customers in your area
                   </p>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -1018,7 +1018,7 @@ export default function LandingPageClient() {
               Our Strategic Partners
             </h2>
             <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto animate-fade-in animate-delay-200">
-              We collaborate with India's leading government authorities and payment systems to ensure secure and official service delivery.
+              We collaborate with India's leading relevant authorities and payment systems to ensure secure and official service delivery.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center justify-items-center max-w-4xl mx-auto">
@@ -1054,7 +1054,7 @@ export default function LandingPageClient() {
             <div className="mt-16 bg-white/50 backdrop-blur-sm p-6 rounded-2xl border border-gray-200 inline-block">
               <p className="text-gray-600 flex items-center justify-center font-medium">
                 <span className="text-2xl mr-3">🛡️</span>
-                Certified and integrated with official government-authorized systems for 100% genuine processing.
+                Certified and integrated with official-authorized systems for 100% genuine processing.
               </p>
             </div>
           </div>

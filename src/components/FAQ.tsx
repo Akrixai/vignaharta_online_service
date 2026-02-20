@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 
@@ -12,7 +12,7 @@ const faqs: FAQItem[] = [
   {
     category: 'General',
     question: 'What is Vighnaharta Online Services?',
-    answer: 'Vighnaharta Online Services is India\'s premier digital government services portal with 10,000+ service centers nationwide. We help citizens access 100+ government services including Aadhaar, PAN, Passport, certificates, and more through our secure platform.'
+    answer: 'Vighnaharta Online Services is India\'s premier digital services portal with 10,000+ service centers nationwide. We help citizens access 100+ digital services including Aadhaar, PAN, Passport, certificates, and more through our secure platform.'
   },
   {
     category: 'General',
@@ -22,7 +22,7 @@ const faqs: FAQItem[] = [
   {
     category: 'Services',
     question: 'What services do you offer?',
-    answer: 'We offer 100+ government services including Aadhaar card enrollment/update, PAN card application, Passport services, Birth/Death certificates, Income/Caste certificates, Voter ID, Driving License, and many more.'
+    answer: 'We offer 100+ digital services including Aadhaar card enrollment/update, PAN card application, Passport services, Birth/Death certificates, Income/Caste certificates, Voter ID, Driving License, and many more.'
   },
   {
     category: 'Services',
@@ -32,7 +32,7 @@ const faqs: FAQItem[] = [
   {
     category: 'Pricing',
     question: 'What are your charges?',
-    answer: 'Our pricing is transparent: Government fees + minimal service charges. All charges are displayed upfront before you submit your application. No hidden fees.'
+    answer: 'Our pricing is transparent: Official fees + minimal service charges. All charges are displayed upfront before you submit your application. No hidden fees.'
   },
   {
     category: 'Security',
@@ -42,7 +42,7 @@ const faqs: FAQItem[] = [
   {
     category: 'Retailer',
     question: 'How can I become a retailer partner?',
-    answer: 'Register on our platform, pay the one-time registration fee of ₹499, complete the verification process, and start earning commissions by providing government services in your area.'
+    answer: 'Register on our platform, pay the one-time registration fee of ₹499, complete the verification process, and start earning commissions by providing digital services in your area.'
   },
   {
     category: 'Retailer',

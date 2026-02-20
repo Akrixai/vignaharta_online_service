@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
@@ -117,8 +117,8 @@ export default function ShareableLinksPage() {
     <DashboardLayout>
       <div className="space-y-6">
         <div className="bg-gradient-to-r from-blue-800 to-indigo-900 rounded-xl p-8 text-white shadow-xl">
-          <h1 className="text-4xl font-bold mb-3">Government Service Portal Links</h1>
-          <p className="text-blue-100 text-xl">Manage Official Direct Access Links for Government Services</p>
+          <h1 className="text-4xl font-bold mb-3">Digital Service Portal Links</h1>
+          <p className="text-blue-100 text-xl">Manage Official Direct Access Links for digital services</p>
         </div>
 
         {/* Tab Navigation */}
@@ -129,7 +129,7 @@ export default function ShareableLinksPage() {
                 📋 Digital Service Registry
               </button>
               <button className="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-                🏛️ Government Portal Access
+                🏛️ digital services portal Access
               </button>
               <button className="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
                 🔐 Authorized Service Links

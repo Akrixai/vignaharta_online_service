@@ -11,18 +11,17 @@ export interface SEOConfig {
 
 const baseUrl = 'https://www.vighnahartaonlineservice.in';
 const siteName = 'Vighnaharta Online Services';
-const defaultDescription = 'Upgrade from CSC to Vighnaharta Online Services - India\'s fastest digital portal for BBPS Bill Payments, NSDL PAN, and 100+ Govt Services. Get instant IDs, start earning immediately with the highest commissions. No more waiting like CSC - 100% Digital, Swift & Profitable.';
+const defaultDescription = 'Vighnaharta Online Services - India\'s all-in-one digital services platform for BBPS bill payments, NSDL PAN card services, mobile recharge & more. Earn guaranteed rewards and commissions on every transaction. Start your digital business today.';
 
 export const defaultSEO: Metadata = {
   metadataBase: new URL(baseUrl),
   title: {
-    default: `${siteName} - Government Services Online Portal India`,
+    default: `${siteName} - Digital Services & Bill Payments Platform India`,
     template: `%s | ${siteName}`
   },
   description: defaultDescription,
   keywords: [
-    'government services online',
-    'digital india services',
+    'digital services platform india',
     'bbps bill payment india',
     'nsdl pan card online',
     'recharge commission for retailers',
@@ -34,7 +33,7 @@ export const defaultSEO: Metadata = {
     'all in one bill payment portal',
     'nsdl paperless pan card',
     'bharat connect services',
-    'official government service portal',
+    'digital service provider',
     'retailer business opportunity'
   ],
   authors: [{ name: 'Vighnaharta Online Services' }],
@@ -50,20 +49,20 @@ export const defaultSEO: Metadata = {
     locale: 'en_IN',
     url: baseUrl,
     siteName,
-    title: `${siteName} - Government Services Online Portal India`,
+    title: `${siteName} - Digital Services & Bill Payments Platform India`,
     description: defaultDescription,
     images: [
       {
         url: '/images/og-image.jpg?v=2',
         width: 1200,
         height: 630,
-        alt: 'Vighnaharta Online Services - Government Portal',
+        alt: 'Vighnaharta Online Services - Digital Services Platform',
       }
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${siteName} - Government Services Online Portal India`,
+    title: `${siteName} - Digital Services & Bill Payments Platform India`,
     description: defaultDescription,
     images: ['/images/twitter-image.jpg?v=2'],
     creator: '@VighnahartaOnline',
@@ -87,7 +86,7 @@ export const defaultSEO: Metadata = {
   alternates: {
     canonical: baseUrl,
   },
-  category: 'Government Services',
+  category: 'Digital Services',
 };
 
 export function generateSEO(config: SEOConfig): Metadata {
@@ -135,139 +134,119 @@ export function generateSEO(config: SEOConfig): Metadata {
 // Page-specific SEO configurations
 export const pageSEO = {
   home: {
-    title: 'Vighnaharta Online Services | Best CSC Alternative | Fast IDs & High Commissions',
-    description: 'Stop waiting for CSC IDs. Get instant access to NSDL PAN, BBPS, and 100+ Govt services. Vighnaharta Online Services is the fastest-growing digital portal for retailers. Start your digital shop today and earn more with India\'s premier service provider.',
+    title: 'Vighnaharta Online Services | Digital Services, Bill Payments & Recharge Platform',
+    description: 'Vighnaharta Online Services - India\'s all-in-one digital services platform. NSDL PAN card services, BBPS bill payments, mobile recharge & 100+ digital services. Earn instant commissions and cashback rewards on every transaction.',
     keywords: [
-      'best csc alternative',
+      'digital services platform india',
       'instant retailer id activation',
       'fastest pan card center registration',
       'high commission recharge portal',
-      'csc login alternative',
-      'government services business india',
+      'online bill payment india',
+      'digital services business india',
       'instant digital shop creation',
-      'vighnaharta vs csc',
       'highest margins for retailers',
       'one stop digital service hub',
-      'government services online india',
+      'online services india',
       'digital india services',
       'online certificate application',
-      'government portal',
+      'digital services portal',
       'vighnaharta online services',
-      'digital government services',
       'online license application',
-      'government schemes online',
-      'e-governance services india',
       'digital certificates',
-      'online government forms',
-      'government service center',
+      'online forms',
+      'service center',
       'digital india portal',
-      'online government applications',
-      'government document services',
-      'apply for aadhaar online',
-      'apply for pan card online',
-      'online passport application',
+      'pan card apply online',
+      'passport application online',
       'birth certificate online',
       'income certificate online',
-      'government services near me',
-      'vighnaharta services',
-      'government service provider india',
-      'digital service provider india',
-      'online government service provider',
       'nsdl authorized pan center',
       'bharat connect bbps portal',
       'bill payment through vighnaharta',
-      'official nsdl pan card portal'
+      'nsdl pan card portal'
     ],
     canonical: '/',
   },
   login: {
-    title: 'Login - Vighnaharta Online Services | Secure Government Portal Access | Citizen, Retailer, Employee Login',
-    description: 'Secure login to Vighnaharta Online Services. Access your government service applications, track status, and manage your digital certificates safely. Citizen, retailer, and employee login portals available.',
+    title: 'Login - Vighnaharta Online Services | Secure Digital Services Access',
+    description: 'Secure login to Vighnaharta Online Services. Access your service applications, track status, and manage your digital documents. Login portals for customers, retailers, and employees.',
     keywords: [
-      'government portal login',
+      'digital services login',
       'secure login',
       'vighnaharta login',
-      'government services access',
-      'digital india login',
-      'citizen login',
+      'digital services access',
+      'customer login',
       'retailer login',
       'employee login',
-      'government service portal login',
-      'secure government portal access'
+      'service portal login',
+      'secure digital access'
     ],
     canonical: '/login',
   },
   register: {
-    title: 'Register - Vighnaharta Online Services | Become a Government Service Retailer | Join Digital India',
-    description: 'Register with Vighnaharta Online Services to become a government service retailer. Join India\'s premier digital government services network. Quick registration process for digital government services in India with earning opportunities.',
+    title: 'Register - Vighnaharta Online Services | Become a Digital Services Retailer',
+    description: 'Register with Vighnaharta Online Services to become a digital services retailer. Join India\'s growing digital services network. Start earning commissions on bill payments, recharge & PAN services today.',
     keywords: [
-      'government portal registration',
-      'register government services',
+      'digital portal registration',
+      'register digital services',
       'vighnaharta registration',
-      'digital india registration',
-      'government services signup',
-      'become government service retailer',
-      'government service provider registration',
-      'join digital india',
-      'government service business',
-      'retailer registration'
+      'digital services signup',
+      'become digital service retailer',
+      'service provider registration',
+      'digital services business',
+      'retailer registration',
+      'earn commission online'
     ],
     canonical: '/register',
   },
   about: {
-    title: 'About Us - Vighnaharta Online Services | Leading Government Service Provider | Digital India Initiative',
-    description: 'Learn about Vighnaharta Online Services, India\'s trusted government service portal. We provide digital access to government certificates, licenses, and schemes through our nationwide retailer network. Part of Digital India initiative.',
+    title: 'About Us - Vighnaharta Online Services | Leading Digital Service Provider India',
+    description: 'Learn about Vighnaharta Online Services, India\'s trusted digital services platform. We provide NSDL PAN card services, BBPS bill payments, mobile recharge & more through our nationwide retailer network.',
     keywords: [
       'about vighnaharta',
-      'government service provider',
-      'digital india services',
-      'online government portal',
-      'government services company',
-      'digital india initiative',
-      'government service network',
-      'trusted government services',
-      'india government services portal',
-      'digital transformation government'
+      'digital service provider',
+      'online services india',
+      'digital services company',
+      'service network india',
+      'trusted digital services',
+      'india services portal',
+      'digital transformation'
     ],
     canonical: '/about',
   },
   contact: {
-    title: 'Contact Us - Vighnaharta Online Services | Government Services Support | Help & Assistance',
-    description: 'Contact Vighnaharta Online Services for support with government applications, certificates, and digital services. Get help with your government service needs through phone, email, or WhatsApp. 24/7 customer support available.',
+    title: 'Contact Us - Vighnaharta Online Services | Customer Support & Help',
+    description: 'Contact Vighnaharta Online Services for support with your applications, bill payments, and digital services. Get help through phone, email, or WhatsApp. Customer support available.',
     keywords: [
-      'government services contact',
+      'digital services contact',
       'vighnaharta contact',
-      'government portal support',
+      'customer support',
       'digital services help',
-      'government services assistance',
-      'government service help',
-      'contact government services',
-      'government portal customer support',
-      'whatsapp government services',
-      '24/7 government services support'
+      'services assistance',
+      'contact support',
+      'whatsapp support',
+      'customer care'
     ],
     canonical: '/contact',
   },
   services: {
-    title: 'Government Services - Vighnaharta Online Services | Apply for Aadhaar, PAN, Passport, Certificates Online',
-    description: 'Explore all 100+ government services available through Vighnaharta Online Services. Apply for Aadhaar card, PAN card, Passport, Birth Certificate, Death Certificate, Income Certificate, Caste Certificate and access government schemes online with fast processing.',
+    title: 'Services - Vighnaharta Online Services | PAN Card, Bill Payments, Recharge & More',
+    description: 'Explore all 100+ digital services available through Vighnaharta Online Services. NSDL PAN card application, BBPS bill payments, mobile recharge, certificate assistance, and more with fast processing and guaranteed rewards.',
     keywords: [
-      'government services list',
+      'digital services list',
       'online certificates',
       'digital licenses',
-      'government schemes',
-      'e-governance services',
-      'government applications online',
-      'apply for aadhaar',
-      'apply for pan card',
-      'online passport application',
+      'online schemes',
+      'pan card services',
+      'bill payment services',
+      'recharge services',
+      'pan card application',
+      'passport application online',
       'birth certificate application',
-      'death certificate application',
       'income certificate application',
-      'caste certificate application',
-      'government document services online',
-      'digital government certificates',
-      'fast government services'
+      'document services online',
+      'digital certificates',
+      'fast digital services'
     ],
     canonical: '/services',
   },
@@ -281,7 +260,7 @@ export const structuredData = {
     name: siteName,
     url: baseUrl,
     logo: `${baseUrl}/vignaharta.png?v=2`,
-    description: "Vighnaharta Online Services is India's leading digital government services portal, providing official NSDL PAN card services and Bharat Connect (BBPS) bill payments. We offer 100+ government services online with fast processing and secure delivery.",
+    description: "Vighnaharta Online Services is India's leading digital services platform, providing NSDL PAN card services, Bharat Connect (BBPS) bill payments, mobile recharge & 100+ digital services with fast processing and guaranteed rewards.",
     contactPoint: {
       '@type': 'ContactPoint',
       telephone: '+91-7499116527',
@@ -347,17 +326,17 @@ export const structuredData = {
       'query-input': 'required name=search_term_string',
     },
   },
-  governmentService: {
+  professionalService: {
     '@context': 'https://schema.org',
-    '@type': 'GovernmentService',
-    name: 'Digital Government Services',
-    description: 'Online government services including certificates, licenses, and scheme applications',
+    '@type': 'ProfessionalService',
+    name: 'Digital Services Platform',
+    description: 'Online digital services including PAN card applications, bill payments, mobile recharge, certificate assistance and more',
     serviceType: [
-      'Identity Services',
-      'Certificates',
-      'Travel Documents',
-      'Financial Services',
-      'Utility Services'
+      'PAN Card Services',
+      'Bill Payment Services',
+      'Mobile Recharge',
+      'Certificate Assistance',
+      'Document Services'
     ],
     provider: {
       '@type': 'Organization',
@@ -375,45 +354,20 @@ export const structuredData = {
     },
     audience: {
       '@type': 'Audience',
-      audienceType: 'Citizens of India'
+      audienceType: 'Customers in India'
     },
     offers: {
       '@type': 'Offer',
-      category: 'Government Services'
+      category: 'Digital Services'
     }
   },
-  // Additional GovernmentService schemas for specific services
-  aadhaarService: {
-    '@context': 'https://schema.org',
-    '@type': 'GovernmentService',
-    name: 'Aadhaar Card Services',
-    serviceType: 'Identity Services',
-    description: 'Apply for new Aadhaar card or update existing details online',
-    provider: {
-      '@type': 'Organization',
-      name: siteName,
-      url: baseUrl,
-    },
-    areaServed: {
-      '@type': 'Country',
-      name: 'India',
-    },
-    serviceOperator: {
-      '@type': 'Organization',
-      name: 'Unique Identification Authority of India'
-    },
-    category: 'Identity Documents',
-    serviceAudience: {
-      '@type': 'Audience',
-      audienceType: 'Indian Citizens'
-    }
-  },
+  // Service schemas for specific services
   panService: {
     '@context': 'https://schema.org',
-    '@type': 'GovernmentService',
+    '@type': 'ProfessionalService',
     name: 'PAN Card Services',
-    serviceType: 'Identity Services',
-    description: 'Apply for new PAN card or update existing details online',
+    serviceType: 'Identity Document Services',
+    description: 'Apply for new PAN card or request corrections through authorized NSDL integration',
     provider: {
       '@type': 'Organization',
       name: siteName,
@@ -422,137 +376,19 @@ export const structuredData = {
     areaServed: {
       '@type': 'Country',
       name: 'India',
-    },
-    serviceOperator: {
-      '@type': 'Organization',
-      name: 'Income Tax Department'
     },
     category: 'Identity Documents',
     serviceAudience: {
       '@type': 'Audience',
-      audienceType: 'Indian Citizens'
+      audienceType: 'Customers in India'
     }
   },
-  passportService: {
+  billPaymentService: {
     '@context': 'https://schema.org',
-    '@type': 'GovernmentService',
-    name: 'Passport Services',
-    serviceType: 'Travel Documents',
-    description: 'Apply for fresh passport or renewal applications online',
-    provider: {
-      '@type': 'Organization',
-      name: siteName,
-      url: baseUrl,
-    },
-    areaServed: {
-      '@type': 'Country',
-      name: 'India',
-    },
-    serviceOperator: {
-      '@type': 'Organization',
-      name: 'Passport Seva Kendra'
-    },
-    category: 'Travel Documents',
-    serviceAudience: {
-      '@type': 'Audience',
-      audienceType: 'Indian Citizens'
-    }
-  },
-  birthCertificateService: {
-    '@context': 'https://schema.org',
-    '@type': 'GovernmentService',
-    name: 'Birth Certificate Services',
-    serviceType: 'Certificates',
-    description: 'Apply for birth certificates online',
-    provider: {
-      '@type': 'Organization',
-      name: siteName,
-      url: baseUrl,
-    },
-    areaServed: {
-      '@type': 'Country',
-      name: 'India',
-    },
-    category: 'Certificates',
-    serviceAudience: {
-      '@type': 'Audience',
-      audienceType: 'Indian Citizens'
-    }
-  },
-  incomeCertificateService: {
-    '@context': 'https://schema.org',
-    '@type': 'GovernmentService',
-    name: 'Income Certificate Services',
-    serviceType: 'Certificates',
-    description: 'Apply for income certificates from government authorities',
-    provider: {
-      '@type': 'Organization',
-      name: siteName,
-      url: baseUrl,
-    },
-    areaServed: {
-      '@type': 'Country',
-      name: 'India',
-    },
-    category: 'Certificates',
-    serviceAudience: {
-      '@type': 'Audience',
-      audienceType: 'Indian Citizens'
-    }
-  },
-  // Additional GovernmentService schemas for popular services
-  casteCertificateService: {
-    '@context': 'https://schema.org',
-    '@type': 'GovernmentService',
-    name: 'Caste Certificate Services',
-    serviceType: 'Certificates',
-    description: 'Apply for caste certificates from government authorities',
-    provider: {
-      '@type': 'Organization',
-      name: siteName,
-      url: baseUrl,
-    },
-    areaServed: {
-      '@type': 'Country',
-      name: 'India',
-    },
-    category: 'Certificates',
-    serviceAudience: {
-      '@type': 'Audience',
-      audienceType: 'Indian Citizens'
-    }
-  },
-  voterIdService: {
-    '@context': 'https://schema.org',
-    '@type': 'GovernmentService',
-    name: 'Voter ID Services',
-    serviceType: 'Identity Services',
-    description: 'Apply for new Voter ID card or update existing details online',
-    provider: {
-      '@type': 'Organization',
-      name: siteName,
-      url: baseUrl,
-    },
-    areaServed: {
-      '@type': 'Country',
-      name: 'India',
-    },
-    serviceOperator: {
-      '@type': 'Organization',
-      name: 'Election Commission of India'
-    },
-    category: 'Identity Documents',
-    serviceAudience: {
-      '@type': 'Audience',
-      audienceType: 'Indian Citizens'
-    }
-  },
-  bankAccountService: {
-    '@context': 'https://schema.org',
-    '@type': 'GovernmentService',
-    name: 'Bank Account Opening Services',
-    serviceType: 'Financial Services',
-    description: 'Open bank accounts with government assistance and support',
+    '@type': 'ProfessionalService',
+    name: 'BBPS Bill Payment Services',
+    serviceType: 'Bill Payment Services',
+    description: 'Pay electricity, gas, water, broadband, DTH and more bills through Bharat Bill Payment System (BBPS)',
     provider: {
       '@type': 'Organization',
       name: siteName,
@@ -565,7 +401,28 @@ export const structuredData = {
     category: 'Financial Services',
     serviceAudience: {
       '@type': 'Audience',
-      audienceType: 'Indian Citizens'
+      audienceType: 'Customers in India'
+    }
+  },
+  rechargeService: {
+    '@context': 'https://schema.org',
+    '@type': 'ProfessionalService',
+    name: 'Mobile Recharge Services',
+    serviceType: 'Telecom Services',
+    description: 'Instant mobile recharge for all operators with cashback rewards',
+    provider: {
+      '@type': 'Organization',
+      name: siteName,
+      url: baseUrl,
+    },
+    areaServed: {
+      '@type': 'Country',
+      name: 'India',
+    },
+    category: 'Telecom Services',
+    serviceAudience: {
+      '@type': 'Audience',
+      audienceType: 'Customers in India'
     }
   },
   // FAQ structured data for rich snippets
@@ -575,15 +432,15 @@ export const structuredData = {
     mainEntity: [
       {
         '@type': 'Question',
-        name: 'What government services are available online?',
+        name: 'What digital services are available?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'We offer 100+ government services including Aadhaar Card, PAN Card, Passport, Birth Certificate, Death Certificate, Income Certificate, Caste Certificate, Voter ID, Bank Account Opening, Insurance Services, and Electricity Connection.'
+          text: 'We offer 100+ digital services including PAN Card application & correction through NSDL, BBPS bill payments (electricity, gas, water, broadband), mobile recharge, DTH recharge, FASTag recharge, certificate assistance, and more.'
         }
       },
       {
         '@type': 'Question',
-        name: 'How do I apply for government services?',
+        name: 'How do I apply for services?',
         acceptedAnswer: {
           '@type': 'Answer',
           text: 'Visit your nearest Vighnaharta Online Service retailer, submit required documents, and track your application status in real-time through our digital platform.'
@@ -591,10 +448,10 @@ export const structuredData = {
       },
       {
         '@type': 'Question',
-        name: 'How long does it take to process government applications?',
+        name: 'How long does it take to process applications?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Processing time varies by service. Most certificates take 5-15 working days. You can check estimated processing times on each service page.'
+          text: 'Processing time varies by service. PAN card applications typically take 3-7 working days. You can check estimated processing times on each service page.'
         }
       },
       {
@@ -610,7 +467,7 @@ export const structuredData = {
         name: 'Can I apply for a new PAN card or correction here?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Yes! Our portal is directly integrated with NSDL. You can apply for a New PAN Card (Paperless e-KYC), request PAN Corrections, or resume incomplete applications at the lowest market cost.'
+          text: 'Yes! Our platform is integrated with NSDL. You can apply for a New PAN Card (Paperless e-KYC), request PAN Corrections, or resume incomplete applications at competitive rates.'
         }
       },
       {
@@ -626,7 +483,7 @@ export const structuredData = {
         name: 'Is there any cashback for customers on bill payments?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Yes, direct customers get attractive cashback rewards instantly in their wallet for every recharge and bill payment made through our secure portal.'
+          text: 'Yes, customers get attractive cashback rewards instantly in their wallet for every recharge and bill payment made through our secure platform.'
         }
       },
       {
@@ -634,7 +491,7 @@ export const structuredData = {
         name: 'What is Vighnaharta Online Services?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Vighnaharta Online Services is India\'s premier digital government services portal that provides access to 100+ government services online. We help citizens apply for Aadhaar Card, PAN Card, Passport, Birth Certificate, Death Certificate, Income Certificate, Caste Certificate, and other government schemes digitally with fast, secure, and reliable processing.'
+          text: 'Vighnaharta Online Services is India\'s premier digital services platform that provides access to 100+ services online including NSDL PAN card application, BBPS bill payments, mobile recharge, certificate assistance, and more with fast, secure processing and guaranteed rewards.'
         }
       },
       {
@@ -650,7 +507,7 @@ export const structuredData = {
         name: 'What are the benefits of using Vighnaharta Online Services?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'The key benefits of using Vighnaharta Online Services include: 1) Digital India Initiative participation, 2) Nationwide access to government services, 3) Fast processing with real-time tracking, 4) Secure and reliable service with bank-level encryption, 5) User-friendly interface, and 6) Extensive retailer network support across India.'
+          text: 'Key benefits include: 1) Nationwide access to digital services, 2) Fast processing with real-time tracking, 3) Secure and reliable with bank-level encryption, 4) Guaranteed cashback rewards, 5) User-friendly interface, and 6) Extensive retailer network support.'
         }
       }
     ]
@@ -669,14 +526,14 @@ export const structuredData = {
       {
         '@type': 'ListItem',
         position: 2,
-        name: 'Government Services',
+        name: 'Services',
         item: `${baseUrl}/services`
       },
       {
         '@type': 'ListItem',
         position: 3,
-        name: 'Aadhaar Card',
-        item: `${baseUrl}/services/aadhaar-card`
+        name: 'PAN Card',
+        item: `${baseUrl}/services/pan-card`
       }
     ]
   }

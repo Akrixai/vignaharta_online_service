@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -30,7 +30,7 @@ export default function UserConsent({ onConsentGiven }: UserConsentProps) {
     {
       title: "🔒 Privacy & Data Protection",
       icon: <Shield className="w-8 h-8" />,
-      description: "We collect and process your personal data to provide government services. Your data is encrypted and stored securely.",
+      description: "We collect and process your personal data to provide digital services. Your data is encrypted and stored securely.",
       key: 'privacy' as keyof typeof consents,
       required: true
     },
@@ -57,7 +57,7 @@ export default function UserConsent({ onConsentGiven }: UserConsentProps) {
     {
       title: "💾 Data Processing",
       icon: <Database className="w-8 h-8" />,
-      description: "Your data will be processed for service delivery, verification, and compliance with government regulations.",
+      description: "Your data will be processed for service delivery, verification, and compliance with applicable regulations.",
       key: 'dataProcessing' as keyof typeof consents,
       required: true
     },

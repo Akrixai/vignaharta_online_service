@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
@@ -85,7 +85,7 @@ export default function ServicesPage() {
   const [processingPayment, setProcessingPayment] = useState(false);
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
 
-  // Fetch government services
+  // Fetch digital services
   const {
     data: services,
     loading: loadingServices,
@@ -250,11 +250,11 @@ export default function ServicesPage() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div>
               <h1 className="text-4xl font-bold mb-3">
-                {viewMode === 'GOVERNMENT' ? 'Government Services' : 'Direct Link Services'}
+                {viewMode === 'GOVERNMENT' ? 'digital services' : 'Direct Link Services'}
               </h1>
               <p className="text-red-100 text-xl">
                 {viewMode === 'GOVERNMENT'
-                  ? 'Apply for government services and schemes through our platform'
+                  ? 'Apply for digital services and schemes through our platform'
                   : 'Access various services directly with secure payments'}
               </p>
             </div>
@@ -278,7 +278,7 @@ export default function ServicesPage() {
                   className="whitespace-nowrap text-base font-black"
                   style={{ color: '#ffffff' }}
                 >
-                  Government
+                  Digital Services
                 </span>
               </button>
               <button
@@ -456,7 +456,7 @@ export default function ServicesPage() {
                                   <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-red-100 to-red-200">
                                     <div class="text-center">
                                       <div class="text-4xl mb-2 text-red-400">🏛️</div>
-                                      <p class="text-red-600 font-medium text-sm">Government Service</p>
+                                      <p class="text-red-600 font-medium text-sm">Digital Service</p>
                                     </div>
                                   </div>
                                 `;
@@ -480,7 +480,7 @@ export default function ServicesPage() {
                         <div className="relative h-56 w-full overflow-hidden rounded-t-lg bg-gradient-to-br from-red-50 via-red-100 to-red-200 flex items-center justify-center">
                           <div className="text-center">
                             <div className="text-6xl mb-3 text-red-400">🏛️</div>
-                            <p className="text-red-600 font-bold text-lg">Government Service</p>
+                            <p className="text-red-600 font-bold text-lg">Digital Service</p>
                             <p className="text-red-500 text-sm mt-1">{item.category}</p>
                           </div>
                           <div className="absolute top-4 right-4 shadow-xl">
@@ -540,7 +540,7 @@ export default function ServicesPage() {
                     </Card>
                   ) : (
                     <Card key={item.id} className="group hover:shadow-2xl transition-all duration-300 border border-blue-100 flex flex-col">
-                      {/* Service Banner - Matching Government Services Style */}
+                      {/* Service Banner - Matching digital services Style */}
                       {item.icon_url && item.icon_url.trim() !== '' ? (
                         <div className="relative h-56 w-full overflow-hidden rounded-t-lg bg-gradient-to-br from-blue-50 to-blue-100">
                           <img
@@ -708,7 +708,7 @@ export default function ServicesPage() {
 
       {/* Global Modals */}
 
-      {/* Government Application Form */}
+      {/* Service Application Form */}
       <ServiceApplicationForm
         service={selectedService}
         isOpen={showApplicationForm}

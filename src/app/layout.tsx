@@ -87,19 +87,11 @@ export default function RootLayout({
             }}
           />
         )}
-        {structuredData?.governmentService && (
+        {structuredData?.professionalService && (
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{
-              __html: JSON.stringify(structuredData.governmentService),
-            }}
-          />
-        )}
-        {structuredData?.aadhaarService && (
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify(structuredData.aadhaarService),
+              __html: JSON.stringify(structuredData.professionalService),
             }}
           />
         )}
@@ -111,51 +103,19 @@ export default function RootLayout({
             }}
           />
         )}
-        {structuredData?.passportService && (
+        {structuredData?.billPaymentService && (
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{
-              __html: JSON.stringify(structuredData.passportService),
+              __html: JSON.stringify(structuredData.billPaymentService),
             }}
           />
         )}
-        {structuredData?.birthCertificateService && (
+        {structuredData?.rechargeService && (
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{
-              __html: JSON.stringify(structuredData.birthCertificateService),
-            }}
-          />
-        )}
-        {structuredData?.incomeCertificateService && (
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify(structuredData.incomeCertificateService),
-            }}
-          />
-        )}
-        {structuredData?.casteCertificateService && (
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify(structuredData.casteCertificateService),
-            }}
-          />
-        )}
-        {structuredData?.voterIdService && (
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify(structuredData.voterIdService),
-            }}
-          />
-        )}
-        {structuredData?.bankAccountService && (
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify(structuredData.bankAccountService),
+              __html: JSON.stringify(structuredData.rechargeService),
             }}
           />
         )}

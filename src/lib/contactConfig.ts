@@ -23,14 +23,14 @@ export interface ContactConfig {
 
 const defaultConfig: ContactConfig = {
   company_name: 'Vighnaharta Online Services',
-  contact_email: 'info@vignahartajanseva.com',
+  contact_email: 'info@vighnahartaonlineservice.in',
   support_email: 'vighnahartaenterprises.sangli@gmail.com',
   technical_email: 'vighnahartaenterprises.sangli@gmail.com',
   contact_phone: '+91 9876543210',
   contact_phone_secondary: '+91-7499116527',
   contact_whatsapp: '+91 9876543210',
   whatsapp_support_number: '917499116527',
-  office_address: 'Vignaharta Janseva, Main Street, City, State - 123456',
+  office_address: 'Vighnaharta Online Services, Main Street, City, State - 123456',
   office_address_full: 'Bajrang Nagar, MIDC Kupwad, Maharashtra 416436, India',
   office_hours: 'Monday to Saturday, 9:00 AM to 6:00 PM',
   support_hours: 'Mon-Sat: 9:00 AM - 6:00 PM',

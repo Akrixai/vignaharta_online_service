@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
@@ -58,7 +58,7 @@ export default function EmployeeCertificatesPage() {
           body: JSON.stringify({
             employee_name: session.user.name,
             employee_id: session.user.employeeId || session.user.id.substring(0, 8),
-            department: session.user.department || 'Government Services',
+            department: session.user.department || 'digital services',
             branch: branch
           })
         });
@@ -77,7 +77,7 @@ export default function EmployeeCertificatesPage() {
             id: session.user.id,
             employee_name: session.user.name,
             employee_id: session.user.employeeId || session.user.id.substring(0, 8),
-            department: session.user.department || 'Government Services',
+            department: session.user.department || 'digital services',
             branch: branch,
             certificate_number: certificateNumber,
             issue_date: employeeCreationDate.toLocaleDateString('en-GB'),
@@ -95,7 +95,7 @@ export default function EmployeeCertificatesPage() {
           id: session.user.id,
           employee_name: session.user.name,
           employee_id: session.user.employeeId || session.user.id.substring(0, 8),
-          department: session.user.department || 'Government Services',
+          department: session.user.department || 'digital services',
           branch: branch,
           certificate_number: certificateNumber,
           issue_date: employeeCreationDate.toLocaleDateString('en-GB'),
@@ -215,7 +215,7 @@ export default function EmployeeCertificatesPage() {
       doc.setFont('helvetica', 'bold');
       doc.text('Department:', 120, 145);
       doc.setFont('helvetica', 'normal');
-      doc.text(certificate.department || 'Government Services', 120, 155);
+      doc.text(certificate.department || 'digital services', 120, 155);
 
       // Company
       doc.setFont('helvetica', 'bold');
@@ -238,7 +238,7 @@ export default function EmployeeCertificatesPage() {
       // Authorization text
       doc.setFontSize(11);
       doc.setFont('helvetica', 'normal');
-      const authText = `This certificate hereby authorizes ${certificate.employee_name} (ID: ${certificate.employee_id || 'N/A'}) to act as an official employee of ${certificate.company_name} in the ${certificate.department || 'Government Services'} department at ${certificate.branch || 'Main Branch'} branch. This authorization is valid from the date of issue and remains active as long as the employee maintains good standing with the company.`;
+      const authText = `This certificate hereby authorizes ${certificate.employee_name} (ID: ${certificate.employee_id || 'N/A'}) to act as an official employee of ${certificate.company_name} in the ${certificate.department || 'digital services'} department at ${certificate.branch || 'Main Branch'} branch. This authorization is valid from the date of issue and remains active as long as the employee maintains good standing with the company.`;
 
       const splitText = doc.splitTextToSize(authText, 160);
       doc.text(splitText, 25, 205);

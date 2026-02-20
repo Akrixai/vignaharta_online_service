@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import { useRealTimeReceipts } from '@/hooks/useRealTimeReceipts';
@@ -77,7 +77,7 @@ export default function ReceiptsList({ className }: ReceiptsListProps) {
 
       pdf.setFontSize(12);
       pdf.setFont('helvetica', 'normal');
-      pdf.text('Government Services Portal', 105, 30, { align: 'center' });
+      pdf.text('digital services Portal', 105, 30, { align: 'center' });
 
       pdf.setFontSize(16);
       pdf.setFont('helvetica', 'bold');
@@ -213,7 +213,7 @@ export default function ReceiptsList({ className }: ReceiptsListProps) {
       pdf.setTextColor(0, 0, 0);
       pdf.setFontSize(10);
       pdf.setFont('helvetica', 'bold');
-      pdf.text('VIGHNAHARTA ONLINE SERVICE - Government Services Portal', 105, yPos, { align: 'center' });
+      pdf.text('VIGHNAHARTA ONLINE SERVICE - digital services Portal', 105, yPos, { align: 'center' });
 
       yPos += 8;
       pdf.setFont('helvetica', 'normal');

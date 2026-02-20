@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
@@ -51,7 +51,7 @@ export default function AdminCertificatesPage() {
     if (session?.user?.role !== UserRole.ADMIN) return;
 
     const { supabaseClient } = require('@/lib/supabase');
-    
+
     // Subscribe to changes in certificate tables
     const employeeChannel = supabaseClient
       .channel('employee-certificates-changes')
@@ -97,15 +97,15 @@ export default function AdminCertificatesPage() {
   const fetchCertificates = async () => {
     try {
       setLoading(true);
-      
+
       // Fetch all users with their certificate information
       const usersResponse = await fetch('/api/admin/users');
       const usersData = await usersResponse.json();
-      
+
       // Fetch employee certificates
       const employeeResponse = await fetch('/api/admin/employee-certificates');
       const employeeData = await employeeResponse.json();
-      
+
       // Fetch retailer certificates
       const retailerResponse = await fetch('/api/admin/retailer-certificates');
       const retailerData = await retailerResponse.json();
@@ -124,7 +124,7 @@ export default function AdminCertificatesPage() {
         .map((user: any) => {
           const isEmployee = user.role === 'EMPLOYEE';
           const cert = isEmployee ? employeeCertMap.get(user.id) : retailerCertMap.get(user.id);
-          
+
           if (cert) {
             // User has a certificate
             return {
@@ -143,7 +143,7 @@ export default function AdminCertificatesPage() {
               branch: user.branch,
               certificate_number: 'NOT GENERATED',
               issue_date: 'N/A',
-              company_name: 'Vignaharta Janseva',
+              company_name: 'Vighnaharta Online Services',
               digital_signature: '',
               is_active: false,
               created_at: user.created_at,
@@ -237,7 +237,7 @@ export default function AdminCertificatesPage() {
 
   const handleGenerateAllCertificates = async () => {
     const ungenerated = filteredCertificates.filter(c => c.certificate_number === 'NOT GENERATED');
-    
+
     if (ungenerated.length === 0) {
       alert('All certificates have already been generated!');
       return;
@@ -339,7 +339,7 @@ export default function AdminCertificatesPage() {
                   className="pl-10"
                 />
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <Filter className="w-4 h-4 text-gray-600" />
                 <select
@@ -385,8 +385,8 @@ export default function AdminCertificatesPage() {
               <Award className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-600 mb-2">No certificates found</h3>
               <p className="text-gray-500">
-                {searchTerm || filterType !== 'all' 
-                  ? 'Try adjusting your search or filters.' 
+                {searchTerm || filterType !== 'all'
+                  ? 'Try adjusting your search or filters.'
                   : 'No certificates have been generated yet.'}
               </p>
             </CardContent>
@@ -394,32 +394,28 @@ export default function AdminCertificatesPage() {
         ) : (
           <div className="grid gap-6">
             {filteredCertificates.map((certificate) => (
-              <Card key={certificate.id} className={`border-l-4 ${
-                certificate.certificate_number === 'NOT GENERATED' 
-                  ? 'border-l-gray-400 bg-gray-50' 
+              <Card key={certificate.id} className={`border-l-4 ${certificate.certificate_number === 'NOT GENERATED'
+                  ? 'border-l-gray-400 bg-gray-50'
                   : 'border-l-blue-500'
-              }`}>
+                }`}>
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-4">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                          certificate.certificate_number === 'NOT GENERATED'
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${certificate.certificate_number === 'NOT GENERATED'
                             ? 'bg-gray-200'
                             : certificate.type === 'employee' ? 'bg-blue-100' : 'bg-green-100'
-                        }`}>
+                          }`}>
                           {certificate.type === 'employee' ? (
-                            <UserCheck className={`w-6 h-6 ${
-                              certificate.certificate_number === 'NOT GENERATED'
+                            <UserCheck className={`w-6 h-6 ${certificate.certificate_number === 'NOT GENERATED'
                                 ? 'text-gray-500'
                                 : 'text-blue-600'
-                            }`} />
+                              }`} />
                           ) : (
-                            <Users className={`w-6 h-6 ${
-                              certificate.certificate_number === 'NOT GENERATED'
+                            <Users className={`w-6 h-6 ${certificate.certificate_number === 'NOT GENERATED'
                                 ? 'text-gray-500'
                                 : 'text-green-600'
-                            }`} />
+                              }`} />
                           )}
                         </div>
                         <div>
@@ -433,13 +429,12 @@ export default function AdminCertificatesPage() {
                             {certificate.type} Certificate
                           </p>
                         </div>
-                        <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          certificate.certificate_number === 'NOT GENERATED'
+                        <div className={`px-3 py-1 rounded-full text-xs font-medium ${certificate.certificate_number === 'NOT GENERATED'
                             ? 'bg-yellow-100 text-yellow-800'
                             : certificate.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
-                          {certificate.certificate_number === 'NOT GENERATED' 
-                            ? 'NOT GENERATED' 
+                          }`}>
+                          {certificate.certificate_number === 'NOT GENERATED'
+                            ? 'NOT GENERATED'
                             : certificate.is_active ? 'ACTIVE' : 'INACTIVE'}
                         </div>
                       </div>
@@ -452,7 +447,7 @@ export default function AdminCertificatesPage() {
                             <div className="text-sm font-medium text-gray-900">{certificate.certificate_number}</div>
                           </div>
                         </div>
-                        
+
                         {certificate.employee_id && (
                           <div className="flex items-center space-x-2">
                             <User className="w-4 h-4 text-gray-500" />
@@ -462,7 +457,7 @@ export default function AdminCertificatesPage() {
                             </div>
                           </div>
                         )}
-                        
+
                         {certificate.department && (
                           <div className="flex items-center space-x-2">
                             <Building className="w-4 h-4 text-gray-500" />
@@ -472,7 +467,7 @@ export default function AdminCertificatesPage() {
                             </div>
                           </div>
                         )}
-                        
+
                         <div className="flex items-center space-x-2">
                           <MapPin className="w-4 h-4 text-gray-500" />
                           <div>
@@ -480,7 +475,7 @@ export default function AdminCertificatesPage() {
                             <div className="text-sm font-medium text-gray-900">{certificate.branch || 'Not specified'}</div>
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center space-x-2">
                           <Calendar className="w-4 h-4 text-gray-500" />
                           <div>
@@ -654,7 +649,7 @@ export default function AdminCertificatesPage() {
                       <div className="text-center py-6">
                         <p className="text-lg text-gray-700 leading-relaxed">
                           This certificate hereby authorizes <strong>{selectedCertificate.name}</strong> to act as an
-                          official {selectedCertificate.type} for <strong>{selectedCertificate.company_name}</strong> and to provide government
+                          official {selectedCertificate.type} for <strong>{selectedCertificate.company_name}</strong> and to provide digital
                           services to customers on behalf of the company. This authorization is valid from the date
                           of issue and remains active as long as the {selectedCertificate.type} maintains good standing with the company.
                         </p>
@@ -680,7 +675,7 @@ export default function AdminCertificatesPage() {
 
                           <div className="text-center">
                             <div className="w-20 h-20 border-2 border-red-600 rounded-full flex items-center justify-center mb-2">
-                              <div className="text-xs text-red-600 font-bold">OFFICIAL<br/>SEAL</div>
+                              <div className="text-xs text-red-600 font-bold">OFFICIAL<br />SEAL</div>
                             </div>
                             <div className="text-xs text-gray-500">Company Seal</div>
                           </div>

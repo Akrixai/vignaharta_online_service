@@ -8,7 +8,7 @@ import { UserRole } from '@/types';
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session || session.user.role !== UserRole.ADMIN) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
           branch: userData.branch || null,
           certificate_number: certificateNumber,
           issue_date: issueDate,
-          company_name: 'Vignaharta Janseva',
+          company_name: 'Vighnaharta Online Services',
           digital_signature: digitalSignature,
           is_active: true
         })
@@ -158,7 +158,7 @@ export async function POST(request: NextRequest) {
           branch: branch,
           certificate_number: certificateNumber,
           issue_date: issueDate,
-          company_name: 'Vignaharta Janseva',
+          company_name: 'Vighnaharta Online Services',
           digital_signature: digitalSignature,
           is_active: true
         })
@@ -184,8 +184,8 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Certificate generation error:', error);
-    return NextResponse.json({ 
-      error: 'Internal server error' 
+    return NextResponse.json({
+      error: 'Internal server error'
     }, { status: 500 });
   }
 }

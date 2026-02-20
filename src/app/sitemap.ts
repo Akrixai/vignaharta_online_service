@@ -1,10 +1,10 @@
-import { MetadataRoute } from 'next'
+﻿import { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://www.vighnahartaonlineservice.in'
   const currentDate = new Date();
 
-  // Government service categories with enhanced priority for key services
+  // Digital Service categories with enhanced priority for key services
   const serviceCategories = [
     { name: 'aadhaar-card', priority: 0.95 },
     { name: 'pan-card', priority: 0.95 },
@@ -56,7 +56,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }
   ];
 
-  // Additional high-value government service pages
+  // Additional high-value Digital Service pages
   const additionalServicePages = [
     {
       url: `${baseUrl}/services/aadhaar-card/new-enrollment`,

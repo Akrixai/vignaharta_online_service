@@ -41,7 +41,7 @@ export default function OrderReceiptPage() {
       try {
         const response = await fetch(`/api/orders/${orderId}`);
         const result = await response.json();
-        
+
         if (result.success) {
           setOrder(result.order);
         }
@@ -121,7 +121,7 @@ export default function OrderReceiptPage() {
 
       doc.setFontSize(14);
       doc.setFont('helvetica', 'normal');
-      doc.text('Government Service Portal', 105, 32, { align: 'center' });
+      doc.text('Digital Services Portal', 105, 32, { align: 'center' });
 
       doc.setFontSize(18);
       doc.setFont('helvetica', 'bold');
@@ -288,7 +288,7 @@ export default function OrderReceiptPage() {
             <ArrowLeft className="w-4 h-4" />
             Back to Orders
           </Button>
-          
+
           <div className="flex gap-3">
             <Button
               variant="outline"

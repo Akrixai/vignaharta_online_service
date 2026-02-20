@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
@@ -41,7 +41,7 @@ export default function AdminFreeServicesPage() {
   const predefinedCategories = [
     'Information Services',
     'Educational Services',
-    'Government Schemes',
+    'service plans',
     'Document Verification',
     'Financial Services',
     'Healthcare Services',

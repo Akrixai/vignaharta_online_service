@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 
@@ -109,7 +109,7 @@ export default function HowItWorks() {
             How It Works
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Start earning with government services in just <span className="font-bold text-red-600">5 minutes</span>. 
+            Start earning with digital services in just <span className="font-bold text-red-600">5 minutes</span>. 
             Simple process, instant commissions, and maximum convenience.
           </p>
         </div>
