@@ -55,7 +55,7 @@ export default function TermsPage() {
               </p>
               <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                 <a href="https://uidai.gov.in" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">🔗 UIDAI - uidai.gov.in</a>
-                <a href="https://incometax.gov.in" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">🔗 Income Tax - incometax.gov.in</a>
+                <a href="https://www.incometax.gov.in/iec/foportal/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">🔗 Income Tax (PAN) - incometax.gov.in/iec/foportal</a>
                 <a href="https://passportindia.gov.in" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">🔗 Passport Seva - passportindia.gov.in</a>
                 <a href="https://www.india.gov.in" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">🔗 India Portal - india.gov.in</a>
               </div>

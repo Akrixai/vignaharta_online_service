@@ -5,7 +5,7 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "About Us - VIGHNAHARTA ONLINE SERVICES | Private Service Assistance Platform",
-  description: "Vighnaharta Online Services is a private service assistance platform helping citizens access official government portals. NOT affiliated with any government entity. We provide guidance to official sources like uidai.gov.in, incometax.gov.in, passportindia.gov.in.",
+  description: "Vighnaharta Online Services is a private service assistance platform helping citizens access official government portals. NOT affiliated with any government entity. We provide guidance to official sources like uidai.gov.in, incometax.gov.in/iec/foportal, passportindia.gov.in.",
   keywords: "about vighnaharta, service assistance, government portal guidance, private service platform",
 };
 
@@ -82,8 +82,8 @@ export default function AboutPage() {
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-blue-600">🔗</span>
-                <a href="https://incometax.gov.in" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                  Income Tax Department (PAN) - incometax.gov.in
+                <a href="https://www.incometax.gov.in/iec/foportal/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  Income Tax Department (PAN) - incometax.gov.in/iec/foportal
                 </a>
               </div>
               <div className="flex items-center gap-2">

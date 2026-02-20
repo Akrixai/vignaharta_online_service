@@ -96,6 +96,13 @@ export async function POST(request: NextRequest) {
     const processResult = await processStatusResponse(panService, statusData, session.user.id);
 
     if (processResult.success) {
+      // Get updated wallet balance to return to frontend
+      const { data: updatedWallet } = await supabaseAdmin
+        .from('wallets')
+        .select('balance')
+        .eq('user_id', panService.user_id)
+        .single();
+
       return NextResponse.json({
         success: true,
         message: 'Status updated successfully',
@@ -105,7 +112,8 @@ export async function POST(request: NextRequest) {
           new_status: processResult.new_status,
           inspay_response: statusData,
           acknowledgement_number: processResult.acknowledgement_number,
-          payment_charged: processResult.payment_charged
+          payment_charged: processResult.payment_charged,
+          wallet_balance: updatedWallet?.balance || null
         }
       });
     } else {

@@ -260,7 +260,7 @@ export default function PanServicesHistoryPage() {
       const data = await response.json();
 
       if (data.success) {
-        const { new_status, acknowledgement_number, payment_charged } = data.data;
+        const { new_status, acknowledgement_number, payment_charged, wallet_balance } = data.data;
         
         if (new_status === 'SUCCESS') {
           toast.success(`🎉 Great news! Your PAN application ${orderId} is now SUCCESSFUL!`, { duration: 8000 });
@@ -269,6 +269,9 @@ export default function PanServicesHistoryPage() {
           }
           if (payment_charged) {
             toast.success(`💰 Payment of ₹${data.data.inspay_response?.amount || 'N/A'} has been charged.`, { duration: 6000 });
+            if (wallet_balance !== null && wallet_balance !== undefined) {
+              toast.success(`💳 Updated Wallet Balance: ₹${parseFloat(wallet_balance).toFixed(2)}`, { duration: 6000 });
+            }
           }
         } else if (new_status === 'FAILURE') {
           toast.error(`❌ Unfortunately, your PAN application ${orderId} has failed.`, { duration: 8000 });
