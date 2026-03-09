@@ -1,13 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth-helper';
 import { supabaseAdmin } from '@/lib/supabase';
+import { corsHeaders, handleCorsPreflightRequest } from '@/lib/cors';
+
+export async function OPTIONS() {
+  return handleCorsPreflightRequest();
+}
 
 export async function POST(request: NextRequest) {
   try {
     const user = await getAuthenticatedUser(request);
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders });
     }
 
     // Parse FormData for file upload
@@ -19,27 +24,27 @@ export async function POST(request: NextRequest) {
     if (!amount || parseFloat(amount) <= 0) {
       return NextResponse.json({
         error: 'Valid amount is required'
-      }, { status: 400 });
+      }, { status: 400, headers: corsHeaders });
     }
 
     if (!qrCodeImage || qrCodeImage.size === 0) {
       return NextResponse.json({
         error: 'QR code image is required'
-      }, { status: 400 });
+      }, { status: 400, headers: corsHeaders });
     }
 
     // Validate file type
     if (!qrCodeImage.type.startsWith('image/')) {
       return NextResponse.json({
         error: 'Only image files are allowed'
-      }, { status: 400 });
+      }, { status: 400, headers: corsHeaders });
     }
 
     // Validate file size (max 5MB)
     if (qrCodeImage.size > 5 * 1024 * 1024) {
       return NextResponse.json({
         error: 'Image size must be less than 5MB'
-      }, { status: 400 });
+      }, { status: 400, headers: corsHeaders });
     }
 
     // Check if user has sufficient balance
@@ -52,13 +57,13 @@ export async function POST(request: NextRequest) {
     if (walletError || !wallet) {
       return NextResponse.json({
         error: 'Wallet not found'
-      }, { status: 404 });
+      }, { status: 404, headers: corsHeaders });
     }
 
     if (parseFloat(wallet.balance) < parseFloat(amount)) {
       return NextResponse.json({
         error: 'Insufficient wallet balance'
-      }, { status: 400 });
+      }, { status: 400, headers: corsHeaders });
     }
 
     // Upload QR code image to Supabase storage
@@ -80,7 +85,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         error: `Failed to upload QR code image: ${uploadError.message}`,
         details: uploadError.error
-      }, { status: 500 });
+      }, { status: 500, headers: corsHeaders });
     }
 
     // Get public URL for the uploaded image
@@ -113,7 +118,7 @@ export async function POST(request: NextRequest) {
     if (requestError) {
       return NextResponse.json({
         error: 'Failed to create withdrawal request'
-      }, { status: 500 });
+      }, { status: 500, headers: corsHeaders });
     }
 
     return NextResponse.json({
@@ -121,11 +126,11 @@ export async function POST(request: NextRequest) {
       message: 'Withdrawal request with QR code submitted successfully. Waiting for admin approval.',
       request_id: withdrawalRequest.id,
       qr_code_url: qrCodeUrl
-    });
+    }, { headers: corsHeaders });
 
   } catch (error) {
     return NextResponse.json({
       error: 'Internal server error'
-    }, { status: 500 });
+    }, { status: 500, headers: corsHeaders });
   }
 }

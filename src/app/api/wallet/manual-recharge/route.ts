@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth-helper';
 import { supabaseAdmin } from '@/lib/supabase';
+import { corsHeaders, handleCorsPreflightRequest } from '@/lib/cors';
+
+export async function OPTIONS() {
+  return handleCorsPreflightRequest();
+}
 
 // POST /api/wallet/manual-recharge - Submit manual wallet recharge request with QR payment
 export async function POST(request: NextRequest) {
@@ -10,7 +15,7 @@ export async function POST(request: NextRequest) {
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
-        { status: 401 }
+        { status: 401, headers: corsHeaders }
       );
     }
 
@@ -28,21 +33,21 @@ export async function POST(request: NextRequest) {
     if (!amount || amount < 10) {
       return NextResponse.json(
         { success: false, error: 'Minimum recharge amount is ₹10' },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
 
     if (!paymentScreenshot) {
       return NextResponse.json(
         { success: false, error: 'Payment screenshot is required' },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
 
     if (!payerName || !payerPhone) {
       return NextResponse.json(
         { success: false, error: 'Payer name and phone are required' },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
 
@@ -63,7 +68,7 @@ export async function POST(request: NextRequest) {
       console.error('Upload error:', uploadError);
       return NextResponse.json(
         { success: false, error: 'Failed to upload screenshot' },
-        { status: 500 }
+        { status: 500, headers: corsHeaders }
       );
     }
 
@@ -105,7 +110,7 @@ export async function POST(request: NextRequest) {
       console.error('Request error:', requestError);
       return NextResponse.json(
         { success: false, error: 'Failed to create wallet request' },
-        { status: 500 }
+        { status: 500, headers: corsHeaders }
       );
     }
 
@@ -126,12 +131,12 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Wallet recharge request submitted successfully',
       request: walletRequest,
-    });
+    }, { headers: corsHeaders });
   } catch (error: any) {
     console.error('Error creating manual recharge request:', error);
     return NextResponse.json(
       { success: false, error: error.message || 'Failed to create recharge request' },
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     );
   }
 }
