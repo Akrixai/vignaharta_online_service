@@ -40,7 +40,7 @@ export default function WalletPage() {
   const calculateGSTBreakdown = (amount: number) => {
     const maxAmount = 50000; // Maximum ₹50,000
     
-    if (!amount || amount < 10 || amount > maxAmount) {
+    if (!amount || amount < 100 || amount > maxAmount) {
       return null;
     }
 
@@ -234,9 +234,9 @@ export default function WalletPage() {
       return;
     }
 
-    if (amount < 10) {
+    if (amount < 100) {
       showToast.error('Amount too low', {
-        description: 'Minimum amount is ₹10'
+        description: 'Minimum amount is ₹100'
       });
       return;
     }
@@ -253,7 +253,7 @@ export default function WalletPage() {
     
     if (!breakdown) {
       showToast.error('Invalid amount', {
-        description: `Please enter a valid amount between ₹10 and ₹${maxAmount.toLocaleString()}`
+        description: `Please enter a valid amount between ₹100 and ₹${maxAmount.toLocaleString()}`
       });
       return;
     }
@@ -325,9 +325,9 @@ export default function WalletPage() {
       return;
     }
 
-    if (amount < 10) {
+    if (amount < 100) {
       showToast.error('Amount too low', {
-        description: 'Minimum amount is ₹10'
+        description: 'Minimum amount is ₹100'
       });
       return;
     }
@@ -751,24 +751,24 @@ export default function WalletPage() {
                 <div className="space-y-2">
                   <label htmlFor="addAmount" className="text-sm font-semibold text-gray-800 flex items-center">
                     <span className="mr-2">💰</span>
-                    Recharge Amount (₹10 - ₹50,000)
+                    Recharge Amount (₹100 - ₹50,000)
                   </label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">₹</span>
                     <Input
                       id="addAmount"
                       type="number"
-                      min="10"
+                      min="100"
                       max="50000"
                       value={addMoneyAmount}
                       onChange={(e) => setAddMoneyAmount(e.target.value)}
-                      placeholder="Enter amount"
+                      placeholder="Enter amount (min ₹100)"
                       required
                       className="pl-8 h-12 text-lg font-medium text-gray-900 border-2 border-gray-200 focus:border-red-500 focus:ring-red-500 rounded-lg"
                     />
                   </div>
                   <div className="flex justify-between text-xs">
-                    <span className="text-green-600 font-medium">Minimum: ₹10</span>
+                    <span className="text-green-600 font-medium">Minimum: ₹100</span>
                     <span className="text-orange-600 font-medium">Maximum: ₹50,000</span>
                   </div>
                 </div>
@@ -915,11 +915,11 @@ export default function WalletPage() {
                     <Input
                       id="manualAmount"
                       type="number"
-                      min="10"
+                      min="100"
                       max="50000"
                       value={manualRechargeAmount}
                       onChange={(e) => setManualRechargeAmount(e.target.value)}
-                      placeholder="Enter amount"
+                      placeholder="Enter amount (min ₹100)"
                       required
                       className="h-12 text-lg font-medium"
                     />

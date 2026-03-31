@@ -30,9 +30,9 @@ export async function POST(request: NextRequest) {
     const paymentMode = formData.get('payment_mode') as string || 'MANUAL_QR';
 
     // Validation
-    if (!amount || amount < 10) {
+    if (!amount || amount < 100) {
       return NextResponse.json(
-        { success: false, error: 'Minimum recharge amount is ₹10' },
+        { success: false, error: 'Minimum recharge amount is ₹100' },
         { status: 400, headers: corsHeaders }
       );
     }

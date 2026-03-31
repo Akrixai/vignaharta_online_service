@@ -50,8 +50,8 @@ export async function POST(request: NextRequest) {
     const baseAmount = parseFloat(amount);
 
     // Validate amount range
-    if (baseAmount < 10) {
-      return addCorsHeaders(NextResponse.json({ error: 'Minimum amount is ₹10' }, { status: 400 }));
+    if (baseAmount < 100) {
+      return addCorsHeaders(NextResponse.json({ error: 'Minimum amount is ₹100' }, { status: 400 }));
     }
 
     const gstPercentage = 2.00; // 2% GST
