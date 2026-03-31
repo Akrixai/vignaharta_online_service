@@ -23,8 +23,11 @@
     {
       "path": "/api/cron/pan-services-expiry",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/process-daily-charge",
+      "schedule": "0 1 * * *"
     }
-  
   ],
   "regions": ["bom1"],
   "framework": "nextjs",
