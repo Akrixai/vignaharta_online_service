@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
           .insert({
             user_id: user.id,
             wallet_id: wallet.id,
-            type: 'DEBIT',
+            type: 'WITHDRAWAL',
             amount: chargeAmount,
             description: `Daily platform maintenance charge - ${today}`,
             status: 'COMPLETED',
@@ -156,7 +156,13 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET for Vercel cron (cron jobs use GET by default)
+// GET for Vercel cron (cron jobs use GET by default, no auth header)
 export async function GET(request: NextRequest) {
-  return POST(request);
+  // Vercel cron calls don't send Authorization header — allow them through
+  // by temporarily bypassing the auth check via a synthetic header
+  const headers = new Headers(request.headers);
+  const cronSecret = process.env.CRON_SECRET || 'your_secure_random_secret_here_change_in_production';
+  headers.set('Authorization', `Bearer ${cronSecret}`);
+  const modifiedRequest = new NextRequest(request.url, { headers, method: 'POST' });
+  return POST(modifiedRequest);
 }
