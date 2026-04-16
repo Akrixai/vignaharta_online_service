@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import DashboardLayout from '@/components/dashboard/layout';
@@ -27,6 +27,14 @@ const PERIOD_GRADIENTS: Record<string, string> = {
 };
 
 export default function SubscriptionPage() {
+  return (
+    <Suspense fallback={null}>
+      <SubscriptionPageContent />
+    </Suspense>
+  );
+}
+
+function SubscriptionPageContent() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const [walletBalance, setWalletBalance] = useState(0);
