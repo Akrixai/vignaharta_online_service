@@ -63,6 +63,7 @@ export default function AdminServicesPage() {
     image_url: '',
     show_to_customer: false,
     customer_price: '',
+    subscription_price: '',
     available_states: ['ALL'] as string[]
   });
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -191,7 +192,8 @@ export default function AdminServicesPage() {
         required_documents: requiredDocuments,
         image_url: imageUrl,
         show_to_customer: formData.show_to_customer,
-        customer_price: formData.customer_price ? parseFloat(formData.customer_price) : null
+        customer_price: formData.customer_price ? parseFloat(formData.customer_price) : null,
+        subscription_price: formData.subscription_price ? parseFloat(formData.subscription_price) : null
       };
 
       // Add console logging for debugging dropdown options
@@ -253,6 +255,7 @@ export default function AdminServicesPage() {
       image_url: service.image_url || '',
       show_to_customer: service.show_to_customer === true,
       customer_price: service.customer_price?.toString() || '',
+      subscription_price: service.subscription_price?.toString() || '',
       available_states: service.available_states || ['ALL']
     });
     setDynamicFields(service.dynamic_fields || []);
@@ -357,6 +360,7 @@ export default function AdminServicesPage() {
       image_url: '',
       show_to_customer: false,
       customer_price: '',
+      subscription_price: '',
       available_states: ['ALL']
     });
     setDynamicFields([]);
@@ -703,6 +707,45 @@ export default function AdminServicesPage() {
                   </div>
                 </div>
 
+                {/* Subscription Price */}
+                <div className="md:col-span-2 border-t pt-4 mt-4">
+                  <div className="bg-purple-50 p-4 rounded-lg">
+                    <div className="mb-4">
+                      <h3 className="text-lg font-semibold text-purple-800">💎 Subscription Price</h3>
+                      <p className="text-sm text-purple-600">Set a discounted price for users who have an active subscription</p>
+                    </div>
+                    <div className="grid grid-cols-1 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-purple-700 mb-2">
+                          Subscriber Price (₹)
+                        </label>
+                        <input
+                          type="number"
+                          name="subscription_price"
+                          value={formData.subscription_price}
+                          onChange={handleInputChange}
+                          min="0"
+                          step="0.01"
+                          className="w-full px-4 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                          placeholder="Leave empty to use regular price for subscribers too"
+                        />
+                        <p className="text-xs text-purple-600 mt-1">
+                          Optional: Set a lower price for subscribed users. Leave empty to charge regular price (₹{formData.price || '0'}) to everyone.
+                        </p>
+                      </div>
+                      {formData.subscription_price && formData.price && (
+                        <div className="bg-white p-3 rounded border border-purple-200">
+                          <p className="text-sm text-purple-800">
+                            <strong>💡 Summary:</strong> Regular users pay <strong>₹{formData.price}</strong>,
+                            subscribed users pay <strong>₹{formData.subscription_price}</strong>
+                            {' '}(save ₹{(parseFloat(formData.price) - parseFloat(formData.subscription_price)).toFixed(2)}).
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-red-700 mb-2">Required Documents</label>
                   <input
@@ -1000,6 +1043,12 @@ export default function AdminServicesPage() {
                         {service.is_free ? 'FREE' : formatCurrency(service.price)}
                       </span>
                     </div>
+                    {service.subscription_price && !service.is_free && (
+                      <div className="flex justify-between">
+                        <span className="text-sm text-purple-600 flex items-center gap-1">💎 Sub Price:</span>
+                        <span className="font-medium text-purple-700">{formatCurrency(service.subscription_price)}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-500">Processing:</span>
                       <span className="font-medium">{service.processing_time_days} days</span>

@@ -40,7 +40,8 @@ export async function PUT(
       cashback_min_percentage,
       cashback_max_percentage,
       image_url,
-      is_active
+      is_active,
+      subscription_price
     } = body;
 
     // Ensure available_states is properly formatted
@@ -71,6 +72,7 @@ export async function PUT(
     if (cashback_max_percentage !== undefined) updateData.cashback_max_percentage = cashback_max_percentage || 0;
     if (image_url !== undefined) updateData.image_url = image_url || null;
     if (is_active !== undefined) updateData.is_active = is_active;
+    if (subscription_price !== undefined) updateData.subscription_price = subscription_price ? parseFloat(subscription_price) : null;
 
     const { data: service, error } = await supabaseAdmin
       .from('schemes')

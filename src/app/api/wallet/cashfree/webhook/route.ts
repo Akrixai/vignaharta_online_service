@@ -296,7 +296,114 @@ export async function POST(request: NextRequest) {
         return await handleRegistrationPaymentSuccess(registrationPayment, order, data);
       }
 
-      // ATOMIC CHECK: Use database-level locking to prevent race conditions
+      // ── SUBSCRIPTION PAYMENT (SUB_ prefix) ───────────────────────────────
+      if (paymentRecord.metadata?.type === 'SUBSCRIPTION' || order.order_id.startsWith('SUB_')) {
+        console.log('Processing subscription payment:', order.order_id);
+
+        // Atomic update — only process once
+        const { data: subUpdated } = await supabaseAdmin
+          .from('cashfree_payments')
+          .update({
+            status: 'PAID',
+            payment_method: order.payment_method,
+            payment_time: new Date().toISOString(),
+            webhook_data: data,
+            webhook_processed_at: new Date().toISOString(),
+          })
+          .eq('order_id', order.order_id)
+          .eq('status', 'CREATED')
+          .select();
+
+        if (!subUpdated || subUpdated.length === 0) {
+          console.log('Subscription payment already processed:', order.order_id);
+          return addCorsHeaders(NextResponse.json({ success: true, message: 'Already processed' }));
+        }
+
+        const planId = paymentRecord.metadata?.plan_id;
+        const userId = paymentRecord.user_id;
+        const baseAmount = paymentRecord.base_amount;
+
+        if (!planId) {
+          console.error('No plan_id in subscription metadata:', order.order_id);
+          return addCorsHeaders(NextResponse.json({ error: 'Missing plan_id' }, { status: 500 }));
+        }
+
+        const { data: plan } = await supabaseAdmin
+          .from('subscription_plans')
+          .select('*')
+          .eq('id', planId)
+          .single();
+
+        if (!plan) {
+          console.error('Plan not found:', planId);
+          return addCorsHeaders(NextResponse.json({ error: 'Plan not found' }, { status: 500 }));
+        }
+
+        const now = new Date();
+        const { data: existingSub } = await supabaseAdmin
+          .from('user_subscriptions')
+          .select('id, end_date')
+          .eq('user_id', userId)
+          .eq('status', 'ACTIVE')
+          .gte('end_date', now.toISOString())
+          .maybeSingle();
+
+        let endDate = existingSub ? new Date(existingSub.end_date) : new Date(now);
+        switch (plan.billing_period) {
+          case 'MONTHLY':     endDate.setMonth(endDate.getMonth() + 1); break;
+          case 'QUARTERLY':   endDate.setMonth(endDate.getMonth() + 3); break;
+          case 'HALF_YEARLY': endDate.setMonth(endDate.getMonth() + 6); break;
+          case 'YEARLY':      endDate.setFullYear(endDate.getFullYear() + 1); break;
+        }
+
+        if (existingSub) {
+          await supabaseAdmin
+            .from('user_subscriptions')
+            .update({ status: 'CANCELLED', updated_at: now.toISOString() })
+            .eq('id', existingSub.id);
+        }
+
+        const { data: newSub } = await supabaseAdmin
+          .from('user_subscriptions')
+          .insert({
+            user_id: userId,
+            plan_id: planId,
+            start_date: now.toISOString(),
+            end_date: endDate.toISOString(),
+            status: 'ACTIVE',
+            amount_paid: baseAmount,
+          })
+          .select()
+          .single();
+
+        await supabaseAdmin.from('transactions').insert({
+          user_id: userId,
+          type: 'DEBIT',
+          amount: baseAmount,
+          description: `Subscription via Cashfree: ${plan.name} (Base: ₹${baseAmount}, GST: ₹${paymentRecord.gst_amount}, Total: ₹${paymentRecord.amount})`,
+          status: 'COMPLETED',
+          reference: order.order_id,
+          metadata: {
+            type: 'SUBSCRIPTION',
+            plan_id: planId,
+            plan_name: plan.name,
+            payment_method: order.payment_method,
+            subscription_id: newSub?.id,
+          },
+        });
+
+        await supabaseAdmin.from('notifications').insert({
+          title: '🎉 Subscription Activated!',
+          message: `Your ${plan.name} subscription is now active until ${endDate.toLocaleDateString('en-IN')}.`,
+          type: 'SUBSCRIPTION_ACTIVATED',
+          target_users: [userId],
+          data: { plan_name: plan.name, end_date: endDate.toISOString(), amount_paid: baseAmount },
+        });
+
+        console.log('Subscription activated via webhook:', newSub?.id);
+        return addCorsHeaders(NextResponse.json({ success: true, message: 'Subscription activated' }));
+      }
+
       const { data: updateResult, error: updateError } = await supabaseAdmin
         .from('cashfree_payments')
         .update({

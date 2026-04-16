@@ -188,6 +188,8 @@ export default function WalletPage() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const fromPayment = urlParams.get('from_payment');
+    const rechargeAmount = urlParams.get('recharge');
+    const autoStart = urlParams.get('autostart');
     
     if (fromPayment === 'success') {
       // Force refresh after a short delay to allow webhook to process
@@ -198,6 +200,27 @@ export default function WalletPage() {
       }, 1000);
       
       return () => clearTimeout(timer);
+    }
+
+    // Handle subscription redirect: pre-fill amount and auto-open Cashfree
+    if (rechargeAmount) {
+      const amount = parseFloat(rechargeAmount);
+      if (!isNaN(amount) && amount >= 100) {
+        setAddMoneyAmount(rechargeAmount);
+        setShowCashfreeRecharge(true);
+        // Remove query params from URL
+        window.history.replaceState({}, '', '/dashboard/wallet');
+
+        // Auto-trigger payment if autostart=true
+        if (autoStart === 'true') {
+          // Small delay to let the component render and state settle
+          const autoTimer = setTimeout(() => {
+            const btn = document.getElementById('cashfree-pay-btn');
+            if (btn) (btn as HTMLButtonElement).click();
+          }, 800);
+          return () => clearTimeout(autoTimer);
+        }
+      }
     }
   }, []);
 
@@ -825,6 +848,7 @@ export default function WalletPage() {
                     Cancel
                   </Button>
                   <Button
+                    id="cashfree-pay-btn"
                     type="submit"
                     disabled={isAddingMoney || paymentLoading}
                     className="flex-1 h-12 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold shadow-lg transition-all duration-200"

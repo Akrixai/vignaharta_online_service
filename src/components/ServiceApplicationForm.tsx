@@ -217,7 +217,8 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
       return null;
     }
 
-    const baseAmount = service.price;
+    // Use subscription price if available (passed via service.effective_price)
+    const baseAmount = service.effective_price !== undefined ? service.effective_price : service.price;
     const gstPercentage = 2; // 2% GST
     const gstAmount = (baseAmount * gstPercentage) / 100;
     const platformFee = 5; // ₹5 platform fee
@@ -544,7 +545,7 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
         },
         documents: documentUrls,
         dynamic_field_documents: uploadedFiles,
-        amount: service.is_free ? 0 : service.price,
+        amount: service.is_free ? 0 : (service.effective_price !== undefined ? service.effective_price : service.price),
         fee_breakdown: feeBreakdown
       };
 

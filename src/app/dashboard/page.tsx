@@ -15,6 +15,8 @@ import DistrictManagerDashboard from '@/components/dashboard/DistrictManagerDash
 import SupervisorDashboard from '@/components/dashboard/SupervisorDashboard';
 import DistributorDashboard from '@/components/dashboard/DistributorDashboard';
 import RetailerGamification from '@/components/dashboard/RetailerGamification';
+import SubscriptionStatusCard from '@/components/SubscriptionStatusCard';
+import DashboardSubscriptionBanner from '@/components/DashboardSubscriptionBanner';
 
 export default function DashboardPage() {
   const { data: session } = useSession();
@@ -117,9 +119,12 @@ export default function DashboardPage() {
         </div>
 
 
+        {/* Subscription Status - for Retailers and Customers */}
+        {(user.role === UserRole.RETAILER || user.role === UserRole.CUSTOMER) && (
+          <DashboardSubscriptionBanner />
+        )}
         {/* Advertisement Carousel */}
-        <Card className="bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-300 shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-[1.02]">
-          <CardContent className="p-1">
+        <Card className="bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-300 shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-[1.02]">          <CardContent className="p-1">
             <div className="bg-white rounded-xl shadow-inner">
               <AdvertisementCarousel
                 position="dashboard"

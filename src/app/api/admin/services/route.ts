@@ -35,6 +35,7 @@ export async function GET(request: NextRequest) {
         cashback_enabled,
         cashback_min_percentage,
         cashback_max_percentage,
+        subscription_price,
         created_at,
         updated_at,
         created_by
@@ -84,7 +85,8 @@ export async function POST(request: NextRequest) {
       cashback_enabled,
       cashback_min_percentage,
       cashback_max_percentage,
-      image_url
+      image_url,
+      subscription_price
     } = body;
 
     if (!name || !description || price === undefined) {
@@ -119,6 +121,7 @@ export async function POST(request: NextRequest) {
         cashback_min_percentage: cashback_min_percentage || 0,
         cashback_max_percentage: cashback_max_percentage || 0,
         image_url: image_url || null,
+        subscription_price: subscription_price ? parseFloat(subscription_price) : null,
         created_by: user.id,
         is_active: true
       })

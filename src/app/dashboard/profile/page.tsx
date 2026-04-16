@@ -10,6 +10,7 @@ import ChangePasswordModal from '@/components/ChangePasswordModal';
 import ProfilePhotoUpload from '@/components/ProfilePhotoUpload';
 import { Lock, RefreshCw } from 'lucide-react';
 import { showToast } from '@/lib/toast';
+import SubscriptionStatusCard from '@/components/SubscriptionStatusCard';
 
 export default function ProfilePage() {
   const { data: session, update } = useSession();
@@ -601,6 +602,22 @@ export default function ProfilePage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Subscription Status - Only for Retailers and Customers */}
+        {(user.role === UserRole.RETAILER || user.role === UserRole.CUSTOMER) && (
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="bg-purple-100 rounded-xl p-2">
+                <span className="text-xl">💎</span>
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-800">Subscription</h2>
+                <p className="text-gray-500 text-sm">Manage your subscription plan</p>
+              </div>
+            </div>
+            <SubscriptionStatusCard />
+          </div>
+        )}
 
         {/* Quick Actions - Only for Admin */}
         {user.role === UserRole.ADMIN && (

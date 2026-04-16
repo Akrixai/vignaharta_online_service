@@ -33,6 +33,8 @@ import {
 import { formatCurrency } from '@/lib/utils';
 import ServiceApplicationForm from '@/components/ServiceApplicationForm';
 import StateFilter from '@/components/StateFilter';
+import SubscriptionModal from '@/components/SubscriptionModal';
+import { Crown } from 'lucide-react';
 import './services.css';
 
 // Component to handle URL parameters
@@ -85,11 +87,16 @@ export default function ServicesPage() {
   const [processingPayment, setProcessingPayment] = useState(false);
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
 
+  // Subscription state
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [pendingService, setPendingService] = useState<any>(null);
+
   // Fetch digital services
   const {
     data: services,
     loading: loadingServices,
     error: errorServices,
+    hasActiveSubscription,
     refresh: refreshServices
   } = useRealTimeServices(viewMode === 'GOVERNMENT', selectedState);
 
@@ -148,8 +155,43 @@ export default function ServicesPage() {
   const isCustomer = session.user.role === UserRole.CUSTOMER;
 
   const handleApplyService = (service: any) => {
-    setSelectedService(service);
+    // ALWAYS show subscription modal if user has no active subscription (for every service click)
+    if (!hasActiveSubscription) {
+      setPendingService(service);
+      setShowSubscriptionModal(true);
+      return;
+    }
+    // User has subscription — apply effective price and open form directly
+    const effectiveService = {
+      ...service,
+      effective_price: service.subscription_price ? service.subscription_price : service.price,
+    };
+    setSelectedService(effectiveService);
     setShowApplicationForm(true);
+  };
+
+  const handleContinueWithoutSubscription = () => {
+    setShowSubscriptionModal(false);
+    if (pendingService) {
+      setSelectedService({ ...pendingService, effective_price: pendingService.price });
+      setShowApplicationForm(true);
+      setPendingService(null);
+    }
+  };
+
+  const handleSubscribed = () => {
+    setShowSubscriptionModal(false);
+    if (pendingService) {
+      // After subscribing, use subscription price if available
+      setSelectedService({
+        ...pendingService,
+        effective_price: pendingService.subscription_price || pendingService.price,
+      });
+      setShowApplicationForm(true);
+      setPendingService(null);
+    }
+    // Refresh services to get updated subscription status
+    refreshServices();
   };
 
   const handleDirectLinkClick = (service: any) => {
@@ -411,6 +453,39 @@ export default function ServicesPage() {
 
         {/* Service Results */}
         <div className="mt-8">
+          {/* Subscription Banner - only for GOVERNMENT mode */}
+          {viewMode === 'GOVERNMENT' && !hasActiveSubscription && (
+            <div className="mb-6 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-700 rounded-2xl p-5 text-white flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl relative overflow-hidden">
+              <div className="absolute -top-4 -right-4 w-20 h-20 bg-white/10 rounded-full" />
+              <div className="absolute -bottom-3 -left-3 w-14 h-14 bg-white/10 rounded-full" />
+              <div className="relative flex items-center gap-4">
+                <div className="bg-yellow-400 rounded-2xl p-3 shadow-lg flex-shrink-0">
+                  <Crown className="w-7 h-7 text-yellow-900" />
+                </div>
+                <div>
+                  <h3 className="font-black text-lg">Subscribe & Save on Every Service!</h3>
+                  <p className="text-purple-200 text-sm">Services with 💎 badge have special subscriber prices. Plans from ₹299/month.</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowSubscriptionModal(true)}
+                className="relative bg-white text-purple-700 font-black px-6 py-3 rounded-xl hover:bg-purple-50 transition-all whitespace-nowrap flex-shrink-0 shadow-lg flex items-center gap-2"
+              >
+                <Crown className="w-4 h-4 text-yellow-500" /> View Plans
+              </button>
+            </div>
+          )}
+          {viewMode === 'GOVERNMENT' && hasActiveSubscription && (
+            <div className="mb-6 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-4 text-white flex items-center gap-3 shadow-md">
+              <div className="bg-yellow-400 rounded-xl p-2">
+                <Crown className="w-5 h-5 text-yellow-900" />
+              </div>
+              <div>
+                <p className="font-black text-sm">✅ Active Subscription — Subscriber prices applied automatically!</p>
+                <p className="text-green-100 text-xs">Services with 💎 show your discounted price.</p>
+              </div>
+            </div>
+          )}
           {loading ? (
             <div className="flex flex-col items-center justify-center py-24 bg-white rounded-2xl border border-red-100 shadow-sm">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
@@ -441,60 +516,48 @@ export default function ServicesPage() {
                 {paginatedItems.map((item) => (
                   viewMode === 'GOVERNMENT' ? (
                     <Card key={item.id} className="group hover:shadow-2xl transition-all duration-300 border border-red-100 flex flex-col">
-                      {item.image_url && (
-                        <div className="relative h-56 w-full overflow-hidden rounded-t-lg bg-gradient-to-br from-red-50 to-red-100">
+                      {/* Service image banner */}
+                      <div className={`relative h-56 w-full overflow-hidden rounded-t-lg ${item.image_url ? 'bg-gradient-to-br from-red-50 to-red-100' : 'bg-gradient-to-br from-red-50 via-red-100 to-red-200 flex items-center justify-center'}`}>
+                        {item.image_url ? (
                           <img
                             src={item.image_url}
                             alt={item.name}
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                             onError={(e) => {
                               (e.target as HTMLElement).style.display = 'none';
-                              // Show fallback gradient background
-                              const parent = (e.target as HTMLElement).parentElement;
-                              if (parent) {
-                                parent.innerHTML = `
-                                  <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-red-100 to-red-200">
-                                    <div class="text-center">
-                                      <div class="text-4xl mb-2 text-red-400">🏛️</div>
-                                      <p class="text-red-600 font-medium text-sm">Digital Service</p>
-                                    </div>
-                                  </div>
-                                `;
-                              }
                             }}
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-                          <div className="absolute top-4 right-4 shadow-xl">
-                            <div className={`px-4 py-2 rounded-full text-sm font-black border-2 border-white backdrop-blur-sm ${item.is_free ? 'bg-green-500/90 text-white' : 'bg-red-600/90 text-white'}`}>
-                              {item.is_free ? 'FREE' : formatCurrency(isCustomer && item.customer_price ? item.customer_price : item.price)}
-                            </div>
-                          </div>
-                          {item.cashback_enabled && isCustomer && (
-                            <div className="absolute top-4 left-4 bg-yellow-500/90 text-white px-3 py-1 rounded-full text-xs font-bold border-2 border-white backdrop-blur-sm">
-                              💰 Cashback Available
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      {!item.image_url && (
-                        <div className="relative h-56 w-full overflow-hidden rounded-t-lg bg-gradient-to-br from-red-50 via-red-100 to-red-200 flex items-center justify-center">
+                        ) : (
                           <div className="text-center">
                             <div className="text-6xl mb-3 text-red-400">🏛️</div>
                             <p className="text-red-600 font-bold text-lg">Digital Service</p>
                             <p className="text-red-500 text-sm mt-1">{item.category}</p>
                           </div>
-                          <div className="absolute top-4 right-4 shadow-xl">
-                            <div className={`px-4 py-2 rounded-full text-sm font-black border-2 border-white backdrop-blur-sm ${item.is_free ? 'bg-green-500/90 text-white' : 'bg-red-600/90 text-white'}`}>
-                              {item.is_free ? 'FREE' : formatCurrency(isCustomer && item.customer_price ? item.customer_price : item.price)}
-                            </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
+                        {/* Price badge */}
+                        <div className="absolute top-4 right-4 shadow-xl">
+                          <div className={`px-4 py-2 rounded-full text-sm font-black border-2 border-white backdrop-blur-sm ${item.is_free ? 'bg-green-500/90 text-white' : 'bg-red-600/90 text-white'}`}>
+                            {item.is_free ? 'FREE' : formatCurrency(
+                              isCustomer && item.customer_price
+                                ? item.customer_price
+                                : (hasActiveSubscription && item.subscription_price ? item.subscription_price : item.price)
+                            )}
                           </div>
-                          {item.cashback_enabled && isCustomer && (
-                            <div className="absolute top-4 left-4 bg-yellow-500/90 text-white px-3 py-1 rounded-full text-xs font-bold border-2 border-white backdrop-blur-sm">
-                              💰 Cashback Available
-                            </div>
-                          )}
                         </div>
-                      )}
+                        {/* Subscription badge */}
+                        {!item.is_free && item.subscription_price && (
+                          <div className="absolute top-4 left-4 bg-purple-600/90 text-white px-2 py-1 rounded-full text-xs font-bold border-2 border-white backdrop-blur-sm flex items-center gap-1">
+                            <Crown className="w-3 h-3 text-yellow-300" />
+                            {hasActiveSubscription ? `₹${item.subscription_price}` : `Sub: ₹${item.subscription_price}`}
+                          </div>
+                        )}
+                        {!item.subscription_price && item.cashback_enabled && isCustomer && (
+                          <div className="absolute top-4 left-4 bg-yellow-500/90 text-white px-3 py-1 rounded-full text-xs font-bold border-2 border-white backdrop-blur-sm">
+                            💰 Cashback Available
+                          </div>
+                        )}
+                      </div>
                       <CardHeader className="flex-none">
                         <div className="flex justify-between items-start gap-4">
                           <div>
@@ -508,25 +571,54 @@ export default function ServicesPage() {
                         </div>
                       </CardHeader>
                       <CardContent className="flex-1 flex flex-col">
-                        <p className="text-gray-600 text-sm mb-6 line-clamp-2">
+                        <p className="text-gray-600 text-sm mb-4 line-clamp-2">
                           {item.description}
                         </p>
-                        <div className="space-y-3 mb-6 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                        <div className="space-y-2 mb-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-500">Processing Time</span>
                             <span className="font-bold text-gray-900">{item.processing_time_days} Days</span>
                           </div>
-                          {isCustomer ? (
-                            item.cashback_enabled && (
-                              <div className="flex justify-between text-sm">
-                                <span className="text-gray-500">💰 Potential Cashback</span>
-                                <span className="font-bold text-green-600">{item.cashback_min_percentage}% - {item.cashback_max_percentage}%</span>
-                              </div>
-                            )
-                          ) : (
+                          {!item.is_free && (
+                            <>
+                              {/* Show price comparison */}
+                              {item.subscription_price ? (
+                                <>
+                                  <div className="flex justify-between text-sm">
+                                    <span className="text-gray-400 line-through">Regular Price</span>
+                                    <span className="text-gray-400 line-through">
+                                      ₹{isCustomer && item.customer_price ? item.customer_price : item.price}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between text-sm bg-purple-50 -mx-1 px-2 py-1 rounded-lg">
+                                    <span className="text-purple-700 font-semibold flex items-center gap-1">
+                                      <Crown className="w-3 h-3 text-yellow-500" />
+                                      {hasActiveSubscription ? 'Your Price' : 'Subscriber Price'}
+                                    </span>
+                                    <span className="font-black text-purple-700">₹{item.subscription_price}</span>
+                                  </div>
+                                  {!hasActiveSubscription && (
+                                    <div className="text-center">
+                                      <span className="text-xs text-green-600 font-semibold bg-green-50 px-2 py-0.5 rounded-full">
+                                        Save ₹{(parseFloat(isCustomer && item.customer_price ? item.customer_price : item.price) - parseFloat(item.subscription_price)).toFixed(0)} with subscription
+                                      </span>
+                                    </div>
+                                  )}
+                                </>
+                              ) : (
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-gray-500">Price</span>
+                                  <span className="font-bold text-red-600">
+                                    ₹{isCustomer && item.customer_price ? item.customer_price : item.price}
+                                  </span>
+                                </div>
+                              )}
+                            </>
+                          )}
+                          {isCustomer && item.cashback_enabled && (
                             <div className="flex justify-between text-sm">
-                              <span className="text-gray-500">Price</span>
-                              <span className="font-bold text-red-600">₹{item.price}</span>
+                              <span className="text-gray-500">💰 Cashback</span>
+                              <span className="font-bold text-green-600">{item.cashback_min_percentage}%–{item.cashback_max_percentage}%</span>
                             </div>
                           )}
                         </div>
@@ -722,6 +814,20 @@ export default function ServicesPage() {
           refresh();
         }}
       />
+
+      {/* Subscription Modal */}
+      {showSubscriptionModal && (
+        <SubscriptionModal
+          isOpen={showSubscriptionModal}
+          onClose={() => {
+            setShowSubscriptionModal(false);
+            setPendingService(null);
+          }}
+          onSubscribed={handleSubscribed}
+          onContinueWithoutSubscription={handleContinueWithoutSubscription}
+          walletBalance={walletBalance || 0}
+        />
+      )}
 
       {/* Direct Link Payment Modal */}
       {

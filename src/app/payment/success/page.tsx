@@ -12,12 +12,15 @@ function PaymentSuccessContent() {
   const router = useRouter();
   const orderId = searchParams.get('order_id');
   const amount = searchParams.get('amount');
+  const type = searchParams.get('type'); // 'subscription' | null
   const isRegistration = orderId?.startsWith('REG-');
+  const isSubscription = type === 'subscription' || orderId?.startsWith('SUB_');
   
   // Use a function to calculate initial state
   const [countdown, setCountdown] = useState(() => isRegistration ? 10 : 5);
   const [processing, setProcessing] = useState(isRegistration);
   const [error, setError] = useState<string | null>(null);
+  const [subscriptionReady, setSubscriptionReady] = useState(false);
 
   useEffect(() => {
     // Trigger confetti
@@ -30,11 +33,50 @@ function PaymentSuccessContent() {
 
     let redirectTimer: NodeJS.Timeout;
 
+    // ── SUBSCRIPTION PAYMENT ──────────────────────────────────────────────
+    if (isSubscription && orderId) {
+      // Poll for subscription activation (webhook may take a few seconds)
+      let pollCount = 0;
+      const maxPolls = 10;
+      const pollInterval = setInterval(async () => {
+        pollCount++;
+        try {
+          const res = await fetch('/api/subscriptions/my-subscription');
+          const d = await res.json();
+          if (d.success && d.subscription) {
+            clearInterval(pollInterval);
+            setSubscriptionReady(true);
+          }
+        } catch {}
+        if (pollCount >= maxPolls) {
+          clearInterval(pollInterval);
+          setSubscriptionReady(true); // Show success anyway
+        }
+      }, 1500);
+
+      // Countdown and redirect to dashboard
+      const timer = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            clearInterval(pollInterval);
+            window.location.href = '/dashboard?subscription=activated';
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => {
+        clearInterval(timer);
+        clearInterval(pollInterval);
+        if (redirectTimer) clearTimeout(redirectTimer);
+      };
+    }
+
     // For wallet payments, we don't need to verify here as webhooks handle processing
-    // Only log the success - webhook will handle the actual wallet crediting
-    if (!isRegistration && orderId) {
+    if (!isRegistration && !isSubscription && orderId) {
       console.log('Wallet payment success page loaded for order:', orderId);
-      console.log('Webhook will handle payment processing automatically');
     }
 
     // If registration, process it immediately
@@ -144,7 +186,7 @@ function PaymentSuccessContent() {
       processRegistration();
     }
 
-    // Countdown timer
+    // Countdown timer (for wallet and registration)
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
@@ -199,19 +241,24 @@ function PaymentSuccessContent() {
 
             {/* Success Message */}
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              {isRegistration ? 'Payment Successful!' : 'Payment Successful!'}
+              {isSubscription ? '🎉 Subscription Activated!' : isRegistration ? 'Payment Successful!' : 'Payment Successful!'}
             </h2>
             <p className="text-lg text-gray-600 mb-6">
-              {isRegistration 
+              {isSubscription
+                ? 'Your subscription is being activated. You will get discounted prices on all eligible services!'
+                : isRegistration
                 ? 'Your registration payment has been processed. Setting up your account...'
                 : 'Your wallet has been recharged successfully.'}
             </p>
 
             {/* Payment Details */}
             {amount && (
-              <div className="bg-green-50 p-4 rounded-lg mb-6">
+              <div className={`p-4 rounded-lg mb-6 ${isSubscription ? 'bg-purple-50 border border-purple-200' : 'bg-green-50'}`}>
                 <p className="text-sm text-gray-600 mb-1">Amount Paid</p>
-                <p className="text-3xl font-bold text-green-600">₹{amount}</p>
+                <p className={`text-3xl font-bold ${isSubscription ? 'text-purple-600' : 'text-green-600'}`}>₹{amount}</p>
+                {isSubscription && (
+                  <p className="text-xs text-gray-500 mt-1">Includes 2% GST</p>
+                )}
               </div>
             )}
 
@@ -219,6 +266,34 @@ function PaymentSuccessContent() {
               <div className="bg-gray-50 p-4 rounded-lg mb-6">
                 <p className="text-xs text-gray-500 mb-1">Order ID</p>
                 <p className="text-sm font-mono text-gray-700">{orderId}</p>
+              </div>
+            )}
+
+            {/* Subscription specific UI */}
+            {isSubscription && (
+              <div className={`p-4 rounded-lg mb-6 text-left ${subscriptionReady ? 'bg-purple-50 border border-purple-200' : 'bg-blue-50 border border-blue-200'}`}>
+                {subscriptionReady ? (
+                  <>
+                    <h3 className="font-bold text-purple-800 mb-2">✅ Subscription Active!</h3>
+                    <ul className="text-sm text-purple-700 space-y-1">
+                      <li>• Subscriber prices applied on eligible services</li>
+                      <li>• View your subscription in My Subscription page</li>
+                      <li>• Redirecting to dashboard...</li>
+                    </ul>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="font-bold text-blue-800 mb-2 flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                      Activating Subscription...
+                    </h3>
+                    <ul className="text-sm text-blue-700 space-y-1">
+                      <li>• Processing your payment</li>
+                      <li>• Activating subscriber benefits</li>
+                      <li>• Almost done...</li>
+                    </ul>
+                  </>
+                )}
               </div>
             )}
 
@@ -273,7 +348,7 @@ function PaymentSuccessContent() {
             {/* Auto Redirect */}
             {!processing && (
               <div className="text-sm text-gray-500 mb-4">
-                Redirecting to {isRegistration ? 'login' : 'wallet'} in {countdown} seconds...
+                Redirecting to {isSubscription ? 'dashboard' : isRegistration ? 'login' : 'wallet'} in {countdown} seconds...
               </div>
             )}
 
@@ -281,10 +356,27 @@ function PaymentSuccessContent() {
             <div className="space-y-3">
               {!processing && (
                 <button
-                  onClick={() => window.location.href = isRegistration ? '/login?registered=true' : '/dashboard/wallet?from_payment=success'}
-                  className="block w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 px-6 rounded-xl font-semibold hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg"
+                  onClick={() => window.location.href = isSubscription
+                    ? '/dashboard?subscription=activated'
+                    : isRegistration
+                    ? '/login?registered=true'
+                    : '/dashboard/wallet?from_payment=success'
+                  }
+                  className={`block w-full text-white py-3 px-6 rounded-xl font-semibold transition-all duration-200 shadow-lg ${
+                    isSubscription
+                      ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700'
+                      : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700'
+                  }`}
                 >
-                  {isRegistration ? 'Go to Login' : 'Go to Wallet'}
+                  {isSubscription ? '🏠 Go to Dashboard' : isRegistration ? 'Go to Login' : 'Go to Wallet'}
+                </button>
+              )}
+              {isSubscription && (
+                <button
+                  onClick={() => window.location.href = '/dashboard/subscription'}
+                  className="block w-full border-2 border-purple-300 text-purple-700 py-3 px-6 rounded-xl font-semibold hover:bg-purple-50 transition-all duration-200"
+                >
+                  💎 View My Subscription
                 </button>
               )}
               <button

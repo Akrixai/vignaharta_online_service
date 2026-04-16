@@ -132,6 +132,7 @@ export function useRealTimeServices(enabled = true, state?: string) {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
 
   const fetchServices = async () => {
     try {
@@ -151,6 +152,7 @@ export function useRealTimeServices(enabled = true, state?: string) {
       const result = await response.json();
       if (result.success) {
         setData(result.services || []);
+        setHasActiveSubscription(result.has_active_subscription || false);
       } else {
         throw new Error(result.error || 'Failed to fetch services');
       }
@@ -172,6 +174,7 @@ export function useRealTimeServices(enabled = true, state?: string) {
     data,
     loading,
     error,
+    hasActiveSubscription,
     refresh: fetchServices
   };
 }

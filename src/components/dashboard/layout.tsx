@@ -9,7 +9,7 @@ import PopupAdvertisement from '@/components/PopupAdvertisement';
 import NotificationBell from '@/components/NotificationBell';
 import PopupNotifications from '@/components/notifications/PopupNotifications';
 import ScreenNotifications from '@/components/ScreenNotifications';
-import { Wallet } from 'lucide-react';
+import { Wallet, Crown } from 'lucide-react';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -27,6 +27,7 @@ const menuItems: MenuItem[] = [
   { name: 'Wallet', href: '/dashboard/wallet', icon: '💰', roles: [UserRole.ADMIN, UserRole.RETAILER, UserRole.CUSTOMER] }, // Admin, Retailer, and Customer can access wallet
   { name: 'Wallet Transactions', href: '/dashboard/wallet-transactions', icon: '💳', roles: [UserRole.RETAILER, UserRole.CUSTOMER] }, // Detailed transaction history
   { name: 'Apply Services', href: '/dashboard/services', icon: '🔗', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
+  { name: 'My Subscription', href: '/dashboard/subscription', icon: '💎', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
   { name: 'Authorized Services', href: '/dashboard/services?tab=authorized', icon: '🔗', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
   { name: 'Draft Applications', href: '/dashboard/drafts', icon: '💾', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
   { name: 'My Applications', href: '/dashboard/applications', icon: '📋', roles: [UserRole.RETAILER, UserRole.CUSTOMER] },
@@ -86,6 +87,7 @@ const menuItems: MenuItem[] = [
   { name: 'Manage Applications', href: '/dashboard/admin/applications', icon: '📋', roles: [UserRole.ADMIN, UserRole.EMPLOYEE] },
   { name: 'Order Management', href: '/dashboard/orders', icon: '📋', roles: [UserRole.ADMIN, UserRole.EMPLOYEE] },
   { name: 'Manage Services', href: '/dashboard/admin/services', icon: '⚙️', roles: [UserRole.ADMIN] },
+  { name: 'Manage Subscriptions', href: '/dashboard/admin/subscriptions', icon: '💎', roles: [UserRole.ADMIN] },
   { name: 'Manage Free Services', href: '/dashboard/admin/free-services', icon: '🆓', roles: [UserRole.ADMIN] },
   { name: 'Free Services Analytics', href: '/dashboard/admin/free-services-analytics', icon: '📊', roles: [UserRole.ADMIN] },
   { name: 'Website Analytics', href: '/dashboard/admin/analytics', icon: '📈', roles: [UserRole.ADMIN] },
@@ -121,6 +123,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const [loadingWallet, setLoadingWallet] = useState(false);
+  const [subscription, setSubscription] = useState<any>(null);
 
   // Fetch wallet balance for retailers and customers
   useEffect(() => {
@@ -147,6 +150,20 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       // Refresh wallet balance every 30 seconds
       const interval = setInterval(fetchWalletBalance, 30000);
       return () => clearInterval(interval);
+    }
+  }, [session?.user?.role]);
+
+  // Fetch subscription status for retailers and customers
+  useEffect(() => {
+    if (session?.user?.role === UserRole.RETAILER || session?.user?.role === UserRole.CUSTOMER) {
+      const fetchSubscription = async () => {
+        try {
+          const res = await fetch('/api/subscriptions/my-subscription');
+          const data = await res.json();
+          if (data.success) setSubscription(data.subscription);
+        } catch {}
+      };
+      fetchSubscription();
     }
   }, [session?.user?.role]);
 
@@ -264,6 +281,57 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               </p>
             </div>
           </div>
+
+          {/* Subscription Badge — shown for retailers/customers */}
+          {(userRole === UserRole.RETAILER || userRole === UserRole.CUSTOMER) && (
+            <div className="mt-2.5">
+              {subscription ? (
+                <Link
+                  href="/dashboard/subscription"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setSidebarOpen(false);
+                    window.location.href = '/dashboard/subscription';
+                  }}
+                  className="block"
+                >
+                  <div className="flex items-center gap-2 bg-gradient-to-r from-yellow-400/20 to-amber-400/20 border border-yellow-400/40 rounded-xl px-2.5 py-1.5 hover:from-yellow-400/30 hover:to-amber-400/30 transition-all cursor-pointer group">
+                    <div className="bg-yellow-400 rounded-lg p-0.5 flex-shrink-0">
+                      <Crown className="w-3 h-3 text-yellow-900" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] font-black text-yellow-300 leading-tight truncate">{subscription.plan?.name || 'Subscribed'}</p>
+                      <p className="text-[9px] text-yellow-400/80 leading-tight">
+                        {Math.ceil((new Date(subscription.end_date).getTime() - Date.now()) / 86400000)}d left
+                      </p>
+                    </div>
+                    <span className="text-[8px] bg-green-500 text-white font-black px-1.5 py-0.5 rounded-full flex-shrink-0">ACTIVE</span>
+                  </div>
+                </Link>
+              ) : (
+                <Link
+                  href="/dashboard/subscription"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setSidebarOpen(false);
+                    window.location.href = '/dashboard/subscription';
+                  }}
+                  className="block"
+                >
+                  <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-2.5 py-1.5 hover:bg-white/10 transition-all cursor-pointer group">
+                    <div className="bg-purple-400/30 rounded-lg p-0.5 flex-shrink-0">
+                      <Crown className="w-3 h-3 text-purple-300" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] font-bold text-purple-300 leading-tight">Get Subscription</p>
+                      <p className="text-[9px] text-red-300/70 leading-tight">Save on services</p>
+                    </div>
+                    <span className="text-[8px] text-purple-300 font-bold group-hover:translate-x-0.5 transition-transform">→</span>
+                  </div>
+                </Link>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Make the center area (menu + ad + logout + branding) a single scrollable column so the scrollbar covers all items */}
@@ -287,14 +355,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
               {/* Services Section */}
               {filteredMenuItems.some(item =>
-                ['Apply Services', 'Draft Applications', 'My Applications', 'Service Receipts', 'Cashback Earnings', 'Commission Earnings'].includes(item.name)
+                ['Apply Services', 'My Subscription', 'Draft Applications', 'My Applications', 'Service Receipts', 'Cashback Earnings', 'Commission Earnings'].includes(item.name)
               ) && (
                   <>
                     <div className="pt-3 pb-1 px-2">
                       <h3 className="text-xs font-semibold text-red-300 uppercase tracking-wider">Services</h3>
                     </div>
                     {filteredMenuItems.filter(item =>
-                      ['Apply Services', 'Draft Applications', 'My Applications', 'Service Receipts', 'Cashback Earnings', 'Commission Earnings'].includes(item.name)
+                      ['Apply Services', 'My Subscription', 'Draft Applications', 'My Applications', 'Service Receipts', 'Cashback Earnings', 'Commission Earnings'].includes(item.name)
                     ).map((item) => (
                       <Link
                         key={item.name}
@@ -407,14 +475,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
               {/* Admin Management Section */}
               {(userRole === UserRole.ADMIN || userRole === UserRole.EMPLOYEE) && filteredMenuItems.some(item =>
-                ['Blog Management', 'Manage Products', 'Manage Training', 'Manage Recruitments', 'Manage Applications', 'Order Management', 'Manage Services', 'User Management', 'All Certificates', 'Transactions', 'Wallet Approvals', 'Refund Management'].includes(item.name)
+                ['Blog Management', 'Manage Products', 'Manage Training', 'Manage Recruitments', 'Manage Applications', 'Order Management', 'Manage Services', 'Manage Subscriptions', 'User Management', 'All Certificates', 'Transactions', 'Wallet Approvals', 'Refund Management'].includes(item.name)
               ) && (
                   <>
                     <div className="pt-3 pb-1 px-2">
                       <h3 className="text-xs font-semibold text-yellow-300 uppercase tracking-wider">Admin - Management</h3>
                     </div>
                     {filteredMenuItems.filter(item =>
-                      ['Blog Management', 'Manage Products', 'Manage Training', 'Manage Recruitments', 'Manage Applications', 'Order Management', 'Manage Services', 'Manage Free Services', 'User Management', 'All Certificates', 'Transactions', 'Wallet Approvals', 'Refund Management'].includes(item.name)
+                      ['Blog Management', 'Manage Products', 'Manage Training', 'Manage Recruitments', 'Manage Applications', 'Order Management', 'Manage Services', 'Manage Subscriptions', 'Manage Free Services', 'User Management', 'All Certificates', 'Transactions', 'Wallet Approvals', 'Refund Management'].includes(item.name)
                     ).map((item) => (
                       <Link
                         key={item.name}
