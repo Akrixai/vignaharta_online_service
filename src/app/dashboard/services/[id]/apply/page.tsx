@@ -103,7 +103,9 @@ export default function ServiceApplicationPage() {
           draft_data: {
             formData,
             uploadedFiles,
-            documents: documents.map(d => d.name)
+            documents: documents.map(d => d.name),
+            // Persist effective_price so subscription pricing survives draft resume
+            effective_price: service?.effective_price !== undefined ? service.effective_price : service?.price
           },
           progress_percentage: progress,
           current_step: currentStep,
@@ -144,6 +146,10 @@ export default function ServiceApplicationPage() {
           if (draft.draft_data) {
             setFormData(draft.draft_data.formData || formData);
             setUploadedFiles(draft.draft_data.uploadedFiles || {});
+            // Restore effective_price saved at draft time so subscription pricing is preserved
+            if (draft.draft_data.effective_price !== undefined) {
+              setService((prev: any) => prev ? { ...prev, effective_price: draft.draft_data.effective_price } : prev);
+            }
           }
           showToast.info('Draft loaded', {
             description: 'Continue where you left off'
@@ -313,7 +319,8 @@ export default function ServiceApplicationPage() {
       return null;
     }
 
-    const baseAmount = service.is_free ? 0 : service.price;
+    // Use effective_price (subscription price) when available, fall back to regular price
+    const baseAmount = service.is_free ? 0 : (service.effective_price !== undefined ? service.effective_price : service.price);
     const gstPercentage = 2; // 2% GST
     const gstAmount = (baseAmount * gstPercentage) / 100;
     const platformFee = 5; // ₹5 platform fee
@@ -439,7 +446,7 @@ export default function ServiceApplicationPage() {
         },
         documents: documentUrls,
         dynamic_field_documents: uploadedFiles,
-        amount: isReapply ? 0 : (service.is_free ? 0 : service.price),
+        amount: isReapply ? 0 : (service.is_free ? 0 : (service.effective_price !== undefined ? service.effective_price : service.price)),
         is_reapply: isReapply,
         original_application_id: reapplyData?.originalApplicationId,
         fee_breakdown: feeBreakdown

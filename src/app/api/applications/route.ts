@@ -149,13 +149,46 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Scheme not found' }, { status: 404 });
     }
 
+    // Check if user has an active subscription — use subscription_price if so
+    const now = new Date().toISOString();
+    const { data: activeSubscription } = await supabaseAdmin
+      .from('user_subscriptions')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('status', 'ACTIVE')
+      .gte('end_date', now)
+      .limit(1)
+      .maybeSingle();
+
+    // Determine the effective base price: subscription price takes priority when active
+    const effectiveBasePrice =
+      !scheme.is_free && activeSubscription && scheme.subscription_price != null
+        ? parseFloat(scheme.subscription_price)
+        : parseFloat(scheme.price);
+
     // Calculate fee breakdown if not provided
     let calculatedFeeBreakdown = fee_breakdown;
-    if (!calculatedFeeBreakdown && !scheme.is_free && scheme.price > 0) {
-      const baseAmount = scheme.price;
+    if (!calculatedFeeBreakdown && !scheme.is_free && effectiveBasePrice > 0) {
+      const baseAmount = effectiveBasePrice;
       const gstPercentage = 2; // 2% GST
       const gstAmount = (baseAmount * gstPercentage) / 100;
       const platformFee = 5; // ₹5 platform fee
+      const totalAmount = baseAmount + gstAmount + platformFee;
+
+      calculatedFeeBreakdown = {
+        base_amount: parseFloat(baseAmount.toFixed(2)),
+        gst_percentage: gstPercentage,
+        gst_amount: parseFloat(gstAmount.toFixed(2)),
+        platform_fee: platformFee,
+        total_amount: parseFloat(totalAmount.toFixed(2))
+      };
+    } else if (calculatedFeeBreakdown && !scheme.is_free) {
+      // Even if fee_breakdown was sent from frontend, recalculate server-side
+      // to prevent any tampering and ensure subscription price is applied correctly
+      const baseAmount = effectiveBasePrice;
+      const gstPercentage = 2;
+      const gstAmount = (baseAmount * gstPercentage) / 100;
+      const platformFee = 5;
       const totalAmount = baseAmount + gstAmount + platformFee;
 
       calculatedFeeBreakdown = {
@@ -260,7 +293,7 @@ export async function POST(request: NextRequest) {
         customer_phone,
         customer_email,
         customer_address,
-        amount: amount || (scheme.is_free ? 0 : scheme.price),
+        amount: scheme.is_free ? 0 : effectiveBasePrice,
         base_amount: calculatedFeeBreakdown?.base_amount || 0,
         gst_percentage: calculatedFeeBreakdown?.gst_percentage || 0,
         gst_amount: calculatedFeeBreakdown?.gst_amount || 0,
@@ -358,7 +391,7 @@ export async function POST(request: NextRequest) {
             scheme_name: scheme.name,
             customer_name,
             retailer_name: user.name,
-            amount: amount || (scheme.is_free ? 0 : scheme.price),
+            amount: scheme.is_free ? 0 : effectiveBasePrice,
             is_reapply: is_reapply,
             original_application_id: original_application_id
           },

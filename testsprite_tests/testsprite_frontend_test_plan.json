@@ -1,0 +1,1889 @@
+[
+  {
+    "id": "TC001",
+    "title": "Log in as a valid user and reach the dashboard",
+    "description": "Verifies a user can log in with valid credentials and is taken to the dashboard successfully.",
+    "category": "Authentication",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email or mobile field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user lands on the dashboard"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC002",
+    "title": "Register a new user account",
+    "description": "Verifies a new user can register successfully and is taken to an authenticated entry point (or prompted to log in) after account creation.",
+    "category": "Authentication",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /register"
+      },
+      {
+        "type": "action",
+        "description": "Fill a new unique name into the name field"
+      },
+      {
+        "type": "action",
+        "description": "Fill a new unique email into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill a new unique mobile number into the mobile field"
+      },
+      {
+        "type": "action",
+        "description": "Fill a strong password into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the registration form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a successful registration outcome is shown by landing on an authenticated area or being redirected to the login page"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC003",
+    "title": "Prevent access to dashboard when not authenticated",
+    "description": "Verifies unauthenticated users cannot access the dashboard and are redirected to authentication.",
+    "category": "Dashboard",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user is redirected to the login page or shown an authentication gate"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC004",
+    "title": "Complete wallet-funded mobile recharge from operator detection to submission",
+    "description": "Verifies a logged-in user can detect operator, browse plans, submit a mobile recharge, and see a resulting recharge record/status in the UI.",
+    "category": "Mobile Recharge",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation option to open mobile recharge"
+      },
+      {
+        "type": "action",
+        "description": "Fill a valid mobile number into the mobile number field"
+      },
+      {
+        "type": "action",
+        "description": "Trigger operator detection for the entered mobile number"
+      },
+      {
+        "type": "action",
+        "description": "Open plan browsing for the detected operator and circle"
+      },
+      {
+        "type": "action",
+        "description": "Select a valid plan amount"
+      },
+      {
+        "type": "action",
+        "description": "Submit the recharge request"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a recharge submission confirmation or initiated status is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the recharge appears in the user’s recent recharge/transactions list"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC005",
+    "title": "View wallet balance and transaction history",
+    "description": "Verifies a logged-in user can view wallet balance and see the wallet transaction history list.",
+    "category": "Wallet Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email or mobile field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation option to open wallet management"
+      },
+      {
+        "type": "action",
+        "description": "Click the option to view wallet transactions"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the wallet balance is displayed and a transactions list is shown"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC006",
+    "title": "Complete wallet-funded bill payment from biller selection to payment initiation",
+    "description": "Verifies a logged-in user can choose a bill category, fetch bill details for a biller, and initiate a bill payment with a visible receipt/status record.",
+    "category": "Bill Payments",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation option to open an electricity bill payment page"
+      },
+      {
+        "type": "action",
+        "description": "Select a biller from the biller list"
+      },
+      {
+        "type": "action",
+        "description": "Fill valid consumer/billing parameters required by the selected biller"
+      },
+      {
+        "type": "action",
+        "description": "Fetch the bill details"
+      },
+      {
+        "type": "action",
+        "description": "Verify the bill details section is populated and an amount is available to pay"
+      },
+      {
+        "type": "action",
+        "description": "Submit the bill payment"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a bill payment confirmation or initiated status is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the payment appears in the user’s recent bill payments/transactions list"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC007",
+    "title": "Submit a new PAN application and verify it appears in history",
+    "description": "Verifies a logged-in user can submit a new PAN application and then see the new application listed in PAN history.",
+    "category": "PAN Card Services",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation option to open the new PAN application page"
+      },
+      {
+        "type": "action",
+        "description": "Fill valid applicant details into the PAN application form fields"
+      },
+      {
+        "type": "action",
+        "description": "Provide required document details using in-form inputs where available"
+      },
+      {
+        "type": "action",
+        "description": "Submit the PAN application"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation option to open PAN history"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a new PAN application entry appears in the history list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new entry shows a trackable application status or reference identifier"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC008",
+    "title": "Access admin dashboard as an admin",
+    "description": "An admin can sign in and access the admin area where user management and analytics are available.",
+    "category": "Admin Panel",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation entry to open the admin area"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an admin dashboard view is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify admin management sections such as users or analytics are visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC009",
+    "title": "View dashboard stats and wallet summary when logged in",
+    "description": "Verifies a logged-in user can see dashboard statistics and wallet summary information rendered.",
+    "category": "Dashboard",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email or mobile field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify dashboard statistics and a wallet balance summary are displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC010",
+    "title": "Show an error for invalid login credentials",
+    "description": "Verifies the app blocks login with invalid credentials and displays a visible authentication error.",
+    "category": "Authentication",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email or mobile field with invalid-user@example.com"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with wrong-password"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a login error is visible and the user remains unauthenticated"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC011",
+    "title": "Browse services and submit a government service application",
+    "description": "A signed-in user can choose a government service, submit an application, and sees a confirmation that the application was created.",
+    "category": "Government Services Applications",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation entry to view government services"
+      },
+      {
+        "type": "action",
+        "description": "Select a service from the services list"
+      },
+      {
+        "type": "action",
+        "description": "Start an application for the selected service"
+      },
+      {
+        "type": "action",
+        "description": "Fill in valid required applicant details in the application form"
+      },
+      {
+        "type": "action",
+        "description": "Submit the application"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an application submission confirmation is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC012",
+    "title": "Purchase a subscription plan and see active subscription",
+    "description": "Verifies a signed-in user can purchase a subscription plan and then see it reflected as their active subscription.",
+    "category": "Subscription Plans",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the subscription plans page"
+      },
+      {
+        "type": "action",
+        "description": "Select a subscription plan"
+      },
+      {
+        "type": "action",
+        "description": "Confirm the subscription purchase"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user’s active subscription is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC013",
+    "title": "Create an add-money request and see it reflected in transaction history",
+    "description": "Verifies a user can initiate adding money to the wallet and the created transaction appears in wallet transaction history.",
+    "category": "Wallet Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email or mobile field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation option to open wallet management"
+      },
+      {
+        "type": "action",
+        "description": "Click the option to add money to wallet"
+      },
+      {
+        "type": "action",
+        "description": "Fill a valid amount into the amount field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the add-money form"
+      },
+      {
+        "type": "action",
+        "description": "Click the option to view wallet transactions"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a new wallet transaction entry for the add-money request is present in the list"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC014",
+    "title": "Check status of a PAN application from history",
+    "description": "Verifies a user can open a PAN application from history and retrieve its latest status in the UI.",
+    "category": "PAN Card Services",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation option to open the new PAN application page"
+      },
+      {
+        "type": "action",
+        "description": "Fill valid applicant details into the PAN application form fields"
+      },
+      {
+        "type": "action",
+        "description": "Provide required document details using in-form inputs where available"
+      },
+      {
+        "type": "action",
+        "description": "Submit the PAN application"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation option to open PAN history"
+      },
+      {
+        "type": "action",
+        "description": "Open the newly created PAN application entry"
+      },
+      {
+        "type": "action",
+        "description": "Trigger status check for the opened application"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify current PAN application status details are displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC015",
+    "title": "View admin users list",
+    "description": "An admin can open the user management section and sees a list of users.",
+    "category": "Admin Panel",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation entry to open the admin area"
+      },
+      {
+        "type": "action",
+        "description": "Open the admin users management section"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a users list is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC016",
+    "title": "Block withdrawal request when amount exceeds available balance",
+    "description": "Verifies the wallet withdrawal form prevents submitting an amount greater than the current wallet balance and shows an insufficient-balance error.",
+    "category": "Wallet Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email or mobile field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation option to open wallet management"
+      },
+      {
+        "type": "action",
+        "description": "Note the currently displayed wallet balance amount"
+      },
+      {
+        "type": "action",
+        "description": "Click the option to request a wallet withdrawal"
+      },
+      {
+        "type": "action",
+        "description": "Fill an amount greater than the displayed balance into the amount field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the withdrawal request"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an insufficient-balance validation error is visible and no withdrawal request is created"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC017",
+    "title": "Prevent mobile recharge submission with missing required fields",
+    "description": "Verifies the mobile recharge form blocks submission when required details are missing and shows a validation error.",
+    "category": "Mobile Recharge",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation option to open mobile recharge"
+      },
+      {
+        "type": "action",
+        "description": "Fill a valid mobile number into the mobile number field"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to submit the recharge request without selecting required details"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a validation error is visible indicating required fields are missing"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC018",
+    "title": "Prevent bill payment when required bill parameters are missing",
+    "description": "Verifies the bill payment flow blocks fetch or payment when required consumer parameters are missing and shows a validation error.",
+    "category": "Bill Payments",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation option to open an electricity bill payment page"
+      },
+      {
+        "type": "action",
+        "description": "Select a biller from the biller list"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to fetch bill details without filling required consumer parameters"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a validation error is visible indicating required parameters are missing"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC019",
+    "title": "View details for a submitted government service application",
+    "description": "A signed-in user can open an application they just submitted and sees the application details view.",
+    "category": "Government Services Applications",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation entry to view government services"
+      },
+      {
+        "type": "action",
+        "description": "Select a service from the services list"
+      },
+      {
+        "type": "action",
+        "description": "Start an application for the selected service"
+      },
+      {
+        "type": "action",
+        "description": "Fill in valid required applicant details in the application form"
+      },
+      {
+        "type": "action",
+        "description": "Submit the application"
+      },
+      {
+        "type": "action",
+        "description": "Open the newly created application from the post-submission view"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the application details are displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC020",
+    "title": "Prevent PAN application submission when required inputs are missing",
+    "description": "Verifies the new PAN application form blocks submission when required fields or required document details are missing and shows validation feedback.",
+    "category": "PAN Card Services",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation option to open the new PAN application page"
+      },
+      {
+        "type": "action",
+        "description": "Fill only a subset of required applicant details"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to submit the PAN application"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a validation error is visible indicating required inputs are missing"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC021",
+    "title": "Prevent mobile recharge submission with invalid amount",
+    "description": "Verifies the mobile recharge form rejects an invalid amount and keeps the user on the form with a validation error.",
+    "category": "Mobile Recharge",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation option to open mobile recharge"
+      },
+      {
+        "type": "action",
+        "description": "Fill a valid mobile number into the mobile number field"
+      },
+      {
+        "type": "action",
+        "description": "Trigger operator detection for the entered mobile number"
+      },
+      {
+        "type": "action",
+        "description": "Fill an invalid amount into the amount field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the recharge request"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an amount validation error is visible"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC022",
+    "title": "View admin analytics",
+    "description": "An admin can open the analytics section and sees platform analytics data rendered.",
+    "category": "Admin Panel",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation entry to open the admin area"
+      },
+      {
+        "type": "action",
+        "description": "Open the analytics section"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify analytics data is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC023",
+    "title": "Place an order as an authenticated user",
+    "description": "Verifies an authenticated user can place an order successfully and sees an order confirmation.",
+    "category": "Products & E-commerce",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation entry to view products"
+      },
+      {
+        "type": "action",
+        "description": "Click a product from the list"
+      },
+      {
+        "type": "action",
+        "description": "Add the product to the cart"
+      },
+      {
+        "type": "action",
+        "description": "Proceed to checkout"
+      },
+      {
+        "type": "action",
+        "description": "Fill in valid shipping details"
+      },
+      {
+        "type": "action",
+        "description": "Select an available payment method"
+      },
+      {
+        "type": "action",
+        "description": "Submit the order"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an order confirmation is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC024",
+    "title": "Prevent subscription purchase when not signed in",
+    "description": "Verifies an unauthenticated visitor is blocked from purchasing a subscription plan and is prompted to sign in.",
+    "category": "Subscription Plans",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the subscription plans page"
+      },
+      {
+        "type": "action",
+        "description": "Select a subscription plan"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to confirm the subscription purchase"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user is prompted to sign in to continue"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC025",
+    "title": "Create an employee and see it in the employees list",
+    "description": "An authorized user can create an employee and then sees the employee appear in the employees list.",
+    "category": "Employee Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation entry to open employee management"
+      },
+      {
+        "type": "action",
+        "description": "Start creating a new employee"
+      },
+      {
+        "type": "action",
+        "description": "Fill a unique employee name into the name field"
+      },
+      {
+        "type": "action",
+        "description": "Fill a valid email into the employee email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill other required employee fields with valid values"
+      },
+      {
+        "type": "action",
+        "description": "Submit the create employee form"
+      },
+      {
+        "type": "action",
+        "description": "Open the employees list view"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the employees list includes the newly created employee name"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC026",
+    "title": "Generate a referral code and apply it on another account",
+    "description": "Verifies a user can generate a referral code, then a different signed-in user can submit it and see the referral applied.",
+    "category": "Referral System",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the referrals page"
+      },
+      {
+        "type": "action",
+        "description": "Generate a new referral code"
+      },
+      {
+        "type": "action",
+        "description": "Record the generated referral code value for later use"
+      },
+      {
+        "type": "action",
+        "description": "Log out"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER_2}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD_2}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the referrals page"
+      },
+      {
+        "type": "action",
+        "description": "Fill the recorded referral code into the referral code field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the referral code"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a referral applied confirmation is visible"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC027",
+    "title": "Validate required fields on registration",
+    "description": "Verifies the registration form prevents submission when required fields are missing and shows validation feedback.",
+    "category": "Authentication",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /register"
+      },
+      {
+        "type": "action",
+        "description": "Fill a new unique email into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the registration form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify required-field validation errors are visible and the account is not created"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC028",
+    "title": "View admin applications list",
+    "description": "An admin can open the applications section and sees a list of submitted applications.",
+    "category": "Admin Panel",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation entry to open the admin area"
+      },
+      {
+        "type": "action",
+        "description": "Open the applications management section"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an applications list is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC029",
+    "title": "View notifications list as an authenticated user",
+    "description": "Verifies an authenticated user can open notifications and see a list or an empty state.",
+    "category": "Notifications",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation entry to open notifications"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify notifications are displayed or an empty state is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC030",
+    "title": "View wallet withdrawal requests in admin",
+    "description": "An admin can open the wallet withdrawal requests area and sees a list of withdrawal requests.",
+    "category": "Admin Panel",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation entry to open the admin area"
+      },
+      {
+        "type": "action",
+        "description": "Open the wallet withdrawal requests section"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a wallet withdrawal requests list is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC031",
+    "title": "Prevent government service application submission with missing required information",
+    "description": "A signed-in user cannot submit a government service application with missing required fields and sees a validation error.",
+    "category": "Government Services Applications",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation entry to view government services"
+      },
+      {
+        "type": "action",
+        "description": "Select a service from the services list"
+      },
+      {
+        "type": "action",
+        "description": "Start an application for the selected service"
+      },
+      {
+        "type": "action",
+        "description": "Clear at least one required field in the application form"
+      },
+      {
+        "type": "action",
+        "description": "Submit the application"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a form validation error is visible"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC032",
+    "title": "Browse product catalog",
+    "description": "Verifies a user can open the product catalog and see a list of available products displayed.",
+    "category": "Products & E-commerce",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the products listing page"
+      },
+      {
+        "type": "action",
+        "description": "Wait for the product list to load"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a list of products is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC033",
+    "title": "Browse subscription plans",
+    "description": "Verifies a visitor can open the subscription plans page and see a list of available plans displayed.",
+    "category": "Subscription Plans",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the subscription plans page"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify subscription plans are displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC034",
+    "title": "Browse available operators and view plans without submitting recharge",
+    "description": "Verifies a user can browse the operator list, select an operator/circle, and view a plans list in the UI.",
+    "category": "Mobile Recharge",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation option to open mobile recharge"
+      },
+      {
+        "type": "action",
+        "description": "Open the operator selection control"
+      },
+      {
+        "type": "action",
+        "description": "Select an operator from the available list"
+      },
+      {
+        "type": "action",
+        "description": "Select a circle from the available list"
+      },
+      {
+        "type": "action",
+        "description": "Open plan browsing for the selected operator and circle"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a list of recharge plans is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC035",
+    "title": "Mark a notification as read",
+    "description": "Verifies an authenticated user can mark a notification as read and sees its read state update in the UI.",
+    "category": "Notifications",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation entry to open notifications"
+      },
+      {
+        "type": "action",
+        "description": "If a notification is unread, select it"
+      },
+      {
+        "type": "action",
+        "description": "Mark the notification as read"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the notification is shown as read"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC036",
+    "title": "View product details from catalog",
+    "description": "Verifies a user can open a product detail view from the product catalog and see product details displayed.",
+    "category": "Products & E-commerce",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the products listing page"
+      },
+      {
+        "type": "action",
+        "description": "Click a product from the list"
+      },
+      {
+        "type": "action",
+        "description": "Wait for the product details to load"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify product details are displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC037",
+    "title": "Validate withdrawal request amount is required and valid",
+    "description": "Verifies the wallet withdrawal form enforces entering a valid amount and shows validation feedback for empty or invalid input.",
+    "category": "Wallet Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email or mobile field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation option to open wallet management"
+      },
+      {
+        "type": "action",
+        "description": "Click the option to request a wallet withdrawal"
+      },
+      {
+        "type": "action",
+        "description": "Clear the amount field so it is empty"
+      },
+      {
+        "type": "action",
+        "description": "Submit the withdrawal request"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an amount validation error is visible and the form is not submitted"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC038",
+    "title": "Switch bill categories and load corresponding biller lists",
+    "description": "Verifies a user can navigate between different bill categories and see the biller list update for each category.",
+    "category": "Bill Payments",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation option to open the electricity bill payment page"
+      },
+      {
+        "type": "action",
+        "description": "Verify billers for the current category are displayed"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation option to open the gas bill payment page"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify billers for the new category are displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC039",
+    "title": "View employee hierarchy",
+    "description": "A signed-in user can open the hierarchy view and sees the employee hierarchy rendered.",
+    "category": "Employee Management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation entry to open employee management"
+      },
+      {
+        "type": "action",
+        "description": "Open the hierarchy view"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an employee hierarchy view is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC040",
+    "title": "Block order submission with incomplete shipping information",
+    "description": "Verifies the checkout form prevents order submission when required shipping fields are missing and shows validation feedback.",
+    "category": "Products & E-commerce",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation entry to view products"
+      },
+      {
+        "type": "action",
+        "description": "Click a product from the list"
+      },
+      {
+        "type": "action",
+        "description": "Add the product to the cart"
+      },
+      {
+        "type": "action",
+        "description": "Proceed to checkout"
+      },
+      {
+        "type": "action",
+        "description": "Clear a required shipping field"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to submit the order"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a shipping validation error is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC041",
+    "title": "Show validation error for invalid referral code submission",
+    "description": "Verifies a signed-in user who submits an invalid or expired referral code sees a validation error and no referral is applied.",
+    "category": "Referral System",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the referrals page"
+      },
+      {
+        "type": "action",
+        "description": "Fill an invalid referral code into the referral code field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the referral code"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a referral code validation error is visible"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC042",
+    "title": "Prevent checkout when cart is empty",
+    "description": "Verifies the user cannot proceed to place an order without any items in the cart and sees a blocking empty-cart state.",
+    "category": "Products & E-commerce",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the cart or checkout page"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to proceed to checkout without adding any items"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an empty-cart state or blocking validation is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC043",
+    "title": "Mark a notification as unread",
+    "description": "Verifies an authenticated user can mark a previously read notification as unread and sees its unread state update in the UI.",
+    "category": "Notifications",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation entry to open notifications"
+      },
+      {
+        "type": "action",
+        "description": "If a notification is read, select it"
+      },
+      {
+        "type": "action",
+        "description": "Mark the notification as unread"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the notification is shown as unread"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC044",
+    "title": "Comment on a blog post as an authenticated user",
+    "description": "Verifies an authenticated user can submit a comment on a blog post and sees the new comment displayed.",
+    "category": "Blog",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation entry to open the blog"
+      },
+      {
+        "type": "action",
+        "description": "Click a blog post from the list"
+      },
+      {
+        "type": "action",
+        "description": "Fill a comment into the comment field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the comment"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new comment is displayed on the post"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC045",
+    "title": "Submit contact form successfully",
+    "description": "Verifies a visitor can submit the contact form with valid details and sees a confirmation that the message was sent.",
+    "category": "Public Pages & Contact",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the contact page"
+      },
+      {
+        "type": "action",
+        "description": "Fill in a name into the name field"
+      },
+      {
+        "type": "action",
+        "description": "Fill in a valid email into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill in a message into the message field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the contact form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a message sent confirmation is visible"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC046",
+    "title": "Read a blog post",
+    "description": "Verifies a user can browse blog posts and open a post to read its content.",
+    "category": "Blog",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the blog listing page"
+      },
+      {
+        "type": "action",
+        "description": "Wait for the posts list to load"
+      },
+      {
+        "type": "action",
+        "description": "Click a blog post from the list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the blog post content is displayed"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC047",
+    "title": "Validate contact form email format",
+    "description": "Verifies the contact form blocks submission when the email format is invalid and shows an email validation error.",
+    "category": "Public Pages & Contact",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the contact page"
+      },
+      {
+        "type": "action",
+        "description": "Fill in a name into the name field"
+      },
+      {
+        "type": "action",
+        "description": "Fill in an invalid email into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill in a message into the message field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the contact form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an email validation error is visible"
+      }
+    ],
+    "priority": "Low"
+  }
+]

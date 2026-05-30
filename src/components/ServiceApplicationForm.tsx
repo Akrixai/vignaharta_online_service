@@ -99,7 +99,9 @@ export default function ServiceApplicationForm({ service, isOpen, onClose, onSuc
           draft_data: {
             formData,
             uploadedFiles,
-            documents: documents.map(d => d.name)
+            documents: documents.map(d => d.name),
+            // Persist effective_price so subscription pricing survives draft resume
+            effective_price: service.effective_price !== undefined ? service.effective_price : service.price
           },
           progress_percentage: progress,
           current_step: currentStep,

@@ -102,7 +102,7 @@ export default function Footer() {
               <p className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">Download Our App</p>
               <div className="flex flex-col sm:flex-row gap-3">
                 <a
-                  href="https://loadly.io/BfNgJcFj"
+                  href="https://play.google.com/store/apps/details?id=com.vighnaharta.recharge"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-block transform hover:scale-105 transition-all active:scale-95"
@@ -111,21 +111,6 @@ export default function Footer() {
                     <Image
                       src="/goggle-play.png"
                       alt="Get it on Google Play"
-                      fill
-                      className="object-contain"
-                    />
-                  </div>
-                </a>
-                <a
-                  href="https://www.indusappstore.com/apps/tools/vighnaharta-one/com.vighnhartaonlineservices.app?page=details&id=com.vighnhartaonlineservices.app"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block transform hover:scale-105 transition-all active:scale-95"
-                >
-                  <div className="relative w-36 h-12">
-                    <Image
-                      src="/indusappstore.jpg"
-                      alt="Get it on Indus App Store"
                       fill
                       className="object-contain"
                     />

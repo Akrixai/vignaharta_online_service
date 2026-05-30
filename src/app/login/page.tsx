@@ -379,6 +379,46 @@ function LoginPageContent() {
                 </Link>
               </div>
             </div>
+
+            {/* Play Store Download Banner */}
+            <div className="relative overflow-hidden rounded-2xl shadow-xl border border-green-200">
+              {/* Background gradient */}
+              <div className="absolute inset-0 bg-gradient-to-br from-[#0f9d58] via-[#1a7a3c] to-[#0d6e4e]"></div>
+              {/* Decorative circles */}
+              <div className="absolute -top-6 -right-6 w-24 h-24 bg-white/10 rounded-full"></div>
+              <div className="absolute -bottom-4 -left-4 w-16 h-16 bg-white/10 rounded-full"></div>
+
+              <div className="relative z-10 p-4 flex items-center gap-4">
+                {/* App Icon placeholder */}
+                <div className="flex-shrink-0 w-14 h-14 bg-white rounded-2xl shadow-lg flex items-center justify-center">
+                  <span className="text-2xl">📱</span>
+                </div>
+
+                {/* Text */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-white font-bold text-sm leading-tight">Vighnaharta One App</p>
+                  <p className="text-green-200 text-xs mt-0.5">Manage services on the go</p>
+                  <div className="flex items-center gap-1 mt-1">
+                    <span className="text-yellow-300 text-xs">★★★★★</span>
+                    <span className="text-green-200 text-xs">50K+ Downloads</span>
+                  </div>
+                </div>
+
+                {/* Play Store Button */}
+                <a
+                  href="https://play.google.com/store/apps/details?id=com.vighnaharta.recharge"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-shrink-0 flex items-center gap-2 bg-white text-[#0f9d58] font-bold text-xs px-3 py-2 rounded-xl shadow-md hover:bg-green-50 hover:shadow-lg transition-all transform hover:scale-105 active:scale-95 border border-green-100"
+                >
+                  {/* Google Play SVG icon */}
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3.18 23.76c.37.21.8.22 1.19.04l12.12-6.99-2.64-2.64-10.67 9.59zM.5 1.5C.19 1.87 0 2.4 0 3.07v17.86c0 .67.19 1.2.5 1.57l.08.08 10-10v-.24L.58 1.42.5 1.5zM20.37 10.26l-2.73-1.57-2.96 2.96 2.96 2.96 2.74-1.58c.78-.45.78-1.32-.01-1.77zM4.37.2L16.49 7.19l-2.64 2.64L3.18.24C3.57.06 4 .07 4.37.2z"/>
+                  </svg>
+                  <span>Get it on<br/><span className="text-[11px] font-extrabold">Google Play</span></span>
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </div>

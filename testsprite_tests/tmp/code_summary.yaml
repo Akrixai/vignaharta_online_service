@@ -1,0 +1,454 @@
+version: "2"
+type: frontend
+tech_stack:
+  - language: TypeScript
+  - framework: Next.js 15 (App Router)
+  - database: Supabase (PostgreSQL)
+  - styling: Tailwind CSS v4
+  - auth: JWT + NextAuth
+  - payments: Cashfree, Razorpay
+  - recharge: KwikAPI
+  - pan_services: InsPay
+  - ui: Radix UI, Framer Motion, Lucide React
+features:
+  - name: Authentication
+    description: User login, registration, password reset, and session management for customers, retailers, and admins
+    files:
+      - src/app/login/page.tsx
+      - src/app/register/page.tsx
+      - src/app/forgot-password/page.tsx
+      - src/app/reset-password/page.tsx
+      - src/app/api/auth/login/route.ts
+      - src/app/api/auth/register/route.ts
+      - src/app/api/auth/forgot-password/route.ts
+      - src/app/api/auth/reset-password/route.ts
+      - src/lib/auth.ts
+    endpoints:
+      - method: POST
+        path: /api/auth/login
+        description: Login with mobile/email and password
+        auth_required: false
+        response_schema:
+          "200": token, user
+          "401": Invalid credentials
+      - method: POST
+        path: /api/auth/register
+        description: Register new user
+        auth_required: false
+        response_schema:
+          "200": user created
+          "400": Validation error
+      - method: POST
+        path: /api/auth/forgot-password
+        description: Send password reset email
+        auth_required: false
+        response_schema:
+          "200": email sent
+      - method: POST
+        path: /api/auth/reset-password
+        description: Reset password with token
+        auth_required: false
+        response_schema:
+          "200": password updated
+  - name: Dashboard
+    description: User dashboard with stats, wallet balance, services, and navigation
+    files:
+      - src/app/dashboard/page.tsx
+      - src/app/api/dashboard/stats/route.ts
+      - src/components/dashboard/layout.tsx
+    endpoints:
+      - method: GET
+        path: /api/dashboard/stats
+        description: Get dashboard statistics for logged-in user
+        auth_required: true
+        response_schema:
+          "200": stats object
+          "401": Unauthorized
+  - name: Wallet Management
+    description: Add money to wallet, view balance, withdraw, and transaction history
+    files:
+      - src/app/api/wallet/route.ts
+      - src/app/api/wallet/add-money/route.ts
+      - src/app/api/wallet/balance/route.ts
+      - src/app/api/wallet/transactions/route.ts
+      - src/app/api/wallet/withdraw/route.ts
+      - src/app/api/wallet/create-order/route.ts
+      - src/app/api/wallet/cashfree/create-order/
+      - src/app/api/wallet/cashfree/verify-payment/route.ts
+    endpoints:
+      - method: GET
+        path: /api/wallet
+        description: Get wallet info for current user
+        auth_required: true
+        response_schema:
+          "200": wallet balance and details
+      - method: POST
+        path: /api/wallet/add-money
+        description: Add money to wallet
+        auth_required: true
+        request_schema:
+          body:
+            amount: number
+        response_schema:
+          "200": transaction created
+      - method: GET
+        path: /api/wallet/balance
+        description: Get current wallet balance
+        auth_required: true
+        response_schema:
+          "200": balance
+      - method: GET
+        path: /api/wallet/transactions
+        description: Get wallet transaction history
+        auth_required: true
+        response_schema:
+          "200": transactions array
+      - method: POST
+        path: /api/wallet/withdraw
+        description: Request wallet withdrawal
+        auth_required: true
+        response_schema:
+          "200": withdrawal request created
+  - name: Mobile Recharge
+    description: Prepaid and postpaid mobile recharge with operator detection and plan browsing
+    files:
+      - src/app/dashboard/recharge/mobile/page.tsx
+      - src/app/dashboard/recharge/mobile-postpaid/page.tsx
+      - src/app/api/recharge/process/route.ts
+      - src/app/api/recharge/operators/route.ts
+      - src/app/api/recharge/plans/route.ts
+      - src/app/api/recharge/detect-operator/route.ts
+      - src/app/api/kwikapi/recharge/route.ts
+    endpoints:
+      - method: POST
+        path: /api/recharge/process
+        description: Process mobile recharge
+        auth_required: true
+        request_schema:
+          body:
+            mobile: string
+            operator: string
+            amount: number
+            circle: string
+        response_schema:
+          "200": recharge initiated
+          "400": Validation error
+      - method: GET
+        path: /api/recharge/operators
+        description: Get list of recharge operators
+        auth_required: false
+        response_schema:
+          "200": operators array
+      - method: GET
+        path: /api/recharge/plans
+        description: Get recharge plans for operator
+        auth_required: false
+        response_schema:
+          "200": plans array
+      - method: POST
+        path: /api/recharge/detect-operator
+        description: Auto-detect operator from mobile number
+        auth_required: false
+        response_schema:
+          "200": operator info
+  - name: Bill Payments
+    description: Electricity, gas, water, DTH, cable TV, and FASTag bill payments
+    files:
+      - src/app/dashboard/recharge/electricity/page.tsx
+      - src/app/dashboard/recharge/gas/page.tsx
+      - src/app/dashboard/recharge/water/page.tsx
+      - src/app/dashboard/recharge/datacard/page.tsx
+      - src/app/dashboard/recharge/cabletv/page.tsx
+      - src/app/api/kwikapi/bill-fetch/route.ts
+      - src/app/api/kwikapi/bill-payment/route.ts
+      - src/app/api/kwikapi/billers/route.ts
+    endpoints:
+      - method: POST
+        path: /api/kwikapi/bill-fetch
+        description: Fetch bill details for a consumer
+        auth_required: true
+        request_schema:
+          body:
+            billerId: string
+            params: object
+        response_schema:
+          "200": bill details
+      - method: POST
+        path: /api/kwikapi/bill-payment
+        description: Pay a bill
+        auth_required: true
+        request_schema:
+          body:
+            billerId: string
+            amount: number
+            params: object
+        response_schema:
+          "200": payment initiated
+      - method: GET
+        path: /api/kwikapi/billers
+        description: Get list of billers by category
+        auth_required: false
+        response_schema:
+          "200": billers array
+  - name: PAN Card Services
+    description: New PAN application, PAN correction, and incomplete PAN services via InsPay
+    files:
+      - src/app/dashboard/pan-services/new/page.tsx
+      - src/app/dashboard/pan-services/history/page.tsx
+      - src/app/api/pan-services/new-pan/route.ts
+      - src/app/api/pan-services/pan-correction/route.ts
+      - src/app/api/pan-services/incomplete-pan/route.ts
+      - src/app/api/pan-services/history/route.ts
+      - src/app/api/pan-services/check-status/route.ts
+      - src/lib/inspay.ts
+    endpoints:
+      - method: POST
+        path: /api/pan-services/new-pan
+        description: Submit new PAN card application
+        auth_required: true
+        response_schema:
+          "200": application submitted
+      - method: POST
+        path: /api/pan-services/pan-correction
+        description: Submit PAN correction request
+        auth_required: true
+        response_schema:
+          "200": correction submitted
+      - method: GET
+        path: /api/pan-services/history
+        description: Get PAN service history for user
+        auth_required: true
+        response_schema:
+          "200": history array
+      - method: GET
+        path: /api/pan-services/check-status
+        description: Check status of PAN application
+        auth_required: true
+        response_schema:
+          "200": status info
+  - name: Government Services Applications
+    description: Apply for various government services with document upload and status tracking
+    files:
+      - src/app/dashboard/services/page.tsx
+      - src/app/dashboard/services/[id]/apply/page.tsx
+      - src/app/api/services/route.ts
+      - src/app/api/applications/route.ts
+      - src/app/api/applications/[id]/route.ts
+      - src/components/ServiceApplicationForm.tsx
+    endpoints:
+      - method: GET
+        path: /api/services
+        description: Get list of available services
+        auth_required: false
+        response_schema:
+          "200": services array
+      - method: POST
+        path: /api/applications
+        description: Submit a service application
+        auth_required: true
+        response_schema:
+          "200": application created
+      - method: GET
+        path: /api/applications/[id]
+        description: Get application details
+        auth_required: true
+        response_schema:
+          "200": application object
+  - name: Admin Panel
+    description: Admin dashboard for managing users, services, applications, payments, and analytics
+    files:
+      - src/app/admin/login/page.tsx
+      - src/app/dashboard/admin/
+      - src/app/api/admin/users/route.ts
+      - src/app/api/admin/services/route.ts
+      - src/app/api/admin/applications/route.ts
+      - src/app/api/admin/analytics/route.ts
+      - src/app/api/admin/wallet-requests/route.ts
+      - src/app/api/admin/platform-fees/route.ts
+    endpoints:
+      - method: GET
+        path: /api/admin/users
+        description: Get all users (admin only)
+        auth_required: true
+        response_schema:
+          "200": users array
+      - method: GET
+        path: /api/admin/analytics
+        description: Get platform analytics
+        auth_required: true
+        response_schema:
+          "200": analytics data
+      - method: GET
+        path: /api/admin/applications
+        description: Get all applications
+        auth_required: true
+        response_schema:
+          "200": applications array
+      - method: GET
+        path: /api/admin/wallet-requests
+        description: Get wallet withdrawal requests
+        auth_required: true
+        response_schema:
+          "200": requests array
+  - name: Employee Management
+    description: Create and manage employees, hierarchy, referrals, and documents
+    files:
+      - src/app/dashboard/employees/page.tsx
+      - src/app/api/employees/create/route.ts
+      - src/app/api/employees/list/route.ts
+      - src/app/api/employees/hierarchy/route.ts
+      - src/app/api/employees/referrals/route.ts
+    endpoints:
+      - method: POST
+        path: /api/employees/create
+        description: Create a new employee
+        auth_required: true
+        response_schema:
+          "200": employee created
+      - method: GET
+        path: /api/employees/list
+        description: Get list of employees
+        auth_required: true
+        response_schema:
+          "200": employees array
+      - method: GET
+        path: /api/employees/hierarchy
+        description: Get employee hierarchy tree
+        auth_required: true
+        response_schema:
+          "200": hierarchy object
+  - name: Products & E-commerce
+    description: Browse and purchase products with order management
+    files:
+      - src/app/products/[id]/page.tsx
+      - src/app/api/products/route.ts
+      - src/app/api/products/[id]/route.ts
+      - src/app/api/orders/route.ts
+    endpoints:
+      - method: GET
+        path: /api/products
+        description: Get all products
+        auth_required: false
+        response_schema:
+          "200": products array
+      - method: GET
+        path: /api/products/[id]
+        description: Get product details
+        auth_required: false
+        response_schema:
+          "200": product object
+      - method: POST
+        path: /api/orders
+        description: Create a new order
+        auth_required: true
+        response_schema:
+          "200": order created
+  - name: Notifications
+    description: In-app notifications with read/unread status management
+    files:
+      - src/app/api/notifications/route.ts
+      - src/app/api/notifications/[id]/route.ts
+    endpoints:
+      - method: GET
+        path: /api/notifications
+        description: Get notifications for current user
+        auth_required: true
+        response_schema:
+          "200": notifications array
+      - method: PATCH
+        path: /api/notifications/[id]
+        description: Mark notification as read
+        auth_required: true
+        response_schema:
+          "200": updated
+  - name: Blog
+    description: Blog posts with comments, likes, and shares
+    files:
+      - src/app/blog/
+      - src/app/api/blog/posts/route.ts
+      - src/app/api/blog/comments/route.ts
+      - src/app/api/blog/likes/route.ts
+    endpoints:
+      - method: GET
+        path: /api/blog/posts
+        description: Get all blog posts
+        auth_required: false
+        response_schema:
+          "200": posts array
+      - method: POST
+        path: /api/blog/comments
+        description: Add comment to a post
+        auth_required: true
+        response_schema:
+          "200": comment created
+  - name: Subscription Plans
+    description: Subscription plan management and purchase
+    files:
+      - src/app/api/subscriptions/plans/route.ts
+      - src/app/api/subscriptions/purchase/route.ts
+      - src/app/api/subscriptions/my-subscription/route.ts
+    endpoints:
+      - method: GET
+        path: /api/subscriptions/plans
+        description: Get available subscription plans
+        auth_required: false
+        response_schema:
+          "200": plans array
+      - method: POST
+        path: /api/subscriptions/purchase
+        description: Purchase a subscription plan
+        auth_required: true
+        response_schema:
+          "200": subscription created
+      - method: GET
+        path: /api/subscriptions/my-subscription
+        description: Get current user subscription
+        auth_required: true
+        response_schema:
+          "200": subscription object
+  - name: Referral System
+    description: Generate and submit referral codes for rewards
+    files:
+      - src/app/api/referrals/generate-code/route.ts
+      - src/app/api/referrals/submit/route.ts
+    endpoints:
+      - method: POST
+        path: /api/referrals/generate-code
+        description: Generate a referral code
+        auth_required: true
+        response_schema:
+          "200": referral code
+      - method: POST
+        path: /api/referrals/submit
+        description: Submit a referral code
+        auth_required: true
+        response_schema:
+          "200": referral applied
+  - name: Public Pages
+    description: Landing page, about, contact, services, careers, FAQ, and legal pages
+    files:
+      - src/app/page.tsx
+      - src/app/about/
+      - src/app/contact/
+      - src/app/services/
+      - src/app/careers/
+      - src/app/faq/
+      - src/app/privacy/
+      - src/app/terms/
+    endpoints:
+      - method: POST
+        path: /api/public/contact
+        description: Submit contact form
+        auth_required: false
+        response_schema:
+          "200": message sent
+known_limitations:
+  - issue: Some admin routes may lack granular role-based access control checks
+    location: src/app/api/admin/
+    impact: Potential unauthorized access if JWT is compromised
+  - issue: Recharge callback handling relies on external KwikAPI webhooks
+    location: src/app/api/recharge/callback/route.ts
+    impact: Failed callbacks may leave transactions in pending state
+  - issue: PAN service wallet deduction may have race conditions
+    location: src/app/api/pan-services/new-pan/route.ts
+    impact: Double deduction risk under concurrent requests

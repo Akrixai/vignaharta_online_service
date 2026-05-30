@@ -228,7 +228,7 @@ function AppDownloadSection() {
 
             <div className="flex flex-col sm:flex-row gap-6 pt-4">
               <a
-                href="https://loadly.io/BfNgJcFj"
+                href="https://play.google.com/store/apps/details?id=com.vighnaharta.recharge"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group relative inline-flex items-center justify-center transition-all transform hover:scale-105 active:scale-95 px-6 py-3 bg-white rounded-2xl shadow-xl"
@@ -237,21 +237,6 @@ function AppDownloadSection() {
                   <Image
                     src="/goggle-play.png"
                     alt="Download on Google Play"
-                    fill
-                    className="object-contain"
-                  />
-                </div>
-              </a>
-              <a
-                href="https://www.indusappstore.com/apps/tools/vighnaharta-one/com.vighnhartaonlineservices.app?page=details&id=com.vighnhartaonlineservices.app"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group relative inline-flex items-center justify-center transition-all transform hover:scale-105 active:scale-95 px-6 py-3 bg-white rounded-2xl shadow-xl"
-              >
-                <div className="relative w-40 h-10">
-                  <Image
-                    src="/indusappstore.jpg"
-                    alt="Download on Indus App Store"
                     fill
                     className="object-contain"
                   />

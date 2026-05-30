@@ -376,21 +376,31 @@ export async function POST(request: NextRequest) {
           .select()
           .single();
 
-        await supabaseAdmin.from('transactions').insert({
-          user_id: userId,
-          type: 'DEBIT',
-          amount: baseAmount,
-          description: `Subscription via Cashfree: ${plan.name} (Base: ₹${baseAmount}, GST: ₹${paymentRecord.gst_amount}, Total: ₹${paymentRecord.amount})`,
-          status: 'COMPLETED',
-          reference: order.order_id,
-          metadata: {
-            type: 'SUBSCRIPTION',
-            plan_id: planId,
-            plan_name: plan.name,
-            payment_method: order.payment_method,
-            subscription_id: newSub?.id,
-          },
-        });
+        // Fetch wallet_id (required NOT NULL field on transactions)
+        const { data: userWallet } = await supabaseAdmin
+          .from('wallets')
+          .select('id')
+          .eq('user_id', userId)
+          .single();
+
+        if (userWallet) {
+          await supabaseAdmin.from('transactions').insert({
+            user_id: userId,
+            wallet_id: userWallet.id,
+            type: 'WITHDRAWAL', // 'DEBIT' is not a valid transaction_type enum value
+            amount: baseAmount,
+            description: `Subscription via Cashfree: ${plan.name} (Base: ₹${baseAmount}, GST: ₹${paymentRecord.gst_amount}, Total: ₹${paymentRecord.amount})`,
+            status: 'COMPLETED',
+            reference: order.order_id,
+            metadata: {
+              type: 'SUBSCRIPTION',
+              plan_id: planId,
+              plan_name: plan.name,
+              payment_method: order.payment_method,
+              subscription_id: newSub?.id,
+            },
+          });
+        }
 
         await supabaseAdmin.from('notifications').insert({
           title: '🎉 Subscription Activated!',

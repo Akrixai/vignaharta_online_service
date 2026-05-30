@@ -99,7 +99,8 @@ export async function POST(request: NextRequest) {
       .from('transactions')
       .insert({
         user_id: user.id,
-        type: 'DEBIT',
+        wallet_id: wallet.id,
+        type: 'WITHDRAWAL', // 'DEBIT' is not a valid transaction_type enum value
         amount: planAmount,
         description: `Subscription purchase: ${plan.name}`,
         status: 'COMPLETED',

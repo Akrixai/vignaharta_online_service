@@ -15,6 +15,15 @@
       "autoApprove": [
         "execute_sql"
       ]
+    },
+    "TestSprite": {
+      "command": "npx",
+      "args": [
+        "@testsprite/testsprite-mcp@latest"
+      ],
+      "env": {
+        "API_KEY": "sk-user-vWWwUw6L_fBwOeiFPQ90_B7QuQxwmua0SS4ANPqO9q0FVbr1Ao-qVDnp-VA_P42n2Rt736znBBqlM0D6l733haDViT7I5t8TC3WgtFAz24_p0z7q-hz7Eu_LpuDmyZkev2w"
+      }
     }
   }
 }

@@ -1,0 +1,20 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:3000",
+  "backendAuthType": "basic token",
+  "backendUsername": "AkrixRetailerTest@gmail.com",
+  "backendPassword": "12345678",
+  "executionArgs": {
+    "projectName": "vignaharta_online_service-master",
+    "projectPath": "d:\\akrix-project\\vighnharta\\git_vighnaharta\\vignaharta_online_service-master",
+    "testIds": [],
+    "additionalInstruction": "This is a full-stack Next.js 15 app for Vighnaharta Online Services - a digital services platform for bill payments, mobile recharge, PAN card services, government service applications, and wallet management. Test all major user flows including login, dashboard, recharge, bill payments, PAN services, wallet, and admin panel. Use development server running at http://localhost:3000.",
+    "serverMode": "development",
+    "envs": {
+      "API_KEY": "sk-user-vWWwUw6L_fBwOeiFPQ90_B7QuQxwmua0SS4ANPqO9q0FVbr1Ao-qVDnp-VA_P42n2Rt736znBBqlM0D6l733haDViT7I5t8TC3WgtFAz24_p0z7q-hz7Eu_LpuDmyZkev2w"
+    }
+  },
+  "serverPort": 55798
+}

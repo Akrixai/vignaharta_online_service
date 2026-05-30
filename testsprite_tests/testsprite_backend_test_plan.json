@@ -1,0 +1,52 @@
+[
+  {
+    "id": "TC001",
+    "title": "postapiauthloginwithvalidandinvalidcredentials",
+    "description": "Test POST /api/auth/login endpoint with valid credentials to receive 200 and token with user data, and with invalid credentials to receive 401 Invalid credentials."
+  },
+  {
+    "id": "TC002",
+    "title": "postapiauthregisterwithvalidandinvaliddata",
+    "description": "Test POST /api/auth/register endpoint with valid new user details to receive 200 user created, and with invalid data to receive 400 Validation error."
+  },
+  {
+    "id": "TC003",
+    "title": "postapiauthforgotpasswordsendemail",
+    "description": "Test POST /api/auth/forgot-password endpoint with registered email to receive 200 email sent."
+  },
+  {
+    "id": "TC004",
+    "title": "postapiauthresetpasswordwithvalidtoken",
+    "description": "Test POST /api/auth/reset-password endpoint with valid reset token and new password to receive 200 password updated."
+  },
+  {
+    "id": "TC005",
+    "title": "getapidashboardstatswithvalidandinvalidjwt",
+    "description": "Test GET /api/dashboard/stats endpoint with valid JWT to receive 200 stats object, and without or invalid JWT to receive 401 Unauthorized."
+  },
+  {
+    "id": "TC006",
+    "title": "postapirechargeprocesswithvalidandinvalidpayload",
+    "description": "Test POST /api/recharge/process endpoint with valid mobile recharge data and JWT to receive 200 recharge initiated, and with missing required fields or invalid amount to receive 400 Validation error."
+  },
+  {
+    "id": "TC007",
+    "title": "postapikwikapibillpaymentwithvalidandinvalidparams",
+    "description": "Test POST /api/kwikapi/bill-payment endpoint with valid bill payment data and JWT to receive 200 payment initiated, and with missing parameters to receive 400 Validation error."
+  },
+  {
+    "id": "TC008",
+    "title": "postapipanservicesnewpanwithvalidandinvalidpayload",
+    "description": "Test POST /api/pan-services/new-pan endpoint with valid application payload and JWT to receive 200 application submitted, and with missing documents or invalid payload to receive 400 Validation error."
+  },
+  {
+    "id": "TC009",
+    "title": "postapiapplicationswithcompleteandincompletedocuments",
+    "description": "Test POST /api/applications endpoint with complete document set and JWT to receive 200 application created, and with incomplete document set to receive 400 Validation error."
+  },
+  {
+    "id": "TC010",
+    "title": "getapiadminuserswithadminandnonadminjwt",
+    "description": "Test GET /api/admin/users endpoint with admin JWT to receive 200 users array, and with non-admin or insufficiently privileged JWT to receive 403 Forbidden."
+  }
+]
